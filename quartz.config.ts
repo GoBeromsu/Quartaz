@@ -29,6 +29,7 @@ const config: QuartzConfig = {
       "70. Settings",
     ],
     defaultDateType: "created",
+    generateSocialImages: false,
     theme: {
       fontOrigin: "local",
       cdnCaching: true,
