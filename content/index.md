@@ -1,30 +1,15 @@
 ---
-tags: [public]
-aliases: [📚 043 Digital Garden, Digital Garden]
-image: https://media.licdn.com/dms/image/v2/D5603AQEgZ40AhsQ1Lg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1728503647723?e=1733961600&v=beta&t=k87lOA6QVJctNlqW7FeD_QOVjiK4NfDTigw5iCj_-1U
-github: https://github.com/GoBeromsu
-email: gobeumsu@gmail.com
-linkedin: https://www.linkedin.com/in/beomsu-koh-b45146266/
-twitter: https://x.com/BeromArtDev
 title: Home
-CV: true
-up:
-  - "[[CV Project]]"
-date_created: 2024-09-24
-Habitus:
-  - "[[◦ Knowledge]]"
-  - "[[◦ Social]]"
-persona:
-  - "[[🔥 Programmer]]"
-  - "[[🔥 Sound]]"
+enableToC: "false"
+hideTitle: "true"
 ---
 
+![](_attachments/Home.jpeg)
 > 설렘으로 선을 이루자, 그렇게 탁월해지자
 
 - Currently a Developer & Postgraduate
 - 🚀 Interested in Productivity, LLM, Obsidian
-## Work
-Beomsu Koh is a solo developer with a passion for creating programs that solve real-world problems. He focuses on building software that reflects his values, aiming to help others while addressing his own challenges through programming and AI. Beomsu enjoys the entire process—from the initial idea to the final solution—constantly learning and growing along the way. As a Digital craftsman, striving to live a meaningful life by nurturing his projects as if they were his own children.
+
 ## Bio
 - **1999**
 	- Born in Yeosu, South Korea
@@ -38,6 +23,8 @@ Beomsu Koh is a solo developer with a passion for creating programs that solve r
 Sound Engineering, Playing Guitar, Writing, Reading book
 
 ## On the Web
+- 2025 
+	- University of Sheffield PGT Computer Science
 - 2024
 	- [Metadata-Auto-Classifier](https://github.com/GoBeromsu/Metadata-Auto-Classifier)
 	- Advacned Network Lab
