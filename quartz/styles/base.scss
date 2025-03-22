@@ -244,6 +244,11 @@ a {
         padding: 0;
       }
     }
+    & .center > * {
+      justify-self: center;
+      width: 100%;
+      max-width: calc(100% - 2rem);
+    }
 
     & .center > article {
       grid-area: grid-center;
