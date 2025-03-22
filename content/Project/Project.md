@@ -1,6 +1,6 @@
 ---
-tags:
-aliases:
+tags: []
+aliases: []
 date_created: 2025-03-16
 date_modified: 2025-03-22
 ---
@@ -29,7 +29,7 @@ date_modified: 2025-03-22
 	- **Kakao Tech Campus Interview**
 		- [YouTube Interview](https://youtu.be/WRyvyBvkSF0?feature=shared&t=590)
 		- Participated in an interview discussing development experiences and projects.
-- **[[KENTECH (Korea Institute of Energy Technology) Internship]]**
+- **[[KENTECH Internship]]**
 	- Supported research and gained project experience during the internship.
 - **[[CCC VLM Boot Camp]]**
 	- Engaged in learning and projects related to Vision Language Models (VLM).
