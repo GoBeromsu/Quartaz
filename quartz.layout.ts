@@ -4,23 +4,23 @@ import * as Component from "./quartz/components"
 // components shared across all pages
 export const sharedPageComponents: SharedLayout = {
   head: Component.Head(),
-  header: [Component.PageTitle(), Component.Search(), Component.Darkmode()],
+  header: [],
   afterBody: [
     Component.TagList(),
 
-    // Component.Comments({
-    //   provider: "giscus",
-    //   options: {
-    //     // from data-repo
-    //     repo: "Goberomsu/Quartz-CV",
-    //     // from data-repo-id
-    //     repoId: "R_kgDOMzvCAQ",
-    //     // from data-category
-    //     category: "Announcements",
-    //     // from data-category-id
-    //     categoryId: "DIC_kwDOMzvCAc4Civ7w",
-    //   },
-    // }),
+    Component.Comments({
+      provider: "giscus",
+      options: {
+        // from data-repo
+        repo: "Goberomsu/Quartz-CV",
+        // from data-repo-id
+        repoId: "R_kgDOMzvCAQ",
+        // from data-category
+        category: "Announcements",
+        // from data-category-id
+        categoryId: "DIC_kwDOMzvCAc4Civ7w",
+      },
+    }),
     Component.Graph(),
   ],
   footer: Component.Footer({
@@ -54,11 +54,7 @@ export const defaultContentPageLayout: PageLayout = {
     Component.Explorer(),
   ],
 
-  right: [
-    Component.Graph(),
-    Component.DesktopOnly(Component.TableOfContents()),
-    Component.Backlinks(),
-  ],
+  right: [Component.DesktopOnly(Component.TableOfContents()), Component.Backlinks()],
 }
 
 // components for pages that display lists of pages  (e.g. tags or folders)
