@@ -1,6 +1,12 @@
+---
+tags:
+aliases:
+date_created: 2025-03-16
+date_modified: 2025-03-22
+---
 
 ### 2025
-- **University of Sheffield, PGT  Advanced Computer Science**
+- **University of Sheffield, PGT Advanced Computer Science**
 	- Currently pursuing a postgraduate degree in Computer Science.
 	- Research : [[Small Language Models for Big Software Engineering Problems]]
 
