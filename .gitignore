@@ -9,3 +9,5 @@ public/
 private/
 .replit
 replit.nix
+
+.obsidian/
