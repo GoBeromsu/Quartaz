@@ -182,6 +182,13 @@ a {
     @media all and ($mobile) {
       margin: 0 auto;
     }
+    @media all and not ($mobile) {
+      & .center > * {
+        justify-self: center;
+        width: 100%;
+        max-width: calc(100% - 1rem);
+      }
+    }
 
     & .sidebar {
       gap: 2rem;
@@ -243,11 +250,6 @@ a {
         margin-top: 0;
         padding: 0;
       }
-    }
-    & .center > * {
-      justify-self: center;
-      width: 100%;
-      max-width: calc(100% - 2rem);
     }
 
     & .center > article {
