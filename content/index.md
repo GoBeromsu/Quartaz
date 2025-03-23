@@ -17,8 +17,6 @@ I'm a 26-year-old Developer & Postgraduate student with a focus on LLM and Obsid
 
 I've worked on various [[Project|projects]]. Since September 2024, I've been studying Advanced Computer Science at [the University of Sheffield](https://www.sheffield.ac.uk/).
 
-### I ♥
-- [[Sound Engineering]], Playing Guitar, [[Writing]], Reading book
 ### Bio
 - **1999**
 	- Born in Yeosu, South Korea
@@ -28,7 +26,8 @@ I've worked on various [[Project|projects]]. Since September 2024, I've been stu
 	- Military service as a Korean Coast Guard
 - **2024.09 ~ present**
 	- Studying as a Computer Science postgraduate at [the University of Sheffield](https://www.sheffield.ac.uk/)
-
+### I ♥
+[[Sound Engineering]], Playing Guitar, [[Writing]], Reading book
 ## Contact
-Got any questions, thoughts, or feedback you'd like to share?  
+Got any questions, thoughts, or feedback you'd like to share?
 Please feel free to contact me via [email](mailto:gobeumsu@gmail.com). I'd be happy to hear from you!
