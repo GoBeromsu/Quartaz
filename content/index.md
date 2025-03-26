@@ -1,11 +1,11 @@
 ---
-tags: []
 aliases: []
-title: Home
+date_created: 2025-03-02
+date_modified: 2025-03-26
 enableToC: "false"
 hideTitle: "true"
-date_created: 2025-03-02
-date_modified: 2025-03-23
+tags: []
+title: Home
 ---
 
 ![](_attachments/Home.jpeg)
@@ -25,7 +25,7 @@ I've worked on various [[Project|projects]]. Since September 2024, I've been stu
 - **2020.08 ~ 2022.04**
 	- Military service as a Korean Coast Guard
 - **2024.09 ~ present**
-	- Studying as a Computer Science postgraduate at [the University of Sheffield](https://www.sheffield.ac.uk/)
+	- Studying as a Computer Science [[Postgraduate|postgraduate]] at [the University of Sheffield](https://www.sheffield.ac.uk/)
 ### I ♥
 [[Sound Engineering]], Playing Guitar, [[Writing]], Reading book
 ## Contact
