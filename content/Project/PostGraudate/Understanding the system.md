@@ -1,15 +1,15 @@
 ---
-aliases: 
+aliases: []
 date_created: 2025-03-26
 date_modified: 2025-03-26
-tags: 
+tags: []
 ---
 - Total 1500-2000 words
 - Submit day : March 27th (hopefully )
 	- good day for submit
 - Team deadline : merge and improve draft
 	- March 26
-- ### [[COM6523 System Evolution and Driving Forces]]
+- ### [[System Evolution and Driving Forces]]
 	- (1 Person) ← Beomsu(After this is done, go pgt task)
 	- **Analyze the system's historical growth**
 		- Plot the total number of lines over time

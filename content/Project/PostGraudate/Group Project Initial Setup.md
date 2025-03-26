@@ -1,8 +1,8 @@
 ---
-aliases: 
+aliases: []
 date_created: 2025-03-26
 date_modified: 2025-03-26
-tags: 
+tags: []
 ---
 - **DeepRiver v0.2.8,**
 	- [Release v0.2.8 · online-ml/deep-river](https://github.com/online-ml/deep-river/releases/tag/v0.2.8)

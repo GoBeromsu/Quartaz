@@ -6,18 +6,18 @@ tags: []
 ---
 - Target project : [[Deep-River]]
 
-- [[COM6523 Group Project Initial Setup]]
+- [[Group Project Initial Setup]]
 	- Single shared repository
 
 - Task
 	- 1. Introduction
-	- 2. [[COM6523 Understanding the system|Understanding the system]]
-		- [[COM6523 System Evolution and Driving Forces|System Evolution and Driving Forces]]
-			- [[COM6523 System Evolution and Driving Forces Draft|System Evolution and Driving Forces Draft]]
+	- 2. [[Understanding the system|Understanding the system]]
+		- [[System Evolution and Driving Forces|System Evolution and Driving Forces]]
+			- [[System Evolution and Driving Forces Draft|System Evolution and Driving Forces Draft]]
 	- 3. Restructuring the system
 	- 4. Conclusion
 #### Way Point
-- [[COM6523 System Evolution and Driving Forces Draft]]
+- [[System Evolution and Driving Forces Draft]]
 - [[Repository Mining for Deep-River]]
 	- Detect when big changes are made and separate core contributors
 - [[Deep-River Repository Evolution]]

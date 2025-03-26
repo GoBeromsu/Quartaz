@@ -26,7 +26,7 @@ In the initial v0.1.x releases, the architecture supported essential online trai
 
 During the v0.2.x phase, alongside rebranding, architectural refinements included the consolidation of rolling class logic to eliminate duplication, introduction of LSTM frameworks for streaming sequence data, and enhancement of multi-output regression capabilities. Recurrent layers added complexity in maintaining hidden states, while multi-target regressors necessitated robust handling of multiple outputs. Additionally, specialized autoencoders were developed for improved anomaly detection.
 
-By 2024, Deep-River’s design had reached a point of stability, manifesting a cohesive layout that balanced the need for versatility with the importance of maintainability. Another important design aspect involved handling new classes in classification tasks, ensuring that the network architecture could be updated incrementally without burdening the end user with low-level PyTorch details.([[Deep River - Handling New classes in classification Tasks]])
+By 2024, Deep-River’s design had reached a point of stability, manifesting a cohesive layout that balanced the need for versatility with the importance of maintainability. Another important design aspect involved handling new classes in classification tasks, ensuring that the network architecture could be updated incrementally without burdening the end user with low-level PyTorch details.([[Deep River - Why handling New classes in classification]])
 
 Collectively, these evolutions preserved the original River-inspired streaming ethos, fortified by PyTorch’s dynamic computational graph, and resulted in a unified yet adaptable system well-suited for a wide spectrum of real-time learning problems.
 
