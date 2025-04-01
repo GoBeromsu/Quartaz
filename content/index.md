@@ -1,7 +1,7 @@
 ---
 aliases: []
 date_created: 2025-03-02
-date_modified: 2025-03-26
+date_modified: 2025-04-01
 enableToC: "false"
 hideTitle: "true"
 tags: []
@@ -13,9 +13,7 @@ title: Home
 ## About Me
 > 설렘으로 선을 이루자, 그렇게 탁월해지자
 
-I'm a 26-year-old Developer & Postgraduate student with a focus on LLM and Obsidian, and a keen interest in [[Sound Engineering]], playing guitar, [[Writing]], and reading books.
-
-I've worked on various [[Project|projects]]. Since September 2024, I've been studying Advanced Computer Science at [the University of Sheffield](https://www.sheffield.ac.uk/).
+I'm a 26-year-old Developer & Postgraduate student. I've worked on various [[Project|projects]]. Since September 2024, I've been studying Advanced Computer Science at [the University of Sheffield](https://www.sheffield.ac.uk/).
 
 ### Bio
 - **1999**
