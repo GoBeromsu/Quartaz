@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+    <channel>
+      <title>Beomsu</title>
+      <link>https://berom.net</link>
+      <description>Last 10 notes on Beomsu</description>
+      <generator>Quartz -- quartz.jzhao.xyz</generator>
+      <item>
+    <title>Home</title>
+    <link>https://berom.net/</link>
+    <guid>https://berom.net/</guid>
+    <description> About Me 설렘으로 선을 이루자, 그렇게 탁월해지자 I’m a 26-year-old Developer &amp; Postgraduate student. I’ve worked on various projects.</description>
+    <pubDate>Sat, 07 Jun 2025 20:10:25 GMT</pubDate>
+  </item><item>
+    <title>Deep-River</title>
+    <link>https://berom.net/Project/PostGraudate/Deep-River</link>
+    <guid>https://berom.net/Project/PostGraudate/Deep-River</guid>
+    <description>Details deep-river is a Python library for online deep learning. deep-river’s ambition is to enable online machine learning for neural networks.</description>
+    <pubDate>Thu, 08 May 2025 00:24:45 GMT</pubDate>
+  </item><item>
+    <title>Postgraduate</title>
+    <link>https://berom.net/Project/PostGraudate/Postgraduate</link>
+    <guid>https://berom.net/Project/PostGraudate/Postgraduate</guid>
+    <description></description>
+    <pubDate>Wed, 07 May 2025 20:49:21 GMT</pubDate>
+  </item><item>
+    <title>Team software project</title>
+    <link>https://berom.net/Project/PostGraudate/Team-software-project</link>
+    <guid>https://berom.net/Project/PostGraudate/Team-software-project</guid>
+    <description>What I Did Stripe Payment method Stripe Payment Integration &amp; Testing Guide for Front-End Team What I Considered.</description>
+    <pubDate>Tue, 01 Apr 2025 12:13:22 GMT</pubDate>
+  </item><item>
+    <title>Writing</title>
+    <link>https://berom.net/Project/Personal/Writing</link>
+    <guid>https://berom.net/Project/Personal/Writing</guid>
+    <description></description>
+    <pubDate>Tue, 01 Apr 2025 11:31:19 GMT</pubDate>
+  </item><item>
+    <title>Docker</title>
+    <link>https://berom.net/Terminology/Docker</link>
+    <guid>https://berom.net/Terminology/Docker</guid>
+    <description></description>
+    <pubDate>Sat, 29 Mar 2025 13:35:04 GMT</pubDate>
+  </item><item>
+    <title>Software Reengineering</title>
+    <link>https://berom.net/Project/PostGraudate/Software-Reengineering</link>
+    <guid>https://berom.net/Project/PostGraudate/Software-Reengineering</guid>
+    <description> Target project : Deep-River Group Project Initial Setup Single shared repository Task Introduction Understanding the system System Evolution and Driving Forces System Evolution and Driving Forces Draft Restructuring the system Conclusion Way Point System Evolution and Driving Forces Draft Repositor...</description>
+    <pubDate>Wed, 26 Mar 2025 18:19:24 GMT</pubDate>
+  </item><item>
+    <title>Tools</title>
+    <link>https://berom.net/Terminology/Tools</link>
+    <guid>https://berom.net/Terminology/Tools</guid>
+    <description>Hardware Mx Master 3 Keychron K8 Pro Macbook M3 Pro Max ZEUSLAP p16kt Software Productivity Rize Obsidian Akiflow Devonthink Reference management Zotero multi folder &amp; sync &amp; contet copy with link Browser Arc .</description>
+    <pubDate>Wed, 26 Mar 2025 17:15:16 GMT</pubDate>
+  </item><item>
+    <title>Zotero</title>
+    <link>https://berom.net/Terminology/Zotero</link>
+    <guid>https://berom.net/Terminology/Zotero</guid>
+    <description></description>
+    <pubDate>Mon, 24 Mar 2025 18:02:23 GMT</pubDate>
+  </item><item>
+    <title>Ochestrive</title>
+    <link>https://berom.net/Project/Undergraduate/Ochestrive</link>
+    <guid>https://berom.net/Project/Undergraduate/Ochestrive</guid>
+    <description> Language: JavaScript​ Framework: Node.js​ Real-Time Communication: WebRTC​ Containerization: ​ Cloud &amp; DevOps: 5G MEC TURN Server Docker .</description>
+    <pubDate>Sun, 23 Mar 2025 09:01:25 GMT</pubDate>
+  </item>
+    </channel>
+  </rss>
