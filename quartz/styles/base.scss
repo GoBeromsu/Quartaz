@@ -95,9 +95,7 @@ a {
 
   &.internal {
     text-decoration: none;
-    // background-color: var(--highlight);
-    color: var(--highlight);
-
+    background-color: var(--highlight);
     padding: 0 0.1rem;
     border-radius: 5px;
     line-height: 1.4rem;
@@ -220,13 +218,6 @@ a {
     }
     @media all and ($mobile) {
       margin: 0 auto;
-    }
-    @media all and not ($mobile) {
-      & .center > * {
-        justify-self: center;
-        width: 100%;
-        max-width: calc(100% - 1rem);
-      }
     }
 
     & .sidebar {
