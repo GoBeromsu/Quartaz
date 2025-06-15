@@ -1,54 +1,57 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml"><url>
-    <loc>https://berom.net/Project/Personal/Metadata-Auto-Classifier</loc>
-    <lastmod>2025-03-23T09:00:39.484Z</lastmod>
-  </url><url>
-    <loc>https://berom.net/Project/Personal/Sound-Engineering</loc>
-    <lastmod>2025-03-23T08:48:49.115Z</lastmod>
-  </url><url>
-    <loc>https://berom.net/Project/Personal/Writing</loc>
-    <lastmod>2025-04-01T11:31:19.892Z</lastmod>
-  </url><url>
-    <loc>https://berom.net/Project/PostGraudate/Deep-River</loc>
-    <lastmod>2025-05-08T00:24:45.471Z</lastmod>
-  </url><url>
-    <loc>https://berom.net/Project/PostGraudate/Postgraduate</loc>
-    <lastmod>2025-05-07T20:49:21.696Z</lastmod>
-  </url><url>
-    <loc>https://berom.net/Project/PostGraudate/Small-Language-Models-for-Big-Software-Engineering-Problems.external</loc>
-    <lastmod>2025-03-23T08:48:49.115Z</lastmod>
-  </url><url>
-    <loc>https://berom.net/Project/PostGraudate/Software-Reengineering</loc>
-    <lastmod>2025-03-26T18:19:24.098Z</lastmod>
-  </url><url>
-    <loc>https://berom.net/Project/PostGraudate/Team-software-project</loc>
-    <lastmod>2025-04-01T12:13:22.441Z</lastmod>
-  </url><url>
-    <loc>https://berom.net/Project/Undergraduate/Authentication-Automation-Deployment</loc>
+    <loc>https://berom.net/Project/Authentication-Automation-Deployment</loc>
     <lastmod>2025-03-23T08:48:49.101Z</lastmod>
   </url><url>
-    <loc>https://berom.net/Project/Undergraduate/CCC-VLM-Boot-Camp</loc>
+    <loc>https://berom.net/Project/CCC-VLM-Boot-Camp</loc>
     <lastmod>2025-03-23T08:58:15.950Z</lastmod>
   </url><url>
-    <loc>https://berom.net/Project/Undergraduate/Chukting</loc>
+    <loc>https://berom.net/Project/Chukting</loc>
     <lastmod>2025-03-23T08:48:49.108Z</lastmod>
   </url><url>
-    <loc>https://berom.net/Project/Undergraduate/KENTECH-Internship</loc>
+    <loc>https://berom.net/Project/Deep-River</loc>
+    <lastmod>2025-05-08T00:24:45.471Z</lastmod>
+  </url><url>
+    <loc>https://berom.net/Project/KENTECH-Internship</loc>
     <lastmod>2025-03-23T08:48:49.115Z</lastmod>
   </url><url>
-    <loc>https://berom.net/Project/Undergraduate/Kakao-Tech-Campus</loc>
+    <loc>https://berom.net/Project/Kakao-Tech-Campus</loc>
     <lastmod>2025-03-23T08:48:49.108Z</lastmod>
   </url><url>
-    <loc>https://berom.net/Project/Undergraduate/Ochestrive</loc>
+    <loc>https://berom.net/Project/Metadata-Auto-Classifier</loc>
+    <lastmod>2025-03-23T09:00:39.484Z</lastmod>
+  </url><url>
+    <loc>https://berom.net/Project/Ochestrive</loc>
     <lastmod>2025-03-23T09:01:25.282Z</lastmod>
   </url><url>
-    <loc>https://berom.net/Project/Undergraduate/Project</loc>
+    <loc>https://berom.net/Project/Postgraduate</loc>
+    <lastmod>2025-05-07T20:49:21.696Z</lastmod>
+  </url><url>
+    <loc>https://berom.net/Project/Project</loc>
     <lastmod>2025-03-23T08:48:49.114Z</lastmod>
   </url><url>
-    <loc>https://berom.net/Project/Undergraduate/Wi-Fi-6-Visualization-Project</loc>
+    <loc>https://berom.net/Project/Small-Language-Models-for-Big-Software-Engineering-Problems.external</loc>
+    <lastmod>2025-03-23T08:48:49.115Z</lastmod>
+  </url><url>
+    <loc>https://berom.net/Project/Software-Reengineering</loc>
+    <lastmod>2025-03-26T18:19:24.098Z</lastmod>
+  </url><url>
+    <loc>https://berom.net/Project/Sound-Engineering</loc>
+    <lastmod>2025-03-23T08:48:49.115Z</lastmod>
+  </url><url>
+    <loc>https://berom.net/Project/Team-software-project</loc>
+    <lastmod>2025-04-01T12:13:22.441Z</lastmod>
+  </url><url>
+    <loc>https://berom.net/Project/Wi-Fi-6-Visualization-Project</loc>
     <lastmod>2025-03-23T08:48:49.114Z</lastmod>
+  </url><url>
+    <loc>https://berom.net/Project/Writing</loc>
+    <lastmod>2025-04-01T11:31:19.892Z</lastmod>
   </url><url>
     <loc>https://berom.net/Terminology/Back-End</loc>
     <lastmod>2025-03-23T08:48:49.101Z</lastmod>
+  </url><url>
+    <loc>https://berom.net/Terminology/Crossfit.external</loc>
+    <lastmod>2025-06-15T11:15:24.672Z</lastmod>
   </url><url>
     <loc>https://berom.net/Terminology/Docker</loc>
     <lastmod>2025-03-29T13:35:04.207Z</lastmod>
