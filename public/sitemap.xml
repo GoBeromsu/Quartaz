@@ -1,4 +1,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml"><url>
+    <loc>https://berom.net/</loc>
+    <lastmod>2025-06-07T20:10:25.207Z</lastmod>
+  </url><url>
     <loc>https://berom.net/Project/Authentication-Automation-Deployment</loc>
     <lastmod>2025-03-23T08:48:49.101Z</lastmod>
   </url><url>
@@ -59,6 +62,9 @@
     <loc>https://berom.net/Terminology/Front-End</loc>
     <lastmod>2025-03-23T08:48:49.107Z</lastmod>
   </url><url>
+    <loc>https://berom.net/Terminology/Guitar.external</loc>
+    <lastmod>2025-06-15T18:16:42.896Z</lastmod>
+  </url><url>
     <loc>https://berom.net/Terminology/MySQL</loc>
     <lastmod>2025-03-23T08:56:17.387Z</lastmod>
   </url><url>
@@ -73,7 +79,4 @@
   </url><url>
     <loc>https://berom.net/Terminology/Zotero</loc>
     <lastmod>2025-03-24T18:02:23.776Z</lastmod>
-  </url><url>
-    <loc>https://berom.net/</loc>
-    <lastmod>2025-06-07T20:10:25.207Z</lastmod>
   </url></urlset>
