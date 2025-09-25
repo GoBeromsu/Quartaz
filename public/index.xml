@@ -9,62 +9,62 @@
     <title>How to convert .pth to gguf pipeline</title>
     <link>https://berom.net/Articles/How-to-convert-.pth-to-gguf-pipeline.external</link>
     <guid>https://berom.net/Articles/How-to-convert-.pth-to-gguf-pipeline.external</guid>
-    <description>Introduction I’m currently working on small language models, especially Llama.</description>
+    <description><![CDATA[ Introduction I’m currently working on small language models, especially Llama. ]]></description>
     <pubDate>Wed, 02 Jul 2025 17:30:47 GMT</pubDate>
   </item><item>
     <title>Guitar</title>
     <link>https://berom.net/Terminology/Guitar.external</link>
     <guid>https://berom.net/Terminology/Guitar.external</guid>
-    <description> 내 주를 가까이 .</description>
+    <description><![CDATA[  내 주를 가까이 . ]]></description>
     <pubDate>Sun, 15 Jun 2025 18:16:42 GMT</pubDate>
   </item><item>
     <title>Crossfit</title>
     <link>https://berom.net/Terminology/Crossfit.external</link>
     <guid>https://berom.net/Terminology/Crossfit.external</guid>
-    <description>2024 년 말부터 Crossfit 을 꾸준히 하고 있습니다! .</description>
+    <description><![CDATA[ 2024 년 말부터 Crossfit 을 꾸준히 하고 있습니다! . ]]></description>
     <pubDate>Sun, 15 Jun 2025 11:15:24 GMT</pubDate>
   </item><item>
     <title>Home</title>
     <link>https://berom.net/</link>
     <guid>https://berom.net/</guid>
-    <description> About Me Welcome of the Second brain of Beomsu. I’m a 26-year-old Developer &amp; Postgraduate student. I’ve worked on various projects.</description>
+    <description><![CDATA[  About Me Welcome of the Second brain of Beomsu. I’m a 26-year-old Developer &amp; Postgraduate student. I’ve worked on various projects. ]]></description>
     <pubDate>Sat, 07 Jun 2025 20:10:25 GMT</pubDate>
   </item><item>
     <title>Postgraduate</title>
     <link>https://berom.net/Project/Postgraduate</link>
     <guid>https://berom.net/Project/Postgraduate</guid>
-    <description></description>
+    <description><![CDATA[  ]]></description>
     <pubDate>Wed, 07 May 2025 20:49:21 GMT</pubDate>
+  </item><item>
+    <title>Gain과 Fader의 근본적인 차이는 무엇인가 어떻게 결정하는가</title>
+    <link>https://berom.net/Articles/Gain%EA%B3%BC-Fader%EC%9D%98-%EA%B7%BC%EB%B3%B8%EC%A0%81%EC%9D%B8-%EC%B0%A8%EC%9D%B4%EB%8A%94-%EB%AC%B4%EC%97%87%EC%9D%B8%EA%B0%80-%EC%96%B4%EB%96%BB%EA%B2%8C-%EA%B2%B0%EC%A0%95%ED%95%98%EB%8A%94%EA%B0%80</link>
+    <guid>https://berom.net/Articles/Gain%EA%B3%BC-Fader%EC%9D%98-%EA%B7%BC%EB%B3%B8%EC%A0%81%EC%9D%B8-%EC%B0%A8%EC%9D%B4%EB%8A%94-%EB%AC%B4%EC%97%87%EC%9D%B8%EA%B0%80-%EC%96%B4%EB%96%BB%EA%B2%8C-%EA%B2%B0%EC%A0%95%ED%95%98%EB%8A%94%EA%B0%80</guid>
+    <description><![CDATA[ Gain and Fader — Definition &amp; Difference Gain (Preamp) 정의 Gain은 마이크 (Microphone) 나 악기에서 들어오는 아주 작은 Mic Level 신호를, 믹서나 오디오 장비가 다룰 수 있는 Line Level로 증폭하는 입력단 (Preamp Stage) 의 조절값임. ]]></description>
+    <pubDate>Mon, 05 May 2025 09:27:12 GMT</pubDate>
   </item><item>
     <title>Team software project</title>
     <link>https://berom.net/Project/Team-software-project</link>
     <guid>https://berom.net/Project/Team-software-project</guid>
-    <description>What I Did Stripe Payment method Stripe Payment Integration &amp; Testing Guide for Front-End Team What I Considered.</description>
+    <description><![CDATA[ What I Did Stripe Payment method Stripe Payment Integration &amp; Testing Guide for Front-End Team What I Considered. ]]></description>
     <pubDate>Tue, 01 Apr 2025 12:13:22 GMT</pubDate>
   </item><item>
     <title>Writing</title>
     <link>https://berom.net/Project/Writing.externel</link>
     <guid>https://berom.net/Project/Writing.externel</guid>
-    <description> On this page, I’ll use language that best expresses my thoughts because, Language is the framework of thinking.</description>
+    <description><![CDATA[  글은 못이기 때문에 혼란스러움을 잠재우는 이정표가 된다 마음에 품고 있는 문장 지성의 책임을 지라 적당히 하지 않는다, 정도를 걷는다 계속하려면 계속해야 한다. 미래를 기억하는 사람이 그 미래를 가져온다. ]]></description>
     <pubDate>Tue, 01 Apr 2025 11:31:19 GMT</pubDate>
   </item><item>
     <title>Docker</title>
     <link>https://berom.net/Terminology/Docker</link>
     <guid>https://berom.net/Terminology/Docker</guid>
-    <description></description>
+    <description><![CDATA[  ]]></description>
     <pubDate>Sat, 29 Mar 2025 13:35:04 GMT</pubDate>
   </item><item>
     <title>Software Reengineering</title>
     <link>https://berom.net/Project/Software-Reengineering</link>
     <guid>https://berom.net/Project/Software-Reengineering</guid>
-    <description> Target project : Deep-River Group Project Initial Setup Single shared repository Task Introduction Understanding the system System Evolution and Driving Forces System Evolution and Driving Forces Draft Restructuring the system Conclusion Way Point System Evolution and Driving Forces Draft Repositor...</description>
+    <description><![CDATA[  Target project : Deep-River Group Project Initial Setup Single shared repository Task Introduction Understanding the system System Evolution and Driving Forces System Evolution and Driving Forces Draft Restructuring the system Conclusion Way Point System Evolution and Driving Forces Draft Repositor... ]]></description>
     <pubDate>Wed, 26 Mar 2025 18:19:24 GMT</pubDate>
-  </item><item>
-    <title>Tools</title>
-    <link>https://berom.net/Terminology/Tools</link>
-    <guid>https://berom.net/Terminology/Tools</guid>
-    <description>Hardware Mx Master 3 Keychron K8 Pro Macbook M3 Pro Max ZEUSLAP p16kt Software Productivity Rize Obsidian Akiflow Devonthink Reference management Zotero multi folder &amp; sync &amp; contet copy with link Browser Arc .</description>
-    <pubDate>Wed, 26 Mar 2025 17:15:16 GMT</pubDate>
   </item>
     </channel>
   </rss>
