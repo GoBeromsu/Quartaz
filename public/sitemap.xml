@@ -1,12 +1,42 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml"><url>
-    <loc>https://berom.net/</loc>
-    <lastmod>2025-06-07T20:10:25.207Z</lastmod>
-  </url><url>
     <loc>https://berom.net/Articles/Gain%EA%B3%BC-Fader%EC%9D%98-%EA%B7%BC%EB%B3%B8%EC%A0%81%EC%9D%B8-%EC%B0%A8%EC%9D%B4%EB%8A%94-%EB%AC%B4%EC%97%87%EC%9D%B8%EA%B0%80-%EC%96%B4%EB%96%BB%EA%B2%8C-%EA%B2%B0%EC%A0%95%ED%95%98%EB%8A%94%EA%B0%80</loc>
     <lastmod>2025-05-05T09:27:12.382Z</lastmod>
   </url><url>
     <loc>https://berom.net/Articles/How-to-convert-.pth-to-gguf-pipeline.external</loc>
     <lastmod>2025-07-02T17:30:47.738Z</lastmod>
+  </url><url>
+    <loc>https://berom.net/Articles/%EC%82%AC%EB%9E%91%EC%9D%80-%EC%82%AC%EB%9E%91%EC%9D%B4%EB%9D%BC%EC%84%9C</loc>
+    <lastmod>2025-10-07T19:52:46.753Z</lastmod>
+  </url><url>
+    <loc>https://berom.net/Articles/%EC%A0%8A%EC%9D%8C%EC%9D%B4-%EC%95%84%EB%A6%84%EB%8B%B5%EB%8B%A4%EB%8A%94-%EA%B2%83%EC%9D%84-%EA%B9%A8%EB%8B%AC%EC%95%98%EB%8B%A4</loc>
+    <lastmod>2025-10-07T20:01:05.129Z</lastmod>
+  </url><url>
+    <loc>https://berom.net/Project/CCC-VLM-Boot-Camp</loc>
+    <lastmod>2025-03-23T08:58:15.950Z</lastmod>
+  </url><url>
+    <loc>https://berom.net/Project/Chukting</loc>
+    <lastmod>2025-03-23T08:48:49.108Z</lastmod>
+  </url><url>
+    <loc>https://berom.net/Project/Ochestrive</loc>
+    <lastmod>2025-03-23T09:01:25.282Z</lastmod>
+  </url><url>
+    <loc>https://berom.net/Project/Project</loc>
+    <lastmod>2025-03-23T08:48:49.114Z</lastmod>
+  </url><url>
+    <loc>https://berom.net/Project/Small-Language-Models-for-Big-Software-Engineering-Problems.external</loc>
+    <lastmod>2025-03-23T08:48:49.115Z</lastmod>
+  </url><url>
+    <loc>https://berom.net/Project/Software-Reengineering</loc>
+    <lastmod>2025-03-26T18:19:24.098Z</lastmod>
+  </url><url>
+    <loc>https://berom.net/Project/Sound-Engineering.external</loc>
+    <lastmod>2025-03-23T08:48:49.115Z</lastmod>
+  </url><url>
+    <loc>https://berom.net/Project/Team-software-project</loc>
+    <lastmod>2025-04-01T12:13:22.441Z</lastmod>
+  </url><url>
+    <loc>https://berom.net/Project/Writing.externel</loc>
+    <lastmod>2025-04-01T11:31:19.892Z</lastmod>
   </url><url>
     <loc>https://berom.net/Terminology/Back-End</loc>
     <lastmod>2025-03-23T08:48:49.101Z</lastmod>
@@ -29,45 +59,12 @@
     <loc>https://berom.net/Terminology/React</loc>
     <lastmod>2025-03-23T08:56:18.252Z</lastmod>
   </url><url>
-    <loc>https://berom.net/Terminology/Tools</loc>
-    <lastmod>2025-03-26T17:15:16.611Z</lastmod>
-  </url><url>
     <loc>https://berom.net/Terminology/Typescript</loc>
     <lastmod>2025-03-23T08:48:49.107Z</lastmod>
-  </url><url>
-    <loc>https://berom.net/Terminology/Zotero</loc>
-    <lastmod>2025-03-24T18:02:23.776Z</lastmod>
   </url><url>
     <loc>https://berom.net/Terminology/%EC%9D%B4%EC%8B%A0%EC%B9%AD%EC%9D%98</loc>
     <lastmod>2024-11-10T20:25:24.236Z</lastmod>
   </url><url>
-    <loc>https://berom.net/Project/CCC-VLM-Boot-Camp</loc>
-    <lastmod>2025-03-23T08:58:15.950Z</lastmod>
-  </url><url>
-    <loc>https://berom.net/Project/Chukting</loc>
-    <lastmod>2025-03-23T08:48:49.108Z</lastmod>
-  </url><url>
-    <loc>https://berom.net/Project/Ochestrive</loc>
-    <lastmod>2025-03-23T09:01:25.282Z</lastmod>
-  </url><url>
-    <loc>https://berom.net/Project/Postgraduate</loc>
-    <lastmod>2025-05-07T20:49:21.696Z</lastmod>
-  </url><url>
-    <loc>https://berom.net/Project/Project</loc>
-    <lastmod>2025-03-23T08:48:49.114Z</lastmod>
-  </url><url>
-    <loc>https://berom.net/Project/Small-Language-Models-for-Big-Software-Engineering-Problems.external</loc>
-    <lastmod>2025-03-23T08:48:49.115Z</lastmod>
-  </url><url>
-    <loc>https://berom.net/Project/Software-Reengineering</loc>
-    <lastmod>2025-03-26T18:19:24.098Z</lastmod>
-  </url><url>
-    <loc>https://berom.net/Project/Sound-Engineering.external</loc>
-    <lastmod>2025-03-23T08:48:49.115Z</lastmod>
-  </url><url>
-    <loc>https://berom.net/Project/Team-software-project</loc>
-    <lastmod>2025-04-01T12:13:22.441Z</lastmod>
-  </url><url>
-    <loc>https://berom.net/Project/Writing.externel</loc>
-    <lastmod>2025-04-01T11:31:19.892Z</lastmod>
+    <loc>https://berom.net/</loc>
+    <lastmod>2025-06-07T20:10:25.207Z</lastmod>
   </url></urlset>
