@@ -6,6 +6,18 @@
       <description>Last 10 notes on Beomsu</description>
       <generator>Quartz -- quartz.jzhao.xyz</generator>
       <item>
+    <title>그냥 글을 담자</title>
+    <link>https://berom.net/Articles/%EA%B7%B8%EB%83%A5-%EA%B8%80%EC%9D%84-%EB%8B%B4%EC%9E%90</link>
+    <guid>https://berom.net/Articles/%EA%B7%B8%EB%83%A5-%EA%B8%80%EC%9D%84-%EB%8B%B4%EC%9E%90</guid>
+    <description><![CDATA[ 선뜻 글을 담아서 내지 못하는 요즘이다. 완벽해야 할거 같은 느낌, 논지가 깔끔하며 확실한 레퍼런스가 있어야 할거 같은 생각에 글을 담지를 못한다. 심지어 내 생각도 담지 못했다. 글을 담는 순간에 여느 때엔 내가 내 글과 일치하지 않는 사람임을 내가 느꼈기 때문이다. ]]></description>
+    <pubDate>Wed, 08 Oct 2025 22:09:55 GMT</pubDate>
+  </item><item>
+    <title>Sheffield Korean Church Sound guideline</title>
+    <link>https://berom.net/Articles/Sheffield-Korean-Church-Sound-guideline</link>
+    <guid>https://berom.net/Articles/Sheffield-Korean-Church-Sound-guideline</guid>
+    <description><![CDATA[  ]]></description>
+    <pubDate>Wed, 08 Oct 2025 21:41:38 GMT</pubDate>
+  </item><item>
     <title>젊음이 아름답다는 것을 깨달았다</title>
     <link>https://berom.net/Articles/%EC%A0%8A%EC%9D%8C%EC%9D%B4-%EC%95%84%EB%A6%84%EB%8B%B5%EB%8B%A4%EB%8A%94-%EA%B2%83%EC%9D%84-%EA%B9%A8%EB%8B%AC%EC%95%98%EB%8B%A4</link>
     <guid>https://berom.net/Articles/%EC%A0%8A%EC%9D%8C%EC%9D%B4-%EC%95%84%EB%A6%84%EB%8B%B5%EB%8B%A4%EB%8A%94-%EA%B2%83%EC%9D%84-%EA%B9%A8%EB%8B%AC%EC%95%98%EB%8B%A4</guid>
@@ -24,15 +36,9 @@
     <description><![CDATA[ Introduction I’m currently working on small language models, especially Llama. ]]></description>
     <pubDate>Wed, 02 Jul 2025 17:30:47 GMT</pubDate>
   </item><item>
-    <title>Guitar</title>
-    <link>https://berom.net/Terminology/Guitar.external</link>
-    <guid>https://berom.net/Terminology/Guitar.external</guid>
-    <description><![CDATA[  내 주를 가까이 . ]]></description>
-    <pubDate>Sun, 15 Jun 2025 18:16:42 GMT</pubDate>
-  </item><item>
     <title>Crossfit</title>
-    <link>https://berom.net/Terminology/Crossfit.external</link>
-    <guid>https://berom.net/Terminology/Crossfit.external</guid>
+    <link>https://berom.net/InBox/Crossfit.external</link>
+    <guid>https://berom.net/InBox/Crossfit.external</guid>
     <description><![CDATA[ 2024 년 말부터 Crossfit 을 꾸준히 하고 있습니다! . ]]></description>
     <pubDate>Sun, 15 Jun 2025 11:15:24 GMT</pubDate>
   </item><item>
@@ -48,23 +54,17 @@
     <description><![CDATA[ Gain and Fader — Definition &amp; Difference Gain (Preamp) 정의 Gain은 마이크 (Microphone) 나 악기에서 들어오는 아주 작은 Mic Level 신호를, 믹서나 오디오 장비가 다룰 수 있는 Line Level로 증폭하는 입력단 (Preamp Stage) 의 조절값임. ]]></description>
     <pubDate>Mon, 05 May 2025 09:27:12 GMT</pubDate>
   </item><item>
-    <title>Team software project</title>
-    <link>https://berom.net/Project/Team-software-project</link>
-    <guid>https://berom.net/Project/Team-software-project</guid>
-    <description><![CDATA[ What I Did Stripe Payment method Stripe Payment Integration &amp; Testing Guide for Front-End Team What I Considered. ]]></description>
-    <pubDate>Tue, 01 Apr 2025 12:13:22 GMT</pubDate>
-  </item><item>
     <title>Writing</title>
-    <link>https://berom.net/Project/Writing.externel</link>
-    <guid>https://berom.net/Project/Writing.externel</guid>
+    <link>https://berom.net/InBox/Writing.externel</link>
+    <guid>https://berom.net/InBox/Writing.externel</guid>
     <description><![CDATA[  글은 혼란스러움을 잠재우는 이정표가 된다 마음에 품고 있는 문장 지성의 책임을 지라 적당히 하지 않는다, 정도를 걷는다 계속하려면 계속해야 한다. 미래를 기억하는 사람이 그 미래를 가져온다. ]]></description>
     <pubDate>Tue, 01 Apr 2025 11:31:19 GMT</pubDate>
   </item><item>
-    <title>Docker</title>
-    <link>https://berom.net/Terminology/Docker</link>
-    <guid>https://berom.net/Terminology/Docker</guid>
+    <title>Small Language Models for Big Software Engineering Problems</title>
+    <link>https://berom.net/InBox/Small-Language-Models-for-Big-Software-Engineering-Problems.external</link>
+    <guid>https://berom.net/InBox/Small-Language-Models-for-Big-Software-Engineering-Problems.external</guid>
     <description><![CDATA[  ]]></description>
-    <pubDate>Sat, 29 Mar 2025 13:35:04 GMT</pubDate>
+    <pubDate>Sun, 23 Mar 2025 08:48:49 GMT</pubDate>
   </item>
     </channel>
   </rss>
