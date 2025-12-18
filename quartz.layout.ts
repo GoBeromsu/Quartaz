@@ -37,8 +37,12 @@ export const sharedPageComponents: SharedLayout = {
   ],
   footer: Component.Footer({
     links: {
-      GitHub: "https://github.com/jackyzha0/quartz",
-      "Discord Community": "https://discord.gg/cRFFHYye7t",
+      GitHub: "https://github.com/GoBeromsu",
+      LinkedIn: "https://www.linkedin.com/in/beomsu-koh-b45146266/",
+      X: "https://x.com/BeromArtDev",
+      Medium: "https://medium.com/@beromkoh",
+      Tistory: "https://berom.tistory.com/",
+      Email: "mailto:gobeumsu@gmail.com",
     },
   }),
 }
