@@ -8,11 +8,12 @@ export const sharedPageComponents: SharedLayout = {
   afterBody: [
     Component.TagList(),
 
-    // Recent notes on home page only
+    // NOTE: limit=9999 is intentional. Static HTML means no runtime cost.
+    // ~500 articles ≈ 200KB, acceptable for personal blog. Pagination not worth the complexity.
     Component.ConditionalRender({
       component: Component.RecentNotes({
-        title: "Recent Articles",
-        limit: 10,
+        title: "Articles",
+        limit: 9999,
         showTags: false,
         filter: (f) => f.slug !== "index",
       }),
