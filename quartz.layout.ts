@@ -8,6 +8,17 @@ export const sharedPageComponents: SharedLayout = {
   afterBody: [
     Component.TagList(),
 
+    // Recent notes on home page only
+    Component.ConditionalRender({
+      component: Component.RecentNotes({
+        title: "Recent Articles",
+        limit: 10,
+        showTags: false,
+        filter: (f) => f.slug !== "index",
+      }),
+      condition: (page) => page.fileData.slug === "index",
+    }),
+
     Component.Comments({
       provider: "giscus",
       options: {
