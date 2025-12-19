@@ -67,10 +67,7 @@ export const defaultContentPageLayout: PageLayout = {
         { Component: Component.ReaderMode() },
       ],
     }),
-    Component.ConditionalRender({
-      component: Component.Explorer(),
-      condition: (page) => page.fileData.slug !== "index",
-    }),
+    Component.Explorer(),
   ],
 
   right: [Component.DesktopOnly(Component.TableOfContents()), Component.Backlinks()],
@@ -91,10 +88,7 @@ export const defaultListPageLayout: PageLayout = {
         { Component: Component.Darkmode() },
       ],
     }),
-    Component.ConditionalRender({
-      component: Component.Explorer(),
-      condition: (page) => page.fileData.slug !== "index",
-    }),
+    Component.Explorer(),
   ],
   right: [],
 }
