@@ -1,22 +1,15 @@
 # Beomsu's Digital Garden
 
+Personal blog built with [Quartz](https://quartz.jzhao.xyz/).
 
-## Update Content
-This digital garden uses a custom script to update content. The script does the following:
-
-1. Searches for Markdown files in the Ataraxia vault directory.
-2. Copies only files with the 'public' tag to the Quartz content directory.
-3. Excludes specified directories from the search.
-4. Updates the Quartz site and pushes changes to the repository.
-
-To update the content, run the following command:
+## Deploy
 
 ```bash
-./update-version.sh
+npx quartz build && git add . && git commit -m "message" && git push origin v4
 ```
 
-Make sure the script has execute permissions:
+## URL Strategy
 
-```bash
-chmod +x update-version.sh
-```
+- Flat URLs with `permalink` in frontmatter
+- English slugs only (SEO-friendly)
+- See `CLAUDE.md` for detailed guidelines
