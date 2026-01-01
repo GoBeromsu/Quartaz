@@ -41,3 +41,12 @@ npx quartz build && git add . && git commit -m "message" && git push origin v4
   2. Update the markdown path to `/_attachments/{filename}`
 - Never commit `file:///` paths - they won't work in production
 
+## Pre-publish Checklist
+
+### Verify with Playwright MCP
+Before deploying, always verify the page renders correctly using Playwright:
+1. Navigate to the page URL
+2. Take a screenshot in both light and dark mode
+3. Check for broken images, layout issues, or missing content
+4. Only deploy after visual confirmation
+
