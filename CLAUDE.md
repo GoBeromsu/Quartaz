@@ -32,3 +32,12 @@ npx quartz build && git add . && git commit -m "message" && git push origin v4
 - Auto-deploy via GitHub Actions to GitHub Pages
 - Site: https://berom.net
 
+## Image Policy
+
+### Eagle Library Images
+- Eagle stores images at: `~/Documents/Ataraxia.library/images/{ID}.info/`
+- When markdown references `file:///...Ataraxia.library/images/...`:
+  1. Copy the image to `content/_attachments/` with a descriptive name
+  2. Update the markdown path to `/_attachments/{filename}`
+- Never commit `file:///` paths - they won't work in production
+
