@@ -6,6 +6,18 @@
       <description>Last 10 notes on Beomsu</description>
       <generator>Quartz -- quartz.jzhao.xyz</generator>
       <item>
+    <title>2025 회고</title>
+    <link>https://berom.net/Articles/2025-%ED%9A%8C%EA%B3%A0</link>
+    <guid>https://berom.net/Articles/2025-%ED%9A%8C%EA%B3%A0</guid>
+    <description><![CDATA[ 2025 회고 Gravity Assist (중력 보조 기동 / 슬링샷) 내가 가진 연료 (의지·시간·자원) 만으로는 못 얻을 속도/방향을, 더 큰 천체의 운동과 중력장을 빌려 얻는 기동 2025 년은 Sling Shot (슬링샷) 을 한 해였다. ]]></description>
+    <pubDate>Thu, 01 Jan 2026 13:00:09 GMT</pubDate>
+  </item><item>
+    <title>20251219 Quartz</title>
+    <link>https://berom.net/Articles/20251219-Quartz</link>
+    <guid>https://berom.net/Articles/20251219-Quartz</guid>
+    <description><![CDATA[ Quartz Blog Customization Log 오늘 Quartz 블로그를 대폭 정리했다. Claude Code 를 활용해서 작업했는데, 꽤 효율적이었다. 작업 방식: Claude Code + Docs First 이번 작업의 핵심은 ” 문서 먼저 읽기 ” 였다. ]]></description>
+    <pubDate>Fri, 19 Dec 2025 00:19:59 GMT</pubDate>
+  </item><item>
     <title>그냥 글을 담자</title>
     <link>https://berom.net/Articles/%EA%B7%B8%EB%83%A5-%EA%B8%80%EC%9D%84-%EB%8B%B4%EC%9E%90</link>
     <guid>https://berom.net/Articles/%EA%B7%B8%EB%83%A5-%EA%B8%80%EC%9D%84-%EB%8B%B4%EC%9E%90</guid>
@@ -30,7 +42,7 @@
     <description><![CDATA[  ]]></description>
     <pubDate>Fri, 19 Dec 2025 00:08:50 GMT</pubDate>
   </item><item>
-    <title>How to convert .pth to gguf pipeline</title>
+    <title>how to convert .pth to gguf pipeline</title>
     <link>https://berom.net/Articles/How-to-convert-.pth-to-gguf-pipeline.external</link>
     <guid>https://berom.net/Articles/How-to-convert-.pth-to-gguf-pipeline.external</guid>
     <description><![CDATA[ Introduction I’m currently working on small language models, especially Llama. ]]></description>
@@ -42,28 +54,16 @@
     <description><![CDATA[ Gain and Fader — Definition &amp; Difference Gain (Preamp) 정의 Gain은 마이크 (Microphone) 나 악기에서 들어오는 아주 작은 Mic Level 신호를, 믹서나 오디오 장비가 다룰 수 있는 Line Level로 증폭하는 입력단 (Preamp Stage) 의 조절값임. ]]></description>
     <pubDate>Fri, 19 Dec 2025 00:08:50 GMT</pubDate>
   </item><item>
-    <title>Home</title>
+    <title>home</title>
     <link>https://berom.net/</link>
     <guid>https://berom.net/</guid>
     <description><![CDATA[  About Me Hello, I’m Beomsu Koh(고범수) I’m a 26-year-old Developer &amp; Postgraduate student. I’ve worked on various projects. ]]></description>
     <pubDate>Fri, 14 Nov 2025 10:43:55 GMT</pubDate>
   </item><item>
-    <title>Crossfit</title>
+    <title>crossfit</title>
     <link>https://berom.net/InBox/Crossfit.external</link>
     <guid>https://berom.net/InBox/Crossfit.external</guid>
     <description><![CDATA[ 2024 년 말부터 Crossfit 을 꾸준히 하고 있습니다! . ]]></description>
-    <pubDate>Fri, 14 Nov 2025 10:43:55 GMT</pubDate>
-  </item><item>
-    <title>Sound Engineering</title>
-    <link>https://berom.net/InBox/Sound-Engineering.external</link>
-    <guid>https://berom.net/InBox/Sound-Engineering.external</guid>
-    <description><![CDATA[  Gain과 Fader의 근본적인 차이는 무엇인가 어떻게 결정하는가 . ]]></description>
-    <pubDate>Fri, 14 Nov 2025 10:43:55 GMT</pubDate>
-  </item><item>
-    <title>Project</title>
-    <link>https://berom.net/InBox/Project</link>
-    <guid>https://berom.net/InBox/Project</guid>
-    <description><![CDATA[ 2025 University of Sheffield, MSc Advanced Computer Science (2025 - Present) Pursuing postgraduate studies focused on Computer Science. ]]></description>
     <pubDate>Fri, 14 Nov 2025 10:43:55 GMT</pubDate>
   </item>
     </channel>
