@@ -24,6 +24,9 @@ permalink: my-article-slug
 ## Command
 ### Deploy
 
+**Use `/deploy` skill for deployment** - it automates build, commit, push, and visual verification.
+
+Manual command (if needed):
 ```bash
 npx quartz build && git add . && git commit -m "message" && git push origin v4
 ```
