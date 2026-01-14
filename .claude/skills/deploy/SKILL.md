@@ -11,6 +11,28 @@ Automate Quartz site deployment with visual verification to ensure content rende
 
 ## Workflow
 
+### Step 0: Pre-deploy Checklist
+
+Before building, verify the content quality:
+
+**1. Permalink Check**
+- Check if new/modified articles have `permalink` in frontmatter
+- If missing, suggest adding one (English, kebab-case)
+- Without permalink, URL becomes `/Articles/{filename}` instead of `/{permalink}`
+
+```bash
+# Check frontmatter of modified markdown files
+git diff --name-only | grep "\.md$" | head -5
+```
+
+**2. Content Review**
+- 어투 통일 (존댓말/반말 혼용 체크)
+- 오타 점검
+- 수식 렌더링 확인 (LaTeX 문법)
+- 이미지 경로 확인 (`file:///` 경로가 없는지)
+
+If issues found, fix before proceeding. If all good, continue to Step 1.
+
 ### Step 1: Build the Site
 
 To build the Quartz static site, execute:
