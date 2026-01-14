@@ -8,3 +8,12 @@
   padding: 0.5rem;
   border-radius: 8px;
 }
+
+// Explorer: 긴 파일명 말줄임표로 자르기
+.explorer-content ul li > a {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  max-width: 220px;
+}
