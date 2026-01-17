@@ -1,19 +1,4 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml"><url>
-    <loc>https://berom.net/</loc>
-    <lastmod>2026-01-06T01:29:21.024Z</lastmod>
-  </url><url>
-    <loc>https://berom.net/InBox/Crossfit.external</loc>
-    <lastmod>2026-01-06T01:29:21.011Z</lastmod>
-  </url><url>
-    <loc>https://berom.net/InBox/Project</loc>
-    <lastmod>2026-01-06T01:29:21.011Z</lastmod>
-  </url><url>
-    <loc>https://berom.net/InBox/Sound-Engineering.external</loc>
-    <lastmod>2026-01-06T01:29:21.011Z</lastmod>
-  </url><url>
-    <loc>https://berom.net/InBox/Writing.externel</loc>
-    <lastmod>2026-01-06T01:29:21.011Z</lastmod>
-  </url><url>
     <loc>https://berom.net/Articles/2025-%ED%9A%8C%EA%B3%A0</loc>
     <lastmod>2026-01-14T19:23:53.777Z</lastmod>
   </url><url>
@@ -37,4 +22,19 @@
   </url><url>
     <loc>https://berom.net/Articles/%EC%A0%8A%EC%9D%8C%EC%9D%B4-%EC%95%84%EB%A6%84%EB%8B%B5%EB%8B%A4%EB%8A%94-%EA%B2%83%EC%9D%84-%EA%B9%A8%EB%8B%AC%EC%95%98%EB%8B%A4</loc>
     <lastmod>2026-01-06T01:29:21.011Z</lastmod>
+  </url><url>
+    <loc>https://berom.net/InBox/Crossfit.external</loc>
+    <lastmod>2026-01-06T01:29:21.011Z</lastmod>
+  </url><url>
+    <loc>https://berom.net/InBox/Project</loc>
+    <lastmod>2026-01-06T01:29:21.011Z</lastmod>
+  </url><url>
+    <loc>https://berom.net/InBox/Sound-Engineering.external</loc>
+    <lastmod>2026-01-06T01:29:21.011Z</lastmod>
+  </url><url>
+    <loc>https://berom.net/InBox/Writing.externel</loc>
+    <lastmod>2026-01-06T01:29:21.011Z</lastmod>
+  </url><url>
+    <loc>https://berom.net/</loc>
+    <lastmod>2026-01-06T01:29:21.024Z</lastmod>
   </url></urlset>

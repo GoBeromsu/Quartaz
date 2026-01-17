@@ -4,17 +4,31 @@ import * as Component from "./quartz/components"
 // components shared across all pages
 export const sharedPageComponents: SharedLayout = {
   head: Component.Head(),
-  header: [],
+  header: [
+    Component.Flex({
+      components: [
+        { Component: Component.PageTitle() },
+        { Component: Component.Spacer() },
+        { Component: Component.Search() },
+        { Component: Component.Darkmode() },
+      ],
+    }),
+  ],
   afterBody: [
     Component.TagList(),
+
+    // Topics section - shows all tags on homepage
+    Component.ConditionalRender({
+      component: Component.AllTags(),
+      condition: (page) => page.fileData.slug === "index",
+    }),
 
     // NOTE: limit=9999 is intentional. Static HTML means no runtime cost.
     // ~500 articles ≈ 200KB, acceptable for personal blog. Pagination not worth the complexity.
     Component.ConditionalRender({
-      component: Component.RecentNotes({
-        title: "Articles",
+      component: Component.ArticleList({
+        title: "Writing",
         limit: 9999,
-        showTags: false,
         filter: (f) => f.slug !== "index",
       }),
       condition: (page) => page.fileData.slug === "index",
@@ -52,43 +66,14 @@ export const defaultContentPageLayout: PageLayout = {
     }),
     Component.ArticleTitle(),
     Component.ContentMeta(),
-    Component.TagList(),
   ],
-  left: [
-    Component.PageTitle(),
-    Component.MobileOnly(Component.Spacer()),
-    Component.Flex({
-      components: [
-        {
-          Component: Component.Search(),
-          grow: true,
-        },
-        { Component: Component.Darkmode() },
-        { Component: Component.ReaderMode() },
-      ],
-    }),
-    Component.Explorer(),
-  ],
-
-  right: [Component.DesktopOnly(Component.TableOfContents()), Component.Backlinks()],
+  left: [],
+  right: [],
 }
 
 // components for pages that display lists of pages  (e.g. tags or folders)
 export const defaultListPageLayout: PageLayout = {
   beforeBody: [Component.Breadcrumbs(), Component.ArticleTitle(), Component.ContentMeta()],
-  left: [
-    Component.PageTitle(),
-    Component.MobileOnly(Component.Spacer()),
-    Component.Flex({
-      components: [
-        {
-          Component: Component.Search(),
-          grow: true,
-        },
-        { Component: Component.Darkmode() },
-      ],
-    }),
-    Component.Explorer(),
-  ],
+  left: [],
   right: [],
 }
