@@ -37,4 +37,12 @@
   margin-bottom: 2rem;
 }
 
-// Note: ArticleList and AllTags styles are in their respective components
+// ============================================
+// Homepage-specific adjustments
+// ============================================
+body[data-slug="index"] {
+  .page-header {
+    border-bottom: none;
+    padding-bottom: 1rem;
+  }
+}

@@ -7,7 +7,7 @@ interface Options {
 }
 
 const defaultOptions: Options = {
-  title: "Topics:",
+  title: "Topics",
 }
 
 export default ((userOpts?: Partial<Options>) => {
@@ -25,39 +25,41 @@ export default ((userOpts?: Partial<Options>) => {
 
     return (
       <div class={classNames(displayClass, "all-tags")}>
-        <span class="label">{opts.title}</span>
-        {allTags.map((tag, index) => {
-          const linkDest = resolveRelative(fileData.slug!, `tags/${tag}` as FullSlug)
-          return (
-            <>
+        <h3 class="all-tags-title">{opts.title}</h3>
+        <div class="all-tags-list">
+          {allTags.map((tag) => {
+            const linkDest = resolveRelative(fileData.slug!, `tags/${tag}` as FullSlug)
+            return (
               <a href={linkDest} class="internal tag-link">
-                {tag}
+                #{tag}
               </a>
-              {index < allTags.length - 1 && ", "}
-            </>
-          )
-        })}
+            )
+          })}
+        </div>
       </div>
     )
   }
 
   AllTags.css = `
 .all-tags {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.25rem;
-  margin: 2rem 0 1rem;
+  margin: 1rem 0;
 }
 
-.all-tags .label {
-  color: var(--gray);
-  margin-right: 0.5rem;
+.all-tags-title {
+  margin-bottom: 0.5rem;
+}
+
+.all-tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
 .all-tags a.internal.tag-link {
-  color: var(--dark);
+  color: var(--secondary);
   text-decoration: none;
+  background-color: transparent;
+  padding: 0;
 }
 
 .all-tags a.internal.tag-link::before {

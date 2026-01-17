@@ -41,12 +41,13 @@ export default ((userOpts?: Partial<Options>) => {
           {limitedPages.map((page) => {
             const title = page.frontmatter?.title ?? "Untitled"
             const date = getDate(cfg, page)
-            const year = date ? date.getFullYear().toString() : ""
+            const dateStr = date
+              ? `${date.getFullYear()} · ${String(date.getMonth() + 1).padStart(2, "0")}`
+              : ""
 
             return (
               <li>
-                <span class="year">{year}</span>
-                <span class="separator">&middot;</span>
+                <span class="date">{dateStr}</span>
                 <a href={resolveRelative(fileData.slug!, page.slug!)} class="internal">
                   {title}
                 </a>
@@ -80,18 +81,16 @@ export default ((userOpts?: Partial<Options>) => {
   padding: 0.25em 0;
 }
 
-.article-list .year {
+.article-list .date {
   color: var(--gray);
   font-variant-numeric: tabular-nums;
-  min-width: 3.5em;
+  min-width: 5.5em;
 }
 
-.article-list .separator {
-  color: var(--gray);
-}
-
-.article-list a {
+.article-list a.internal {
   text-decoration: none;
+  background-color: transparent;
+  padding: 0;
 }
 
 .article-list a:hover {

@@ -9,31 +9,19 @@ export const sharedPageComponents: SharedLayout = {
       components: [
         { Component: Component.PageTitle() },
         { Component: Component.Spacer() },
-        { Component: Component.Search() },
+        {
+          Component: Component.LinksHeader({
+            links: {
+              About: "/about",
+            },
+          }),
+        },
         { Component: Component.Darkmode() },
       ],
     }),
   ],
   afterBody: [
     Component.TagList(),
-
-    // Topics section - shows all tags on homepage
-    Component.ConditionalRender({
-      component: Component.AllTags(),
-      condition: (page) => page.fileData.slug === "index",
-    }),
-
-    // NOTE: limit=9999 is intentional. Static HTML means no runtime cost.
-    // ~500 articles ≈ 200KB, acceptable for personal blog. Pagination not worth the complexity.
-    Component.ConditionalRender({
-      component: Component.ArticleList({
-        title: "Writing",
-        limit: 9999,
-        filter: (f) => f.slug !== "index",
-      }),
-      condition: (page) => page.fileData.slug === "index",
-    }),
-
     Component.Comments({
       provider: "giscus",
       options: {
@@ -59,13 +47,20 @@ export const sharedPageComponents: SharedLayout = {
 
 // components for pages that display a single page (e.g. a single note)
 export const defaultContentPageLayout: PageLayout = {
+  pageBody: Component.HomepageContent(),
   beforeBody: [
     Component.ConditionalRender({
       component: Component.Breadcrumbs(),
       condition: (page) => page.fileData.slug !== "index",
     }),
-    Component.ArticleTitle(),
-    Component.ContentMeta(),
+    Component.ConditionalRender({
+      component: Component.ArticleTitle(),
+      condition: (page) => page.fileData.frontmatter?.hidetitle !== "true",
+    }),
+    Component.ConditionalRender({
+      component: Component.ContentMeta(),
+      condition: (page) => page.fileData.slug !== "index",
+    }),
   ],
   left: [],
   right: [],
