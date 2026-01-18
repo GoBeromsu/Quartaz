@@ -24,8 +24,8 @@ export default ((userOpts?: Partial<Options>) => {
     }
 
     return (
-      <div class={classNames(displayClass, "all-tags")}>
-        <h3 class="all-tags-title">{opts.title}</h3>
+      <section class={classNames(displayClass, "all-tags-section")}>
+        <h3>{opts.title}</h3>
         <div class="all-tags-list">
           {allTags.map((tag) => {
             const linkDest = resolveRelative(fileData.slug!, `tags/${tag}` as FullSlug)
@@ -36,16 +36,16 @@ export default ((userOpts?: Partial<Options>) => {
             )
           })}
         </div>
-      </div>
+      </section>
     )
   }
 
   AllTags.css = `
-.all-tags {
-  margin: 1rem 0;
+.all-tags-section {
+  margin-bottom: 2rem;
 }
 
-.all-tags-title {
+.all-tags-section h3 {
   margin-bottom: 0.5rem;
 }
 
@@ -55,18 +55,18 @@ export default ((userOpts?: Partial<Options>) => {
   gap: 0.75rem;
 }
 
-.all-tags a.internal.tag-link {
+.all-tags-section a.internal.tag-link {
   color: var(--secondary);
   text-decoration: none;
   background-color: transparent;
   padding: 0;
 }
 
-.all-tags a.internal.tag-link::before {
+.all-tags-section a.internal.tag-link::before {
   content: none;
 }
 
-.all-tags a.internal.tag-link:hover {
+.all-tags-section a.internal.tag-link:hover {
   text-decoration: underline;
 }
 `

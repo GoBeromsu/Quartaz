@@ -1,55 +1,51 @@
 import { QuartzComponent, QuartzComponentConstructor, QuartzComponentProps } from "./types"
 import { resolveRelative } from "../util/path"
-import { QuartzPluginData } from "../plugins/vfile"
 import { byDateAndAlphabetical } from "./PageList"
 import { getDate } from "./Date"
 import { GlobalConfiguration } from "../cfg"
 import { classNames } from "../util/lang"
 
 interface Options {
-  title?: string
+  title: string
   limit: number
-  filter: (f: QuartzPluginData) => boolean
-  sort: (f1: QuartzPluginData, f2: QuartzPluginData) => number
 }
 
 const defaultOptions = (cfg: GlobalConfiguration): Options => ({
-  limit: 10,
-  filter: () => true,
-  sort: byDateAndAlphabetical(cfg),
+  title: "Latest",
+  limit: 3,
 })
 
 export default ((userOpts?: Partial<Options>) => {
-  const ArticleList: QuartzComponent = ({
+  const Latest: QuartzComponent = ({
     allFiles,
     fileData,
     displayClass,
     cfg,
   }: QuartzComponentProps) => {
     const opts = { ...defaultOptions(cfg), ...userOpts }
-    const pages = allFiles.filter(opts.filter).sort(opts.sort)
-    const limitedPages = opts.limit > 0 ? pages.slice(0, opts.limit) : pages
+    const pages = allFiles
+      .filter((f) => f.slug !== "index")
+      .sort(byDateAndAlphabetical(cfg))
+      .slice(0, opts.limit)
 
-    if (limitedPages.length === 0) {
+    if (pages.length === 0) {
       return null
     }
 
     return (
-      <section class={classNames(displayClass, "article-list-section")}>
-        {opts.title && <h3>{opts.title}</h3>}
+      <section class={classNames(displayClass, "latest-section")}>
+        <h3>{opts.title}</h3>
         <ul class="article-list">
-          {limitedPages.map((page) => {
-            const title = page.frontmatter?.title ?? "Untitled"
+          {pages.map((page) => {
             const date = getDate(cfg, page)
             const dateStr = date
               ? `${date.getFullYear()} · ${String(date.getMonth() + 1).padStart(2, "0")}`
               : ""
-
             return (
               <li>
                 <span class="date">{dateStr}</span>
                 <a href={resolveRelative(fileData.slug!, page.slug!)} class="internal">
-                  {title}
+                  {page.frontmatter?.title ?? "Untitled"}
                 </a>
               </li>
             )
@@ -59,44 +55,15 @@ export default ((userOpts?: Partial<Options>) => {
     )
   }
 
-  ArticleList.css = `
-.article-list-section {
+  Latest.css = `
+.latest-section {
   margin-bottom: 2rem;
 }
 
-.article-list-section h3 {
+.latest-section h3 {
   margin-bottom: 0.5rem;
-}
-
-.article-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.article-list li {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5em;
-  padding: 0.25em 0;
-}
-
-.article-list .date {
-  color: var(--gray);
-  font-variant-numeric: tabular-nums;
-  min-width: 5.5em;
-}
-
-.article-list a.internal {
-  text-decoration: none;
-  background-color: transparent;
-  padding: 0;
-}
-
-.article-list a:hover {
-  text-decoration: underline;
 }
 `
 
-  return ArticleList
+  return Latest
 }) satisfies QuartzComponentConstructor
