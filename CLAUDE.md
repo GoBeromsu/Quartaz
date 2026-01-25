@@ -35,6 +35,24 @@ npx quartz build && git add . && git commit -m "message" && git push origin v4
 - Auto-deploy via GitHub Actions to GitHub Pages
 - Site: https://berom.net
 
+## Content Sync
+
+### Architecture
+- Source: `../Ataraxia/40. Digital Garden/` (Obsidian vault)
+- Destination: `./content/` (real directory, not symlink)
+- Pre-commit hook auto-syncs on every commit
+
+### Commands
+| Command | Description |
+|---------|-------------|
+| `npm run sync` | One-time manual sync |
+| `npm run watch` | Watch mode - auto-sync on file changes |
+| `npm run dev` | Watch + Quartz serve (for development) |
+
+### Files
+- `.git/hooks/pre-commit` - Auto-sync hook
+- `scripts/watch-content.mjs` - Watch script using chokidar
+
 ## Image Policy
 
 ### Eagle Library Images

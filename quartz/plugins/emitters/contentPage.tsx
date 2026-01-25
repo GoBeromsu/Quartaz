@@ -48,8 +48,8 @@ async function processContent(
 export const ContentPage: QuartzEmitterPlugin<Partial<FullPageLayout>> = (userOpts) => {
   const opts: FullPageLayout = {
     ...sharedPageComponents,
-    pageBody: Content(),          // 기본값 (layout에서 오버라이드 가능)
-    ...defaultContentPageLayout,
+    pageBody: Content(),          // default (can be overridden by layout)
+    ...defaultContentPageLayout,  // layout's pageBody (HomepageContent) takes precedence
     ...userOpts,
   }
 
