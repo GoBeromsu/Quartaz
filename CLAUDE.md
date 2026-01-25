@@ -26,6 +26,8 @@ permalink: my-article-slug
 
 **Use `/deploy` skill for deployment** - it automates build, commit, push, and visual verification.
 
+Skill location: `../Ataraxia/.claude/skills/deploy/` (managed in Ataraxia vault)
+
 Manual command (if needed):
 ```bash
 npx quartz build && git add . && git commit -m "message" && git push origin v4
