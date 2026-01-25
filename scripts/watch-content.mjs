@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * Syncs Ataraxia Digital Garden folder to content/
+ * Syncs Ataraxia Digital Garden staging folder to content/
+ * NOTE: Syncs from .deploy-staging (prepared by /deploy skill)
  * Usage:
  *   node scripts/watch-content.mjs         # Watch mode
  *   node scripts/watch-content.mjs --once  # Sync once and exit
@@ -11,7 +12,7 @@ import { basename, resolve } from "path"
 
 import { watch } from "chokidar"
 
-const SOURCE_DIR = resolve("../Ataraxia/40. Digital Garden")
+const SOURCE_DIR = resolve("../Ataraxia/40. Digital Garden/.deploy-staging")
 const DEST_DIR = resolve("./content")
 
 const once = process.argv.includes("--once")
