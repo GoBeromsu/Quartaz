@@ -110,6 +110,7 @@ export const FrontMatter: QuartzTransformerPlugin<Partial<Options>> = (userOpts)
               "lastmod",
               "updated",
               "last-modified",
+              "date_modified",
             ])
             if (modified) data.modified = modified
             data.modified ||= created // if modified is not set, use created

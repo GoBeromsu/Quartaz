@@ -2,7 +2,7 @@ import { QuartzComponent, QuartzComponentConstructor, QuartzComponentProps } fro
 import { resolveRelative } from "../util/path"
 import { QuartzPluginData } from "../plugins/vfile"
 import { byDateAndAlphabetical } from "./PageList"
-import { getDate } from "./Date"
+import { getDate, formatDate } from "./Date"
 import { GlobalConfiguration } from "../cfg"
 import { classNames } from "../util/lang"
 
@@ -41,9 +41,7 @@ export default ((userOpts?: Partial<Options>) => {
           {limitedPages.map((page) => {
             const title = page.frontmatter?.title ?? "Untitled"
             const date = getDate(cfg, page)
-            const dateStr = date
-              ? `${date.getFullYear()} · ${String(date.getMonth() + 1).padStart(2, "0")}`
-              : ""
+            const dateStr = date ? formatDate(date, cfg.locale) : ""
 
             return (
               <li>
@@ -84,7 +82,7 @@ export default ((userOpts?: Partial<Options>) => {
 .article-list .date {
   color: var(--gray);
   font-variant-numeric: tabular-nums;
-  min-width: 5.5em;
+  min-width: 11em;
 }
 
 .article-list a.internal {

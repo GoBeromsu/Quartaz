@@ -1,7 +1,7 @@
 import { QuartzComponent, QuartzComponentConstructor, QuartzComponentProps } from "./types"
 import { resolveRelative } from "../util/path"
 import { byDateAndAlphabetical } from "./PageList"
-import { getDate } from "./Date"
+import { getDate, formatDate } from "./Date"
 import { GlobalConfiguration } from "../cfg"
 import { classNames } from "../util/lang"
 
@@ -38,9 +38,7 @@ export default ((userOpts?: Partial<Options>) => {
         <ul class="article-list">
           {pages.map((page) => {
             const date = getDate(cfg, page)
-            const dateStr = date
-              ? `${date.getFullYear()} · ${String(date.getMonth() + 1).padStart(2, "0")}`
-              : ""
+            const dateStr = date ? formatDate(date, cfg.locale) : ""
             return (
               <li>
                 <span class="date">{dateStr}</span>
