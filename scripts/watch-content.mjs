@@ -20,7 +20,7 @@ function sync() {
   console.log("\n[sync] Syncing content...")
   try {
     execSync(
-      `rsync -av --delete --exclude='.obsidian' --exclude='.DS_Store' "${SOURCE_DIR}/" "${DEST_DIR}"`,
+      `rsync -av --delete --exclude='.obsidian' --exclude='.DS_Store' --exclude='_attachments' "${SOURCE_DIR}/" "${DEST_DIR}"`,
       { stdio: "inherit" }
     )
     console.log("[sync] Complete\n")
