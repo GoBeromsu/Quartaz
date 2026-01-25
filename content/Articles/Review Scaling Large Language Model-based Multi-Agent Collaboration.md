@@ -29,7 +29,7 @@ Neural network 에서 뉴런 수를 늘릴 때 성능이 증가하는 scaling la
 
 > Majority voting(다수결) 은 interaction 과 refinement 가 없고, agent 수가 증가할수록 정보 중복과 비용이 증가할 수밖에 없는 구조라 한계가 있다.
 
-![](file:///Users/beomsu/Documents/Ataraxia.library/images/MKTK3Q08FDZX3.info/eagle-temp-fivco.png)
+![](/_attachments/eagle-MKTK3Q08FDZX3-2.png)
 
 해당 연구에서는 이를 위해서 multi-agent collaboration network (MACNET) 을 제안하였다.
 
@@ -65,7 +65,7 @@ DAG 는 방향성을 가지면서 순환이 없는 그래프로, 정보의 **bac
 
 이 논문에서는 2 depth 의 구조를 제공한다. chain, tree, graph 이다.
 
-![](file:///Users/beomsu/Documents/Ataraxia.library/images/MKTL8XPEGDE1E.info/eagle-temp-n83mz.png)
+![](/_attachments/eagle-MKTL8XPEGDE1E-2.png)
 
 - Chain:
 	- linear structure ([[Waterfall Model]] 유사)
@@ -111,7 +111,7 @@ Short-term memory 는 각 interaction 에서의 working memory 로서 task, role
 
 
 #### Density Perspective : 얼마나 많이 연결 되었는가
-![](file:///Users/beomsu/Documents/Ataraxia.library/images/MKTMDVEB6IJYA.info/eagle-temp-phry9.png)
+![](/_attachments/eagle-MKTMDVEB6IJYA-2.png)
 
 - 높은 interaction density 가 평균적으로 좋은 성능을 보임 (mesh > tree > chain)
 	- 작업 특성에 따라서 편차가 존재한다고 추정이 된다.
@@ -127,7 +127,7 @@ Irregular topology(random) 가 regular topology 를 outperform 하는 것이 관
 #### Direction Perspective
 Divergent topology 가 convergent topology 보다 우수했으며, 발산 구조에서는 더 다양한 의견을 고려할 수 있어 성능이 좋아지는 것으로 해석된다. 또한 artifact propagation 역시 divergent structure 에서 더 smooth 하게 진행되었다.
 ### 그래서… Agent 에서 Scaling Law 가 성립이 되었는가
-![](file:///Users/beomsu/Documents/Ataraxia.library/images/MKJLLP889T8R8.info/eagle-temp-w1kui.png)
+![](/_attachments/eagle-MKJLLP889T8R8-2.png)
 Logistic 하게 에이전트가 늘어날수록 성능이 증가하는 것이 관측이 되었다.
 
 하지만, agent 의 수가 늘어나서 지능이 좋아졌다는 것보다 Task 를 풀 때 다양한 측면을 agent 들이 상호작용에서 고려하게 됨으로써 성능이 증가하는 것으로 여겨진다.
