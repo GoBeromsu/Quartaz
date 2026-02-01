@@ -77,24 +77,15 @@ flowchart LR
 
 이 과정에서 Upstage의 SOLAR API를 세 가지 방식으로 활용했습니다.
 
-### Upstage API 활용 흐름
+### Upstage API 활용 방식
 
-```mermaid
-flowchart LR
-    Write["문단 작성"] --> Parse["1. Document Parse API<br/>PDF를 텍스트로"]
-    Parse --> Embed["2. Embeddings API<br/>문장을 벡터로 변환"]
-    Embed --> Find["3. 유사한 근거 검색<br/>(ChromaDB)"]
-    Find --> Chat["4. Chat API<br/>답변 생성"]
-    Chat --> Show["에디터에 표시"]
+| API | Endpoint | 용도 |
+|-----|----------|------|
+| **Embeddings** | `/v1/solar/embeddings` | 텍스트를 벡터로 변환 (문단/참고문헌 임베딩) |
+| **Document Parse** | `/v1/document-ai/document-parse` | PDF에서 텍스트 추출 + 페이지 정보 |
+| **Chat** | `/v1/solar/chat/completions` | 근거 기반 답변 생성 |
 
-    style Parse fill:#e3f2fd,stroke:#1565c0
-    style Embed fill:#e3f2fd,stroke:#1565c0
-    style Chat fill:#e3f2fd,stroke:#1565c0
-```
-
-1. **Document Parse API**: 참고문헌 PDF를 업로드하면 텍스트로 변환합니다.
-2. **Embeddings API**: 제가 작성한 문단과 참고문헌 내용을 숫자 벡터로 바꿔서 의미적으로 유사한 내용을 찾을 수 있게 합니다.
-3. **Chat API**: 검색된 근거를 바탕으로 자연스러운 답변을 생성하거나, 제 질문에 답합니다.
+**동작 흐름:** PDF 업로드 → Document Parse로 텍스트 추출 → Embeddings로 벡터화 → ChromaDB 저장 → 문단 작성 시 Embeddings로 검색 → Chat으로 답변 생성
 
 ## 3. 실제 사용 화면
 
@@ -106,16 +97,27 @@ flowchart LR
 
 ![Evidence Panel Demo](https://raw.githubusercontent.com/GoBeromsu/My-Awesome-RA/main/docs/images/demo.png)
 
-```mermaid
-flowchart LR
-    Type["문단 입력"] --> Detect["Upstage Embeddings로<br/>의미 벡터 생성"]
-    Detect --> Search["유사 근거 검색"]
-    Search --> Display["패널에 표시"]
+**작동 과정:**
 
-    style Detect fill:#e3f2fd,stroke:#1565c0
+```mermaid
+sequenceDiagram
+    participant U as 사용자
+    participant E as Evidence Panel
+    participant API as Backend API
+    participant S as SOLAR Embeddings
+    participant DB as ChromaDB
+
+    U->>E: 문단 작성 (500ms 디바운스)
+    E->>API: 현재 문단 전송
+    API->>S: 문단 → 벡터 변환
+    S-->>API: 4096차원 벡터
+    API->>DB: 유사도 검색
+    DB-->>API: 관련 근거 + 페이지
+    API-->>E: 검색 결과
+    E-->>U: 패널에 근거 표시
 ```
 
-제가 타이핑을 멈추면, 현재 문단이 Upstage Embeddings API를 거쳐 벡터로 변환되고, ChromaDB에서 가장 유사한 참고문헌 구절을 찾아냅니다. 이 과정이 1초 안에 끝나기 때문에, 작성 흐름이 끊기지 않았습니다.
+타이핑을 멈추면 현재 문단이 Upstage Embeddings API를 거쳐 벡터로 변환되고, ChromaDB에서 가장 유사한 참고문헌 구절을 찾아냅니다. 이 과정이 1초 안에 끝나기 때문에 작성 흐름이 끊기지 않습니다.
 
 ### 3.2 Chat Panel: 직접 질문하기
 
@@ -123,17 +125,30 @@ flowchart LR
 
 ![Chat Panel Demo](https://raw.githubusercontent.com/GoBeromsu/My-Awesome-RA/main/docs/images/chat-panel.png)
 
-```mermaid
-flowchart LR
-    Ask["질문 입력"] --> Search["Embeddings로<br/>관련 구절 검색"]
-    Search --> Generate["Chat API로<br/>답변 생성"]
-    Generate --> Reply["출처와 함께 답변"]
+**작동 과정:**
 
-    style Search fill:#e3f2fd,stroke:#1565c0
-    style Generate fill:#e3f2fd,stroke:#1565c0
+```mermaid
+sequenceDiagram
+    participant U as 사용자
+    participant C as Chat Panel
+    participant API as Backend API
+    participant E as SOLAR Embeddings
+    participant DB as ChromaDB
+    participant L as SOLAR Chat
+
+    U->>C: 질문 입력
+    C->>API: 질문 + 문서 컨텍스트
+    API->>E: 질문 → 벡터 변환
+    E-->>API: 쿼리 벡터
+    API->>DB: 유사도 검색
+    DB-->>API: 관련 근거 청크들
+    API->>L: 근거 + 질문 → 답변 요청
+    L-->>API: 생성된 답변
+    API-->>C: 답변 + 출처
+    C-->>U: 근거 포함 응답 표시
 ```
 
-제 질문도 Embeddings API를 거쳐서 관련 구절을 찾고, 그 구절들을 Upstage Chat API에 넣어서 답변을 만듭니다. 덕분에 "AI가 지어낸 답변"이 아니라, **제 참고문헌에 실제로 있는 내용**만 나옵니다.
+질문을 Embeddings API로 벡터화하여 관련 구절을 찾고, 그 구절들을 Upstage Chat API에 넣어서 답변을 만듭니다. 덕분에 "AI가 지어낸 답변"이 아니라 **제 참고문헌에 실제로 있는 내용**만 나옵니다.
 
 ### 3.3 Reference Library: 한곳에서 관리하기
 
