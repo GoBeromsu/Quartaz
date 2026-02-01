@@ -95,9 +95,9 @@ flowchart LR
 
 ### 3.1 Evidence Panel: 자동으로 근거 찾아주기
 
-현재 에디터에서 선택된 문단(paragraph)을 기반으로, 관련 논문의 섹션들을 **유사도 순으로** 자동으로 가져옵니다. 검색 결과는 bibliography 단위로 list up되며, 임베딩된 PDF에서 추출한 실제 섹션 내용을 보여줍니다. 클릭 한 번으로 현재 작성하고 있는 section과 연관된 인용 섹션을 확인할 수 있으며, 실제 PDF로 바로 이동할 수 있습니다.
+논문을 쓰다가 현재 문단을 뒷받침할 근거가 필요한 순간, Evidence Panel은 에디터에서 선택된 문단(paragraph)을 기준으로 관련 논문의 섹션들을 유사도 순으로 자동으로 가져옵니다. 검색 결과는 bibliography 단위로 정리되며, 임베딩된 PDF에서 추출한 실제 섹션 내용을 함께 보여줍니다. 클릭 한 번으로 현재 작성 중인 section과 연관된 인용 근거를 확인하거나, 원본 PDF의 정확한 위치로 바로 이동할 수 있습니다.
 
-또한 직접 query를 입력하여 관련 논문을 찾아볼 수 있는 **Search 기능**도 제공합니다.
+또한 자동 추천뿐만 아니라, 사용자가 직접 query를 입력해 관련 논문을 찾아볼 수 있는 Search 기능도 제공합니다.
 
 ![Evidence Panel Demo](https://raw.githubusercontent.com/GoBeromsu/My-Awesome-RA/main/docs/images/demo.png)
 
