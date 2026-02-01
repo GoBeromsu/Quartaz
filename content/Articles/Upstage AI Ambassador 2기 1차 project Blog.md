@@ -5,14 +5,8 @@ date_modified: 2026-02-01
 tags: []
 ---
 
+# My Awesome RA: AI-Powered Research Assistant for Evidence-Based Academic Writing
 
-#### 과제 2. 과제 1 프로젝트 기반 블로그 콘텐츠
-- 과제 1 프로젝트에 대한 **AI Agent 프로젝트 소개 글**을 블로그에 작성해주세요.
-- 형식
-	- 문제 정의, 해결 방안, 기대효과, 핵심 기술 항목은 필수적으로 기재해주세요.
-	- 프로젝트를 One Page 로 볼 수 있는 대표 이미지를 1 장 필수로 첨부해주세요.
-- 대상: 입문자도 따라할 수 있도록 친절한 설명을 포함하여 제작
-## Upstage AI Ambassador 2기 1차 project Blog
 ## Introduction
 
 안녕하세요. 이번에 대학원을 졸업한 고범수입니다.
@@ -24,9 +18,40 @@ tags: []
 
 이번 과제를 계기로, 제가 가장 자주 사용하던 논문 작성 도구인 **Overleaf 를 포크 (fork)** 하여, Evidence Panel 기반 기능을 추가한 **My Awesome RA**를 구현했습니다.
 
-<!-- 대표 이미지(필수): 프로젝트 One Page 요약 이미지 1장 첨부 -->
+### 프로젝트 요약 이미지
 
-![[my-awesome-ra-onepage.png]]
+```mermaid
+flowchart LR
+    subgraph Overleaf["Overleaf 에디터"]
+        Editor["LaTeX 에디터"]
+        subgraph Panels["AI 패널"]
+            Evidence["Evidence Panel"]
+            Chat["Chat Panel"]
+            RefLib["Reference Library"]
+        end
+    end
+
+    subgraph Backend["백엔드"]
+        API["FastAPI 서버"]
+    end
+
+    subgraph Upstage["Upstage SOLAR API"]
+        Solar["Embeddings / Parse / Chat"]
+    end
+
+    subgraph Storage["저장소"]
+        Chroma[("ChromaDB")]
+    end
+
+    Editor <--> Evidence & Chat & RefLib
+    Panels --> API
+    API <--> Solar
+    API <--> Chroma
+
+    style Overleaf fill:#e8f5e9,stroke:#2e7d32
+    style Upstage fill:#e3f2fd,stroke:#1565c0
+    style Storage fill:#fff3e0,stroke:#ef6c00
+```
 
 ## 1. 문제 정의
 
@@ -46,206 +71,82 @@ tags: []
 - 문서가 길어질수록 전체 일관성을 수동으로 점검하는 인지적 비용이 급증합니다.
 ## 2. 해결 방안: My Awesome RA
 
-Demo 에서는 오픈소스인 Latex 에디터 Overleaf Community editioun 내부에 **Evidence Panel**과 **Chat Panel**을 내장하여, “작성 (Write) → 근거 확인 (Verify) → 인용 (Insert)”을 **에디터 안에서 단일 플로우로 완결**시키는 AI 기반 RA(Research Assistant) 를 구성하였습니다.
+저는 오픈소스 LaTeX 에디터인 Overleaf Community Edition을 포크하여, **Evidence Panel**과 **Chat Panel**을 추가했습니다. 이 두 패널은 "문단 작성 → 근거 확인 → 인용 삽입"을 **에디터 안에서 끝까지 완결**시킬 수 있도록 설계했습니다.
 
-핵심은 (1) 커서가 위치한 **현재 문단을 자동으로 컨텍스트로 삼아** 근거를 추천하는 Evidence Panel, (2) 참고문헌 (PDF 인덱스) 기반으로 **RAG Q&A**를 제공하는 Chat Panel 입니다.
+핵심 아이디어는 간단합니다. 제가 논문을 쓰면서 가장 불편했던 지점은 "이 문장을 뒷받침할 근거가 어디 있었지?"를 찾으러 여러 도구를 오가는 과정이었습니다. 그래서 (1) **현재 작성 중인 문단**을 자동으로 읽어서 관련 근거를 추천해주는 Evidence Panel과, (2) 궁금한 점을 **직접 질문**할 수 있는 Chat Panel을 만들었습니다.
 
-## 3. 핵심 기능 및 동작 구조
+이 과정에서 Upstage의 SOLAR API를 세 가지 방식으로 활용했습니다.
 
-본 시스템은 **Evidence Panel**과 **Chat Panel** 두 가지 기능 단위를 중심으로 구성되며, 두 기능은 동일한 문서 인덱스와 검색 파이프라인을 공유하되, 트리거와 사용자 인터랙션 목적이 명확히 분리되어 있습니다. 이를 통해 작성 흐름을 방해하지 않으면서도 근거 탐색과 검증을 병렬적으로 지원합니다.
-
-### 3.1 Evidence Panel (문단 기반 자동 근거 추천)
-
-Evidence Panel 은 사용자가 **현재 작성 중인 문단**을 명시적으로 질의하지 않아도, 에디터 상태를 컨텍스트로 삼아 자동으로 근거를 추천하는 기능입니다. 이는 “이 문장을 뒷받침할 근거가 있는가?”라는 질문을 **작성 시점에 선제적으로 해결**하는 데 목적이 있습니다.
-
-기능적 특징은 다음과 같습니다.
-
-- 현재 작성 중인 커서 위치 기준으로 현재 문단을 실시간 감지합니다.
-- 해당 문단을 의미 단위로 임베딩하여 참고문헌 벡터 인덱스와 유사도 검색을 수행합니다.
-- 관련도가 높은 근거 청크를 페이지 정보와 함께 Evidence Panel 에 즉시 표시합니다.
-- 사용자는 클릭 한 번으로 PDF 내 해당 페이지를 확인하거나 인용을 삽입할 수 있습니다.
-
-다음은 Evidence Panel 의 동작 로직입니다.
+### Upstage API 활용 흐름
 
 ```mermaid
-sequenceDiagram
-    participant U as 사용자
-    participant CM as CodeMirror
-    participant EP as Evidence Panel
-    participant API as Backend
-    participant EMB as Embedding
-    participant VDB as Vector DB
+flowchart LR
+    Write["문단 작성"] --> Parse["1. Document Parse API<br/>PDF를 텍스트로"]
+    Parse --> Embed["2. Embeddings API<br/>문장을 벡터로 변환"]
+    Embed --> Find["3. 유사한 근거 검색<br/>(ChromaDB)"]
+    Find --> Chat["4. Chat API<br/>답변 생성"]
+    Chat --> Show["에디터에 표시"]
 
-    U->>CM: 문단 작성 또는 커서 이동
-    CM->>CM: 현재 문단 추출
-    CM->>EP: 문단 변경 이벤트 전달
-    EP->>API: 문단 텍스트 전송
-    API->>EMB: 문단 임베딩 생성
-    EMB-->>API: 임베딩 벡터 반환
-    API->>VDB: 유사도 검색
-    VDB-->>API: 근거 청크 반환
-    API-->>EP: 근거 목록 전달
-    EP-->>U: 근거 미리보기 및 인용 옵션 표시
+    style Parse fill:#e3f2fd,stroke:#1565c0
+    style Embed fill:#e3f2fd,stroke:#1565c0
+    style Chat fill:#e3f2fd,stroke:#1565c0
 ```
 
-### 3.2 Chat Panel (근거 기반 대화형 질의응답)
+1. **Document Parse API**: 참고문헌 PDF를 업로드하면 텍스트로 변환합니다.
+2. **Embeddings API**: 제가 작성한 문단과 참고문헌 내용을 숫자 벡터로 바꿔서 의미적으로 유사한 내용을 찾을 수 있게 합니다.
+3. **Chat API**: 검색된 근거를 바탕으로 자연스러운 답변을 생성하거나, 제 질문에 답합니다.
 
-Chat Panel 은 사용자의 **명시적 질문**을 입력으로 받아, 업로드된 참고문헌을 근거로 응답을 생성하는 대화형 기능입니다. Evidence Panel 이 “문단 중심 자동 추천”에 초점을 둔다면, Chat Panel 은 “의도 기반 탐색과 요약”에 초점을 둡니다.
+## 3. 실제 사용 화면
 
-기능적 특징은 다음과 같습니다.
+실제로 어떻게 작동하는지 화면으로 보여드리겠습니다.
 
-- 사용자의 자연어 질문을 입력으로 받습니다.
-- 질문을 임베딩하여 관련 참고문헌 청크를 검색합니다.
-- 검색된 근거를 바탕으로 답변을 생성하며, 사용된 근거를 함께 제시합니다.
-- 모든 응답은 출처가 명시되어 검증 가능한 형태로 제공됩니다.
+### 3.1 Evidence Panel: 자동으로 근거 찾아주기
 
-다음은 Chat Panel 의 동작 로직입니다.
+제가 "Actor-Critic 방법은 정책 기반과 가치 기반 접근을 결합합니다"라는 문장을 쓰면, Evidence Panel이 **자동으로** 관련 참고문헌을 찾아서 오른쪽에 보여줍니다. 클릭 한 번으로 해당 PDF 페이지를 확인하거나, 바로 인용을 삽입할 수 있습니다.
+
+![Evidence Panel Demo](https://raw.githubusercontent.com/GoBeromsu/My-Awesome-RA/main/docs/images/demo.png)
 
 ```mermaid
-sequenceDiagram
-    participant U as 사용자
-    participant CP as Chat Panel
-    participant API as Backend
-    participant EMB as Embedding
-    participant VDB as Vector DB
-    participant LLM as LLM
+flowchart LR
+    Type["문단 입력"] --> Detect["Upstage Embeddings로<br/>의미 벡터 생성"]
+    Detect --> Search["유사 근거 검색"]
+    Search --> Display["패널에 표시"]
 
-    U->>CP: 질문 입력
-    CP->>API: 질문 전송
-    API->>EMB: 질문 임베딩 생성
-    EMB-->>API: 임베딩 벡터 반환
-    API->>VDB: 유사도 검색
-    VDB-->>API: 관련 근거 청크 반환
-    API->>LLM: 질문 + 근거 기반 답변 생성 요청
-    LLM-->>API: 답변 반환
-    API-->>CP: 답변 및 출처 전달
-    CP-->>U: 근거 포함 응답 표시
+    style Detect fill:#e3f2fd,stroke:#1565c0
 ```
+
+제가 타이핑을 멈추면, 현재 문단이 Upstage Embeddings API를 거쳐 벡터로 변환되고, ChromaDB에서 가장 유사한 참고문헌 구절을 찾아냅니다. 이 과정이 1초 안에 끝나기 때문에, 작성 흐름이 끊기지 않았습니다.
+
+### 3.2 Chat Panel: 직접 질문하기
+
+"Actor-Critic의 장점이 뭐지?"처럼 **직접 질문**을 던질 수도 있습니다. Chat Panel은 제가 업로드한 참고문헌을 읽고 답변을 생성합니다. 중요한 건, **항상 출처를 함께 보여준다**는 점입니다.
+
+![Chat Panel Demo](https://raw.githubusercontent.com/GoBeromsu/My-Awesome-RA/main/docs/images/chat-panel.png)
+
+```mermaid
+flowchart LR
+    Ask["질문 입력"] --> Search["Embeddings로<br/>관련 구절 검색"]
+    Search --> Generate["Chat API로<br/>답변 생성"]
+    Generate --> Reply["출처와 함께 답변"]
+
+    style Search fill:#e3f2fd,stroke:#1565c0
+    style Generate fill:#e3f2fd,stroke:#1565c0
+```
+
+제 질문도 Embeddings API를 거쳐서 관련 구절을 찾고, 그 구절들을 Upstage Chat API에 넣어서 답변을 만듭니다. 덕분에 "AI가 지어낸 답변"이 아니라, **제 참고문헌에 실제로 있는 내용**만 나옵니다.
+
+### 3.3 Reference Library: 한곳에서 관리하기
+
+참고문헌은 Reference Library에서 관리합니다. PDF를 업로드하면 Upstage Document Parse API가 텍스트를 추출하고, 자동으로 인덱싱됩니다.
+
+![Reference Library](https://raw.githubusercontent.com/GoBeromsu/My-Awesome-RA/main/docs/images/reference-library.png)
 
 ## 4. 기대 효과
 
-이번 데모를 통해서 upstage 의 api 를 쓸 수 있었습니다. 제게는 평소에 생각만하던 기능을 구현해보고, [[Retriever-Augmented Generation (RAG)|RAG]] 를 직접적으로 구현해보고 임베딩 로직을 구성해보는 경험이 되었습니다. 기능 구현을 하면서 예상치 못한 에러들을 많이 겪었지만, 결과적으로 작동하는 데모가 구성이 되어 뿌듯합니다.
+이번 프로젝트를 통해 평소에 생각만 하던 기능을 직접 구현해볼 수 있었습니다. Upstage의 세 가지 API (Document Parse, Embeddings, Chat) 를 조합해서 실제로 작동하는 RAG 시스템을 만드는 과정에서, API 응답 시간을 줄이는 법이나 벡터 검색 품질을 높이는 법 같은 실무 감각을 많이 배웠습니다. 예상치 못한 에러도 많았지만, 결과적으로 제가 원하던 "에디터 안에서 근거를 찾는" 경험을 구현할 수 있어서 뿌듯했습니다.
 
-이 데모는 연구자가 논문을 작성하는 과정에서 발생하는 **근거 탐색, 검증, 인용 삽입의 반복 비용**을 구조적으로 감소시킬 것일아 기대합니다.
+이 시스템의 핵심 가치는 **흐름을 끊지 않는다**는 점입니다. 기존에는 "이 주장을 뒷받침할 근거가 뭐였지?"라는 생각이 들 때마다 PDF 뷰어를 열고, Ctrl+F로 검색하고, 다시 에디터로 돌아오는 과정이 반복됐습니다. 이제는 그냥 타이핑만 하면, 오른쪽 패널에 관련 근거가 자동으로 뜹니다. 질문이 있으면 Chat Panel에 물어보면 됩니다.
 
-에디터 내부에서 현재 작성 중인 윛이 기준의 문단 단위 근거 추천과 자신이 참조한 논문에 대해서 질의응답이 동시에 제공됨으로써, 작성자는 검색과 검증에 소요되던 인지적·시간적 부담을 최소화하고, 논증의 정확성과 일관성에 더 집중할 수 있습니다. 또한 모든 추천과 응답이 명시적 근거에 기반하므로, AI 사용에 따른 신뢰성 문제를 완화하고 학술 글쓰기 맥락에 적합한 보조 도구로 기능할 수 있습니다. 나를 대신해주는 Researcher 보다는 내 능력을 증강시켜주는 Research assistant 인 것입니다
+또 하나 중요한 점은 **신뢰성**입니다. 일반적인 ChatGPT 같은 도구는 근거 없이 그럴듯한 답을 만들어낼 수 있지만, My Awesome RA는 **제가 업로드한 참고문헌에 실제로 있는 내용**만 보여줍니다. 모든 추천과 답변에 출처가 붙기 때문에, 논문 작성처럼 정확성이 중요한 상황에서도 안심하고 쓸 수 있습니다.
 
-
-
-Upstage AI Ambassador 2기 1차 project Blog
-## Introduction
-
-안녕하세요. 이번에 대학원을 졸업한 고범수입니다.
-저는 초보 연구자로서 논문을 처음 “제출 가능한 형태”로 끝까지 완주하는 과정에서, 글쓰기 자체보다 **근거를 확인하고 인용을 정리하는 과정에서 더 자주 흐름이 끊긴다**는 점을 체감했습니다.
-
-논문은 주로 Overleaf 환경에서 작성했습니다. 하지만 10,000 자 이상으로 길어지는 논문 작성은 단순히 문장을 생산하는 작업이 아니라, **사고의 맥락과 인지적 에너지를 장기간 유지해야 하는 작업**에 가깝다고 느꼈습니다. 특히 졸업 논문 이후 컨퍼런스와 저널로 확장되는 과정에서, 출판물 포맷이 바뀔 때마다 동일한 논리를 유지한 채 구조와 톤을 재조정해야 했고, 이 과정이 반복적으로 부담으로 작용했습니다.
-
-문헌이 추가되거나 제거될 때마다, 기존 주장과 인용이 여전히 유효한지 다시 확인해야 했고, 문서가 길어질수록 이러한 점검을 수동으로 수행하는 데 한계가 있음을 느꼈습니다. 이 경험을 통해, **에디터를 벗어나지 않고 근거를 확인하고 인용까지 이어갈 수 있는 방식**이 필요하다고 판단했습니다.
-
-이번 과제를 계기로, 제가 가장 자주 사용하던 논문 작성 도구인 **Overleaf 를 포크 (fork)** 하여, Evidence Panel 기반 기능을 추가한 **My Awesome RA**를 구현했습니다.
-
-<!-- 대표 이미지(필수): 프로젝트 One Page 요약 이미지 1장 첨부 -->
-
-![[my-awesome-ra-onepage.png]]
-
-## 1. 문제 정의
-
-논문 작성 과정에서 인용할 근거를 찾고 검증하는 작업이 에디터 외부에서 이루어지면서 작성 흐름이 반복적으로 끊깁니다. 이로 인해 작성 중인 문단에 필요한 근거를 빠르게 특정하기 어렵고, PDF 뷰어·레퍼런스 도구·에디터 간 전환 과정에서 맥락이 소실됩니다. 결과적으로 근거와 주장 간의 연결이 약해지고, 인용 정확도와 문서 전반의 일관성이 저하되며, 문서가 길어질수록 수정과 확장에 필요한 비용이 급격히 증가합니다.
-
-**요약하면 다음 세 가지 문제로 정리할 수 있습니다.**
-
-- **작성 맥락 단절**: 에디터를 벗어난 근거 탐색과 잦은 컨텍스트 스위칭으로 사고 흐름이 반복적으로 끊깁니다.
-- **근거–주장 연결 약화**: 인용이 실제로 어떤 근거를 뒷받침하는지 즉시 검증하기 어렵습니다.
-- **확장 비용 증가**: 문서가 길어질수록 인용, 용어, 논리의 불일치를 수동으로 관리하기 어려워집니다.
-
-**기존 방식의 한계는 다음과 같습니다.**
-
-- Ctrl+F 기반 검색은 표현이 달라지면 원하는 근거를 찾기 어렵습니다.
-- 근거 확인을 위해 여러 도구 (Zotero, Obsidian, Notion) 를 오가며 집중과 맥락이 쉽게 분산됩니다.
-- 인용 형식은 맞출 수 있으나, 어떤 근거를 인용했는지에 대한 연결이 약해지기 쉽습니다.
-- 문서가 길어질수록 전체 일관성을 수동으로 점검하는 인지적 비용이 급증합니다.
-## 2. 해결 방안: My Awesome RA
-
-Demo 에서는 오픈소스인 Latex 에디터 Overleaf Community editioun 내부에 **Evidence Panel**과 **Chat Panel**을 내장하여, “작성 (Write) → 근거 확인 (Verify) → 인용 (Insert)”을 **에디터 안에서 단일 플로우로 완결**시키는 AI 기반 RA(Research Assistant) 를 구성하였습니다.
-
-핵심은 (1) 커서가 위치한 **현재 문단을 자동으로 컨텍스트로 삼아** 근거를 추천하는 Evidence Panel, (2) 참고문헌 (PDF 인덱스) 기반으로 **RAG Q&A**를 제공하는 Chat Panel 입니다.
-
-## 3. 핵심 기능 및 동작 구조
-
-본 시스템은 **Evidence Panel**과 **Chat Panel** 두 가지 기능 단위를 중심으로 구성되며, 두 기능은 동일한 문서 인덱스와 검색 파이프라인을 공유하되, 트리거와 사용자 인터랙션 목적이 명확히 분리되어 있습니다. 이를 통해 작성 흐름을 방해하지 않으면서도 근거 탐색과 검증을 병렬적으로 지원합니다.
-
-### 3.1 Evidence Panel (문단 기반 자동 근거 추천)
-
-Evidence Panel 은 사용자가 **현재 작성 중인 문단**을 명시적으로 질의하지 않아도, 에디터 상태를 컨텍스트로 삼아 자동으로 근거를 추천하는 기능입니다. 이는 “이 문장을 뒷받침할 근거가 있는가?”라는 질문을 **작성 시점에 선제적으로 해결**하는 데 목적이 있습니다.
-
-기능적 특징은 다음과 같습니다.
-
-- 현재 작성 중인 커서 위치 기준으로 현재 문단을 실시간 감지합니다.
-- 해당 문단을 의미 단위로 임베딩하여 참고문헌 벡터 인덱스와 유사도 검색을 수행합니다.
-- 관련도가 높은 근거 청크를 페이지 정보와 함께 Evidence Panel 에 즉시 표시합니다.
-- 사용자는 클릭 한 번으로 PDF 내 해당 페이지를 확인하거나 인용을 삽입할 수 있습니다.
-
-다음은 Evidence Panel 의 동작 로직입니다.
-
-```mermaid
-sequenceDiagram
-    participant U as 사용자
-    participant CM as CodeMirror
-    participant EP as Evidence Panel
-    participant API as Backend
-    participant EMB as Embedding
-    participant VDB as Vector DB
-
-    U->>CM: 문단 작성 또는 커서 이동
-    CM->>CM: 현재 문단 추출
-    CM->>EP: 문단 변경 이벤트 전달
-    EP->>API: 문단 텍스트 전송
-    API->>EMB: 문단 임베딩 생성
-    EMB-->>API: 임베딩 벡터 반환
-    API->>VDB: 유사도 검색
-    VDB-->>API: 근거 청크 반환
-    API-->>EP: 근거 목록 전달
-    EP-->>U: 근거 미리보기 및 인용 옵션 표시
-```
-
-### 3.2 Chat Panel (근거 기반 대화형 질의응답)
-
-Chat Panel 은 사용자의 **명시적 질문**을 입력으로 받아, 업로드된 참고문헌을 근거로 응답을 생성하는 대화형 기능입니다. Evidence Panel 이 “문단 중심 자동 추천”에 초점을 둔다면, Chat Panel 은 “의도 기반 탐색과 요약”에 초점을 둡니다.
-
-기능적 특징은 다음과 같습니다.
-
-- 사용자의 자연어 질문을 입력으로 받습니다.
-- 질문을 임베딩하여 관련 참고문헌 청크를 검색합니다.
-- 검색된 근거를 바탕으로 답변을 생성하며, 사용된 근거를 함께 제시합니다.
-- 모든 응답은 출처가 명시되어 검증 가능한 형태로 제공됩니다.
-
-다음은 Chat Panel 의 동작 로직입니다.
-
-```mermaid
-sequenceDiagram
-    participant U as 사용자
-    participant CP as Chat Panel
-    participant API as Backend
-    participant EMB as Embedding
-    participant VDB as Vector DB
-    participant LLM as LLM
-
-    U->>CP: 질문 입력
-    CP->>API: 질문 전송
-    API->>EMB: 질문 임베딩 생성
-    EMB-->>API: 임베딩 벡터 반환
-    API->>VDB: 유사도 검색
-    VDB-->>API: 관련 근거 청크 반환
-    API->>LLM: 질문 + 근거 기반 답변 생성 요청
-    LLM-->>API: 답변 반환
-    API-->>CP: 답변 및 출처 전달
-    CP-->>U: 근거 포함 응답 표시
-```
-
-## 4. 기대 효과
-
-이번 데모를 통해서 upstage 의 api 를 쓸 수 있었습니다. 제게는 평소에 생각만하던 기능을 구현해보고, [[Retriever-Augmented Generation (RAG)|RAG]] 를 직접적으로 구현해보고 임베딩 로직을 구성해보는 경험이 되었습니다. 기능 구현을 하면서 예상치 못한 에러들을 많이 겪었지만, 결과적으로 작동하는 데모가 구성이 되어 뿌듯합니다.
-
-이 데모는 연구자가 논문을 작성하는 과정에서 발생하는 **근거 탐색, 검증, 인용 삽입의 반복 비용**을 구조적으로 감소시킬 것일아 기대합니다.
-
-에디터 내부에서 현재 작성 중인 윛이 기준의 문단 단위 근거 추천과 자신이 참조한 논문에 대해서 질의응답이 동시에 제공됨으로써, 작성자는 검색과 검증에 소요되던 인지적·시간적 부담을 최소화하고, 논증의 정확성과 일관성에 더 집중할 수 있습니다. 또한 모든 추천과 응답이 명시적 근거에 기반하므로, AI 사용에 따른 신뢰성 문제를 완화하고 학술 글쓰기 맥락에 적합한 보조 도구로 기능할 수 있습니다. 나를 대신해주는 Researcher 보다는 내 능력을 증강시켜주는 Research assistant 인 것입니다
+결국 이 도구는 저를 대신해주는 Researcher가 아니라, **제 능력을 증강시켜주는 Research Assistant**입니다. 근거를 찾는 단순 반복 작업은 AI에 맡기고, 저는 논리를 구성하고 주장을 다듬는 데 집중할 수 있게 됐습니다.
