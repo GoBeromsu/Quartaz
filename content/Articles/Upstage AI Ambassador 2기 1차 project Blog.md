@@ -125,9 +125,14 @@ sequenceDiagram
 
 Section을 이동하면 자동으로 유사도 순으로 정렬된 인용 섹션들이 불러와집니다. 각 결과를 클릭하면 해당 PDF의 정확한 위치로 이동할 수 있습니다.
 
-### 3.2 Chat Panel: 직접 질문하기
+**Reference Library 관리:**
+Evidence Panel을 위해 **Reference Library**를 통해 참고문헌을 관리합니다. PDF 업로드, 인덱싱 상태 확인, 임베딩 시도가 가능하며, 업로드된 PDF는 Upstage Document Parse API를 통해 자동으로 인덱싱됩니다.
 
-"Actor-Critic의 장점이 뭐지?"처럼 **직접 질문**을 던질 수도 있습니다. Chat Panel은 제가 업로드한 참고문헌을 읽고 답변을 생성합니다. 중요한 건, **항상 출처를 함께 보여준다**는 점입니다.
+![Reference Library](https://raw.githubusercontent.com/GoBeromsu/My-Awesome-RA/main/docs/images/reference-library.png)
+
+### 3.2 Chat Panel: 연구 보조자로서의 대화
+
+**직접 질문을 던져볼 수 있습니다.** Chat Panel은 현재 editor에 열려있는 문서와 사용자의 질의, 그리고 관련 인용을 토대로 답변을 생성합니다. 이를 통해 단순한 정보 검색을 넘어 **인사이트 도출** 등의 **연구 보조자로서의 역할**을 수행합니다.
 
 ![Chat Panel Demo](https://raw.githubusercontent.com/GoBeromsu/My-Awesome-RA/main/docs/images/chat-panel.png)
 
@@ -143,31 +148,23 @@ sequenceDiagram
     participant L as SOLAR Chat
 
     U->>C: 질문 입력
-    C->>API: 질문 + 문서 컨텍스트
+    C->>API: 현재 문서 + 질문
     API->>E: 질문 → 벡터 변환
     E-->>API: 쿼리 벡터
     API->>DB: 유사도 검색
-    DB-->>API: 관련 근거 청크들
-    API->>L: 근거 + 질문 → 답변 요청
-    L-->>API: 생성된 답변
+    DB-->>API: 관련 인용 청크들
+    API->>L: 현재 문서 + 질문 + 관련 인용
+    L-->>API: 인사이트 답변 생성
     API-->>C: 답변 + 출처
     C-->>U: 근거 포함 응답 표시
 ```
 
-질문을 Embeddings API로 벡터화하여 관련 구절을 찾고, 그 구절들을 Upstage Chat API에 넣어서 답변을 만듭니다. 덕분에 "AI가 지어낸 답변"이 아니라 **제 참고문헌에 실제로 있는 내용**만 나옵니다.
-
-### 3.3 Reference Library: 한곳에서 관리하기
-
-참고문헌은 Reference Library에서 관리합니다. PDF를 업로드하면 Upstage Document Parse API가 텍스트를 추출하고, 자동으로 인덱싱됩니다.
-
-![Reference Library](https://raw.githubusercontent.com/GoBeromsu/My-Awesome-RA/main/docs/images/reference-library.png)
+현재 작성 중인 문서의 맥락과 관련 인용을 함께 고려하여 답변을 생성하므로, "AI가 지어낸 답변"이 아니라 **실제 참고문헌에 기반한 연구 보조**가 가능합니다.
 
 ## 4. 기대 효과
 
-이번 프로젝트를 통해 평소에 생각만 하던 기능을 직접 구현해볼 수 있었습니다. Upstage의 세 가지 API (Document Parse, Embeddings, Chat) 를 조합해서 실제로 작동하는 RAG 시스템을 만드는 과정에서, API 응답 시간을 줄이는 법이나 벡터 검색 품질을 높이는 법 같은 실무 감각을 많이 배웠습니다. 예상치 못한 에러도 많았지만, 결과적으로 제가 원하던 "에디터 안에서 근거를 찾는" 경험을 구현할 수 있어서 뿌듯했습니다.
+이번 프로젝트를 통해 Upstage의 세 가지 API (Document Parse, Embeddings, Chat)를 조합해서 실제로 작동하는 RAG 시스템을 구현해보는 경험을 할 수 있어서 특별했습니다. 평소 생각만 하던 기능을 직접 만들어보고, 예상치 못한 에러들을 해결하면서 결과적으로 작동하는 데모를 완성할 수 있어서 뿌듯했습니다.
 
-이 시스템의 핵심 가치는 **흐름을 끊지 않는다**는 점입니다. 기존에는 "이 주장을 뒷받침할 근거가 뭐였지?"라는 생각이 들 때마다 PDF 뷰어를 열고, Ctrl+F로 검색하고, 다시 에디터로 돌아오는 과정이 반복됐습니다. 이제는 그냥 타이핑만 하면, 오른쪽 패널에 관련 근거가 자동으로 뜹니다. 질문이 있으면 Chat Panel에 물어보면 됩니다.
+특히 **Overleaf에 원래 있던 것처럼 보이는 UI pattern을 따라 구현**한 경험이 흥미로웠습니다. 기존 Overleaf의 디자인 언어와 사용자 경험을 유지하면서 새로운 AI 기능을 자연스럽게 통합하는 과정에서, 기존 도구의 맥락을 존중하면서도 혁신을 더하는 접근법을 경험했습니다.
 
-또 하나 중요한 점은 **신뢰성**입니다. 일반적인 ChatGPT 같은 도구는 근거 없이 그럴듯한 답을 만들어낼 수 있지만, My Awesome RA는 **제가 업로드한 참고문헌에 실제로 있는 내용**만 보여줍니다. 모든 추천과 답변에 출처가 붙기 때문에, 논문 작성처럼 정확성이 중요한 상황에서도 안심하고 쓸 수 있습니다.
-
-결국 이 도구는 저를 대신해주는 Researcher가 아니라, **제 능력을 증강시켜주는 Research Assistant**입니다. 근거를 찾는 단순 반복 작업은 AI에 맡기고, 저는 논리를 구성하고 주장을 다듬는 데 집중할 수 있게 됐습니다.
+이 도구는 저를 대신하는 Researcher가 아니라, **제 능력을 증강시키는 Research Assistant**입니다. 근거 검색과 검증은 AI가 담당하고, 저는 논리 구성과 주장 개발에 집중할 수 있습니다.
