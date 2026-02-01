@@ -1,7 +1,7 @@
 ---
 aliases: []
 date_created: 2026-01-25
-date_modified: 2026-01-25
+date_modified: 2026-01-28
 source:
   - "[[Qian2025Scaling|Scaling Large Language Model-based Multi-Agent Collaboration]]"
 tags:
