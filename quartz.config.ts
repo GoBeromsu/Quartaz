@@ -8,7 +8,7 @@ import * as Plugin from "./quartz/plugins"
  */
 const config: QuartzConfig = {
   configuration: {
-    pageTitle: "Beomsu",
+    pageTitle: "Beomsu Koh",
     enableSPA: true,
     enablePopovers: true,
     analytics: {
@@ -30,34 +30,34 @@ const config: QuartzConfig = {
     ],
     defaultDateType: "created",
     theme: {
-      fontOrigin: "local",
+      fontOrigin: "googleFonts",
       cdnCaching: true,
       typography: {
-        header: "Schibsted Grotesk",
-        body: "Source Sans Pro",
+        header: "Inter",
+        body: "Inter",
         code: "IBM Plex Mono",
       },
       colors: {
         lightMode: {
-          light: "#faf8f8",
-          lightgray: "#e5e5e5",
-          gray: "#b8b8b8",
+          light: "#ffffff",
+          lightgray: "#f0f0f0",
+          gray: "#b0b0b0",
           darkgray: "#4e4e4e",
-          dark: "#2b2b2b",
-          secondary: "#284b63",
-          tertiary: "#84a59d",
-          highlight: "rgba(143, 159, 169, 0.15)",
+          dark: "#1a1a1a",
+          secondary: "#a52142",
+          tertiary: "#c75b75",
+          highlight: "rgba(165, 33, 66, 0.08)",
           textHighlight: "#fff23688",
         },
         darkMode: {
-          light: "#010201", // Perplexity Black
-          lightgray: "#393639",
+          light: "#262626",
+          lightgray: "#3a3a3a",
           gray: "#646464",
           darkgray: "#d4d4d4",
           dark: "#ebebec",
-          secondary: "#1CBDD3",// Perplexity Blue
-          tertiary: "#84a59d",
-          highlight: "rgba(143, 159, 169, 0.15)",
+          secondary: "#c75b75",
+          tertiary: "#a52142",
+          highlight: "rgba(165, 33, 66, 0.12)",
           textHighlight: "#b3aa0288",
         },
       },
