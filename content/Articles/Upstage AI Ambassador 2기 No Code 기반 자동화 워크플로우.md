@@ -11,9 +11,8 @@ tags:
 type: docs
 ---
 
-## 한 줄 요약
-
-Downloads, Documents, Desktop 에 쌓이는 파일을 n8n + Upstage API 로 자동 분류하여 Zotero (PDF), Eagle (이미지/영상), DEVONthink (기타) 에 임포트하는 No Code 워크플로우입니다.
+> [!tldr]
+> Downloads, Documents, Desktop 에 쌓이는 파일을 n8n + Upstage API 로 자동 분류하여 Zotero (PDF), Eagle (이미지/영상), DEVONthink (기타) 에 임포트하는 No Code 워크플로우입니다.
 
 ## 해결한 문제
 
