@@ -3,7 +3,7 @@ aliases: [n8n File Organizer]
 date_created: 2026-03-26
 date_modified: 2026-03-27
 project:
-  - "[[Upstage AI Ambassador 2기]]"
+  - "Upstage AI Ambassador 2기"
 tags:
   - automation
   - n8n
@@ -265,7 +265,7 @@ pm2 logs n8n-organizer --lines 50
 
 | 경로 | 용도 |
 |------|------|
-| `~/.n8n-organizer/zt-token` | [[Zotero]] CLI 토큰 |
+| `~/.n8n-organizer/zt-token` | Zotero CLI 토큰 |
 | `~/.n8n-organizer/folder-choices-cache.json` | 폴더 목록 캐시 (30 분 TTL) |
 | `~/.n8n-organizer/log.jsonl` | 처리 로그 (JSONL) |
 | `~/.n8n-organizer/staging/` | 처리 중 파일 임시 저장 (atomic move) |
