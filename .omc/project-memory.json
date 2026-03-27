@@ -1,0 +1,204 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1774413552182,
+  "projectRoot": "/Users/beomsu/Documents/Obsidian/Quartz",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": ">=22",
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      },
+      {
+        "name": "TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "tsconfig.json"
+        ]
+      }
+    ],
+    "frameworks": [
+      {
+        "name": "preact",
+        "version": "10.28.2",
+        "category": "frontend"
+      },
+      {
+        "name": "esbuild",
+        "version": "0.27.2",
+        "category": "build"
+      }
+    ],
+    "packageManager": "npm",
+    "runtime": "Node.js 22"
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": "npm test",
+    "lintCommand": null,
+    "devCommand": "npm run dev",
+    "scripts": {
+      "quartz": "./quartz/bootstrap-cli.mjs",
+      "docs": "npx quartz build --serve -d docs",
+      "check": "tsc --noEmit && npx prettier . --check",
+      "format": "npx prettier . --write",
+      "test": "tsx --test",
+      "profile": "0x -D prof ./quartz/bootstrap-cli.mjs build --concurrency=1",
+      "sync": "node scripts/watch-content.mjs --once",
+      "watch": "node scripts/watch-content.mjs",
+      "dev": "node scripts/watch-content.mjs & npx quartz build --serve"
+    }
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "docs",
+      "public",
+      "scripts"
+    ],
+    "gitBranches": {
+      "defaultBranch": "v4",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "Articles": {
+      "path": "Articles",
+      "purpose": null,
+      "fileCount": 10,
+      "lastAccessed": 1774413552156,
+      "keyFiles": [
+        "2025 회고.md",
+        "2025-12-19 Quartz.md",
+        "Gain과 Fader의 근본적인 차이는 무엇인가 어떻게 결정하는가.md",
+        "How to convert .pth to gguf pipeline.external.md",
+        "Review Scaling Large Language Model-based Multi-Agent Collaboration.md"
+      ]
+    },
+    "InBox": {
+      "path": "InBox",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1774413552156,
+      "keyFiles": [
+        "Project.md",
+        "Sound Engineering.external.md",
+        "Writing.externel.md"
+      ]
+    },
+    "content": {
+      "path": "content",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1774413552161,
+      "keyFiles": [
+        "About.md",
+        "index.md"
+      ]
+    },
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 12,
+      "lastAccessed": 1774413552162,
+      "keyFiles": [
+        "authoring content.md",
+        "build.md",
+        "configuration.md",
+        "hosting.md",
+        "index.md"
+      ]
+    },
+    "public": {
+      "path": "public",
+      "purpose": "Public files",
+      "fileCount": 17,
+      "lastAccessed": 1774413552162,
+      "keyFiles": [
+        "2025-retrospective.html",
+        "404.html",
+        "about.html",
+        "beauty-of-youth.html",
+        "favicon.ico"
+      ]
+    },
+    "quartz": {
+      "path": "quartz",
+      "purpose": null,
+      "fileCount": 6,
+      "lastAccessed": 1774413552164,
+      "keyFiles": [
+        "bootstrap-cli.mjs",
+        "bootstrap-worker.mjs",
+        "build.ts",
+        "cfg.ts",
+        "worker.ts"
+      ]
+    },
+    "scripts": {
+      "path": "scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 1,
+      "lastAccessed": 1774413552165,
+      "keyFiles": [
+        "watch-content.mjs"
+      ]
+    },
+    "quartz/components": {
+      "path": "quartz/components",
+      "purpose": "UI components",
+      "fileCount": 33,
+      "lastAccessed": 1774413552167,
+      "keyFiles": [
+        "AllTags.tsx",
+        "ArticleList.tsx",
+        "ArticleTitle.tsx"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "quartz.config.ts",
+      "accessCount": 4,
+      "lastAccessed": 1774414147414,
+      "type": "file"
+    },
+    {
+      "path": "quartz.layout.ts",
+      "accessCount": 2,
+      "lastAccessed": 1774413804256,
+      "type": "file"
+    },
+    {
+      "path": "About.md",
+      "accessCount": 2,
+      "lastAccessed": 1774414073202,
+      "type": "file"
+    },
+    {
+      "path": "quartz/components/LinksHeader.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1774413798829,
+      "type": "file"
+    },
+    {
+      "path": "",
+      "accessCount": 1,
+      "lastAccessed": 1774572662644,
+      "type": "directory"
+    }
+  ],
+  "userDirectives": []
+}
