@@ -11,6 +11,19 @@ tags:
 type: docs
 ---
 
+## 한 줄 요약
+
+Downloads, Documents, Desktop 에 쌓이는 파일을 n8n + Upstage API 로 자동 분류하여 Zotero (PDF), Eagle (이미지/영상), DEVONthink (기타) 에 임포트하는 No Code 워크플로우입니다.
+
+## 해결한 문제
+
+macOS 에서 파일을 다운로드하면 Downloads 폴더에 쌓입니다. PDF 는 Zotero 에, 스크린샷은 Eagle 에, 나머지는 DEVONthink 에 넣어야 하는데, 이 작업을 매번 수동으로 하면 두 가지 문제가 반복됩니다.
+
+1. **파일명이 의미 없습니다** — `CleanShot 2026-03-26 at 17.57.45@2x.png`, `document(3).pdf` 같은 이름은 나중에 찾을 수 없습니다
+2. **앱 선택이 번거롭습니다** — 파일마다 어떤 앱으로 보낼지 판단하고, 앱을 열고, 임포트해야 합니다
+
+이 워크플로우는 Upstage Document Parse 로 파일 내용을 추출하고, Solar Pro 3 로 폴더와 파일명을 결정하여 두 문제를 자동으로 해결합니다. 10 분마다 실행되며 사용자 개입 없이 동작합니다.
+
 ## Motivation
 Claude Code, OpenClaw 등 이미 강력한 자동화 도구가 있는 상황에서 n8n + Solar 조합만의 차별점은 **이벤트 트리거 기반 상시 자동화**에 있습니다. Claude Code 의 협업 모드(cowork)는 sandbox 환경이라 로컬 폴더에 직접 접근할 수 없고, OpenClaw 은 상시 데몬으로 운영하기에는 리소스 부담이 큽니다. 가장 단순한 상시 자동화 방법은 n8n 이라는 결론에 도달했습니다.
 
