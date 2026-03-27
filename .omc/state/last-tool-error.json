@@ -1,7 +1,0 @@
-{
-  "tool_name": "Read",
-  "tool_input_preview": "{\"file_path\":\"/Users/beomsu/Documents/01. Obsidian/Ataraxia/.claude/skills/youtube-workspace/SKILL.md\"}",
-  "error": "File does not exist. Note: your current working directory is /Users/beomsu/Documents/01. Obsidian/Blog.",
-  "timestamp": "2026-03-27T03:03:49.390Z",
-  "retry_count": 2
-}
