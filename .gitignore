@@ -7,8 +7,11 @@ tsconfig.tsbuildinfo
 .quartz-cache
 public/
 .playwright-mcp/
+output/
 private/
 .replit
 replit.nix
+.quartz/
+quartz/cli/tui/dist/
 
 .obsidian/
