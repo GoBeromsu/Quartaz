@@ -13,5 +13,6 @@ private/
 replit.nix
 .quartz/
 quartz/cli/tui/dist/
+plugins/**/package-lock.json
 
 .obsidian/
