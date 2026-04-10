@@ -12,6 +12,7 @@ private/
 .replit
 replit.nix
 .quartz/
+.omc/
 quartz/cli/tui/dist/
 plugins/**/package-lock.json
 
