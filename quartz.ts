@@ -61,7 +61,7 @@ const sharedAfterBody = [
   Component.External("comments", {
     provider: "giscus",
     options: {
-      repo: "Goberomsu/Quartz-CV",
+      repo: "GoBeromsu/Quartaz",
       repoId: "R_kgDOMzvCAQ",
       category: "Announcements",
       categoryId: "DIC_kwDOMzvCAc4Civ7w",
