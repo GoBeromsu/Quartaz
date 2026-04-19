@@ -1,0 +1,26 @@
+{
+  "name": "legacy-frontmatter-dates",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "quartz": {
+    "name": "legacy-frontmatter-dates",
+    "displayName": "Legacy Frontmatter Dates",
+    "description": "Normalizes date_created/date_modified frontmatter keys before Quartz parses metadata.",
+    "version": "1.0.0",
+    "category": [
+      "transformer"
+    ],
+    "defaultEnabled": true,
+    "defaultOrder": 5,
+    "defaultOptions": {}
+  }
+}
