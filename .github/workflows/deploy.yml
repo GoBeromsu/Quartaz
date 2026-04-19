@@ -26,8 +26,17 @@ jobs:
         with:
           node-version: "22"
           cache: "npm"
+      - name: Cache Quartz plugins
+        uses: actions/cache@v4
+        with:
+          path: .quartz/plugins
+          key: ${{ runner.os }}-quartz-plugins-${{ hashFiles('quartz.config.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-quartz-plugins-
       - name: Install dependencies
         run: npm ci
+      - name: Install Quartz plugins
+        run: npx quartz plugin install --from-config
       - name: Build Quartz
         run: npx quartz build
       - name: Upload artifact
