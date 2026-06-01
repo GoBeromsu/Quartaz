@@ -10,9 +10,11 @@ export default (() => {
   padding: 0.5rem;
 }
 
-.center.full-width {
+.page[data-frame="full-width"] > #quartz-body .center.full-width {
   margin: 0 auto;
   max-width: 750px;
+  min-width: 0;
+  width: min(100% - 2rem, 750px);
 }
 
 .page-header {
