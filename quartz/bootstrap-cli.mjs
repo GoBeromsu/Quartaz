@@ -1,4 +1,12 @@
 #!/usr/bin/env -S node --no-deprecation
+const [major] = process.versions.node.split(".").map(Number)
+if (major < 22) {
+  console.error(
+    `\nQuartz requires Node.js >= 22, but you are running Node.js ${process.version}.\n` +
+      `Please upgrade: https://nodejs.org/\n`,
+  )
+  process.exit(1)
+}
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import {
@@ -8,7 +16,7 @@ import {
   handleRestore,
   handleSync,
 } from "./cli/handlers.js"
-import { handleMigrate } from "./cli/migrate-handler.js"
+
 import {
   handlePluginInstallUnified,
   handlePluginAdd,
@@ -93,9 +101,6 @@ yargs(hideBin(process.argv))
   .command("build", "Build Quartz into a bundle of static HTML files", BuildArgv, async (argv) => {
     await handleBuild(argv)
   })
-  .command("migrate", "Migrate old config to quartz.config.yaml", CommonArgv, async () => {
-    await handleMigrate()
-  })
   .command("tui", "Launch interactive plugin manager", CommonArgv, async () => {
     await launchTui()
   })
@@ -138,6 +143,7 @@ yargs(hideBin(process.argv))
                 latest: argv.latest,
                 clean: argv.clean,
                 dryRun: argv.dryRun,
+                concurrency: argv.concurrency,
               })
             },
           )
@@ -160,6 +166,7 @@ yargs(hideBin(process.argv))
               await handlePluginAdd(argv.repos, {
                 name: argv.name,
                 subdir: argv.subdir,
+                concurrency: argv.concurrency,
               })
             },
           )
@@ -215,11 +222,11 @@ yargs(hideBin(process.argv))
             },
           )
           // Hidden deprecated aliases
-          .command("restore", false, CommonArgv, async () => {
+          .command("restore", false, CommonArgv, async (argv) => {
             console.log(
               "\x1b[33m⚠ 'plugin restore' is deprecated. Use 'plugin install --clean' instead.\x1b[0m",
             )
-            await handlePluginInstallUnified({ clean: true })
+            await handlePluginInstallUnified({ clean: true, concurrency: argv.concurrency })
           })
           .command("update [names..]", false, CommonArgv, async (argv) => {
             console.log(
@@ -228,13 +235,18 @@ yargs(hideBin(process.argv))
             await handlePluginInstallUnified({
               names: argv.names?.length ? argv.names : undefined,
               latest: true,
+              concurrency: argv.concurrency,
             })
           })
-          .command("check", false, CommonArgv, async () => {
+          .command("check", false, CommonArgv, async (argv) => {
             console.log(
               "\x1b[33m⚠ 'plugin check' is deprecated. Use 'plugin install --latest --dry-run' instead.\x1b[0m",
             )
-            await handlePluginInstallUnified({ latest: true, dryRun: true })
+            await handlePluginInstallUnified({
+              latest: true,
+              dryRun: true,
+              concurrency: argv.concurrency,
+            })
           })
           .command(
             "resolve",
@@ -254,6 +266,7 @@ yargs(hideBin(process.argv))
               await handlePluginInstallUnified({
                 fromConfig: true,
                 dryRun: argv.dryRun,
+                concurrency: argv.concurrency,
               })
             },
           )
@@ -265,7 +278,7 @@ yargs(hideBin(process.argv))
       await handlePluginStatus()
     },
   )
-  .showHelpOnFail(false)
+  .showHelpOnFail(true)
   .help()
   .strict()
   .demandCommand().argv

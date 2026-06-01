@@ -19,6 +19,7 @@
     "test": "tsx --test",
     "profile": "0x -D prof ./quartz/bootstrap-cli.mjs build --concurrency=1",
     "install-plugins": "npx tsx ./quartz/plugins/loader/install-plugins.ts",
+    "prebuild": "npm run install-plugins",
     "sync": "node scripts/watch-content.mjs --once",
     "watch": "node scripts/watch-content.mjs",
     "dev": "node scripts/watch-content.mjs & npx quartz build --serve"

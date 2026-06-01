@@ -24,7 +24,7 @@ type: article
 
 ## 시대 진단: 실행이 싸진 세상
 
- [[노정석]] 대표님은 거의 모든 문제를 compute 기반 search problem 으로 전환할 수 있다고 말씀하십니다. 목표를 정하고 evaluation 을 통과할 때까지 Loop 를 돌리는 것입니다. OpenAI 의 harness-engineering 글이 이를 실증했습니다. 소수의 엔지니어가 agent 에게 실행을 맡기고, 인간은 환경 설계와 피드백 루프에 집중하여 다섯 달 만에 백만 줄의 코드를 만들어 낸 것입니다.
+[[노정석]] 대표님은 거의 모든 문제를 compute 기반 search problem 으로 전환할 수 있다고 말씀하십니다. 목표를 정하고 evaluation 을 통과할 때까지 Loop 를 돌리는 것입니다. OpenAI 의 harness-engineering 글이 이를 실증했습니다. 소수의 엔지니어가 agent 에게 실행을 맡기고, 인간은 환경 설계와 피드백 루프에 집중하여 다섯 달 만에 백만 줄의 코드를 만들어 낸 것입니다.
 
 [[Ralph Loop]] 의 창시자이자 "automated software factory" 를 주창하는 엔지니어 [[Geoffrey Huntley]] 는 [[Everything is a Ralph Loop]] 에서 "Software is now clay on the pottery wheel." 이라고 말합니다. 더 이상 벽돌을 하나씩 쌓는 시대가 아니라 루프를 프로그래밍하는 시대라는 주장입니다. 최근에 우리는 이 주장에 대한 증거로 [[What you need to learn from claw-code repo|claw code]] 를 보았습니다. 대규모 코드베이스를 몇 시간 만에 컨버팅하는 것이 가능해졌습니다.
 
@@ -101,6 +101,7 @@ Huntley 가 말한 것처럼: "watch the loop — that is where your personal de
 3. **축적 (積)**: 내면화된 것을 스킬로 만들고, 스킬을 반복 사용하며 dogfooding 합니다. 시간이 지나면 스킬들이 자연스럽게 시스템으로 엮입니다.
 
 이 과정에서 중요한 것은 속도가 아니라 방향입니다. 실행은 이미 싸졌습니다. 비싼 것은 **어떤 문제에 compute 와 시간을 넣어야 하는지 가려내는 평가 기준** — 즉, 수련자의 안목입니다.
+
 ## References
 
 - [[Harness Engineering]]
@@ -115,9 +116,13 @@ Huntley 가 말한 것처럼: "watch the loop — that is where your personal de
 - [[Agentic AI]]
 - [[Geoffrey Huntley]]
 - [[Simon Willison]]
+
 ## Next Step
+
 - [[Agent Skill Deploy]] 로 나만의 skill 을 구성하고 관리한다
+
 ## Thinking
+
 > 💭 [[2026-04-10]] 14:39
 > 이 관점이 강화학습 측면에서 왔을까
 

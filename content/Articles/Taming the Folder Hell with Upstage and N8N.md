@@ -29,11 +29,11 @@ My specific problem: files accumulate in Downloads, Documents, and Desktop. With
 
 I use three apps for different file types: Zotero for PDFs, Eagle for images and videos, and DEVONthink as a general-purpose database for everything else (webarchives, documents, etc.).
 
-| App | Target Files | Import Method |
-|-----|-------------|---------------|
-| Zotero | PDFs | `zt import` / `zt create:item` + `zt attach` |
-| Eagle | Images, videos | `eg import:path` |
-| DEVONthink | Everything else | `dt add` |
+| App        | Target Files    | Import Method                                |
+| ---------- | --------------- | -------------------------------------------- |
+| Zotero     | PDFs            | `zt import` / `zt create:item` + `zt attach` |
+| Eagle      | Images, videos  | `eg import:path`                             |
+| DEVONthink | Everything else | `dt add`                                     |
 
 ![n8n File Organizer full workflow](/_attachments/n8n-file-organizer-workflow.png)
 
@@ -45,11 +45,11 @@ The overall flow is Scan → Extract → Classify. Files accumulated in Download
 
 This is the pipeline's gatekeeper. It filters out unnecessary files before any Solar API calls. Hidden files, empty files, and installers are skipped or moved to `_Inbox`. PDFs are validated against the `%PDF-` header to catch corrupt files.
 
-| Condition | Action |
-|-----------|--------|
-| Hidden / empty / temporary files | skip |
+| Condition                                   | Action                  |
+| ------------------------------------------- | ----------------------- |
+| Hidden / empty / temporary files            | skip                    |
 | Installers (`.dmg`, `.pkg`, `.app`, `.iso`) | move to `_Inbox` + skip |
-| Invalid PDF (missing `%PDF-` header) | move to `_Inbox` + skip |
+| Invalid PDF (missing `%PDF-` header)        | move to `_Inbox` + skip |
 
 Files that pass the filter proceed as follows:
 
@@ -87,13 +87,13 @@ Stage 2 has two sub-steps: **fetching folder lists** and **extracting content**.
 
 The actual folder/collection lists from each app are fetched via CLI, with a 30-minute TTL cache. Fetching the full folder tree for every file would create a bottleneck, so caching is applied. A 30-minute TTL fits well with the 10-minute schedule.
 
-| App | CLI Command | Description | Output Format |
-|-----|-------------|-------------|---------------|
-| Zotero | `zt collections` | Returns full collection list as JSON | `ZK3ATEUT \| 00. Inbox` (key \| name) |
-| Eagle | `eg folder:list` | Returns folder tree recursively as JSON | `M8RRO78FRS1VZ \| Resources/Meme` (id \| path) |
-| DEVONthink | `dt databases --property name` | Returns database list, name field only | `[{"name": "01. Personal"}]` |
-| | `dt groups --db "DB_NAME" --property name` | Returns top-level groups for a DB | `[{"name": "00. Inbox"}, ...]` |
-| | `dt groups --db "DB_NAME" "/group_name" --property name` | Returns sub-groups | `[{"name": "startup"}, ...]` |
+| App        | CLI Command                                              | Description                             | Output Format                                  |
+| ---------- | -------------------------------------------------------- | --------------------------------------- | ---------------------------------------------- |
+| Zotero     | `zt collections`                                         | Returns full collection list as JSON    | `ZK3ATEUT \| 00. Inbox` (key \| name)          |
+| Eagle      | `eg folder:list`                                         | Returns folder tree recursively as JSON | `M8RRO78FRS1VZ \| Resources/Meme` (id \| path) |
+| DEVONthink | `dt databases --property name`                           | Returns database list, name field only  | `[{"name": "01. Personal"}]`                   |
+|            | `dt groups --db "DB_NAME" --property name`               | Returns top-level groups for a DB       | `[{"name": "00. Inbox"}, ...]`                 |
+|            | `dt groups --db "DB_NAME" "/group_name" --property name` | Returns sub-groups                      | `[{"name": "startup"}, ...]`                   |
 
 #### 2-2. Content Extraction
 
@@ -144,29 +144,29 @@ The extracted text, original filename, and the target app's folder list are pass
 
 The initial implementation used a single `confidence` score, which turned out to be meaningless without calibration (Solar would return 0.95 even for wrong classifications). This was replaced with a **multi-criteria evaluation system**:
 
-| Criterion | Description |
-|-----------|-------------|
-| `folder_match` | How well the selected folder fits the file content (1–10) |
-| `filename_quality` | How accurately the generated filename describes the content (1–10) |
-| `content_understanding` | How precisely Solar understood the file content (1–10) |
+| Criterion               | Description                                                        |
+| ----------------------- | ------------------------------------------------------------------ |
+| `folder_match`          | How well the selected folder fits the file content (1–10)          |
+| `filename_quality`      | How accurately the generated filename describes the content (1–10) |
+| `content_understanding` | How precisely Solar understood the file content (1–10)             |
 
 The pipeline branches based on the overall `rating`:
 
-| Rating | Action |
-|--------|--------|
-| 9–10 | Normal import + high-confidence notification |
-| 6–8 | Normal import |
-| 1–5 | Inbox fallback (requires manual review) |
+| Rating | Action                                       |
+| ------ | -------------------------------------------- |
+| 9–10   | Normal import + high-confidence notification |
+| 6–8    | Normal import                                |
+| 1–5    | Inbox fallback (requires manual review)      |
 
 The `reasoning_effort` parameter is set differently per file type. PDFs and images use `high` (deeper reasoning needed); videos and other files use `medium` (simple filename-based classification).
 
 Solar's JSON response is validated in the `Parse Solar Response` node using a **bidirectional lookup map**. Whether Solar responds with a key or a name, both are normalized. If neither matches, the file falls back to the default inbox folder.
 
-| App | Fallback Location | Format |
-|-----|-------------------|--------|
-| Zotero | `00. Inbox` | key: `8UZJ5THD` |
-| Eagle | root | folderId omitted |
-| DEVONthink | `/00. Inbox` | group path |
+| App        | Fallback Location | Format           |
+| ---------- | ----------------- | ---------------- |
+| Zotero     | `00. Inbox`       | key: `8UZJ5THD`  |
+| Eagle      | root              | folderId omitted |
+| DEVONthink | `/00. Inbox`      | group path       |
 
 > [!important] Validated with Multi-Criteria Evaluation
 > Instead of a single confidence score, classification is evaluated across three axes: folder_match, filename_quality, and content_understanding. Any combined rating below 6 automatically falls back to Inbox, and the individual scores along with feedback are written to the log.
@@ -175,19 +175,19 @@ Solar's JSON response is validated in the `Parse Solar Response` node using a **
 
 The Import Router branches into three paths based on the `targetApp` value. All three paths check whether the app is running via `pgrep`, launch it with `open -a` if it isn't, and then perform the import.
 
-| App | CLI Command | Parameters | Notes |
-|-----|-------------|------------|-------|
-| Zotero | `zt import FILE --collection COL` | `FILE`: file path to import, `--collection`: target collection key | On failure: two-step fallback via `zt create:item --type document --title TITLE --collection COL` + `zt attach FILE --key KEY` |
-| Eagle | `eg import:path --path FILE --name NAME --folderId FID` | `--path`: file path, `--name`: display name, `--folderId`: target folder ID | Quotes stripped from filename before passing to `--name` |
-| DEVONthink | `dt add FILE --db "01. Personal" --at PATH --name NAME` | `FILE`: file path, `--db`: target database, `--at`: group path, `--name`: display name | Fixed database: `01. Personal` |
+| App        | CLI Command                                             | Parameters                                                                             | Notes                                                                                                                          |
+| ---------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Zotero     | `zt import FILE --collection COL`                       | `FILE`: file path to import, `--collection`: target collection key                     | On failure: two-step fallback via `zt create:item --type document --title TITLE --collection COL` + `zt attach FILE --key KEY` |
+| Eagle      | `eg import:path --path FILE --name NAME --folderId FID` | `--path`: file path, `--name`: display name, `--folderId`: target folder ID            | Quotes stripped from filename before passing to `--name`                                                                       |
+| DEVONthink | `dt add FILE --db "01. Personal" --at PATH --name NAME` | `FILE`: file path, `--db`: target database, `--at`: group path, `--name`: display name | Fixed database: `01. Personal`                                                                                                 |
 
 ### Stage 5: Cleanup & Logging
 
 The pipeline branches based on import success.
 
-| Result | Action |
-|--------|--------|
-| Success | Delete the original file |
+| Result  | Action                                     |
+| ------- | ------------------------------------------ |
+| Success | Delete the original file                   |
 | Failure | Move the original to `~/Downloads/_Inbox/` |
 
 In both cases, a JSON log entry is appended to `~/.n8n-organizer/log.jsonl` and a macOS notification is displayed via `osascript`.
@@ -196,11 +196,11 @@ In both cases, a JSON log entry is appended to `~/.n8n-organizer/log.jsonl` and 
 
 ### Document Parse (endpoint: `document-digitization`, model: `document-parse`)
 
-| Target | Mode | Purpose |
-|--------|------|---------|
-| PDF (when mdls returns < 300 chars) | `document-parse`, `ocr=auto` | Text extraction from scanned PDFs |
-| Images (screenshots, charts) | `document-parse`, `ocr=auto` | Text and diagram description from screen content |
-| General photos | `document-parse`, `ocr=auto` | **Limitation**: cannot analyze landscapes, people, or food |
+| Target                              | Mode                         | Purpose                                                    |
+| ----------------------------------- | ---------------------------- | ---------------------------------------------------------- |
+| PDF (when mdls returns < 300 chars) | `document-parse`, `ocr=auto` | Text extraction from scanned PDFs                          |
+| Images (screenshots, charts)        | `document-parse`, `ocr=auto` | Text and diagram description from screen content           |
+| General photos                      | `document-parse`, `ocr=auto` | **Limitation**: cannot analyze landscapes, people, or food |
 
 ### Solar Pro 3 (`chat/completions`)
 
@@ -212,16 +212,16 @@ In both cases, a JSON log entry is appended to `~/.n8n-organizer/log.jsonl` and 
 
 ## Node Breakdown (v5, 33 nodes)
 
-| Type | Count | Role |
-|------|-------|------|
-| Schedule/Manual Trigger | 2 | 10-minute schedule, manual testing |
-| Code | 6 | Stage & Categorize, ZT Folders, EG Folders, EG Folders Video, DT Folders, Parse Solar Response |
-| Execute Command | 7 | CLI imports (Zotero/Eagle/DEVONthink), file cleanup, notifications, log writing |
-| Set | 8 | Prompt assembly, fallback data, import result mapping (3), log preparation, PDF/image text setting (2) |
-| HTTP Request | 3 | Solar Pro 3 API call, Document Parse PDF, Document Parse Image |
-| ReadWriteFile | 2 | Read PDF, Read Image |
-| Switch | 2 | Extension routing, app routing |
-| If | 3 | Solar Response Success?, Import Success?, PDF Text OK? |
+| Type                    | Count | Role                                                                                                   |
+| ----------------------- | ----- | ------------------------------------------------------------------------------------------------------ |
+| Schedule/Manual Trigger | 2     | 10-minute schedule, manual testing                                                                     |
+| Code                    | 6     | Stage & Categorize, ZT Folders, EG Folders, EG Folders Video, DT Folders, Parse Solar Response         |
+| Execute Command         | 7     | CLI imports (Zotero/Eagle/DEVONthink), file cleanup, notifications, log writing                        |
+| Set                     | 8     | Prompt assembly, fallback data, import result mapping (3), log preparation, PDF/image text setting (2) |
+| HTTP Request            | 3     | Solar Pro 3 API call, Document Parse PDF, Document Parse Image                                         |
+| ReadWriteFile           | 2     | Read PDF, Read Image                                                                                   |
+| Switch                  | 2     | Extension routing, app routing                                                                         |
+| If                      | 3     | Solar Response Success?, Import Success?, PDF Text OK?                                                 |
 
 ### Fault Tolerance
 
@@ -231,12 +231,12 @@ Most IO nodes have `continueOnFail` set, so a single file failure doesn't halt t
 
 The initial workflow had 10 Code nodes with over 400 lines of JavaScript. Code nodes make it hard to trace data flow in the n8n UI. Following a "only convert what's a sure bet" principle, 4 Code nodes were replaced with native nodes.
 
-| Target | Before | After |
-|--------|--------|-------|
-| Fallback Solar Response | Code (40 lines) | **Set node** |
-| Import to Zotero | Code (65 lines) | **Execute Command + Set** |
-| Import to Eagle | Code (40 lines) | **Execute Command + Set** |
-| Import to DEVONthink | Code (40 lines) | **Execute Command + Set** |
+| Target                  | Before          | After                     |
+| ----------------------- | --------------- | ------------------------- |
+| Fallback Solar Response | Code (40 lines) | **Set node**              |
+| Import to Zotero        | Code (65 lines) | **Execute Command + Set** |
+| Import to Eagle         | Code (40 lines) | **Execute Command + Set** |
+| Import to DEVONthink    | Code (40 lines) | **Execute Command + Set** |
 
 **Issues encountered during migration:**
 
@@ -261,12 +261,12 @@ pm2 logs n8n-organizer --lines 50
 
 ### Config Files
 
-| Path | Purpose |
-|------|---------|
-| `~/.n8n-organizer/zt-token` | Zotero CLI token |
-| `~/.n8n-organizer/folder-choices-cache.json` | Folder list cache (30-minute TTL) |
-| `~/.n8n-organizer/log.jsonl` | Processing log (JSONL) |
-| `~/.n8n-organizer/staging/` | Temporary staging directory for in-flight files (atomic move) |
+| Path                                         | Purpose                                                       |
+| -------------------------------------------- | ------------------------------------------------------------- |
+| `~/.n8n-organizer/zt-token`                  | Zotero CLI token                                              |
+| `~/.n8n-organizer/folder-choices-cache.json` | Folder list cache (30-minute TTL)                             |
+| `~/.n8n-organizer/log.jsonl`                 | Processing log (JSONL)                                        |
+| `~/.n8n-organizer/staging/`                  | Temporary staging directory for in-flight files (atomic move) |
 
 ### Limitations and Future Work
 

@@ -22,7 +22,7 @@ function sync() {
   try {
     execSync(
       `rsync -av --delete --exclude='.obsidian' --exclude='.DS_Store' --exclude='_attachments' "${SOURCE_DIR}/" "${DEST_DIR}"`,
-      { stdio: "inherit" }
+      { stdio: "inherit" },
     )
     console.log("[sync] Complete\n")
   } catch (error) {

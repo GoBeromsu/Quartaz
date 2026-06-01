@@ -11,12 +11,12 @@ type:
   - articles
 ---
 
-
 > [!tldr] TL;DR
 > 문제: 기존의 multi-agent 는 소규모에서는 효과적이지만, 구조 없는 확장은 coordination & context 비용으로 인해 성능이 붕괴된다.
 > 접근: 효과적인 agent scaling 을 위해 DAG 기반 multi-agent collaboration network(MACNET) 을 설계했다.
 > 관찰: agent 수 증가에 따라 성능은 logistic growth 형태로 증가했으며, 불규칙한 topology 가 규칙적인 구조보다 일관되게 우수했다.
 > 한 줄 요약: 뉴런 수를 늘리면 성능이 좋아졌듯, 에이전트 수도 늘리면 성능이 좋아지지 않을까?
+
 ## Introduction
 
 LLM 기반 연구에서 multi-agent 협업이 단일 agent 보다 우수한 성능을 보인다는 점은 확인되었지만, 기존 연구에서는 agent scale 을 키우는 문제가 상대적으로 간과되었다. 일부 연구가 수십 개 수준을 다루긴 했으나, 대부분은 10 개 미만의 agent 를 사용했다.
@@ -59,8 +59,8 @@ DAG 는 방향성을 가지면서 순환이 없는 그래프로, 정보의 **bac
 
 > “A graph will orchestrate agent interactions, akin to social networks where information propagates through directed edges. Intuitively, ==the acyclic nature prevents information backflow, eliminating the need for additional designs like task-specific cycle-breaking, thereby enhancing generalizability and adaptability across contexts==.” (Qian et al., 2025, p. 3)
 
-
 ### 네트워크 (Topology) 구성은 어떻게 되어야 할까
+
 > 이 모양이 어떻게 생겼을까
 
 이 논문에서는 2 depth 의 구조를 제공한다. chain, tree, graph 이다.
@@ -68,16 +68,18 @@ DAG 는 방향성을 가지면서 순환이 없는 그래프로, 정보의 **bac
 ![](/_attachments/eagle-MKTL8XPEGDE1E-2.png)
 
 - Chain:
-	- linear structure ([[Waterfall Model]] 유사)
+  - linear structure ([[Waterfall Model]] 유사)
 - Tree:
-	- Star (wider), Tree (deeper)
+  - Star (wider), Tree (deeper)
 - Graph:
-	- Mesh (fully-connected), Layer (Multi-Layer Perceptron shaped), Random (irregular)
+  - Mesh (fully-connected), Layer (Multi-Layer Perceptron shaped), Random (irregular)
 
 ### **Interactive Reasoning**: 어떻게 Agent 간에 상호 작용을 하는가
+
 MACNET 에서 **노드 (node)** 와 **엣지 (edge)** 는 모두 LLM 기반 agent 로 구현된다. 노드 (Actor, $a_i$) 는 입력된 artifact 를 받아 수정된 artifact 를 생성하며, 현재 artifact 의 버전과 해당 시점의 결정 결과를 유지한다. 엣지 (Critic, $a_{ij}$) 는 노드 $v_i \rightarrow v_j$ 에 대응하는 중재자 (agent) 로, artifact 를 직접 생성하지 않고 수정 방향과 적용 기준에 대한 **directional instruction**만 제공한다.
 
 #### Topological Order 를 따르라
+
 Agent 간 상호작용은 DAG 의 **topological ordering**에 의해 구조적으로 제한된다. 즉, 각 방향 엣지 $v_i \rightarrow v_j$ 에 대해 아래 수식을 만족한다.
 $$I(a_i) < I(a_{ij}) < I(a_j)$$
 위의 순서가 강제되며, 이는 **Actor → Critic → 다음 Actor**의 의사결정 흐름을 의미한다. 이 순서 제약 하에서 병렬 실행은 허용되지만, 의존성은 위배되지 않는다.
@@ -85,8 +87,11 @@ $$I(a_i) < I(a_{ij}) < I(a_j)$$
 DAG 의 node 와 edge 는 multi-turn 대화를 통해 아래 과정을 반복한다. 먼저 $a_i \leftrightarrow a_{ij}$ 구간에서 Critic 이 피드백을 제공하고 Actor 가 artifact 를 정제 (refine) 한다. 이후 $a_{ij} \leftrightarrow a_j$ 구간에서 정제된 artifact 가 Critic 을 통해 다음 Actor 에게 전달되어 추가 개선이 이루어진다.
 
 #### Dataflow 는 Node 와 Edge 기반으로 동작한다
+
 MACNET 에서 dataflow 는 artifact 가 네트워크 내에서 전달되는 경로를 의미하며, artifact 는 연결된 노드들의 topology 에 따라 전달된다.
+
 ### 고려 사항 : Memory Control
+
 Agent scaling 의 위험성은 제약 없는 정보 교환이 context explosion 을 일으킨다는 점이다. 예를 들어 memory control 없이 n 개의 agent 가 각각 n 개의 memory 를 주고받는 구조라면 비용은 $O(n^2)$ 로 증가한다. 본 논문은 short-term/long-term memory 설계를 통해 대화 히스토리를 버리고 최종 artifact 중심으로 유지함으로써 복잡도를 완화한다.
 
 > [!warning] Memory Control (Context Explosion)
@@ -94,45 +99,52 @@ Agent scaling 의 위험성은 제약 없는 정보 교환이 context explosion 
 > 본 논문은 short-term/long-term memory 로 대화 히스토리를 버리고 최종 artifact 중심으로 유지해 복잡도를 완화.
 
 - Short-term memory:
-	- 각 interaction 내 working memory
-	- task, role prompt, current artifact
+  - 각 interaction 내 working memory
+  - task, role prompt, current artifact
 - Long-term memory:
-	- 최종 결과물이 될 artifact 만 유지
+  - 최종 결과물이 될 artifact 만 유지
 
 Short-term memory 는 각 interaction 에서의 working memory 로서 task, role prompt, current artifact 를 포함한다. Long-term memory 는 최종 결과물이 될 artifact 만 유지한다. 즉, n 개의 agent 가 short-term memory 를 로컬하게 사용하되 long-term 에는 최종 artifact 만 남겨 대화 history 를 버림으로써 저장/전달 복잡도를 $O(n)$ 로 낮춘다.
 
 ## 결과, 관찰값
+
 > Performance 비교
+>
 > - MACNET-Chain 이 대부분의 metric 에서 baseline 을 능가
 > - MACNET-Random 이 평균 Quality 에서 최고 성능 (0.6522)
 > - 특정 task 에 특정 topology 가 더 적합: chain → software development, tree → creative writing
 
 ### Topology 분석을 어떻게 할 것인가?
 
-
 #### Density Perspective : 얼마나 많이 연결 되었는가
+
 ![](/_attachments/eagle-MKTMDVEB6IJYA-2.png)
 
 - 높은 interaction density 가 평균적으로 좋은 성능을 보임 (mesh > tree > chain)
-	- 작업 특성에 따라서 편차가 존재한다고 추정이 된다.
-		- Chain structure 가 softwareengineering 에서는 성능이 잘나온다. 그 이유는 software engineering 의 경우 linear process 를 따르기 때문이다.
-		- 높은 창의성을 요구하는 다양한 직업에 있어서는 다양한 에이전트 간의 연결이 더 유리 할 수 있다.
-		- 하지만, Density 가 항상 최적의 퍼포먼스를 보이는 것이 아님을 시사
+  - 작업 특성에 따라서 편차가 존재한다고 추정이 된다.
+    - Chain structure 가 softwareengineering 에서는 성능이 잘나온다. 그 이유는 software engineering 의 경우 linear process 를 따르기 때문이다.
+    - 높은 창의성을 요구하는 다양한 직업에 있어서는 다양한 에이전트 간의 연결이 더 유리 할 수 있다.
+    - 하지만, Density 가 항상 최적의 퍼포먼스를 보이는 것이 아님을 시사
 
 높은 interaction density 가 평균적으로 좋은 성능을 보였다 (mesh > tree > chain). 다만 작업 특성에 따라 편차가 존재하는데, 예를 들어 software engineering 에서는 linear process 를 따르는 경향이 있어 chain 구조가 더 잘 작동할 수 있다. 반면 높은 창의성을 요구하는 작업에서는 다양한 agent 간 연결이 더 유리할 수 있다. 또한 density 가 항상 최적의 성능을 보장하지는 않는다는 점도 시사된다.
 
 #### Shape Perspective : 그래프 패턴이 어떻게 구성이 되었나
+
 Irregular topology(random) 가 regular topology 를 outperform 하는 것이 관찰되었다. 이는 지나치게 밀집된 상호작용이 agent 들에게 정보 부하를 주어 효과적인 reflection 과 refinement 를 저해했기 때문으로 해석된다. 또한 small-world properties 가 성능 향상에 기여했는데, 경로가 짧을수록 정보 전달 및 정제가 수월해지기 때문이다. 참고로 random topology 는 mesh 대비 약 52% 의 시간 절감도 보고되었다.
 
 #### Direction Perspective
+
 Divergent topology 가 convergent topology 보다 우수했으며, 발산 구조에서는 더 다양한 의견을 고려할 수 있어 성능이 좋아지는 것으로 해석된다. 또한 artifact propagation 역시 divergent structure 에서 더 smooth 하게 진행되었다.
+
 ### 그래서… Agent 에서 Scaling Law 가 성립이 되었는가
+
 ![](/_attachments/eagle-MKJLLP889T8R8-2.png)
 Logistic 하게 에이전트가 늘어날수록 성능이 증가하는 것이 관측이 되었다.
 
 하지만, agent 의 수가 늘어나서 지능이 좋아졌다는 것보다 Task 를 풀 때 다양한 측면을 agent 들이 상호작용에서 고려하게 됨으로써 성능이 증가하는 것으로 여겨진다.
 
 ## 결론
+
 MACNET 이 효과적으로 작동하며 collaborative scaling law 가 존재함을 확인했다. 다만 MACNET 을 구성할 때 어떤 topology 와 어느 정도의 agent scaling 이 최적인지는 task 시나리오에 따라 달라질 수 있다. 한계로는 scaling law 를 관찰하긴 했지만, 어떤 구조가 어떤 시나리오에서 최적인지까지는 밝히지 못했다는 점이 있다.
 
 정리하면, MACNET 은 평균적으로 모든 baseline 을 압도했고 1000+ agent collaboration 을 효과적으로 지원했다. 또한 성능이 logistic growth pattern 으로 향상되는 collaborative scaling law 를 발견했으며 (용어는 본 논문에서 처음 정의), agent 수를 스케일링할 때는 불규칙 (irregular) topology 가 규칙적 (regular) topology 보다 평균적으로 더 높은 성능을 보였다 (Regular: Chain, Star, Tree, Layer / Irregular: Random, Mesh). 마지막으로 agent collaboration 은 training-time scaling 의 대안으로 inference-time procedural thinking 을 제공하여, Training 이 아닌 Inference 단계에서 성능 향상을 가능하게 하는 “shortcut” 역할을 할 수 있다.

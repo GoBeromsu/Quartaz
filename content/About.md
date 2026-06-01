@@ -2,15 +2,14 @@
 aliases: []
 date_created: 2026-01-18
 date_modified: 2026-03-08
-permalink: about
 tags: []
 title: About
 ---
 
 > "The only way to save yourself is to struggle to save others."
-> — *Zorba the Greek*, Nikos Kazantzakis
+> — _Zorba the Greek_, Nikos Kazantzakis
 
-![[80. References/07. eagle/MLEQVWKO4W7NH.jpg]]
+![](_attachments/about-profile.jpg)
 
 ## About Me
 
@@ -27,13 +26,13 @@ I want to solve the problem of attention theft in modern society and help people
 ### Bio
 
 - **1999**
-	- Born in Yeosu, South Korea
+  - Born in Yeosu, South Korea
 - **2018 ~ 2024**
-	- Bachelor’s in Software Engineering, Chonnam University
+  - Bachelor’s in Software Engineering, Chonnam University
 - **2020.08 ~ 2022.04**
-	- Military service as a Korean Coast Guard
+  - Military service as a Korean Coast Guard
 - **2024.09 ~ present**
-	- Studying as a Computer Science [[906.01 Msc|postgraduate]] at [the University of Sheffield](https://www.sheffield.ac.uk/)
+  - Studying as a Computer Science [[906.01 Msc|postgraduate]] at [the University of Sheffield](https://www.sheffield.ac.uk/)
 
 ## Contact
 
