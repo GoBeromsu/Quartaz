@@ -99,6 +99,19 @@ export default ((userOpts?: Partial<Options>) => {
 .blog-article-list a:hover {
   text-decoration: underline;
 }
+
+@media (max-width: 430px) {
+  .blog-article-list li {
+    align-items: start;
+    display: grid;
+    gap: 0.35rem;
+    grid-template-columns: minmax(6.5rem, auto) 1fr;
+  }
+
+  .blog-article-list .date {
+    min-width: 0;
+  }
+}
 `
 
   return BlogArticleList

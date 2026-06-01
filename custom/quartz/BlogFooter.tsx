@@ -28,13 +28,13 @@ export default ((opts?: Options) => {
   }
 
   BlogFooter.css = `
-footer {
+#quartz-body > footer {
   margin-bottom: 4rem;
   opacity: 0.7;
   text-align: left;
 }
 
-footer ul {
+#quartz-body > footer ul {
   display: flex;
   flex-direction: row;
   gap: 1rem;
@@ -42,6 +42,13 @@ footer ul {
   margin: 0;
   margin-top: -1rem;
   padding: 0;
+}
+
+@media (max-width: 430px) {
+  #quartz-body > footer ul {
+    flex-wrap: wrap;
+    row-gap: 0.25rem;
+  }
 }
 `
 

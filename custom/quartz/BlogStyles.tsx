@@ -4,20 +4,27 @@ export default (() => {
   const BlogStyles: QuartzComponent = () => null
 
   BlogStyles.css = `
+:root {
+  --blog-content-width: 750px;
+  --blog-content-inline-offset: 2rem;
+}
+
 [saved-theme="dark"] article img {
   background-color: white;
   border-radius: 8px;
   padding: 0.5rem;
 }
 
-.page[data-frame="full-width"] > #quartz-body .center.full-width {
-  margin: 0 auto;
-  max-width: 750px;
+.page[data-frame="full-width"] > #quartz-body .center.full-width,
+.page[data-frame="full-width"] > #quartz-body > footer {
+  box-sizing: border-box;
+  margin-inline: auto;
+  max-width: var(--blog-content-width);
   min-width: 0;
-  width: min(100% - 2rem, 750px);
+  width: min(calc(100% - var(--blog-content-inline-offset)), var(--blog-content-width));
 }
 
-.page-header {
+.page[data-frame="full-width"] .page-header {
   border-bottom: 1px solid var(--lightgray);
   margin-bottom: 2rem;
   padding: 2rem 0;
@@ -34,6 +41,10 @@ body[data-slug="index"] .page-header .popover-hint {
 }
 
 @media (max-width: 430px) {
+  :root {
+    --blog-content-inline-offset: 1.5rem;
+  }
+
   .page-header .flex-component {
     gap: 0.75rem !important;
     width: 100%;
@@ -46,22 +57,6 @@ body[data-slug="index"] .page-header .popover-hint {
 
   .page-header .search-button {
     padding-inline: 0.5rem;
-  }
-
-  .blog-article-list li {
-    align-items: start;
-    display: grid;
-    gap: 0.35rem;
-    grid-template-columns: minmax(6.5rem, auto) 1fr;
-  }
-
-  .blog-article-list .date {
-    min-width: 0;
-  }
-
-  footer ul {
-    flex-wrap: wrap;
-    row-gap: 0.25rem;
   }
 }
 `
