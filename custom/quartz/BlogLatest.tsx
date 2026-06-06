@@ -60,10 +60,16 @@ export default ((userOpts?: Partial<Options>) => {
 
   BlogLatest.css = `
 .blog-latest {
+  border-radius: 0;
+  box-shadow: none;
   margin-bottom: 2rem;
 }
 
 .blog-latest h3 {
+  color: var(--dark);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0;
   margin-bottom: 0.5rem;
 }
 `

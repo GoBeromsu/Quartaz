@@ -64,10 +64,16 @@ export default ((userOpts?: Partial<Options>) => {
 
   BlogArticleList.css = `
 .blog-article-list-section {
+  border-radius: 0;
+  box-shadow: none;
   margin-bottom: 2rem;
 }
 
 .blog-article-list-section h3 {
+  color: var(--dark);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0;
   margin-bottom: 0.5rem;
 }
 
@@ -92,12 +98,15 @@ export default ((userOpts?: Partial<Options>) => {
 
 .blog-article-list a.internal {
   background-color: transparent;
+  color: var(--text-accent);
   padding: 0;
   text-decoration: none;
 }
 
 .blog-article-list a:hover {
+  color: var(--text-accent-hover);
   text-decoration: underline;
+  text-underline-offset: 0.16em;
 }
 
 @media (max-width: 430px) {

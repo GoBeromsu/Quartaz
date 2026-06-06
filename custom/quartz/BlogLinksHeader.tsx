@@ -24,6 +24,7 @@ export default ((opts?: Options) => {
   BlogLinksHeader.css = `
 .blog-links-header {
   display: flex;
+  flex-wrap: wrap;
   gap: 1.5rem;
   align-items: center;
 }
@@ -36,6 +37,12 @@ export default ((opts?: Options) => {
 
 .blog-links-header a:hover {
   color: var(--dark);
+}
+
+@media (max-width: 430px) {
+  .blog-links-header {
+    gap: 0.85rem;
+  }
 }
 `
 

@@ -54,10 +54,16 @@ export default ((userOpts?: Partial<Options>) => {
 
   BlogAllTags.css = `
 .blog-all-tags {
+  border-radius: 0;
+  box-shadow: none;
   margin-bottom: 2rem;
 }
 
 .blog-all-tags h3 {
+  color: var(--dark);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0;
   margin-bottom: 0.5rem;
 }
 
@@ -79,7 +85,9 @@ export default ((userOpts?: Partial<Options>) => {
 }
 
 .blog-all-tags a.internal.tag-link:hover {
+  color: var(--text-accent-hover);
   text-decoration: underline;
+  text-underline-offset: 0.16em;
 }
 `
 

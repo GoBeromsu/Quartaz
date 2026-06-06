@@ -29,6 +29,8 @@ export default ((opts?: Options) => {
 
   BlogFooter.css = `
 #quartz-body > footer {
+  border-radius: 0;
+  box-shadow: none;
   margin-bottom: 4rem;
   opacity: 0.7;
   text-align: left;
