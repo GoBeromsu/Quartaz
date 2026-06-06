@@ -30,13 +30,13 @@ export default ((opts?: Options) => {
 }
 
 .blog-links-header a {
-  color: var(--darkgray);
+  color: var(--blog-ink);
   font-weight: 400;
   text-decoration: none;
 }
 
 .blog-links-header a:hover {
-  color: var(--dark);
+  color: var(--blog-accent);
 }
 
 @media (max-width: 430px) {

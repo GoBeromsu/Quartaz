@@ -70,7 +70,7 @@ export default ((userOpts?: Partial<Options>) => {
 }
 
 .blog-article-list-section h3 {
-  color: var(--dark);
+  color: var(--blog-ink);
   font-size: 1rem;
   font-weight: 600;
   letter-spacing: 0;
@@ -91,20 +91,21 @@ export default ((userOpts?: Partial<Options>) => {
 }
 
 .blog-article-list .date {
-  color: var(--gray);
+  color: var(--blog-faint);
   font-variant-numeric: tabular-nums;
   min-width: 11em;
 }
 
 .blog-article-list a.internal {
   background-color: transparent;
-  color: var(--text-accent);
+  color: var(--blog-ink);
+  font-weight: 400;
   padding: 0;
   text-decoration: none;
 }
 
 .blog-article-list a:hover {
-  color: var(--text-accent-hover);
+  color: var(--blog-accent);
   text-decoration: underline;
   text-underline-offset: 0.16em;
 }

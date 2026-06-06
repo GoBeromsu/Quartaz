@@ -6,6 +6,10 @@ export default (() => {
   BlogStyles.css = `
 :root {
   --blog-accent: #a52142;
+  --blog-ink: #0f0f0f;
+  --blog-muted: #737373;
+  --blog-faint: #b5b5b5;
+  --blog-border: #e6e6e6;
   --blog-content-width: 40rem;
   --blog-content-inline-offset: 2rem;
   --blog-font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Ubuntu, sans-serif;
@@ -14,13 +18,21 @@ export default (() => {
   --blog-list-spacing: 0.075em;
   --blog-paragraph-spacing: 1.75rem;
   --blog-surface: var(--background-primary);
-  --blog-text: var(--text-normal);
+  --blog-text: var(--blog-ink);
   --blog-wide-width: min(88vw, 50rem);
-  --blog-link-color: var(--text-accent);
-  --blog-border: var(--background-modifier-border);
+  --blog-link-color: var(--blog-accent);
+}
+
+:root[saved-theme="dark"] {
+  --blog-ink: #d1d1d1;
+  --blog-muted: #8c8c8c;
+  --blog-faint: #595959;
+  --blog-border: #353535;
+  --blog-link-color: #c75b75;
 }
 
 body {
+  color: var(--blog-ink);
   font-family: var(--blog-font-stack);
   font-size: 16px;
   line-height: 1.5;
@@ -47,7 +59,7 @@ article :is(p, ul, ol, blockquote, pre, table, .callout),
 
 article :is(h1, h2, h3, h4, h5, h6),
 .markdown-preview-view :is(h1, h2, h3, h4, h5, h6) {
-  color: var(--dark);
+  color: var(--blog-ink);
   font-family: var(--blog-font-stack);
   letter-spacing: 0;
   line-height: 1.2;
@@ -92,10 +104,15 @@ article li,
   margin-block: var(--blog-list-spacing);
 }
 
+article li::marker,
+.markdown-preview-view li::marker {
+  color: var(--blog-faint);
+}
+
 article blockquote,
 .markdown-preview-view blockquote {
-  border-inline-start: 2px solid var(--blog-border);
-  color: var(--text-muted);
+  border-inline-start: 1px solid var(--blog-border);
+  color: var(--blog-muted);
   margin-inline: 0;
   padding-inline: 1rem 0;
 }
@@ -172,9 +189,22 @@ article .block-language-mermaid,
 }
 
 .page[data-frame="full-width"] .page-header {
-  border-bottom: 1px solid var(--lightgray);
+  border-bottom: 1px solid var(--blog-border);
   margin-bottom: 2rem;
   padding: 2rem 0;
+}
+
+.page-header .page-title {
+  color: var(--blog-ink);
+}
+
+.page-header .page-title a {
+  color: var(--blog-ink);
+  text-decoration: none;
+}
+
+.page-header .page-title a:hover {
+  color: var(--blog-accent);
 }
 
 body[data-slug="index"] .page-header {

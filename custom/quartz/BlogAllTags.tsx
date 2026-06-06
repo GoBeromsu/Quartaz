@@ -60,7 +60,7 @@ export default ((userOpts?: Partial<Options>) => {
 }
 
 .blog-all-tags h3 {
-  color: var(--dark);
+  color: var(--blog-ink);
   font-size: 1rem;
   font-weight: 600;
   letter-spacing: 0;
@@ -75,7 +75,8 @@ export default ((userOpts?: Partial<Options>) => {
 
 .blog-all-tags a.internal.tag-link {
   background-color: transparent;
-  color: var(--secondary);
+  color: var(--blog-muted);
+  font-weight: 400;
   padding: 0;
   text-decoration: none;
 }
@@ -85,7 +86,7 @@ export default ((userOpts?: Partial<Options>) => {
 }
 
 .blog-all-tags a.internal.tag-link:hover {
-  color: var(--text-accent-hover);
+  color: var(--blog-accent);
   text-decoration: underline;
   text-underline-offset: 0.16em;
 }

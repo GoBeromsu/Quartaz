@@ -66,7 +66,7 @@ export default ((userOpts?: Partial<Options>) => {
 }
 
 .blog-latest h3 {
-  color: var(--dark);
+  color: var(--blog-ink);
   font-size: 1rem;
   font-weight: 600;
   letter-spacing: 0;

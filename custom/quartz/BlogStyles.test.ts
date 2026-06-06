@@ -54,12 +54,34 @@ describe("BlogStyles Ataraxia contract", () => {
     const tokenMarkers = [
       'secondary: "#a52142"',
       "--blog-accent: #a52142;",
-      "--text-accent",
       "--background-primary",
     ] as const
 
     assert.ok(config.includes(tokenMarkers[0]), "light theme secondary should use #a52142")
     assertIncludesAll(css, tokenMarkers.slice(1))
+  })
+
+  test("maps Minimal light ink and border palette", () => {
+    const config = readFileSync(new URL("../../quartz.config.yaml", import.meta.url), "utf8")
+    const css = componentCss(BlogStyles())
+    const configMarkers = [
+      'lightgray: "#e6e6e6"',
+      'gray: "#737373"',
+      'darkgray: "#0f0f0f"',
+      'dark: "#0f0f0f"',
+    ] as const
+    const cssMarkers = [
+      "--blog-ink: #0f0f0f;",
+      "--blog-muted: #737373;",
+      "--blog-faint: #b5b5b5;",
+      "--blog-border: #e6e6e6;",
+      "color: var(--blog-ink);",
+      ".page-header .page-title a",
+      "border-bottom: 1px solid var(--blog-border);",
+    ] as const
+
+    assertIncludesAll(config, configMarkers)
+    assertIncludesAll(css, cssMarkers)
   })
 
   test("styles outlined Minimal callouts", () => {

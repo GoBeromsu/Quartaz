@@ -66,4 +66,22 @@ describe("Blog chrome Ataraxia contract", () => {
 
     assertIncludesAll(css, quietChromeMarkers)
   })
+
+  test("keeps homepage links from becoming accent blocks", () => {
+    const css = chromeCss()
+    const quietLinkMarkers = [
+      `.blog-article-list a.internal {
+  background-color: transparent;
+  color: var(--blog-ink);
+  font-weight: 400;`,
+      `.blog-all-tags a.internal.tag-link {
+  background-color: transparent;
+  color: var(--blog-muted);
+  font-weight: 400;`,
+      ".blog-links-header a",
+      "color: var(--blog-ink);",
+    ] as const
+
+    assertIncludesAll(css, quietLinkMarkers)
+  })
 })
