@@ -189,7 +189,6 @@ article .block-language-mermaid,
 }
 
 .page[data-frame="full-width"] .page-header {
-  border-bottom: 1px solid var(--blog-border);
   margin-bottom: 2rem;
   padding: 2rem 0;
 }
@@ -208,7 +207,6 @@ article .block-language-mermaid,
 }
 
 body[data-slug="index"] .page[data-frame="full-width"] .page-header {
-  border-bottom: none;
   margin-bottom: 0;
   padding-bottom: 0;
 }

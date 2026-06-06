@@ -77,7 +77,6 @@ describe("BlogStyles Ataraxia contract", () => {
       "--blog-border: #e6e6e6;",
       "color: var(--blog-ink);",
       ".page-header .page-title a",
-      "border-bottom: 1px solid var(--blog-border);",
     ] as const
 
     assertIncludesAll(config, configMarkers)
@@ -87,13 +86,15 @@ describe("BlogStyles Ataraxia contract", () => {
   test("prevents duplicate homepage dividers", () => {
     const css = componentCss(BlogStyles())
     const dividerMarkers = [
-      `body[data-slug="index"] .page[data-frame="full-width"] .page-header {
-  border-bottom: none;`,
       `body[data-slug="index"] .page[data-frame="full-width"] .center.full-width > hr {
   display: none;`,
     ] as const
 
     assertIncludesAll(css, dividerMarkers)
+    assert.doesNotMatch(
+      css,
+      /\\.page\\[data-frame="full-width"\\] \\.page-header \\{[^}]*border-bottom/s,
+    )
   })
 
   test("styles outlined Minimal callouts", () => {
