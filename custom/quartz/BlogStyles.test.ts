@@ -84,6 +84,18 @@ describe("BlogStyles Ataraxia contract", () => {
     assertIncludesAll(css, cssMarkers)
   })
 
+  test("prevents duplicate homepage dividers", () => {
+    const css = componentCss(BlogStyles())
+    const dividerMarkers = [
+      `body[data-slug="index"] .page[data-frame="full-width"] .page-header {
+  border-bottom: none;`,
+      `body[data-slug="index"] .page[data-frame="full-width"] .center.full-width > hr {
+  display: none;`,
+    ] as const
+
+    assertIncludesAll(css, dividerMarkers)
+  })
+
   test("styles outlined Minimal callouts", () => {
     const css = componentCss(BlogStyles())
     const calloutMarkers = [
