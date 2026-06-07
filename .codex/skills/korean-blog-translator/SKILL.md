@@ -23,6 +23,17 @@ Use this skill to turn one Korean source markdown file into locale-specific tran
      --dry-run
    ```
 
+   For existing content backfill:
+
+   ```bash
+   node .codex/skills/korean-blog-translator/scripts/translate_blog_post.mjs backfill \
+     --content content \
+     --locales en,zh-Hans,hi,es,fr,ar,bn,pt-BR \
+     --out-dir @staging \
+     --provider solar \
+     --dry-run
+   ```
+
 3. Inspect the JSON manifest. Every translation must be `would-write`, `unchanged`, or `stale`; treat `stale` as a conflict requiring review.
 4. Generate with `--provider solar` only when `UPSTAGE_API_KEY` is present. Use `--provider mock` for tests and deterministic fixture generation.
 5. Never overwrite a stale translation silently. If the manifest reports `stale`, preserve the existing translated file and decide whether to retranslate, merge manually, or mark blocked.
@@ -38,6 +49,7 @@ Use this skill to turn one Korean source markdown file into locale-specific tran
 - `--out-dir @staging`: shorthand for the Ataraxia deploy-staging source used by `npm run sync`, so generated translations survive the next sync.
 - `--provider mock|solar`: deterministic mock or Upstage Solar.
 - `--dry-run`: print manifest without writing files.
+- `backfill --content <dir>`: classify every markdown file as `translate`, `exclude`, `utility`, or `blocked`; translate only publishable Korean-source articles.
 
 The manifest is JSON on stdout. Provider/setup errors go to stderr with a nonzero exit.
 
