@@ -2122,11 +2122,7 @@ var constants = {
   // See: <https://html.spec.whatwg.org/#attribute-name-state>.
   name: [
     ["	\n\f\r &/=>".split(""), "	\n\f\r \"&'/=>`".split("")],
-    [
-      `\0	
-\f\r "&'/<=>`.split(""),
-      "\0	\n\f\r \"&'/<=>`".split(""),
-    ],
+    ["\0\t\n\f\r \"&'/<=>`".split(""), "\0\t\n\f\r \"&'/<=>`".split("")],
   ],
   // See: <https://html.spec.whatwg.org/#attribute-value-(unquoted)-state>.
   unquoted: [
