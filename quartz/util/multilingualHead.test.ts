@@ -7,7 +7,17 @@ import test, { describe } from "node:test"
 
 const repoRoot = new URL("../..", import.meta.url).pathname
 const fixtureContent = "quartz/test/fixtures/multilingual-build-content"
-const expectedHreflangs = ["ko", "en", "zh-Hans", "hi", "es", "fr", "ar", "bn", "pt-BR"]
+const expectedHreflangs = [
+  "ko-KR",
+  "en-US",
+  "zh-CN",
+  "hi-IN",
+  "es-ES",
+  "fr-FR",
+  "ar-SA",
+  "bn-BD",
+  "pt-BR",
+]
 
 function runFixtureBuild(): string {
   const output = mkdtempSync(join(tmpdir(), "quartz-multilingual-head-"))

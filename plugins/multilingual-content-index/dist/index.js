@@ -273,6 +273,7 @@ var html = create({
     allowFullScreen: boolean,
     allowPaymentRequest: boolean,
     allowUserMedia: boolean,
+    alpha: boolean,
     alt: null,
     as: null,
     async: boolean,
@@ -286,8 +287,12 @@ var html = create({
     checked: boolean,
     cite: null,
     className: spaceSeparated,
+    closedBy: null,
+    colorSpace: null,
     cols: number,
-    colSpan: null,
+    colSpan: number,
+    command: null,
+    commandFor: null,
     content: null,
     contentEditable: booleanish,
     controls: boolean,
@@ -467,8 +472,10 @@ var html = create({
     seamless: boolean,
     selected: boolean,
     shadowRootClonable: boolean,
+    shadowRootCustomElementRegistry: boolean,
     shadowRootDelegatesFocus: boolean,
     shadowRootMode: null,
+    shadowRootSerializable: boolean,
     shape: null,
     size: number,
     sizes: null,
@@ -605,8 +612,11 @@ var html = create({
     allowTransparency: null,
     autoCorrect: null,
     autoSave: null,
+    credentialless: boolean,
     disablePictureInPicture: boolean,
     disableRemotePlayback: boolean,
+    exportParts: commaSeparated,
+    part: spaceSeparated,
     prefix: null,
     property: null,
     results: number,
@@ -660,6 +670,7 @@ var svg = create({
     markerEnd: "marker-end",
     markerMid: "marker-mid",
     markerStart: "marker-start",
+    maskType: "mask-type",
     navDown: "nav-down",
     navDownLeft: "nav-down-left",
     navDownRight: "nav-down-right",
@@ -930,6 +941,7 @@ var svg = create({
     markerWidth: null,
     mask: null,
     maskContentUnits: null,
+    maskType: null,
     maskUnits: null,
     mathematical: null,
     max: null,
@@ -2423,7 +2435,8 @@ function readMultilingualConfig(cfg) {
         return []
       }
       const id = optionalString(locale.id)
-      return id ? [{ id }] : []
+      const bcp47Locale = optionalString(locale.locale)
+      return id && bcp47Locale ? [{ id, locale: bcp47Locale }] : []
     }),
   }
 }
@@ -2437,7 +2450,7 @@ function orderedAlternateLinks(config, content, translationKey) {
   }
   return config.locales.flatMap((locale) => {
     const url = urlByLocale.get(locale.id)
-    return url ? [{ hreflang: locale.id, url }] : []
+    return url ? [{ hreflang: locale.locale, url }] : []
   })
 }
 function sourceLocaleEntries(config, entries) {

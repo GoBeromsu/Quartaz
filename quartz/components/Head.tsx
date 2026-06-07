@@ -133,7 +133,7 @@ export default (() => {
         <meta name="generator" content="Quartz" />
         {multilingualMetadata && <link rel="canonical" href={multilingualMetadata.canonicalUrl} />}
         {alternateCluster?.alternates.map((alternate) => (
-          <link rel="alternate" hreflang={alternate.locale} href={alternate.url} />
+          <link rel="alternate" hreflang={alternate.hreflang} href={alternate.url} />
         ))}
         {alternateCluster && (
           <link

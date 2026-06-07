@@ -22,6 +22,7 @@ export type MultilingualIndexConfiguration = {
   }
   readonly locales: readonly {
     readonly id: string
+    readonly locale: string
   }[]
 }
 
@@ -122,7 +123,8 @@ export function readMultilingualConfig(
       }
 
       const id = optionalString(locale.id)
-      return id ? [{ id }] : []
+      const bcp47Locale = optionalString(locale.locale)
+      return id && bcp47Locale ? [{ id, locale: bcp47Locale }] : []
     }),
   }
 }
@@ -142,7 +144,7 @@ export function orderedAlternateLinks(
 
   return config.locales.flatMap((locale) => {
     const url = urlByLocale.get(locale.id)
-    return url ? [{ hreflang: locale.id, url }] : []
+    return url ? [{ hreflang: locale.locale, url }] : []
   })
 }
 
