@@ -59,6 +59,33 @@ export type MultilingualFixtureEntry = {
   readonly permalink: string
 }
 
+export type LocalePrefixResult = {
+  readonly locale: MultilingualLocale | undefined
+  readonly permalink: string
+}
+
+export type TranslationRouteInput = {
+  readonly translationKey: string
+  readonly locale: string
+  readonly permalink: string
+}
+
+export type AlternateUrl = {
+  readonly locale: MultilingualLocale
+  readonly hreflang: ValidLocale
+  readonly direction: MultilingualLocaleDirection
+  readonly url: string
+}
+
+export type AlternateUrlCluster = {
+  readonly translationKey: string
+  readonly alternates: readonly AlternateUrl[]
+  readonly xDefault: {
+    readonly hreflang: "x-default"
+    readonly url: string
+  }
+}
+
 export class MultilingualContractError extends Error {
   constructor(
     readonly code: string,
@@ -425,6 +452,164 @@ function requiredContentIndexConfig(value: unknown): MultilingualConfiguration["
     search: requiredContentIndexMode(value, "search", "contentIndex"),
     rss: requiredContentIndexMode(value, "rss", "contentIndex"),
     sitemap: requiredContentIndexMode(value, "sitemap", "contentIndex"),
+  }
+}
+
+function stripEdgeSlashes(value: string): string {
+  return value.replace(/^\/+|\/+$/g, "")
+}
+
+function normalizedSiteOrigin(baseUrl: string): string {
+  const url = new URL(/^https?:\/\//.test(baseUrl) ? baseUrl : `https://${baseUrl}`)
+
+  return url.origin
+}
+
+function absoluteUrl(baseUrl: string, pathname: string): string {
+  return new URL(pathname, normalizedSiteOrigin(baseUrl)).toString()
+}
+
+function isLocaleLikePrefix(value: string): boolean {
+  return /^[a-z]{2}(?:-[A-Za-z0-9]+)?$/.test(value)
+}
+
+function getLocaleConfig(
+  config: MultilingualConfiguration,
+  locale: string,
+): MultilingualLocaleConfiguration {
+  const localeId = requiredLocaleId(locale, "locale")
+  const localeConfig = config.locales.find((entry) => entry.id === localeId)
+
+  if (!localeConfig) {
+    throw new MultilingualContractError("unsupported-locale", `unsupported locale: ${locale}`)
+  }
+
+  return localeConfig
+}
+
+export function buildLocalizedPath(
+  config: MultilingualConfiguration,
+  locale: string,
+  permalink: string,
+): string {
+  const localeConfig = getLocaleConfig(config, locale)
+  const normalizedPermalink = stripEdgeSlashes(permalink)
+
+  if (normalizedPermalink === "") {
+    return localeConfig.routePrefix
+  }
+
+  return `${localeConfig.routePrefix}${normalizedPermalink}`
+}
+
+export function buildCanonicalLocaleUrl(
+  config: MultilingualConfiguration,
+  baseUrl: string,
+  locale: string,
+  permalink: string,
+): string {
+  return absoluteUrl(baseUrl, buildLocalizedPath(config, locale, permalink))
+}
+
+export function buildLegacyRedirectUrl(baseUrl: string, permalink: string): string {
+  return absoluteUrl(baseUrl, `/${stripEdgeSlashes(permalink)}`)
+}
+
+export function buildXDefaultUrl(config: MultilingualConfiguration, baseUrl: string): string {
+  return absoluteUrl(baseUrl, config.xDefaultRoute)
+}
+
+export function stripLocalePrefix(
+  config: MultilingualConfiguration,
+  pathname: string,
+): LocalePrefixResult {
+  const normalizedPath = pathname.startsWith("/") ? pathname : `/${pathname}`
+  const segments = normalizedPath.split("/").filter((segment) => segment.length > 0)
+  const firstSegment = segments[0]
+
+  if (!firstSegment) {
+    return { locale: undefined, permalink: "" }
+  }
+
+  for (const locale of config.locales) {
+    const configuredPrefix = stripEdgeSlashes(locale.routePrefix)
+
+    if (firstSegment === configuredPrefix) {
+      return {
+        locale: requiredLocaleId(locale.id, "locale"),
+        permalink: segments.slice(1).join("/"),
+      }
+    }
+  }
+
+  if (isLocaleLikePrefix(firstSegment)) {
+    throw new MultilingualContractError(
+      "unsupported-locale-prefix",
+      `unsupported locale prefix: /${firstSegment}/`,
+    )
+  }
+
+  return {
+    locale: undefined,
+    permalink: segments.join("/"),
+  }
+}
+
+export function getLocaleDirection(
+  config: MultilingualConfiguration,
+  locale: string,
+): MultilingualLocaleDirection {
+  return getLocaleConfig(config, locale).direction
+}
+
+export function buildAlternateUrlCluster(
+  config: MultilingualConfiguration,
+  baseUrl: string,
+  translations: readonly TranslationRouteInput[],
+  translationKey: string,
+): AlternateUrlCluster {
+  const translationsByLocale = new Map<MultilingualLocale, TranslationRouteInput>()
+
+  for (const translation of translations) {
+    if (translation.translationKey !== translationKey) {
+      continue
+    }
+
+    const locale = requiredLocaleId(translation.locale, translation.translationKey)
+
+    if (translationsByLocale.has(locale)) {
+      throw new MultilingualContractError(
+        "duplicate-translation-key",
+        `duplicate translation key: ${translation.translationKey} for ${locale}`,
+      )
+    }
+
+    translationsByLocale.set(locale, translation)
+  }
+
+  const alternates = config.locales.map((localeConfig) => {
+    const locale = requiredLocaleId(localeConfig.id, "locale")
+    const translation = translationsByLocale.get(locale)
+
+    if (!translation) {
+      throw new MultilingualContractError("missing-translation", `missing translation: ${locale}`)
+    }
+
+    return {
+      locale,
+      hreflang: localeConfig.locale,
+      direction: localeConfig.direction,
+      url: buildCanonicalLocaleUrl(config, baseUrl, locale, translation.permalink),
+    }
+  })
+
+  return {
+    translationKey,
+    alternates,
+    xDefault: {
+      hreflang: "x-default",
+      url: buildXDefaultUrl(config, baseUrl),
+    },
   }
 }
 
