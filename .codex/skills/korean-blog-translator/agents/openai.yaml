@@ -1,0 +1,4 @@
+interface:
+  display_name: "Korean Blog Translator"
+  short_description: "Translate Korean blog posts into locale markdown"
+  default_prompt: "Use $korean-blog-translator to translate a Korean blog markdown post into the configured locale set."
