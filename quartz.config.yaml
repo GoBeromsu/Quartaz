@@ -85,7 +85,7 @@ configuration:
       noindex: true
     contentIndex:
       search: all
-      rss: all
+      rss: source
       sitemap: all
   ignorePatterns:
     - .git
@@ -188,7 +188,7 @@ plugins:
     enabled: true
   - source: github:quartz-community/alias-redirects
     enabled: true
-  - source: github:quartz-community/content-index
+  - source: ./plugins/multilingual-content-index
     enabled: true
     options:
       enableSiteMap: true

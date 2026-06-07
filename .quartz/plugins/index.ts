@@ -2,7 +2,6 @@ import { componentRegistry } from "../../quartz/components/registry"
 
 export type { BreadcrumbOptions } from "./breadcrumbs"
 export type { CommentsOptions } from "./comments"
-export type { ContentDetails, ContentIndexMap } from "./content-index"
 export type { ContentMetaOptions } from "./content-meta"
 export type { ContentPageOptions } from "./content-page"
 export type { CrawlLinksOptions } from "./crawl-links"
@@ -10,6 +9,7 @@ export type { CreatedModifiedDateOptions } from "./created-modified-date"
 export type { DescriptionOptions } from "./description"
 export type { GfmOptions } from "./github-flavored-markdown"
 export type { Args, LatexOptions } from "./latex"
+export type { ContentDetails, ContentIndexMap } from "./multilingual-content-index"
 export type { ObsidianFlavoredMarkdownOptions } from "./obsidian-flavored-markdown"
 export type { ImageOptions, SocialImageFileData, SocialImageOptions, UserOpts } from "./og-image"
 export type { SearchField, SearchOptions } from "./search"
@@ -40,9 +40,6 @@ export const plugins: Record<string, Record<string, (...args: unknown[]) => void
   "comments": {
     Comments: (...args: unknown[]) => { componentRegistry.setOptionOverrides("comments", args[0] as Record<string, unknown>); },
   },
-  "content-index": {
-    ContentIndex: (...args: unknown[]) => { componentRegistry.setOptionOverrides("content-index", args[0] as Record<string, unknown>); },
-  },
   "content-page": {
     ContentPage: (...args: unknown[]) => { componentRegistry.setOptionOverrides("content-page", args[0] as Record<string, unknown>); },
   },
@@ -66,6 +63,9 @@ export const plugins: Record<string, Record<string, (...args: unknown[]) => void
   },
   "latex": {
     Latex: (...args: unknown[]) => { componentRegistry.setOptionOverrides("latex", args[0] as Record<string, unknown>); },
+  },
+  "multilingual-content-index": {
+    ContentIndex: (...args: unknown[]) => { componentRegistry.setOptionOverrides("multilingual-content-index", args[0] as Record<string, unknown>); },
   },
   "note-properties": {
     NoteProperties: (...args: unknown[]) => { componentRegistry.setOptionOverrides("note-properties", args[0] as Record<string, unknown>); },
@@ -101,7 +101,6 @@ export const ArticleTitle = plugins["article-title"].ArticleTitle
 export const Breadcrumbs = plugins["breadcrumbs"].Breadcrumbs
 export const CNAME = plugins["cname"].CNAME
 export const Comments = plugins["comments"].Comments
-export const ContentIndex = plugins["content-index"].ContentIndex
 export const ContentPage = plugins["content-page"].ContentPage
 export const CrawlLinks = plugins["crawl-links"].CrawlLinks
 export const CreatedModifiedDate = plugins["created-modified-date"].CreatedModifiedDate
@@ -110,6 +109,7 @@ export const Description = plugins["description"].Description
 export const Favicon = plugins["favicon"].Favicon
 export const GitHubFlavoredMarkdown = plugins["github-flavored-markdown"].GitHubFlavoredMarkdown
 export const Latex = plugins["latex"].Latex
+export const ContentIndex = plugins["multilingual-content-index"].ContentIndex
 export const NoteProperties = plugins["note-properties"].NoteProperties
 export const ObsidianFlavoredMarkdown = plugins["obsidian-flavored-markdown"].ObsidianFlavoredMarkdown
 export const CustomOgImages = plugins["og-image"].CustomOgImages

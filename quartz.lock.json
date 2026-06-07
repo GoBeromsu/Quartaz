@@ -31,12 +31,6 @@
       "commit": "278115200a9bacfc0ee4695b200a5843d15517f3",
       "installedAt": "2026-06-01T03:51:35.384Z"
     },
-    "content-index": {
-      "source": "github:quartz-community/content-index",
-      "resolved": "https://github.com/quartz-community/content-index.git",
-      "commit": "34621a71940977a6af6b20abd5dc552d81181b6b",
-      "installedAt": "2026-06-01T03:51:35.384Z"
-    },
     "content-meta": {
       "source": "github:quartz-community/content-meta",
       "resolved": "https://github.com/quartz-community/content-meta.git",
@@ -102,6 +96,12 @@
       "resolved": "/Users/beomsu/Documents/01. Obsidian/Blog/plugins/legacy-frontmatter-dates",
       "commit": "local",
       "installedAt": "2026-04-09T05:13:56.686Z"
+    },
+    "multilingual-content-index": {
+      "source": "./plugins/multilingual-content-index",
+      "resolved": "/Users/beomsu/Documents/Obsidian/Blog/plugins/multilingual-content-index",
+      "commit": "local",
+      "installedAt": "2026-06-07T09:10:17.736Z"
     },
     "note-properties": {
       "source": "github:quartz-community/note-properties",

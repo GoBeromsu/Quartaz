@@ -66,7 +66,7 @@ describe("multilingual config", () => {
     assert.equal(config.xDefaultRoute, "/")
     assert.equal(config.locales.find((locale) => locale.id === "ar")?.direction, "rtl")
     assert.equal(config.contentIndex.search, "all")
-    assert.equal(config.contentIndex.rss, "all")
+    assert.equal(config.contentIndex.rss, "source")
     assert.equal(config.contentIndex.sitemap, "all")
   })
 
