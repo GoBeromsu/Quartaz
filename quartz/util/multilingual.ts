@@ -115,6 +115,12 @@ export type TranslationFrontmatterValidationOptions = {
   readonly baseUrl: string
 }
 
+export type AppliedMultilingualPageData = {
+  readonly slug: string
+  readonly legacyRedirectSlug: string
+  readonly metadata: TranslationMetadata
+}
+
 export class MultilingualContractError extends Error {
   constructor(
     readonly code: string,
@@ -767,6 +773,71 @@ export function attachTranslationMetadata(
   metadata: TranslationMetadata,
 ): void {
   fileData.multilingual = metadata
+}
+
+export function isTranslationMetadata(value: unknown): value is TranslationMetadata {
+  if (!isRecord(value)) {
+    return false
+  }
+
+  return (
+    typeof value.translationKey === "string" &&
+    typeof value.locale === "string" &&
+    typeof value.sourceLocale === "string" &&
+    typeof value.permalink === "string" &&
+    typeof value.localizedPath === "string" &&
+    typeof value.canonicalUrl === "string" &&
+    typeof value.direction === "string"
+  )
+}
+
+function frontmatterRecordToEntry(
+  frontmatter: Record<string, unknown>,
+  fileName: string,
+): MultilingualFixtureEntry {
+  return {
+    fileName,
+    title: requiredString(frontmatter, "title", fileName),
+    translationKey: requiredString(frontmatter, "translationKey", fileName),
+    locale: requiredString(frontmatter, "locale", fileName),
+    sourceLocale: requiredString(frontmatter, "sourceLocale", fileName),
+    sourcePath: requiredString(frontmatter, "sourcePath", fileName),
+    sourceHash: requiredString(frontmatter, "sourceHash", fileName),
+    translationStatus: requiredTranslationStatus(frontmatter, fileName),
+    permalink: requiredString(frontmatter, "permalink", fileName),
+  }
+}
+
+export function applyMultilingualPageData(
+  config: MultilingualConfiguration | undefined,
+  fileData: Record<string, unknown>,
+  options: TranslationFrontmatterValidationOptions,
+): AppliedMultilingualPageData | undefined {
+  if (!config?.enabled || !isRecord(fileData.frontmatter)) {
+    return undefined
+  }
+
+  if (fileData.frontmatter.translationKey === undefined) {
+    return undefined
+  }
+
+  const fileName = typeof fileData.relativePath === "string" ? fileData.relativePath : "file"
+  const entry = frontmatterRecordToEntry(fileData.frontmatter, fileName)
+  const metadata = buildTranslationMetadata(config, entry, options)
+  const slug = stripEdgeSlashes(metadata.localizedPath)
+
+  attachTranslationMetadata(fileData, metadata)
+  fileData.slug = slug
+
+  if (Array.isArray(fileData.aliases)) {
+    fileData.aliases = fileData.aliases.filter((alias) => alias !== metadata.permalink)
+  }
+
+  return {
+    slug,
+    legacyRedirectSlug: metadata.permalink,
+    metadata,
+  }
 }
 
 function parseFrontmatter(source: string, fileName: string): MultilingualFixtureEntry {

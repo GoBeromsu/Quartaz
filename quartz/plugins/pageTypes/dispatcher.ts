@@ -10,6 +10,7 @@ import { StaticResources } from "../../util/resources"
 import { render } from "preact-render-to-string"
 import { fromHtml } from "hast-util-from-html"
 import { Root as HtmlRoot } from "hast"
+import { isTranslationMetadata } from "../../util/multilingual"
 
 function getPageTypes(ctx: BuildCtx): QuartzPageTypePluginInstance[] {
   return (ctx.cfg.plugins.pageTypes ?? []) as unknown as QuartzPageTypePluginInstance[]
@@ -105,6 +106,46 @@ async function emitPage(
     slug,
     ext: ".html",
   })
+}
+
+async function* emitMultilingualLegacyRedirects(
+  ctx: BuildCtx,
+  allFiles: ProcessedContent[1]["data"][],
+  emittedRedirects: Set<string>,
+) {
+  const multilingual = ctx.cfg.configuration.multilingual
+  if (!multilingual?.enabled || !multilingual.legacyRedirects.flatPermalinks) {
+    return
+  }
+
+  for (const fileData of allFiles) {
+    const metadata = fileData.multilingual
+    if (!isTranslationMetadata(metadata) || metadata.locale !== multilingual.sourceLocale) {
+      continue
+    }
+
+    if (emittedRedirects.has(metadata.permalink)) {
+      continue
+    }
+    emittedRedirects.add(metadata.permalink)
+
+    const target = metadata.localizedPath
+    yield write({
+      ctx,
+      slug: metadata.permalink as FullSlug,
+      ext: ".html",
+      content: `<!DOCTYPE html>
+<html lang="${metadata.sourceLocale}">
+<head>
+<title>${metadata.permalink}</title>
+<link rel="canonical" href="${target}">
+<meta name="robots" content="noindex">
+<meta charset="utf-8">
+<meta http-equiv="refresh" content="0; url=${target}">
+</head>
+</html>`,
+    })
+  }
 }
 
 /**
@@ -209,6 +250,7 @@ export const PageTypeDispatcher: QuartzEmitterPlugin<Partial<DispatcherOptions>>
       populateVirtualPageHtmlAst(virtualEntries, ctx, allFilesWithVirtual, resources)
 
       // Phase 2: Emit regular pages (with virtual page data available for transclusion)
+      const emittedLegacyRedirects = new Set<string>()
       for (const [tree, file] of content) {
         const slug = file.data.slug!
         const fileData = file.data
@@ -229,6 +271,8 @@ export const PageTypeDispatcher: QuartzEmitterPlugin<Partial<DispatcherOptions>>
           }
         }
       }
+
+      yield* emitMultilingualLegacyRedirects(ctx, allFilesWithVirtual, emittedLegacyRedirects)
 
       // Phase 3: Emit virtual pages
       for (const ve of virtualEntries) {
@@ -298,6 +342,7 @@ export const PageTypeDispatcher: QuartzEmitterPlugin<Partial<DispatcherOptions>>
       populateVirtualPageHtmlAst(virtualEntries, ctx, allFilesWithVirtual, resources)
 
       // Phase 2: Emit changed regular pages
+      const emittedLegacyRedirects = new Set<string>()
       for (const [tree, file] of content) {
         const slug = file.data.slug!
         if (!changedSlugs.has(slug)) continue
@@ -320,6 +365,8 @@ export const PageTypeDispatcher: QuartzEmitterPlugin<Partial<DispatcherOptions>>
           }
         }
       }
+
+      yield* emitMultilingualLegacyRedirects(ctx, allFilesWithVirtual, emittedLegacyRedirects)
 
       // Phase 3: Emit virtual pages
       for (const ve of virtualEntries) {
