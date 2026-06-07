@@ -50,6 +50,7 @@ describe("locale path helpers", () => {
     assert.equal(buildLocalizedPath(config, "ko", "beauty-of-youth"), "/ko/beauty-of-youth")
     assert.equal(buildLocalizedPath(config, "en", "beauty-of-youth"), "/en/beauty-of-youth")
     assert.equal(buildLocalizedPath(config, "ar", "beauty-of-youth"), "/ar/beauty-of-youth")
+    assert.equal(buildLocalizedPath(config, "ko", "index"), "/ko/")
     assert.equal(
       buildCanonicalLocaleUrl(config, "berom.net", "ko", "beauty-of-youth"),
       "https://berom.net/ko/beauty-of-youth",

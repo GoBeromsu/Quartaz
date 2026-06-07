@@ -532,7 +532,7 @@ export function buildLocalizedPath(
   const localeConfig = getLocaleConfig(config, locale)
   const normalizedPermalink = stripEdgeSlashes(permalink)
 
-  if (normalizedPermalink === "") {
+  if (normalizedPermalink === "" || normalizedPermalink === "index") {
     return localeConfig.routePrefix
   }
 
@@ -824,7 +824,10 @@ export function applyMultilingualPageData(
   const fileName = typeof fileData.relativePath === "string" ? fileData.relativePath : "file"
   const entry = frontmatterRecordToEntry(fileData.frontmatter, fileName)
   const metadata = buildTranslationMetadata(config, entry, options)
-  const slug = stripEdgeSlashes(metadata.localizedPath)
+  const strippedPath = stripEdgeSlashes(metadata.localizedPath)
+  const slug = metadata.localizedPath.endsWith("/")
+    ? stripEdgeSlashes(`${strippedPath}/index`)
+    : strippedPath
 
   attachTranslationMetadata(fileData, metadata)
   fileData.slug = slug
