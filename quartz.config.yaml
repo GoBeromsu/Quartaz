@@ -76,6 +76,7 @@ configuration:
         direction: ltr
         label: Brazilian Portuguese
         nativeName: Português do Brasil
+    localizedSlug: false
     defaultLocaleRoute: /ko/
     xDefaultRoute: /
     legacyRedirects:

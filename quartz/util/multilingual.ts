@@ -86,6 +86,35 @@ export type AlternateUrlCluster = {
   }
 }
 
+export type TranslationMetadata = {
+  readonly translationKey: string
+  readonly locale: MultilingualLocale
+  readonly sourceLocale: MultilingualLocale
+  readonly sourcePath: string
+  readonly sourceHash: string
+  readonly translationStatus: TranslationStatus
+  readonly permalink: string
+  readonly localizedPath: string
+  readonly canonicalUrl: string
+  readonly direction: MultilingualLocaleDirection
+}
+
+export type ValidatedTranslationEntry = MultilingualFixtureEntry & {
+  readonly locale: MultilingualLocale
+  readonly sourceLocale: MultilingualLocale
+  readonly metadata: TranslationMetadata
+}
+
+export type ValidatedTranslationGroup = {
+  readonly translationKey: string
+  readonly source: ValidatedTranslationEntry | undefined
+  readonly entries: readonly ValidatedTranslationEntry[]
+}
+
+export type TranslationFrontmatterValidationOptions = {
+  readonly baseUrl: string
+}
+
 export class MultilingualContractError extends Error {
   constructor(
     readonly code: string,
@@ -395,6 +424,7 @@ export function validateMultilingualConfig(value: unknown): MultilingualConfigur
   const locales = requiredArray(value, "locales", "multilingual").map((entry) =>
     validateLocaleConfiguration(entry),
   )
+  const localizedSlug = requiredBoolean(value, "localizedSlug", "multilingual")
   const legacyRedirects = requiredRedirectsConfig(value.legacyRedirects)
   const contentIndex = requiredContentIndexConfig(value.contentIndex)
   const defaultLocaleRoute = requiredString(value, "defaultLocaleRoute", "multilingual")
@@ -424,6 +454,7 @@ export function validateMultilingualConfig(value: unknown): MultilingualConfigur
     sourceLocale,
     targetLocales,
     locales,
+    localizedSlug,
     defaultLocaleRoute,
     xDefaultRoute,
     legacyRedirects,
@@ -611,6 +642,131 @@ export function buildAlternateUrlCluster(
       url: buildXDefaultUrl(config, baseUrl),
     },
   }
+}
+
+function buildTranslationMetadata(
+  config: MultilingualConfiguration,
+  entry: MultilingualFixtureEntry,
+  options: TranslationFrontmatterValidationOptions,
+): TranslationMetadata {
+  const locale = requiredLocaleId(entry.locale, entry.fileName)
+  const sourceLocale = requiredLocaleId(entry.sourceLocale, entry.fileName)
+  const localizedPath = buildLocalizedPath(config, locale, entry.permalink)
+
+  return {
+    translationKey: entry.translationKey,
+    locale,
+    sourceLocale,
+    sourcePath: entry.sourcePath,
+    sourceHash: entry.sourceHash,
+    translationStatus: entry.translationStatus,
+    permalink: entry.permalink,
+    localizedPath,
+    canonicalUrl: absoluteUrl(options.baseUrl, localizedPath),
+    direction: getLocaleDirection(config, locale),
+  }
+}
+
+function validateTranslationGroup(
+  config: MultilingualConfiguration,
+  translationKey: string,
+  entries: readonly MultilingualFixtureEntry[],
+  options: TranslationFrontmatterValidationOptions,
+): ValidatedTranslationGroup {
+  const locales = new Set<string>()
+  const sourceEntries = entries.filter((entry) => entry.translationStatus === "source")
+  const nonExternalEntries = entries.filter((entry) => entry.translationStatus !== "external-only")
+  const permalinks = new Set<string>()
+  const validatedEntries: ValidatedTranslationEntry[] = []
+
+  for (const entry of entries) {
+    const locale = requiredLocaleId(entry.locale, entry.fileName)
+    const sourceLocale = requiredLocaleId(entry.sourceLocale, entry.fileName)
+
+    if (locales.has(locale)) {
+      throw new MultilingualContractError(
+        "duplicate-locale",
+        `duplicate locale for translationKey ${translationKey}: ${locale}`,
+      )
+    }
+
+    locales.add(locale)
+    permalinks.add(entry.permalink)
+    validatedEntries.push({
+      ...entry,
+      locale,
+      sourceLocale,
+      metadata: buildTranslationMetadata(config, entry, options),
+    })
+  }
+
+  if (sourceEntries.length > 1) {
+    throw new MultilingualContractError(
+      "duplicate-source",
+      `duplicate source for translationKey ${translationKey}`,
+    )
+  }
+
+  const source = validatedEntries.find((entry) => entry.translationStatus === "source")
+
+  if (!source && nonExternalEntries.length > 0) {
+    throw new MultilingualContractError(
+      "missing-source",
+      `missing source for translationKey ${translationKey}`,
+    )
+  }
+
+  if (source && source.locale !== config.sourceLocale) {
+    throw new MultilingualContractError(
+      "missing-source",
+      `missing source for translationKey ${translationKey}`,
+    )
+  }
+
+  if (permalinks.size > 1 && !config.localizedSlug) {
+    throw new MultilingualContractError(
+      "mismatched-permalink",
+      `mismatched permalink for translationKey ${translationKey}`,
+    )
+  }
+
+  return {
+    translationKey,
+    source,
+    entries: validatedEntries,
+  }
+}
+
+export function validateTranslationFrontmatterGroups(
+  config: MultilingualConfiguration,
+  entries: readonly unknown[],
+  options: TranslationFrontmatterValidationOptions,
+): readonly ValidatedTranslationGroup[] {
+  const typedEntries = entries.map((entry) => assertFixtureEntry(entry))
+  const entriesByTranslationKey = new Map<string, MultilingualFixtureEntry[]>()
+
+  for (const entry of typedEntries) {
+    const existingEntries = entriesByTranslationKey.get(entry.translationKey)
+
+    if (existingEntries) {
+      existingEntries.push(entry)
+    } else {
+      entriesByTranslationKey.set(entry.translationKey, [entry])
+    }
+  }
+
+  return [...entriesByTranslationKey.entries()]
+    .sort(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey))
+    .map(([translationKey, groupEntries]) =>
+      validateTranslationGroup(config, translationKey, groupEntries, options),
+    )
+}
+
+export function attachTranslationMetadata(
+  fileData: Record<string, unknown>,
+  metadata: TranslationMetadata,
+): void {
+  fileData.multilingual = metadata
 }
 
 function parseFrontmatter(source: string, fileName: string): MultilingualFixtureEntry {

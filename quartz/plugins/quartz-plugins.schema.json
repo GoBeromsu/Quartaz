@@ -46,6 +46,7 @@
             "sourceLocale",
             "targetLocales",
             "locales",
+            "localizedSlug",
             "defaultLocaleRoute",
             "xDefaultRoute",
             "legacyRedirects",
@@ -104,6 +105,10 @@
                 }
               },
               "description": "Locale metadata used by routing, indexing, and UI"
+            },
+            "localizedSlug": {
+              "type": "boolean",
+              "description": "Allow translated siblings to use localized slugs instead of the shared permalink"
             },
             "defaultLocaleRoute": {
               "type": "string",

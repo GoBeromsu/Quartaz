@@ -86,6 +86,7 @@ export interface MultilingualConfiguration {
   sourceLocale: string
   targetLocales: string[]
   locales: MultilingualLocaleConfiguration[]
+  localizedSlug: boolean
   defaultLocaleRoute: string
   xDefaultRoute: string
   legacyRedirects: MultilingualLegacyRedirectConfiguration
