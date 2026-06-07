@@ -1,5 +1,5 @@
 import assert from "node:assert/strict"
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { spawnSync } from "node:child_process"
@@ -22,9 +22,10 @@ function tempContentRoot(): string {
   return mkdtempSync(join(tmpdir(), "blog-content-policy-"))
 }
 
-function runNode(script: URL, args: readonly string[]): CommandResult {
+function runNode(script: URL, args: readonly string[], env?: NodeJS.ProcessEnv): CommandResult {
   const result = spawnSync(process.execPath, [script.pathname, ...args], {
     encoding: "utf8",
+    env: { ...process.env, ...env },
   })
 
   return {
@@ -130,5 +131,23 @@ describe("content sync and attachment policy", () => {
 
     assert.equal(result.status, 0, result.stderr)
     assert.match(result.stdout, /Ataraxia\/40\. Digital Garden\/\.deploy-staging/)
+  })
+
+  test("watch-content one-shot mode exits nonzero when sync fails", () => {
+    const sourceRoot = tempContentRoot()
+    const contentRoot = tempContentRoot()
+    writeFileSync(join(sourceRoot, "bad.md"), "![local](file:///Users/beomsu/image.png)\n")
+
+    const result = runNode(watchScript, ["--once"], {
+      BLOG_SYNC_SOURCE_DIR: sourceRoot,
+      BLOG_SYNC_DEST_DIR: contentRoot,
+    })
+    const source = readFileSync(watchScript, "utf8")
+
+    assert.match(source, /const initialSyncSucceeded = sync\(\)/)
+    assert.match(source, /process\.exit\(initialSyncSucceeded \? 0 : 1\)/)
+    assert.notEqual(result.status, 0)
+    assert.match(result.stderr, /\[sync\] Failed:/)
+    assert.match(`${result.stdout}\n${result.stderr}`, /file:\/\/\/Users\/beomsu\/image\.png/)
   })
 })

@@ -9,6 +9,7 @@ const workflowScript = new URL(
   "../../.codex/skills/korean-blog-translator/scripts/translate_blog_post.mjs",
   import.meta.url,
 )
+const repoRoot = new URL("../..", import.meta.url).pathname
 
 type CommandResult = {
   readonly status: number | null
@@ -183,6 +184,28 @@ Hand edited translation.
 
     assert.equal(manifest.translations[0].status, "stale")
     assert.match(readFileSync(targetPath, "utf8"), /Hand edited translation/)
+  })
+
+  test("checked-in translations match the source hash contract", () => {
+    const result = runWorkflow([
+      "--source",
+      join(repoRoot, "content/Articles/젊음이 아름답다.md"),
+      "--locales",
+      "en,es",
+      "--out-dir",
+      join(repoRoot, "content"),
+      "--provider",
+      "mock",
+      "--dry-run",
+    ])
+
+    assert.equal(result.status, 0, result.stderr)
+    const manifest = JSON.parse(result.stdout)
+
+    assert.deepEqual(
+      manifest.translations.map((entry: { readonly status: string }) => entry.status),
+      ["unchanged", "unchanged"],
+    )
   })
 
   test("solar provider fails before network calls when credentials are missing", () => {

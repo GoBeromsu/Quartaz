@@ -61,6 +61,26 @@ describe("localized indexes", () => {
     },
   )
 
+  test(
+    "sitemap fallback URLs do not double-encode existing legacy slugs",
+    { timeout: 60000 },
+    () => {
+      const output = runFixtureBuild()
+
+      try {
+        const sitemap = readFileSync(join(output, "sitemap.xml"), "utf8")
+
+        assert.match(
+          sitemap,
+          /<loc>https:\/\/berom\.net\/%EB%A0%88%EA%B1%B0%EC%8B%9C-%EB%AC%B8%EC%84%9C<\/loc>/,
+        )
+        assert.doesNotMatch(sitemap, /%25EB%25A0%2588/)
+      } finally {
+        rmSync(output, { recursive: true, force: true })
+      }
+    },
+  )
+
   test("RSS defaults to Korean source entries", { timeout: 60000 }, () => {
     const output = runFixtureBuild()
 

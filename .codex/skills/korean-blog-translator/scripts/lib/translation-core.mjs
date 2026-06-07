@@ -68,7 +68,20 @@ export function splitFrontmatter(markdown, sourcePath) {
 }
 
 export function sourceHash(markdown) {
-  return `sha256:${createHash("sha256").update(markdown).digest("hex")}`
+  let hashInput = markdown
+  try {
+    const parsed = splitFrontmatter(markdown, "source hash input")
+    if (Object.hasOwn(parsed.frontmatter, "sourceHash")) {
+      const { sourceHash: _sourceHash, ...frontmatter } = parsed.frontmatter
+      hashInput = renderMarkdown(frontmatter, parsed.body)
+    }
+  } catch (error) {
+    if (!(error instanceof WorkflowError)) {
+      throw error
+    }
+  }
+
+  return `sha256:${createHash("sha256").update(hashInput).digest("hex")}`
 }
 
 function existingSourceHash(markdown) {
