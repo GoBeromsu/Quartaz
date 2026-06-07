@@ -8,6 +8,7 @@ import { getDate, formatDate } from "../../quartz/components/Date"
 import { byDateAndAlphabetical } from "../../quartz/components/PageList"
 import { classNames } from "../../quartz/util/lang"
 import { resolveRelative } from "../../quartz/util/path"
+import { currentLocaleTag, localeScopedFiles } from "./locale"
 
 interface Options {
   title: string
@@ -27,7 +28,7 @@ export default ((userOpts?: Partial<Options>) => {
     cfg,
   }: QuartzComponentProps) => {
     const opts = { ...defaultOptions(cfg), ...userOpts }
-    const pages = allFiles
+    const pages = localeScopedFiles(cfg, fileData, allFiles)
       .filter((file) => Boolean(file.filePath) && file.slug !== "index")
       .sort(byDateAndAlphabetical())
       .slice(0, opts.limit)
@@ -42,7 +43,7 @@ export default ((userOpts?: Partial<Options>) => {
         <ul class="blog-article-list">
           {pages.map((page) => {
             const date = page.dates ? getDate(page) : undefined
-            const dateText = date ? formatDate(date, cfg.locale) : ""
+            const dateText = date ? formatDate(date, currentLocaleTag(cfg, fileData)) : ""
 
             return (
               <li>
