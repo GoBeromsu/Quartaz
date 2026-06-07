@@ -18,7 +18,7 @@ Use this skill to turn one Korean source markdown file into locale-specific tran
    node .codex/skills/korean-blog-translator/scripts/translate_blog_post.mjs \
      --source "content/Articles/젊음이 아름답다.md" \
      --locales en,zh-Hans,hi,es,fr,ar,bn,pt-BR \
-     --out-dir /tmp/blog-translations \
+     --out-dir @staging \
      --provider mock \
      --dry-run
    ```
@@ -35,6 +35,7 @@ Use this skill to turn one Korean source markdown file into locale-specific tran
 - `--source <path>`: Korean markdown source with YAML frontmatter.
 - `--locales <comma-list>`: target locales from `en,zh-Hans,hi,es,fr,ar,bn,pt-BR`.
 - `--out-dir <path>`: output root; files are written under `<out-dir>/<locale>/<source-filename>`.
+- `--out-dir @staging`: shorthand for the Ataraxia deploy-staging source used by `npm run sync`, so generated translations survive the next sync.
 - `--provider mock|solar`: deterministic mock or Upstage Solar.
 - `--dry-run`: print manifest without writing files.
 

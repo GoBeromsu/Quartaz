@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 import { createHash } from "node:crypto"
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
-import { basename, join } from "node:path"
+import { basename, join, resolve } from "node:path"
 import { parse, stringify } from "yaml"
 
 const SUPPORTED_TARGET_LOCALES = new Set(["en", "zh-Hans", "hi", "es", "fr", "ar", "bn", "pt-BR"])
+const STAGING_OUTPUT_DIR = resolve("../Ataraxia/40. Digital Garden/.deploy-staging")
 
 class WorkflowError extends Error {
   constructor(message, exitCode = 1) {
@@ -53,6 +54,7 @@ function parseArgs(argv) {
 
   return {
     ...args,
+    outDir: args.outDir === "@staging" ? STAGING_OUTPUT_DIR : args.outDir,
     locales: args.locales
       .split(",")
       .map((locale) => locale.trim())
@@ -251,6 +253,7 @@ async function run(argv) {
   return {
     dryRun: args.dryRun,
     provider: args.provider,
+    outputRoot: args.outDir,
     source: {
       path: args.source,
       sourceHash: hash,
