@@ -7,8 +7,85 @@ configuration:
   analytics:
     provider: google
     tagId: G-P07C416MPF
-  locale: en-US
+  locale: ko-KR
   baseUrl: berom.net
+  multilingual:
+    enabled: true
+    sourceLocale: ko
+    targetLocales:
+      - en
+      - zh-Hans
+      - hi
+      - es
+      - fr
+      - ar
+      - bn
+      - pt-BR
+    locales:
+      - id: ko
+        locale: ko-KR
+        routePrefix: /ko/
+        direction: ltr
+        label: Korean
+        nativeName: 한국어
+      - id: en
+        locale: en-US
+        routePrefix: /en/
+        direction: ltr
+        label: English
+        nativeName: English
+      - id: zh-Hans
+        locale: zh-CN
+        routePrefix: /zh-Hans/
+        direction: ltr
+        label: Simplified Chinese
+        nativeName: 简体中文
+      - id: hi
+        locale: hi-IN
+        routePrefix: /hi/
+        direction: ltr
+        label: Hindi
+        nativeName: हिन्दी
+      - id: es
+        locale: es-ES
+        routePrefix: /es/
+        direction: ltr
+        label: Spanish
+        nativeName: Español
+      - id: fr
+        locale: fr-FR
+        routePrefix: /fr/
+        direction: ltr
+        label: French
+        nativeName: Français
+      - id: ar
+        locale: ar-SA
+        routePrefix: /ar/
+        direction: rtl
+        label: Arabic
+        nativeName: العربية
+      - id: bn
+        locale: bn-BD
+        routePrefix: /bn/
+        direction: ltr
+        label: Bengali
+        nativeName: বাংলা
+      - id: pt-BR
+        locale: pt-BR
+        routePrefix: /pt-BR/
+        direction: ltr
+        label: Brazilian Portuguese
+        nativeName: Português do Brasil
+    defaultLocaleRoute: /ko/
+    xDefaultRoute: /
+    legacyRedirects:
+      flatPermalinks: true
+      status: 301
+      noindex: true
+    contentIndex:
+      search: all
+      rss: all
+      sitemap: all
   ignorePatterns:
     - .git
     - .gitignore
