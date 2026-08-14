@@ -7,6 +7,7 @@ import { parse } from "yaml"
 import type { MultilingualConfiguration } from "../cfg"
 import {
   attachTranslationMetadata,
+  isUndeclaredLocaleContent,
   readMultilingualFixtureGroup,
   validateMultilingualConfig,
   validateTranslationFrontmatterGroups,
@@ -36,10 +37,22 @@ function readConfigMultilingual(): MultilingualConfiguration {
   return validateMultilingualConfig(configuration.multilingual)
 }
 
+function declaredFixtureEntries(
+  config: MultilingualConfiguration,
+  entries: readonly { readonly locale: string }[],
+) {
+  const declared = new Set(config.locales.map((locale) => locale.id))
+  return entries.filter((entry) => declared.has(entry.locale))
+}
+
 function validateFixtureGroup(config: MultilingualConfiguration, fixturePath: URL) {
-  return validateTranslationFrontmatterGroups(config, readMultilingualFixtureGroup(fixturePath), {
-    baseUrl: "berom.net",
-  })
+  return validateTranslationFrontmatterGroups(
+    config,
+    declaredFixtureEntries(config, readMultilingualFixtureGroup(fixturePath)),
+    {
+      baseUrl: "berom.net",
+    },
+  )
 }
 
 describe("translation frontmatter", () => {
@@ -51,7 +64,11 @@ describe("translation frontmatter", () => {
     const fileData: Record<string, unknown> = {}
 
     assert.equal(groups.length, 1)
-    assert.equal(group.entries.length, 9)
+    assert.equal(group.entries.length, 2)
+    assert.deepEqual(
+      group.entries.map((entry) => entry.locale),
+      ["en", "ko"],
+    )
     assert.equal(source?.locale, "ko")
     assert.equal(source?.translationStatus, "source")
 
@@ -112,5 +129,16 @@ describe("translation frontmatter", () => {
       })[0]?.entries.length,
       2,
     )
+  })
+
+  test("treats supported-but-unpublished locale files as undeclared content", () => {
+    const config = readConfigMultilingual()
+
+    assert.equal(
+      isUndeclaredLocaleContent(config, { frontmatter: { locale: "zh-Hans" } }),
+      true,
+    )
+    assert.equal(isUndeclaredLocaleContent(config, { frontmatter: { locale: "en" } }), false)
+    assert.equal(isUndeclaredLocaleContent(config, { frontmatter: { locale: "ko" } }), false)
   })
 })

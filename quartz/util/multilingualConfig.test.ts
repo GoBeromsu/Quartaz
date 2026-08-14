@@ -7,8 +7,9 @@ import { parse } from "yaml"
 import type { MultilingualConfiguration } from "../cfg"
 import { validateMultilingualConfig } from "./multilingual"
 
-const expectedLocaleIds = ["ko", "en", "zh-Hans", "hi", "es", "fr", "ar", "bn", "pt-BR"]
-const expectedTargetLocaleIds = ["en", "zh-Hans", "hi", "es", "fr", "ar", "bn", "pt-BR"]
+const expectedLocaleIds = ["ko", "en"]
+const expectedTargetLocaleIds = ["en"]
+const unpublishedLocaleFolders = ["zh-Hans", "hi", "es", "fr", "ar", "bn", "pt-BR"]
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value)
@@ -64,10 +65,31 @@ describe("multilingual config", () => {
     )
     assert.equal(config.defaultLocaleRoute, "/ko/")
     assert.equal(config.xDefaultRoute, "/")
-    assert.equal(config.locales.find((locale) => locale.id === "ar")?.direction, "rtl")
+    assert.deepEqual(
+      config.locales.map((locale) => locale.nativeName),
+      ["한국어", "English"],
+    )
+    assert.equal(config.locales.find((locale) => locale.id === "ar"), undefined)
     assert.equal(config.contentIndex.search, "all")
     assert.equal(config.contentIndex.rss, "source")
     assert.equal(config.contentIndex.sitemap, "all")
+  })
+
+  test("excludes unpublished locale folders from the content glob", () => {
+    const config = requiredRecord(
+      parse(readFileSync(new URL("../../quartz.config.yaml", import.meta.url), "utf8")),
+      "quartz.config.yaml",
+    )
+    const configuration = requiredRecord(config.configuration, "configuration")
+    const ignorePatterns = configuration.ignorePatterns
+
+    assert.ok(Array.isArray(ignorePatterns), "ignorePatterns should be an array")
+    for (const folder of unpublishedLocaleFolders) {
+      assert.ok(
+        ignorePatterns.includes(`${folder}/**`),
+        `ignorePatterns should exclude ${folder}/**`,
+      )
+    }
   })
 
   test("adds multilingual configuration to the JSON schema", () => {
@@ -84,7 +106,7 @@ describe("multilingual config", () => {
     const duplicatedPrefixConfig: MultilingualConfiguration = {
       ...config,
       locales: config.locales.map((locale) =>
-        locale.id === "fr" ? { ...locale, routePrefix: "/en/" } : locale,
+        locale.id === "ko" ? { ...locale, routePrefix: "/en/" } : locale,
       ),
     }
 

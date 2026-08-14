@@ -1,28 +1,18 @@
 import assert from "node:assert/strict"
 import { execFileSync } from "node:child_process"
-import { mkdtempSync, readFileSync, rmSync } from "node:fs"
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import test, { describe } from "node:test"
 
 const repoRoot = new URL("../..", import.meta.url).pathname
 const fixtureContent = "quartz/test/fixtures/multilingual-build-content"
-const expectedHreflangs = [
-  "ko-KR",
-  "en-US",
-  "zh-CN",
-  "hi-IN",
-  "es-ES",
-  "fr-FR",
-  "ar-SA",
-  "bn-BD",
-  "pt-BR",
-]
+const expectedHreflangs = ["ko-KR", "en-US"]
 
 function runFixtureBuild(): string {
   const output = mkdtempSync(join(tmpdir(), "quartz-multilingual-head-"))
 
-  execFileSync("npx", ["quartz", "build", "-d", fixtureContent, "-o", output], {
+  execFileSync(process.execPath, ["quartz/bootstrap-cli.mjs", "build", "-d", fixtureContent, "-o", output], {
     cwd: repoRoot,
     encoding: "utf8",
     stdio: "pipe",
@@ -51,18 +41,22 @@ describe("localized head metadata", () => {
         assert.match(html, new RegExp(`hreflang="${hreflang}"`))
       }
       assert.match(html, /hreflang="x-default"/)
+      assert.doesNotMatch(html, /hreflang="zh-CN"/)
+      assert.doesNotMatch(html, /hreflang="ar-SA"/)
     } finally {
       rmSync(output, { recursive: true, force: true })
     }
   })
 
-  test("Arabic page renders rtl document direction", { timeout: 60000 }, () => {
+  test("unpublished locale pages are not emitted", { timeout: 60000 }, () => {
     const output = runFixtureBuild()
 
     try {
-      const html = readFileSync(join(output, "ar/beauty-of-youth.html"), "utf8")
+      const html = readFileSync(join(output, "en/beauty-of-youth.html"), "utf8")
 
-      assert.match(html, /<html lang="ar-SA" dir="rtl"/)
+      assert.match(html, /<html lang="en-US" dir="ltr"/)
+      assert.equal(existsSync(join(output, "ar/beauty-of-youth.html")), false)
+      assert.equal(existsSync(join(output, "zh-Hans/beauty-of-youth.html")), false)
     } finally {
       rmSync(output, { recursive: true, force: true })
     }

@@ -11,7 +11,7 @@ const fixtureContent = "quartz/test/fixtures/multilingual-build-content"
 function runFixtureBuild(): string {
   const output = mkdtempSync(join(tmpdir(), "quartz-multilingual-emission-"))
 
-  execFileSync("npx", ["quartz", "build", "-d", fixtureContent, "-o", output], {
+  execFileSync(process.execPath, ["quartz/bootstrap-cli.mjs", "build", "-d", fixtureContent, "-o", output], {
     cwd: repoRoot,
     encoding: "utf8",
     stdio: "pipe",

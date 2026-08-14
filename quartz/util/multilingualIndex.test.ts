@@ -7,17 +7,7 @@ import test, { describe } from "node:test"
 
 const repoRoot = new URL("../..", import.meta.url).pathname
 const fixtureContent = "quartz/test/fixtures/multilingual-build-content"
-const expectedHreflangs = [
-  "ko-KR",
-  "en-US",
-  "zh-CN",
-  "hi-IN",
-  "es-ES",
-  "fr-FR",
-  "ar-SA",
-  "bn-BD",
-  "pt-BR",
-]
+const expectedHreflangs = ["ko-KR", "en-US"]
 
 type ContentIndexEntry = {
   readonly title: string
@@ -31,7 +21,7 @@ type ContentIndexEntry = {
 function runFixtureBuild(): string {
   const output = mkdtempSync(join(tmpdir(), "quartz-multilingual-index-"))
 
-  execFileSync("npx", ["quartz", "build", "-d", fixtureContent, "-o", output], {
+  execFileSync(process.execPath, ["quartz/bootstrap-cli.mjs", "build", "-d", fixtureContent, "-o", output], {
     cwd: repoRoot,
     encoding: "utf8",
     stdio: "pipe",
@@ -54,6 +44,8 @@ describe("localized indexes", () => {
         for (const hreflang of expectedHreflangs) {
           assert.match(sitemap, new RegExp(`xhtml:link rel="alternate" hreflang="${hreflang}"`))
         }
+        assert.doesNotMatch(sitemap, /hreflang="zh-CN"/)
+        assert.doesNotMatch(sitemap, /hreflang="ar-SA"/)
         assert.doesNotMatch(sitemap, /<loc>https:\/\/beomsukoh\.com\/beauty-of-youth<\/loc>/)
       } finally {
         rmSync(output, { recursive: true, force: true })
