@@ -3,6 +3,7 @@ interface ContentEntry {
   title: string
   links: string[]
   tags: string[]
+  content: string
   multilingual?: {
     translationKey?: string
     locale?: string
@@ -21,6 +22,8 @@ interface GraphNode {
   folder: string
   tags: string[]
   dominantTag: string
+  excerpt: string
+  phase: number
   x?: number
   y?: number
   z?: number
@@ -29,10 +32,12 @@ interface GraphNode {
   vz?: number
 }
 
+type LinkKind = "wikilink" | "tag" | "cooc" | "folder"
+
 interface GraphLink {
   source: string | GraphNode
   target: string | GraphNode
-  kind: "wikilink" | "tag"
+  kind: LinkKind
 }
 
 interface GraphData {
@@ -147,7 +152,12 @@ interface SpriteTextInstance {
   fontWeight: string
   strokeWidth: number
   strokeColor: string
-  position: { y: number }
+  position: { x: number; y: number }
+  center: { set: (x: number, y: number) => void }
+}
+
+interface EmissiveMaterial {
+  emissiveIntensity: number
 }
 
 type SpriteTextCtor = new (text: string) => SpriteTextInstance
@@ -176,7 +186,7 @@ interface ThreeApi {
     color: string
     emissive: string
     emissiveIntensity: number
-  }) => unknown
+  }) => EmissiveMaterial
 }
 
 // Pinned esm.sh URLs. Keep THREE_VERSION identical across 3D imports
@@ -203,22 +213,41 @@ const LINK_OPACITY = 1
 const DIM_ALPHA = 0.18
 const LENS_STORAGE_KEY = "graph-landing:lens"
 const AUTO_ROTATE_SPEED = 0.18
-const ZOOM_FIT_PADDING = 64
+const ZOOM_FIT_PADDING = 40
 const HUB_VAL_SCALE = 1.4
 const TAG_LENS_VAL_SCALE = 1.25
 const FOCUS_TAG_VAL_SCALE = 1.15
-const NODE_RADIUS_MIN = 11
-const NODE_RADIUS_MAX = 21
-const BLOOM_STRENGTH = 1.4
-const BLOOM_RADIUS = 0.62
-const BLOOM_THRESHOLD = 0.12
-const LINK_RADIUS_WIKI = 0.7
-const LINK_RADIUS_TAG = 0.42
+// Alex grammar: small bright cores with tight bloom halos, hairline edges.
+// Bloom stays tight (low radius, mid threshold) so the night-sky background
+// keeps its near-black depth instead of washing into gray fog.
+const NODE_RADIUS_MIN = 4.5
+const NODE_RADIUS_MAX = 8.5
+// Threshold sits below the emissive star cores (>1 HDR) but above label
+// pixels, so text stays crisp while stars glow.
+const BLOOM_STRENGTH = 1.6
+const BLOOM_RADIUS = 0.5
+const BLOOM_THRESHOLD = 0.28
+// World units at the default camera distance: keep edges reading as ~1px
+// hairlines but above the sub-pixel aliasing floor of the composer path.
+const LINK_RADIUS: Record<LinkKind, number> = {
+  wikilink: 1.0,
+  tag: 0.7,
+  cooc: 0.5,
+  folder: 0.5,
+}
+// Gently squash the z axis into a wide slab so the opening camera can sit
+// closer and the web fills the frame (depth stays for parallax).
+const FLATTEN_Z_STRENGTH = 0.08
+const EXCERPT_LENGTH = 220
+const FOLDER_RING_SKIP = 2
+const TWINKLE_AMPLITUDE = 0.15
+const TWINKLE_SPEED = 0.8
+const PREVIEW_HIDE_DELAY_MS = 350
 
 const SPACING_PRESETS: Record<Spacing, { charge: number; distance: number }> = {
-  tight: { charge: -80, distance: 64 },
-  normal: { charge: -110, distance: 82 },
-  wide: { charge: -130, distance: 90 },
+  tight: { charge: -100, distance: 72 },
+  normal: { charge: -150, distance: 96 },
+  wide: { charge: -190, distance: 116 },
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -253,10 +282,27 @@ function parseContentIndex(raw: Record<string, unknown>): ContentEntry[] {
       title: typeof record.title === "string" ? record.title : slug,
       links: asStringArray(record.links),
       tags: asStringArray(record.tags),
+      content: typeof record.content === "string" ? record.content : "",
       multilingual,
     })
   }
   return entries
+}
+
+function excerptOf(content: string): string {
+  const flattened = content.replace(/\s+/g, " ").trim()
+  if (flattened.length <= EXCERPT_LENGTH) {
+    return flattened
+  }
+  return `${flattened.slice(0, EXCERPT_LENGTH).trimEnd()}…`
+}
+
+function hashPhase(seed: string): number {
+  let hash = 0
+  for (const char of seed) {
+    hash = (hash * 31 + char.charCodeAt(0)) >>> 0
+  }
+  return (hash % 628) / 100
 }
 
 function isFolderIndex(slug: string): boolean {
@@ -267,8 +313,9 @@ function isTagPage(slug: string): boolean {
   return slug === "tags" || slug.startsWith("tags/")
 }
 
-function isHomeNote(entry: ContentEntry): boolean {
-  return entry.multilingual?.translationKey === "home"
+function isUtilityNote(entry: ContentEntry): boolean {
+  const key = entry.multilingual?.translationKey
+  return key === "home" || key === "graph"
 }
 
 function noteBelongsToLocale(entry: ContentEntry, context: LocaleContext): boolean {
@@ -304,7 +351,7 @@ function dominantTagOf(noteTags: string[], tagCounts: Map<string, number>): stri
 
 function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphData {
   const notes = entries.filter((entry) => {
-    if (isFolderIndex(entry.slug) || isTagPage(entry.slug) || isHomeNote(entry)) {
+    if (isFolderIndex(entry.slug) || isTagPage(entry.slug) || isUtilityNote(entry)) {
       return false
     }
     return noteBelongsToLocale(entry, context)
@@ -320,32 +367,95 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
     degree.set(id, (degree.get(id) ?? 0) + 1)
   }
 
-  const addEdge = (source: string, target: string, kind: GraphLink["kind"]): void => {
-    const key = source < target ? `${source}|${target}|${kind}` : `${target}|${source}|${kind}`
+  const edgeKey = (source: string, target: string, kind: LinkKind): string => {
+    return source < target ? `${source}|${target}|${kind}` : `${target}|${source}|${kind}`
+  }
+
+  // Faint layers (cooc/folder) render as web texture but must not inflate
+  // node degrees, hub ranking, or sizes: those stay driven by real
+  // wikilinks and tag membership.
+  const addEdge = (source: string, target: string, kind: LinkKind, countsDegree: boolean): void => {
+    const key = edgeKey(source, target, kind)
     if (seenEdges.has(key)) {
       return
     }
     seenEdges.add(key)
     links.push({ source, target, kind })
-    bumpDegree(source)
-    bumpDegree(target)
+    if (countsDegree) {
+      bumpDegree(source)
+      bumpDegree(target)
+    }
   }
 
   for (const note of notes) {
     for (const target of note.links) {
       if (noteIds.has(target) && target !== note.slug) {
-        addEdge(note.slug, target, "wikilink")
+        addEdge(note.slug, target, "wikilink", true)
       }
     }
   }
 
   const tagIds = new Set<string>()
+  const notesByTag = new Map<string, string[]>()
   for (const note of notes) {
     for (const tag of note.tags) {
       tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1)
       const tagId = `tag:${tag}`
       tagIds.add(tagId)
-      addEdge(note.slug, tagId, "tag")
+      addEdge(note.slug, tagId, "tag", true)
+      const members = notesByTag.get(tag) ?? []
+      members.push(note.slug)
+      notesByTag.set(tag, members)
+    }
+  }
+
+  // Tag co-occurrence: tags sharing at least one note get a faint tag-tag edge.
+  for (const note of notes) {
+    if (note.tags.length < 2) {
+      continue
+    }
+    for (let i = 0; i < note.tags.length; i += 1) {
+      for (let j = i + 1; j < note.tags.length; j += 1) {
+        addEdge(`tag:${note.tags[i]}`, `tag:${note.tags[j]}`, "cooc", false)
+      }
+    }
+  }
+
+  // Same-folder note-note texture: alphabetical ring with a skip link, so
+  // density stays bounded (~2 edges per note) instead of a full clique.
+  const notesByFolder = new Map<string, string[]>()
+  for (const note of notes) {
+    const folder = folderOf(note.slug)
+    if (folder === "root") {
+      continue
+    }
+    const members = notesByFolder.get(folder) ?? []
+    members.push(note.slug)
+    notesByFolder.set(folder, members)
+  }
+  for (const members of notesByFolder.values()) {
+    if (members.length < 2) {
+      continue
+    }
+    const ring = [...members].sort()
+    for (let i = 0; i < ring.length; i += 1) {
+      const next = ring[(i + 1) % ring.length]
+      const skip = ring[(i + FOLDER_RING_SKIP) % ring.length]
+      const current = ring[i]
+      if (current === undefined || next === undefined) {
+        continue
+      }
+      if (current !== next && !seenEdges.has(edgeKey(current, next, "wikilink"))) {
+        addEdge(current, next, "folder", false)
+      }
+      if (
+        ring.length > FOLDER_RING_SKIP + 1 &&
+        skip !== undefined &&
+        current !== skip &&
+        !seenEdges.has(edgeKey(current, skip, "wikilink"))
+      ) {
+        addEdge(current, skip, "folder", false)
+      }
     }
   }
 
@@ -385,6 +495,8 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
     folder: folderOf(note.slug),
     tags: note.tags,
     dominantTag: dominantTagOf(note.tags, tagCounts),
+    excerpt: excerptOf(note.content),
+    phase: hashPhase(note.slug),
   }))
 
   for (const tagId of tagIds) {
@@ -401,6 +513,8 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
       folder: "tag",
       tags: [tag],
       dominantTag: tag,
+      excerpt: "",
+      phase: hashPhase(tagId),
     })
   }
 
@@ -415,6 +529,11 @@ function neighborMap(links: GraphLink[]): Map<string, Set<string>> {
     neighbors.set(from, existing)
   }
   for (const link of links) {
+    // Hover highlighting follows real relationships only; faint texture
+    // layers (cooc/folder) do not make two nodes "neighbors".
+    if (link.kind !== "wikilink" && link.kind !== "tag") {
+      continue
+    }
     const source = linkEndpointId(link.source)
     const target = linkEndpointId(link.target)
     add(source, target)
@@ -510,7 +629,29 @@ function canvasBackground(theme: ThemeTokens): string {
   if (!isDarkTheme()) {
     return theme.bg
   }
-  return mixRgb(theme.bg, "#000000", 0.52)
+  // Near-black with a hint of blue-black (Alex-style night sky), still
+  // derived from the theme token so custom themes shift with it.
+  return mixRgb(theme.bg, "#05070f", 0.88)
+}
+
+// The 3D pipeline treats the clear color as linear and sRGB-encodes it on
+// output, which lifts near-blacks to washed gray. Pre-compensating with the
+// inverse transfer keeps the rendered background at the intended hex.
+function srgbCompensate(color: string): string {
+  const rgb = parseRgb(color)
+  if (!rgb) {
+    return color
+  }
+  const invert = (channel: number): number => {
+    const c = channel / 255
+    const linear = c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+    return Math.round(linear * 255)
+  }
+  return `rgb(${invert(rgb.r)}, ${invert(rgb.g)}, ${invert(rgb.b)})`
+}
+
+function canvasBackground3d(theme: ThemeTokens): string {
+  return srgbCompensate(canvasBackground(theme))
 }
 
 function hashPick(seed: string, palette: string[]): string {
@@ -830,32 +971,58 @@ function bindGraph(
       return withAlpha(color, DIM_ALPHA)
     }
     if (isDarkTheme()) {
+      // Alex grammar: near-white star cores, accent-family tags, warmer hubs.
       if (node.type === "tag") {
-        return theme.current.accent
+        return mixRgb(theme.current.tertiary, "#ffffff", 0.22)
       }
-      return mixRgb("#f4f1f2", theme.current.accent, 0.38)
+      if (node.isHub) {
+        return mixRgb("#fff3e4", theme.current.accent, 0.1)
+      }
+      return mixRgb("#ffffff", theme.current.accent, 0.12)
     }
     return color
   }
 
-  const edgeStroke = (link: GraphLink): string => {
+  // Layered opacities: wikilinks strongest > tag membership > faint texture.
+  const edgeBaseOpacity = (kind: LinkKind): number => {
+    const dark = isDarkTheme()
+    if (kind === "wikilink") {
+      return dark ? 0.65 : 0.48
+    }
+    if (kind === "tag") {
+      return dark ? 0.45 : 0.28
+    }
+    return dark ? 0.26 : 0.12
+  }
+
+  const edgeOpacity = (link: GraphLink): number => {
+    const source = linkEndpointId(link.source)
+    const target = linkEndpointId(link.target)
+    if (hoveredId !== null && (source === hoveredId || target === hoveredId)) {
+      return 0.85
+    }
+    if (hoveredId !== null || state.focusTag !== null) {
+      if (!isActive(source) || !isActive(target)) {
+        return edgeBaseOpacity(link.kind) * DIM_ALPHA
+      }
+    }
+    return edgeBaseOpacity(link.kind)
+  }
+
+  const edgeColor = (link: GraphLink): string => {
     const source = linkEndpointId(link.source)
     const target = linkEndpointId(link.target)
     if (hoveredId !== null && (source === hoveredId || target === hoveredId)) {
       return theme.current.accent
     }
-    if (hoveredId !== null || state.focusTag !== null) {
-      const sourceActive = isActive(source)
-      const targetActive = isActive(target)
-      if (!sourceActive || !targetActive) {
-        return withAlpha(theme.current.gray, DIM_ALPHA)
-      }
+    if (isDarkTheme()) {
+      return "#dbe2f2"
     }
-    const dark = isDarkTheme()
-    if (link.kind === "tag") {
-      return withAlpha(theme.current.gray, dark ? 0.42 : 0.42)
-    }
-    return withAlpha(theme.current.gray, dark ? 0.68 : 0.58)
+    return theme.current.gray
+  }
+
+  const edgeStroke = (link: GraphLink): string => {
+    return withAlpha(edgeColor(link), edgeOpacity(link))
   }
 
   const currentData = (): GraphData => {
@@ -882,6 +1049,11 @@ function bindGraph(
     }
     if (link?.strength) {
       link.strength((edge) => {
+        // Faint texture layers barely pull: they draw web lines without
+        // distorting the wikilink/tag layout.
+        if (edge.kind === "cooc" || edge.kind === "folder") {
+          return 0.04
+        }
         if (state.lens === "tag" && edge.kind === "tag") {
           return 0.95
         }
@@ -909,7 +1081,24 @@ function bindGraph(
       "cluster",
       createClusterForce((node) => targets.get(node.id) ?? null, clusterStrength),
     )
+    if (options.use3d) {
+      let flattenNodes: GraphNode[] = []
+      const flattenZ = ((alpha: number): void => {
+        for (const node of flattenNodes) {
+          const body = node as GraphNode & { z?: number; vz?: number }
+          if (typeof body.z === "number" && typeof body.vz === "number") {
+            body.vz -= body.z * FLATTEN_Z_STRENGTH * alpha
+          }
+        }
+      }) as ((alpha: number) => void) & { initialize?: (nodes: GraphNode[]) => void }
+      flattenZ.initialize = (nodes: GraphNode[]) => {
+        flattenNodes = nodes
+      }
+      graph.d3Force("flattenZ", flattenZ)
+    }
   }
+
+  const twinkleMaterials = new Map<string, { material: EmissiveMaterial; base: number; phase: number }>()
 
   const paintLabels3d = (): void => {
     if (!options.use3d || typeof graph.nodeThreeObject !== "function") {
@@ -917,6 +1106,7 @@ function bindGraph(
     }
     const SpriteText = options.spriteText
     const three = options.three
+    twinkleMaterials.clear()
     if (typeof graph.nodeThreeObjectExtend === "function") {
       graph.nodeThreeObjectExtend(three === null)
     }
@@ -925,25 +1115,35 @@ function bindGraph(
       const fill = nodeFill(node)
       let star: unknown = false
       if (three) {
-        const material = isDarkTheme()
-          ? new three.MeshLambertMaterial({
-              color: fill,
-              emissive: fill,
-              emissiveIntensity: 0.45,
-            })
-          : new three.MeshBasicMaterial({ color: fill })
-        star = new three.Mesh(new three.SphereGeometry(radius, 14, 14), material)
+        if (isDarkTheme()) {
+          const base = node.isHub ? 1.05 : 0.85
+          const material = new three.MeshLambertMaterial({
+            color: fill,
+            emissive: fill,
+            emissiveIntensity: base,
+          })
+          twinkleMaterials.set(node.id, { material, base, phase: node.phase })
+          star = new three.Mesh(new three.SphereGeometry(radius, 14, 14), material)
+        } else {
+          star = new three.Mesh(
+            new three.SphereGeometry(radius, 14, 14),
+            new three.MeshBasicMaterial({ color: fill }),
+          )
+        }
       }
       if (!showNodeLabel(node) || !SpriteText) {
         return star
       }
+      // Alex-style label: small, no stroke bubble, floating beside the star.
       const sprite = new SpriteText(node.name)
-      sprite.color = isActive(node.id) ? theme.current.ink : withAlpha(theme.current.ink, DIM_ALPHA)
-      sprite.fontWeight = "500"
-      sprite.strokeWidth = 0.55
-      sprite.strokeColor = canvasBackground(theme.current)
-      sprite.textHeight = labeledHubIds.has(node.id) ? 12 : 9.5
-      sprite.position.y = radius + 9
+      const labelInk = isDarkTheme() ? "rgba(255, 255, 255, 0.85)" : theme.current.ink
+      sprite.color = isActive(node.id) ? labelInk : withAlpha(labelInk, DIM_ALPHA)
+      sprite.fontWeight = "400"
+      sprite.strokeWidth = 0
+      sprite.textHeight = labeledHubIds.has(node.id) ? 8 : 6.5
+      sprite.center.set(0, 0.5)
+      sprite.position.x = radius + 2.5
+      sprite.position.y = 0
       if (!three || star === false) {
         return sprite
       }
@@ -961,11 +1161,11 @@ function bindGraph(
     }
     const up = new three.Vector3(0, 1, 0)
     graph.linkThreeObject((link) => {
-      const radius = link.kind === "tag" ? LINK_RADIUS_TAG : LINK_RADIUS_WIKI
+      const radius = LINK_RADIUS[link.kind]
       const material = new three.MeshBasicMaterial({
-        color: edgeStroke(link),
+        color: edgeColor(link),
         transparent: true,
-        opacity: 1,
+        opacity: edgeOpacity(link),
       })
       return new three.Mesh(new three.CylinderGeometry(radius, radius, 1, 6), material)
     })
@@ -1010,9 +1210,12 @@ function bindGraph(
       const source = linkEndpointId(link.source)
       const target = linkEndpointId(link.target)
       if (hoveredId !== null && (source === hoveredId || target === hoveredId)) {
-        return 2.1
+        return 1.6
       }
-      return link.kind === "tag" ? 1.15 : 1.85
+      if (link.kind === "wikilink") {
+        return 1.1
+      }
+      return link.kind === "tag" ? 0.8 : 0.5
     })
     if (typeof graph.linkOpacity === "function") {
       graph.linkOpacity(LINK_OPACITY)
@@ -1172,8 +1375,11 @@ function bindGraph(
     scheduleFit(280, prefersReducedMotion() ? 0 : 900)
   }
 
+  const activeBackground = (): string =>
+    options.use3d ? canvasBackground3d(theme.current) : canvasBackground(theme.current)
+
   graph.graphData(currentData())
-  graph.backgroundColor(canvasBackground(theme.current))
+  graph.backgroundColor(activeBackground())
   graph.nodeLabel((node) => node.name)
   graph.nodeRelSize(NODE_REL_SIZE)
   if (typeof graph.nodeOpacity === "function") {
@@ -1185,8 +1391,58 @@ function bindGraph(
   applyForces()
   refreshAccessors()
 
+  // Alex signature: bottom preview card with type chip, title, excerpt.
+  const previewEl = options.root.querySelector("[data-graph-preview]")
+  const previewChip = options.root.querySelector("[data-graph-preview-chip]")
+  const previewTitle = options.root.querySelector("[data-graph-preview-title]")
+  const previewExcerpt = options.root.querySelector("[data-graph-preview-excerpt]")
+  let previewHideTimer = 0
+  window.addCleanup(() => window.clearTimeout(previewHideTimer))
+
+  const showPreview = (node: GraphNode): void => {
+    if (
+      !(previewEl instanceof HTMLElement) ||
+      !(previewChip instanceof HTMLElement) ||
+      !(previewTitle instanceof HTMLElement) ||
+      !(previewExcerpt instanceof HTMLElement)
+    ) {
+      return
+    }
+    window.clearTimeout(previewHideTimer)
+    const notesLabel = options.root.dataset.legendNotes ?? "Notes"
+    const tagsLabel = options.root.dataset.legendTags ?? "Tags"
+    if (node.type === "tag") {
+      const template = options.root.dataset.previewTagTemplate ?? "{n} notes"
+      previewChip.textContent = tagsLabel
+      previewTitle.textContent = `#${node.tag}`
+      previewExcerpt.textContent = template.replace("{n}", String(node.degree))
+    } else {
+      previewChip.textContent = notesLabel
+      previewTitle.textContent = node.name
+      previewExcerpt.textContent = node.excerpt
+    }
+    previewEl.hidden = false
+    previewEl.dataset.visible = "true"
+  }
+
+  const hidePreview = (): void => {
+    if (!(previewEl instanceof HTMLElement)) {
+      return
+    }
+    window.clearTimeout(previewHideTimer)
+    previewHideTimer = window.setTimeout(() => {
+      previewEl.dataset.visible = "false"
+      previewEl.hidden = true
+    }, PREVIEW_HIDE_DELAY_MS)
+  }
+
   graph.onNodeHover((node) => {
     hoveredId = node ? node.id : null
+    if (node) {
+      showPreview(node)
+    } else {
+      hidePreview()
+    }
     refreshAccessors()
     if (options.use3d) {
       paintLabels3d()
@@ -1232,6 +1488,20 @@ function bindGraph(
       graph.cameraPosition({ x: 0, y: 80, z: 720 })
     }
     paintLabels3d()
+    // Subtle emissive twinkle: rAF-driven sine per node, +-15%, dark only.
+    if (!prefersReducedMotion()) {
+      let twinkleFrame = 0
+      const twinkle = (): void => {
+        const t = (performance.now() / 1000) * TWINKLE_SPEED
+        for (const entry of twinkleMaterials.values()) {
+          entry.material.emissiveIntensity =
+            entry.base * (1 + TWINKLE_AMPLITUDE * Math.sin(t + entry.phase))
+        }
+        twinkleFrame = window.requestAnimationFrame(twinkle)
+      }
+      twinkleFrame = window.requestAnimationFrame(twinkle)
+      window.addCleanup(() => window.cancelAnimationFrame(twinkleFrame))
+    }
   } else {
     graph.warmupTicks(60)
     graph.cooldownTicks(180)
@@ -1250,7 +1520,7 @@ function bindGraph(
         ctx.stroke()
       }
       if (showNodeLabel(node)) {
-        const fontSize = 13 / globalScale
+        const fontSize = 11.5 / globalScale
         ctx.font = `${fontSize}px ${theme.current.font}`
         ctx.fillStyle = isActive(node.id) ? theme.current.ink : withAlpha(theme.current.ink, DIM_ALPHA)
         ctx.textAlign = "center"
@@ -1361,10 +1631,16 @@ function bindGraph(
     fitAllNodes(instantFit ? 0 : 400)
   }, 1400)
   window.addCleanup(() => window.clearTimeout(settleTimer))
+  // Final refit after the simulation fully cools, so the opening view
+  // fills the frame instead of keeping the mid-simulation margins.
+  const coolTimer = window.setTimeout(() => {
+    fitAllNodes(instantFit ? 0 : 600)
+  }, 3400)
+  window.addCleanup(() => window.clearTimeout(coolTimer))
 
   const onThemeChange = (): void => {
     theme.current = readTheme()
-    graph.backgroundColor(canvasBackground(theme.current))
+    graph.backgroundColor(activeBackground())
     if (options.bloomPass) {
       options.bloomPass.strength = isDarkTheme() ? BLOOM_STRENGTH : 0
       options.bloomPass.radius = BLOOM_RADIUS
@@ -1551,6 +1827,9 @@ async function initGraphLanding(): Promise<void> {
 
   canvas.replaceChildren()
   graph = createGraph(canvas)
+  // Debug handle for browser QA (edge/kind breakdown, hover simulation).
+  ;(canvas as HTMLElement & { __graphLanding?: ForceGraphInstance }).__graphLanding = graph
+  ;(canvas as HTMLElement & { __graphData?: GraphData }).__graphData = data
   bindGraph(graph, data, theme, { use3d, root, spriteText, bloomPass, three })
 
   if (use3d && !prefersReducedMotion()) {
