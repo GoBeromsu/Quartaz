@@ -77,6 +77,9 @@ export const plugins: Record<string, Record<string, (...args: unknown[]) => void
   "table-of-contents": {
     TableOfContentsTransformer: (...args: unknown[]) => { componentRegistry.setOptionOverrides("table-of-contents", args[0] as Record<string, unknown>); },
   },
+  "unlisted-pages": {
+    UnlistedPages: (...args: unknown[]) => { componentRegistry.setOptionOverrides("unlisted-pages", args[0] as Record<string, unknown>); },
+  },
 }
 
 export const AliasRedirects = plugins["alias-redirects"].AliasRedirects
@@ -95,3 +98,4 @@ export const CustomOgImages = plugins["og-image"].CustomOgImages
 export const RemoveDrafts = plugins["remove-draft"].RemoveDrafts
 export const SyntaxHighlighting = plugins["syntax-highlighting"].SyntaxHighlighting
 export const TableOfContentsTransformer = plugins["table-of-contents"].TableOfContentsTransformer
+export const UnlistedPages = plugins["unlisted-pages"].UnlistedPages

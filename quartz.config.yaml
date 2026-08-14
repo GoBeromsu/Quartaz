@@ -144,6 +144,8 @@ plugins:
     order: 80
   - source: github:quartz-community/remove-draft
     enabled: true
+  - source: github:quartz-community/unlisted-pages
+    enabled: true
   - source: github:quartz-community/alias-redirects
     enabled: true
   - source: ./plugins/multilingual-content-index
@@ -203,7 +205,7 @@ layout:
       positions:
         left: []
         right: []
-    index:
+    graph:
       template: minimal
       positions:
         left: []

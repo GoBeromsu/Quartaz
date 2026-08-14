@@ -22,14 +22,38 @@ const footerLinks = {
   Email: "mailto:gobeumsu@gmail.com",
 }
 
-const isIndexPage = (slug?: string) => slug === "index"
+interface FileLike {
+  slug?: string
+  frontmatter?: Record<string, unknown>
+}
+
+const translationKeyOf = (file: FileLike): string | undefined => {
+  const value = file.frontmatter?.translationKey
+  return typeof value === "string" ? value : undefined
+}
+
+// Locale homes are ko/index & en/index (translationKey: home), so a bare
+// slug === "index" check never fires on the multilingual home pages.
+const isHomePage = (file: FileLike) => file.slug === "index" || translationKeyOf(file) === "home"
+
+// Utility pages (home, dedicated graph page, language chooser) must not
+// appear in article listings.
+const isUtilityPage = (file: FileLike) =>
+  file.slug === "index" || translationKeyOf(file) === "home" || translationKeyOf(file) === "graph"
 
 const sharedHeader = [
   Component.Flex({
     components: [
       { Component: Component.External("page-title") },
       { Component: Component.Spacer() },
-      { Component: BlogLinksHeader({ links: { About: "/about" } }) },
+      {
+        Component: BlogLinksHeader({
+          links: {
+            Graph: "/graph",
+            About: "/about",
+          },
+        }),
+      },
       { Component: BlogLanguageSwitcher() },
       { Component: Component.External("search") },
       { Component: Component.External("darkmode") },
@@ -42,24 +66,24 @@ const sharedHeader = [
 const sharedAfterBody = [
   BlogStyles(),
   Component.ConditionalRender({
-    component: BlogLatest({ title: "Latest", limit: 3 }),
-    condition: (props) => isIndexPage(props.fileData.slug),
+    component: BlogLatest({ title: "Latest", limit: 3, filter: (file) => !isUtilityPage(file) }),
+    condition: (props) => isHomePage(props.fileData),
   }),
   Component.ConditionalRender({
     component: BlogAllTags({ title: "Topics" }),
-    condition: (props) => isIndexPage(props.fileData.slug),
+    condition: (props) => isHomePage(props.fileData),
   }),
   Component.ConditionalRender({
     component: BlogArticleList({
       title: "Writing",
       limit: 0,
-      filter: (file) => file.slug !== "index",
+      filter: (file) => !isUtilityPage(file),
     }),
-    condition: (props) => isIndexPage(props.fileData.slug),
+    condition: (props) => isHomePage(props.fileData),
   }),
   Component.ConditionalRender({
     component: Component.External("tag-list"),
-    condition: (props) => !isIndexPage(props.fileData.slug),
+    condition: (props) => !isHomePage(props.fileData),
   }),
   Component.External("comments", {
     provider: "giscus",
@@ -91,7 +115,7 @@ const layout = await loadQuartzLayout({
       beforeBody: [
         Component.ConditionalRender({
           component: Component.External("breadcrumbs"),
-          condition: (props) => !isIndexPage(props.fileData.slug),
+          condition: (props) => !isHomePage(props.fileData),
         }),
         Component.ConditionalRender({
           component: Component.External("article-title"),
@@ -101,7 +125,7 @@ const layout = await loadQuartzLayout({
         }),
         Component.ConditionalRender({
           component: Component.External("content-meta"),
-          condition: (props) => !isIndexPage(props.fileData.slug),
+          condition: (props) => !isHomePage(props.fileData),
         }),
       ],
     },
@@ -112,9 +136,22 @@ const layout = await loadQuartzLayout({
       left: [],
       right: [],
       beforeBody: [
-        Component.External("breadcrumbs"),
-        Component.External("article-title"),
-        Component.External("content-meta"),
+        // Locale homes (ko/index, en/index) render through the folder page
+        // type; keep them chrome-free like the original blog home.
+        Component.ConditionalRender({
+          component: Component.External("breadcrumbs"),
+          condition: (props) => !isHomePage(props.fileData),
+        }),
+        Component.ConditionalRender({
+          component: Component.External("article-title"),
+          condition: (props) =>
+            props.fileData.frontmatter?.hidetitle !== true &&
+            props.fileData.frontmatter?.hidetitle !== "true",
+        }),
+        Component.ConditionalRender({
+          component: Component.External("content-meta"),
+          condition: (props) => !isHomePage(props.fileData),
+        }),
       ],
     },
     tag: {
@@ -129,10 +166,10 @@ const layout = await loadQuartzLayout({
         Component.External("content-meta"),
       ],
     },
-    index: {
-      // MinimalFrame does not render header/afterBody. Landing → blog
-      // paths (글/About, locale switcher, theme) live in the graph-landing
-      // overlay so the hero can stay exactly 100dvh.
+    graph: {
+      // MinimalFrame does not render header/afterBody. The dedicated graph
+      // page (/ko/graph, /en/graph) carries its own rail (글/About, locale
+      // switcher, theme) so the canvas can stay exactly 100dvh.
       frame: "minimal",
       header: [],
       afterBody: [],
