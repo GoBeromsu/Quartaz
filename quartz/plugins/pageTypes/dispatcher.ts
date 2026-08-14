@@ -79,7 +79,8 @@ function getPageTypes(ctx: BuildCtx): QuartzPageTypePluginInstance[] {
   return (ctx.cfg.plugins.pageTypes ?? []) as unknown as QuartzPageTypePluginInstance[]
 }
 
-function resolveLayout(
+/** @internal Exported for testing only. */
+export function resolveLayout(
   pageType: QuartzPageTypePluginInstance,
   sharedDefaults: Partial<FullPageLayout>,
   byPageType: Record<string, Partial<FullPageLayout>>,
@@ -95,12 +96,13 @@ function resolveLayout(
     afterBody: overrides.afterBody ?? sharedDefaults.afterBody ?? [],
     left: overrides.left ?? sharedDefaults.left ?? [],
     right: overrides.right ?? sharedDefaults.right ?? [],
-    footer: overrides.footer ?? sharedDefaults.footer!,
+    footer: overrides.footer ?? sharedDefaults.footer ?? [],
     frame,
   }
 }
 
-function collectComponents(
+/** @internal Exported for testing only. */
+export function collectComponents(
   pageTypes: QuartzPageTypePluginInstance[],
   sharedDefaults: Partial<FullPageLayout>,
   byPageType: Record<string, Partial<FullPageLayout>>,
@@ -116,7 +118,7 @@ function collectComponents(
       ...layout.afterBody,
       ...layout.left,
       ...layout.right,
-      layout.footer,
+      ...layout.footer,
     ]
     for (const c of all) {
       if (c) seen.add(c)
@@ -343,6 +345,7 @@ export const PageTypeDispatcher: QuartzEmitterPlugin<Partial<DispatcherOptions>>
       yield* emitMultilingualXDefaultPage(ctx)
       yield* emitMultilingualLegacyRedirects(ctx, allFilesWithVirtual, emittedLegacyRedirects)
 
+      // Phase 3: Emit virtual pages
       for (const ve of virtualEntries) {
         if (contentSlugs.has(ve.vpSlug)) continue
         yield emitPage(
@@ -439,6 +442,7 @@ export const PageTypeDispatcher: QuartzEmitterPlugin<Partial<DispatcherOptions>>
       yield* emitMultilingualXDefaultPage(ctx)
       yield* emitMultilingualLegacyRedirects(ctx, allFilesWithVirtual, emittedLegacyRedirects)
 
+      // Phase 3: Emit virtual pages
       for (const ve of virtualEntries) {
         if (contentSlugs.has(ve.vpSlug)) continue
         yield emitPage(

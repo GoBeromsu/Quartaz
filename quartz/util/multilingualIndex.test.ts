@@ -50,11 +50,11 @@ describe("localized indexes", () => {
       try {
         const sitemap = readFileSync(join(output, "sitemap.xml"), "utf8")
 
-        assert.match(sitemap, /<loc>https:\/\/berom\.net\/en\/beauty-of-youth<\/loc>/)
+        assert.match(sitemap, /<loc>https:\/\/beomsukoh\.com\/en\/beauty-of-youth<\/loc>/)
         for (const hreflang of expectedHreflangs) {
           assert.match(sitemap, new RegExp(`xhtml:link rel="alternate" hreflang="${hreflang}"`))
         }
-        assert.doesNotMatch(sitemap, /<loc>https:\/\/berom\.net\/beauty-of-youth<\/loc>/)
+        assert.doesNotMatch(sitemap, /<loc>https:\/\/beomsukoh\.com\/beauty-of-youth<\/loc>/)
       } finally {
         rmSync(output, { recursive: true, force: true })
       }
@@ -72,7 +72,7 @@ describe("localized indexes", () => {
 
         assert.match(
           sitemap,
-          /<loc>https:\/\/berom\.net\/%EB%A0%88%EA%B1%B0%EC%8B%9C-%EB%AC%B8%EC%84%9C<\/loc>/,
+          /<loc>https:\/\/beomsukoh\.com\/%EB%A0%88%EA%B1%B0%EC%8B%9C-%EB%AC%B8%EC%84%9C<\/loc>/,
         )
         assert.doesNotMatch(sitemap, /%25EB%25A0%2588/)
       } finally {
@@ -112,7 +112,7 @@ describe("localized indexes", () => {
         assert.equal(index["en/beauty-of-youth"]?.multilingual?.locale, "en")
         assert.equal(
           index["ko/beauty-of-youth"]?.multilingual?.canonicalUrl,
-          "https://berom.net/ko/beauty-of-youth",
+          "https://beomsukoh.com/ko/beauty-of-youth",
         )
 
         const koEntries = Object.values(index).filter(

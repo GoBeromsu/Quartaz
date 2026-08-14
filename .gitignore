@@ -15,5 +15,5 @@ replit.nix
 .omc/
 quartz/cli/tui/dist/
 plugins/**/package-lock.json
-
 .obsidian/
+.turbo/

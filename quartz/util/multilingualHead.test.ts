@@ -38,14 +38,14 @@ describe("localized head metadata", () => {
     try {
       const html = readFileSync(join(output, "en/beauty-of-youth.html"), "utf8")
 
-      assert.match(html, /<link rel="canonical" href="https:\/\/berom\.net\/en\/beauty-of-youth"/)
+      assert.match(html, /<link rel="canonical" href="https:\/\/beomsukoh\.com\/en\/beauty-of-youth"/)
       assert.match(
         html,
-        /<meta property="og:url" content="https:\/\/berom\.net\/en\/beauty-of-youth"/,
+        /<meta property="og:url" content="https:\/\/beomsukoh\.com\/en\/beauty-of-youth"/,
       )
       assert.match(
         html,
-        /<meta property="twitter:url" content="https:\/\/berom\.net\/en\/beauty-of-youth"/,
+        /<meta property="twitter:url" content="https:\/\/beomsukoh\.com\/en\/beauty-of-youth"/,
       )
       for (const hreflang of expectedHreflangs) {
         assert.match(html, new RegExp(`hreflang="${hreflang}"`))

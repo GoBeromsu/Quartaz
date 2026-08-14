@@ -26,7 +26,7 @@ interface RenderComponents {
   afterBody: QuartzComponent[]
   left: QuartzComponent[]
   right: QuartzComponent[]
-  footer: QuartzComponent
+  footer: QuartzComponent[]
   frame?: string
 }
 
@@ -330,7 +330,7 @@ export function renderPage(
     afterBody,
     left,
     right,
-    footer: Footer,
+    footer,
     frame: frameName,
   } = components
   const Body = BodyConstructor()
@@ -368,7 +368,7 @@ export function renderPage(
                 afterBody,
                 left,
                 right,
-                footer: Footer,
+                footer,
               }),
             ]}
           </Body>
