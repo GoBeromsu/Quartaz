@@ -7,8 +7,37 @@ configuration:
   analytics:
     provider: google
     tagId: G-P07C416MPF
-  locale: en-US
+  locale: ko-KR
   baseUrl: beomsukoh.com
+  multilingual:
+    enabled: true
+    sourceLocale: ko
+    targetLocales:
+      - en
+    locales:
+      - id: ko
+        locale: ko-KR
+        routePrefix: /ko/
+        direction: ltr
+        label: Korean
+        nativeName: 한국어
+      - id: en
+        locale: en-US
+        routePrefix: /en/
+        direction: ltr
+        label: English
+        nativeName: English
+    localizedSlug: false
+    defaultLocaleRoute: /ko/
+    xDefaultRoute: /
+    legacyRedirects:
+      flatPermalinks: true
+      status: 301
+      noindex: true
+    contentIndex:
+      search: all
+      rss: source
+      sitemap: all
   ignorePatterns:
     - .git
     - .gitignore
@@ -19,6 +48,13 @@ configuration:
     - .smart-env
     - 50. Calendar
     - 70. Settings
+    - zh-Hans/**
+    - hi/**
+    - es/**
+    - fr/**
+    - ar/**
+    - bn/**
+    - pt-BR/**
   theme:
     fontOrigin: googleFonts
     cdnCaching: true
@@ -110,11 +146,13 @@ plugins:
     enabled: true
   - source: github:quartz-community/alias-redirects
     enabled: true
-  - source: github:quartz-community/content-index
+  - source: ./plugins/multilingual-content-index
     enabled: true
     options:
       enableSiteMap: true
       enableRSS: true
+  - source: ./plugins/graph-landing
+    enabled: true
   - source: github:quartz-community/favicon
     enabled: true
   - source: github:quartz-community/og-image
@@ -165,3 +203,9 @@ layout:
       positions:
         left: []
         right: []
+    index:
+      template: minimal
+      positions:
+        left: []
+        right: []
+        beforeBody: []

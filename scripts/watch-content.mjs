@@ -8,34 +8,56 @@
  */
 
 import { execSync } from "child_process"
+import { existsSync } from "fs"
 import { basename, resolve } from "path"
 
 import { watch } from "chokidar"
 
-const SOURCE_DIR = resolve("../Ataraxia/40. Digital Garden/.deploy-staging")
-const DEST_DIR = resolve("./content")
+const SOURCE_DIR = resolve(
+  process.env.BLOG_SYNC_SOURCE_DIR ?? "../Ataraxia/40. Digital Garden/.deploy-staging",
+)
+const DEST_DIR = resolve(process.env.BLOG_SYNC_DEST_DIR ?? "./content")
 
 const once = process.argv.includes("--once")
+const printTranslationOutputDir = process.argv.includes("--print-translation-output-dir")
+
+if (printTranslationOutputDir) {
+  console.log(SOURCE_DIR)
+  process.exit(0)
+}
+
+function checkContentPolicy(path, attachmentRoot = null) {
+  if (!existsSync(path)) {
+    return
+  }
+
+  const attachmentFlag = attachmentRoot ? ` --attachment-root "${attachmentRoot}"` : ""
+  execSync(`node scripts/check-content-policy.mjs "${path}"${attachmentFlag}`, { stdio: "inherit" })
+}
 
 function sync() {
   console.log("\n[sync] Syncing content...")
   try {
+    checkContentPolicy(SOURCE_DIR, DEST_DIR)
     execSync(
       `rsync -av --delete --exclude='.obsidian' --exclude='.DS_Store' --exclude='_attachments' "${SOURCE_DIR}/" "${DEST_DIR}"`,
       { stdio: "inherit" },
     )
+    checkContentPolicy(DEST_DIR)
     console.log("[sync] Complete\n")
+    return true
   } catch (error) {
     console.error("[sync] Failed:", error.message)
+    return false
   }
 }
 
 // Initial sync
-sync()
+const initialSyncSucceeded = sync()
 
 // Exit if --once flag is provided
 if (once) {
-  process.exit(0)
+  process.exit(initialSyncSucceeded ? 0 : 1)
 }
 
 // Watch for changes

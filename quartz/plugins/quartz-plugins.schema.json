@@ -39,6 +39,130 @@
           "type": "string",
           "description": "Base URL for the site"
         },
+        "multilingual": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "sourceLocale",
+            "targetLocales",
+            "locales",
+            "localizedSlug",
+            "defaultLocaleRoute",
+            "xDefaultRoute",
+            "legacyRedirects",
+            "contentIndex"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable locale-prefixed multilingual publishing"
+            },
+            "sourceLocale": {
+              "type": "string",
+              "description": "Source translation locale id"
+            },
+            "targetLocales": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Target translation locale ids"
+            },
+            "locales": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["id", "locale", "routePrefix", "direction", "label", "nativeName"],
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "Short route and frontmatter locale id"
+                  },
+                  "locale": {
+                    "type": "string",
+                    "description": "BCP 47 locale tag used for HTML and UI formatting"
+                  },
+                  "routePrefix": {
+                    "type": "string",
+                    "pattern": "^/.+/$",
+                    "description": "Locale route prefix"
+                  },
+                  "direction": {
+                    "type": "string",
+                    "enum": ["ltr", "rtl"],
+                    "description": "Text direction"
+                  },
+                  "label": {
+                    "type": "string",
+                    "description": "English locale label"
+                  },
+                  "nativeName": {
+                    "type": "string",
+                    "description": "Locale label in the target language"
+                  }
+                }
+              },
+              "description": "Locale metadata used by routing, indexing, and UI"
+            },
+            "localizedSlug": {
+              "type": "boolean",
+              "description": "Allow translated siblings to use localized slugs instead of the shared permalink"
+            },
+            "defaultLocaleRoute": {
+              "type": "string",
+              "description": "Canonical route prefix for the source locale"
+            },
+            "xDefaultRoute": {
+              "type": "string",
+              "description": "Route used for hreflang x-default"
+            },
+            "legacyRedirects": {
+              "type": "object",
+              "required": ["flatPermalinks", "status", "noindex"],
+              "additionalProperties": false,
+              "properties": {
+                "flatPermalinks": {
+                  "type": "boolean",
+                  "description": "Redirect existing flat permalink URLs to source-locale URLs"
+                },
+                "status": {
+                  "type": "number",
+                  "enum": [301, 302, 307, 308],
+                  "description": "HTTP redirect status for legacy flat permalink URLs"
+                },
+                "noindex": {
+                  "type": "boolean",
+                  "description": "Mark compatibility redirect pages as noindex when emitted statically"
+                }
+              }
+            },
+            "contentIndex": {
+              "type": "object",
+              "required": ["search", "rss", "sitemap"],
+              "additionalProperties": false,
+              "properties": {
+                "search": {
+                  "type": "string",
+                  "enum": ["all", "source"],
+                  "description": "Locale inclusion mode for the search index"
+                },
+                "rss": {
+                  "type": "string",
+                  "enum": ["all", "source"],
+                  "description": "Locale inclusion mode for RSS"
+                },
+                "sitemap": {
+                  "type": "string",
+                  "enum": ["all", "source"],
+                  "description": "Locale inclusion mode for sitemap output"
+                }
+              }
+            }
+          },
+          "description": "Multilingual locale, route, redirect, and indexing configuration"
+        },
         "theme": {
           "type": "object",
           "required": ["fontOrigin", "cdnCaching", "typography", "colors"],

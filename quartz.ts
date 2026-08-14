@@ -5,6 +5,7 @@ import { PageTypeDispatcher } from "./quartz/plugins/pageTypes"
 import BlogAllTags from "./custom/quartz/BlogAllTags"
 import BlogArticleList from "./custom/quartz/BlogArticleList"
 import BlogFooter from "./custom/quartz/BlogFooter"
+import BlogLanguageSwitcher from "./custom/quartz/BlogLanguageSwitcher"
 import BlogLatest from "./custom/quartz/BlogLatest"
 import BlogLinksHeader from "./custom/quartz/BlogLinksHeader"
 import BlogStyles from "./custom/quartz/BlogStyles"
@@ -29,10 +30,12 @@ const sharedHeader = [
       { Component: Component.External("page-title") },
       { Component: Component.Spacer() },
       { Component: BlogLinksHeader({ links: { About: "/about" } }) },
+      { Component: BlogLanguageSwitcher() },
       { Component: Component.External("search") },
       { Component: Component.External("darkmode") },
     ],
     gap: "1.5rem",
+    wrap: "wrap",
   }),
 ]
 
@@ -70,7 +73,7 @@ const sharedAfterBody = [
   }),
 ]
 
-const sharedFooter = BlogFooter({ links: footerLinks })
+const sharedFooter = [BlogFooter({ links: footerLinks })]
 
 const layout = await loadQuartzLayout({
   defaults: {
@@ -125,6 +128,17 @@ const layout = await loadQuartzLayout({
         Component.External("article-title"),
         Component.External("content-meta"),
       ],
+    },
+    index: {
+      // MinimalFrame does not render header/afterBody. Landing → blog
+      // paths (글/About, locale switcher, theme) live in the graph-landing
+      // overlay so the hero can stay exactly 100dvh.
+      frame: "minimal",
+      header: [],
+      afterBody: [],
+      left: [],
+      right: [],
+      beforeBody: [],
     },
   },
 })

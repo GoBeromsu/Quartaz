@@ -4,13 +4,35 @@ import { CSSResourceToStyleElement, JSResourceToScriptElement } from "../util/re
 import { googleFontHref, googleFontSubsetHref } from "../util/theme"
 import { QuartzComponent, QuartzComponentConstructor, QuartzComponentProps } from "./types"
 import { unescapeHTML } from "../util/escape"
-import { CustomOgImagesEmitterName } from "../../.quartz/plugins"
+import { buildAlternateUrlCluster, isTranslationMetadata } from "../util/multilingual"
+import type { TranslationRouteInput } from "../util/multilingual"
+
+function translationRoutesFromAllFiles(
+  allFiles: QuartzComponentProps["allFiles"],
+): TranslationRouteInput[] {
+  const routes: TranslationRouteInput[] = []
+
+  for (const file of allFiles) {
+    const metadata = file.multilingual
+    if (isTranslationMetadata(metadata)) {
+      routes.push({
+        translationKey: metadata.translationKey,
+        locale: metadata.locale,
+        permalink: metadata.permalink,
+      })
+    }
+  }
+
+  return routes
+}
+
 export default (() => {
   const Head: QuartzComponent = ({
     cfg,
     fileData,
     externalResources,
     ctx,
+    allFiles,
   }: QuartzComponentProps) => {
     const titleSuffix = cfg.pageTitleSuffix ?? ""
     const title =
@@ -27,13 +49,25 @@ export default (() => {
     const baseDir = fileData.slug === "404" ? path : pathToRoot(fileData.slug!)
     const iconPath = joinSegments(baseDir, "static/icon.png")
 
+    const multilingualMetadata = isTranslationMetadata(fileData.multilingual)
+      ? fileData.multilingual
+      : undefined
+    const alternateCluster =
+      multilingualMetadata && cfg.multilingual && cfg.baseUrl
+        ? buildAlternateUrlCluster(
+            cfg.multilingual,
+            cfg.baseUrl,
+            translationRoutesFromAllFiles(allFiles),
+            multilingualMetadata.translationKey,
+          )
+        : undefined
+
     // Url of current page
     const socialUrl =
-      fileData.slug === "404" ? url.toString() : joinSegments(url.toString(), fileData.slug!)
+      multilingualMetadata?.canonicalUrl ??
+      (fileData.slug === "404" ? url.toString() : joinSegments(url.toString(), fileData.slug!))
 
-    const usesCustomOgImage = ctx.cfg.plugins.emitters.some(
-      (e) => e.name === CustomOgImagesEmitterName,
-    )
+    const usesCustomOgImage = ctx.cfg.plugins.emitters.some((e) => e.name === "CustomOgImages")
     const ogImageDefaultPath = `https://${cfg.baseUrl}/static/og-image.png`
 
     const coreStylesheet = css[0]?.content
@@ -94,6 +128,17 @@ export default (() => {
         <link rel="icon" href={iconPath} />
         <meta name="description" content={description} />
         <meta name="generator" content="Quartz" />
+        {multilingualMetadata && <link rel="canonical" href={multilingualMetadata.canonicalUrl} />}
+        {alternateCluster?.alternates.map((alternate) => (
+          <link rel="alternate" hreflang={alternate.hreflang} href={alternate.url} />
+        ))}
+        {alternateCluster && (
+          <link
+            rel="alternate"
+            hreflang={alternateCluster.xDefault.hreflang}
+            href={alternateCluster.xDefault.url}
+          />
+        )}
 
         {css.map((resource) => CSSResourceToStyleElement(resource, true))}
         {js

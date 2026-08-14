@@ -56,6 +56,43 @@ export type Analytics =
       host?: string
     }
 
+export type MultilingualLocaleDirection = "ltr" | "rtl"
+export type MultilingualContentIndexMode = "all" | "source"
+export type MultilingualRedirectStatus = 301 | 302 | 307 | 308
+
+export interface MultilingualLocaleConfiguration {
+  id: string
+  locale: ValidLocale
+  routePrefix: string
+  direction: MultilingualLocaleDirection
+  label: string
+  nativeName: string
+}
+
+export interface MultilingualLegacyRedirectConfiguration {
+  flatPermalinks: boolean
+  status: MultilingualRedirectStatus
+  noindex: boolean
+}
+
+export interface MultilingualContentIndexConfiguration {
+  search: MultilingualContentIndexMode
+  rss: MultilingualContentIndexMode
+  sitemap: MultilingualContentIndexMode
+}
+
+export interface MultilingualConfiguration {
+  enabled: boolean
+  sourceLocale: string
+  targetLocales: string[]
+  locales: MultilingualLocaleConfiguration[]
+  localizedSlug: boolean
+  defaultLocaleRoute: string
+  xDefaultRoute: string
+  legacyRedirects: MultilingualLegacyRedirectConfiguration
+  contentIndex: MultilingualContentIndexConfiguration
+}
+
 export interface GlobalConfiguration {
   pageTitle: string
   pageTitleSuffix?: string
@@ -81,6 +118,7 @@ export interface GlobalConfiguration {
    * Region Codes: https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
    */
   locale: ValidLocale
+  multilingual?: MultilingualConfiguration
 }
 
 export interface QuartzConfig {
@@ -97,7 +135,7 @@ export interface FullPageLayout {
   afterBody: QuartzComponent[]
   left: QuartzComponent[]
   right: QuartzComponent[]
-  footer: QuartzComponent
+  footer: QuartzComponent[]
   /** Page frame name (e.g. "default", "full-width", "minimal"). Defaults to "default". */
   frame?: string
 }

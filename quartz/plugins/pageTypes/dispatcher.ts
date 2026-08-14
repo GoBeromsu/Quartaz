@@ -10,12 +10,86 @@ import { StaticResources } from "../../util/resources"
 import { render } from "preact-render-to-string"
 import { fromHtml } from "hast-util-from-html"
 import { Root as HtmlRoot } from "hast"
+import {
+  buildLocaleEntryRedirectScript,
+  isTranslationMetadata,
+  localeEntryRedirectPayload,
+} from "../../util/multilingual"
+
+function escapeHtmlAttribute(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+}
+
+function absoluteSiteUrl(baseUrl: string | undefined, pathname: string): string {
+  const origin = /^https?:\/\//.test(baseUrl ?? "")
+    ? new URL(baseUrl!).origin
+    : `https://${baseUrl ?? "example.com"}`
+
+  return new URL(pathname, origin).toString()
+}
+
+async function* emitMultilingualXDefaultPage(ctx: BuildCtx) {
+  const cfg = ctx.cfg.configuration
+  const multilingual = cfg.multilingual
+
+  if (!multilingual?.enabled) {
+    return
+  }
+
+  const canonicalUrl = absoluteSiteUrl(cfg.baseUrl, multilingual.xDefaultRoute)
+  const alternateLinks = multilingual.locales
+    .map((locale) => {
+      const href = absoluteSiteUrl(cfg.baseUrl, locale.routePrefix)
+      return `<link rel="alternate" hreflang="${escapeHtmlAttribute(locale.locale)}" href="${escapeHtmlAttribute(href)}">`
+    })
+    .join("\n")
+  const languageLinks = multilingual.locales
+    .map((locale) => {
+      const label = escapeHtmlAttribute(locale.nativeName)
+      const href = escapeHtmlAttribute(locale.routePrefix)
+      const lang = escapeHtmlAttribute(locale.locale)
+      return `<li><a href="${href}" lang="${lang}" hreflang="${lang}">${label}</a></li>`
+    })
+    .join("\n")
+  const redirectScript = buildLocaleEntryRedirectScript(localeEntryRedirectPayload(multilingual))
+
+  yield write({
+    ctx,
+    slug: "index" as FullSlug,
+    ext: ".html",
+    content: `<!DOCTYPE html>
+<html lang="${escapeHtmlAttribute(multilingual.sourceLocale)}">
+<head>
+<title>Choose language</title>
+<link rel="canonical" href="${escapeHtmlAttribute(canonicalUrl)}">
+<link rel="alternate" hreflang="x-default" href="${escapeHtmlAttribute(canonicalUrl)}">
+${alternateLinks}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>${redirectScript}</script>
+</head>
+<body>
+<main>
+<h1>Choose language</h1>
+<ul>
+${languageLinks}
+</ul>
+</main>
+</body>
+</html>`,
+  })
+}
 
 function getPageTypes(ctx: BuildCtx): QuartzPageTypePluginInstance[] {
   return (ctx.cfg.plugins.pageTypes ?? []) as unknown as QuartzPageTypePluginInstance[]
 }
 
-function resolveLayout(
+/** @internal Exported for testing only. */
+export function resolveLayout(
   pageType: QuartzPageTypePluginInstance,
   sharedDefaults: Partial<FullPageLayout>,
   byPageType: Record<string, Partial<FullPageLayout>>,
@@ -31,12 +105,13 @@ function resolveLayout(
     afterBody: overrides.afterBody ?? sharedDefaults.afterBody ?? [],
     left: overrides.left ?? sharedDefaults.left ?? [],
     right: overrides.right ?? sharedDefaults.right ?? [],
-    footer: overrides.footer ?? sharedDefaults.footer!,
+    footer: overrides.footer ?? sharedDefaults.footer ?? [],
     frame,
   }
 }
 
-function collectComponents(
+/** @internal Exported for testing only. */
+export function collectComponents(
   pageTypes: QuartzPageTypePluginInstance[],
   sharedDefaults: Partial<FullPageLayout>,
   byPageType: Record<string, Partial<FullPageLayout>>,
@@ -52,7 +127,7 @@ function collectComponents(
       ...layout.afterBody,
       ...layout.left,
       ...layout.right,
-      layout.footer,
+      ...layout.footer,
     ]
     for (const c of all) {
       if (c) seen.add(c)
@@ -105,6 +180,50 @@ async function emitPage(
     slug,
     ext: ".html",
   })
+}
+
+async function* emitMultilingualLegacyRedirects(
+  ctx: BuildCtx,
+  allFiles: ProcessedContent[1]["data"][],
+  emittedRedirects: Set<string>,
+) {
+  const multilingual = ctx.cfg.configuration.multilingual
+  if (!multilingual?.enabled || !multilingual.legacyRedirects.flatPermalinks) {
+    return
+  }
+
+  for (const fileData of allFiles) {
+    const metadata = fileData.multilingual
+    if (!isTranslationMetadata(metadata) || metadata.locale !== multilingual.sourceLocale) {
+      continue
+    }
+
+    if (metadata.permalink === "index") {
+      continue
+    }
+
+    if (emittedRedirects.has(metadata.permalink)) {
+      continue
+    }
+    emittedRedirects.add(metadata.permalink)
+
+    const target = metadata.localizedPath
+    yield write({
+      ctx,
+      slug: metadata.permalink as FullSlug,
+      ext: ".html",
+      content: `<!DOCTYPE html>
+<html lang="${metadata.sourceLocale}">
+<head>
+<title>${metadata.permalink}</title>
+<link rel="canonical" href="${target}">
+<meta name="robots" content="noindex">
+<meta charset="utf-8">
+<meta http-equiv="refresh" content="0; url=${target}">
+</head>
+</html>`,
+    })
+  }
 }
 
 /**
@@ -161,6 +280,7 @@ export const PageTypeDispatcher: QuartzEmitterPlugin<Partial<DispatcherOptions>>
       const pageTypes = [...getPageTypes(ctx)].sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0))
       const cfg = ctx.cfg.configuration
       const allFiles = content.map((c) => c[1].data)
+      const contentSlugs = new Set(allFiles.map((file) => file.slug).filter(Boolean))
 
       // Collect tree transforms from all page type plugins
       const treeTransforms: TreeTransform[] = pageTypes.flatMap(
@@ -209,6 +329,7 @@ export const PageTypeDispatcher: QuartzEmitterPlugin<Partial<DispatcherOptions>>
       populateVirtualPageHtmlAst(virtualEntries, ctx, allFilesWithVirtual, resources)
 
       // Phase 2: Emit regular pages (with virtual page data available for transclusion)
+      const emittedLegacyRedirects = new Set<string>()
       for (const [tree, file] of content) {
         const slug = file.data.slug!
         const fileData = file.data
@@ -230,8 +351,12 @@ export const PageTypeDispatcher: QuartzEmitterPlugin<Partial<DispatcherOptions>>
         }
       }
 
+      yield* emitMultilingualXDefaultPage(ctx)
+      yield* emitMultilingualLegacyRedirects(ctx, allFilesWithVirtual, emittedLegacyRedirects)
+
       // Phase 3: Emit virtual pages
       for (const ve of virtualEntries) {
+        if (contentSlugs.has(ve.vpSlug)) continue
         yield emitPage(
           ctx,
           ve.vpSlug,
@@ -248,6 +373,7 @@ export const PageTypeDispatcher: QuartzEmitterPlugin<Partial<DispatcherOptions>>
       const pageTypes = [...getPageTypes(ctx)].sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0))
       const cfg = ctx.cfg.configuration
       const allFiles = content.map((c) => c[1].data)
+      const contentSlugs = new Set(allFiles.map((file) => file.slug).filter(Boolean))
 
       // Collect tree transforms from all page type plugins
       const treeTransforms: TreeTransform[] = pageTypes.flatMap(
@@ -298,6 +424,7 @@ export const PageTypeDispatcher: QuartzEmitterPlugin<Partial<DispatcherOptions>>
       populateVirtualPageHtmlAst(virtualEntries, ctx, allFilesWithVirtual, resources)
 
       // Phase 2: Emit changed regular pages
+      const emittedLegacyRedirects = new Set<string>()
       for (const [tree, file] of content) {
         const slug = file.data.slug!
         if (!changedSlugs.has(slug)) continue
@@ -321,8 +448,12 @@ export const PageTypeDispatcher: QuartzEmitterPlugin<Partial<DispatcherOptions>>
         }
       }
 
+      yield* emitMultilingualXDefaultPage(ctx)
+      yield* emitMultilingualLegacyRedirects(ctx, allFilesWithVirtual, emittedLegacyRedirects)
+
       // Phase 3: Emit virtual pages
       for (const ve of virtualEntries) {
+        if (contentSlugs.has(ve.vpSlug)) continue
         yield emitPage(
           ctx,
           ve.vpSlug,

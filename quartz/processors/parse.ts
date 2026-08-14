@@ -7,13 +7,14 @@ import { Root as HTMLRoot } from "hast"
 import { MarkdownContent, ProcessedContent } from "../plugins/vfile"
 import { PerfTimer } from "../util/perf"
 import { read } from "to-vfile"
-import { FilePath, QUARTZ, slugifyFilePath } from "../util/path"
+import { FilePath, FullSlug, QUARTZ, slugifyFilePath } from "../util/path"
 import path from "path"
 import workerpool, { Promise as WorkerPromise } from "workerpool"
 import { QuartzLogger } from "../util/log"
 import { trace } from "../util/trace"
 import { BuildCtx, WorkerSerializableBuildCtx } from "../util/ctx"
 import { styleText } from "util"
+import { applyMultilingualPageData, isUndeclaredLocaleContent } from "../util/multilingual"
 
 export type QuartzMdProcessor = Processor<MDRoot, MDRoot, MDRoot>
 export type QuartzHtmlProcessor = Processor<undefined, MDRoot, HTMLRoot>
@@ -106,6 +107,17 @@ export function createFileParser(ctx: BuildCtx, fps: FilePath[]) {
 
         const ast = processor.parse(file)
         const newAst = await processor.run(ast, file)
+        if (isUndeclaredLocaleContent(cfg.configuration.multilingual, file.data)) {
+          continue
+        }
+        const multilingualPageData = applyMultilingualPageData(
+          cfg.configuration.multilingual,
+          file.data,
+          { baseUrl: cfg.configuration.baseUrl ?? "example.com" },
+        )
+        if (multilingualPageData) {
+          ctx.allSlugs.push(multilingualPageData.slug as FullSlug)
+        }
         res.push([newAst, file])
 
         if (argv.verbose) {

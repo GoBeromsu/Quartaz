@@ -12,6 +12,7 @@ import { clone } from "../util/clone"
 import { Root, Element, ElementContent } from "hast"
 import { GlobalConfiguration } from "../cfg"
 import { i18n } from "../i18n"
+import { isTranslationMetadata } from "../util/multilingual"
 import { styleText } from "util"
 import { resolveFrame } from "./frames"
 import type { TreeTransform } from "../plugins/types"
@@ -25,7 +26,7 @@ interface RenderComponents {
   afterBody: QuartzComponent[]
   left: QuartzComponent[]
   right: QuartzComponent[]
-  footer: QuartzComponent
+  footer: QuartzComponent[]
   frame?: string
 }
 
@@ -329,14 +330,21 @@ export function renderPage(
     afterBody,
     left,
     right,
-    footer: Footer,
+    footer,
     frame: frameName,
   } = components
   const Body = BodyConstructor()
   const frame = resolveFrame(frameName)
 
-  const lang = componentData.fileData.frontmatter?.lang ?? cfg.locale?.split("-")[0] ?? "en"
-  const direction = i18n(cfg.locale).direction ?? "ltr"
+  const multilingualMetadata = isTranslationMetadata(componentData.fileData.multilingual)
+    ? componentData.fileData.multilingual
+    : undefined
+  const localeConfig = multilingualMetadata
+    ? cfg.multilingual?.locales.find((locale) => locale.id === multilingualMetadata.locale)
+    : undefined
+  const lang =
+    localeConfig?.locale ?? componentData.fileData.frontmatter?.lang ?? cfg.locale ?? "en-US"
+  const direction = multilingualMetadata?.direction ?? i18n(cfg.locale).direction ?? "ltr"
   // During local dev (--serve), the dev server serves from root without the
   // baseUrl subpath, so basePath must be empty to avoid broken links.
   const basePath =
@@ -360,7 +368,7 @@ export function renderPage(
                 afterBody,
                 left,
                 right,
-                footer: Footer,
+                footer,
               }),
             ]}
           </Body>
