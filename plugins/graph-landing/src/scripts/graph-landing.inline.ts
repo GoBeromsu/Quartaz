@@ -122,6 +122,13 @@ interface ForceGraphInstance {
   zoom?: (k: number, ms?: number) => unknown
   graph2ScreenCoords?: (x: number, y: number, z?: number) => { x: number; y: number }
   zoomToFit?: (ms: number, padding: number) => unknown
+  linkThreeObject?: (fn: (link: GraphLink) => unknown) => unknown
+  linkPositionUpdate?: (
+    fn: (
+      obj: { position: Vec3; scale: Vec3; quaternion: { setFromUnitVectors: (a: unknown, b: unknown) => void } },
+      coords: { start: Vec3; end: Vec3 },
+    ) => boolean | void,
+  ) => unknown
   postProcessingComposer?: () => { addPass: (pass: unknown) => void }
   linkDirectionalParticles?: (n: number | ((link: GraphLink) => number)) => unknown
   linkDirectionalParticleWidth?: (n: number) => unknown
@@ -137,10 +144,40 @@ interface ForceGraphFactory {
 interface SpriteTextInstance {
   color: string
   textHeight: number
+  fontWeight: string
+  strokeWidth: number
+  strokeColor: string
   position: { y: number }
 }
 
 type SpriteTextCtor = new (text: string) => SpriteTextInstance
+
+interface ThreeObject {
+  add: (obj: unknown) => void
+}
+
+interface ThreeApi {
+  Group: new () => ThreeObject
+  Mesh: new (geo: unknown, mat: unknown) => unknown
+  SphereGeometry: new (radius: number, width: number, height: number) => unknown
+  CylinderGeometry: new (
+    radiusTop: number,
+    radiusBottom: number,
+    height: number,
+    radialSegments: number,
+  ) => unknown
+  Vector3: new (x: number, y: number, z: number) => { normalize: () => unknown }
+  MeshBasicMaterial: new (params: {
+    color: string
+    transparent?: boolean
+    opacity?: number
+  }) => unknown
+  MeshLambertMaterial: new (params: {
+    color: string
+    emissive: string
+    emissiveIntensity: number
+  }) => unknown
+}
 
 // Pinned esm.sh URLs. Keep THREE_VERSION identical across 3D imports
 // (`?deps=three@…`) so 3d-force-graph, SpriteText, and UnrealBloomPass
@@ -151,6 +188,7 @@ const THREE_VERSION = "0.179.1"
 const FORCE_GRAPH_2D = "https://esm.sh/force-graph@1.51.4"
 const FORCE_GRAPH_3D = `https://esm.sh/3d-force-graph@1.80.0?deps=three@${THREE_VERSION}`
 const SPRITE_TEXT = `https://esm.sh/three-spritetext@1.9.2?deps=three@${THREE_VERSION}`
+const THREE_CDN = `https://esm.sh/three@${THREE_VERSION}`
 const UNREAL_BLOOM = `https://esm.sh/three@${THREE_VERSION}/examples/jsm/postprocessing/UnrealBloomPass.js`
 
 const HUB_COUNT = 8
@@ -158,22 +196,29 @@ const LABEL_HUB_COUNT = 5
 const HUB_EGO_N = 6
 const MIN_NODE_VAL = 1
 const MAX_NODE_VAL = 3.5
-const CENTER_STRENGTH = 0.065
-const NODE_REL_SIZE = 1.8
+const CENTER_STRENGTH = 0.13
+const NODE_REL_SIZE = 4.2
 const NODE_OPACITY = 1
 const LINK_OPACITY = 1
-const DIM_ALPHA = 0.15
+const DIM_ALPHA = 0.18
 const LENS_STORAGE_KEY = "graph-landing:lens"
 const AUTO_ROTATE_SPEED = 0.18
-const ZOOM_FIT_PADDING = 100
-const HUB_VAL_SCALE = 1.18
-const TAG_LENS_VAL_SCALE = 1.35
+const ZOOM_FIT_PADDING = 64
+const HUB_VAL_SCALE = 1.4
+const TAG_LENS_VAL_SCALE = 1.25
 const FOCUS_TAG_VAL_SCALE = 1.15
+const NODE_RADIUS_MIN = 11
+const NODE_RADIUS_MAX = 21
+const BLOOM_STRENGTH = 1.4
+const BLOOM_RADIUS = 0.62
+const BLOOM_THRESHOLD = 0.12
+const LINK_RADIUS_WIKI = 0.7
+const LINK_RADIUS_TAG = 0.42
 
 const SPACING_PRESETS: Record<Spacing, { charge: number; distance: number }> = {
-  tight: { charge: -80, distance: 52 },
-  normal: { charge: -130, distance: 70 },
-  wide: { charge: -180, distance: 98 },
+  tight: { charge: -80, distance: 64 },
+  normal: { charge: -110, distance: 82 },
+  wide: { charge: -130, distance: 90 },
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -451,13 +496,21 @@ function withAlpha(color: string, alpha: number): string {
   return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`
 }
 
-function liftColor(color: string, amount: number): string {
-  const rgb = parseRgb(color)
-  if (!rgb) {
-    return color
+function mixRgb(from: string, to: string, amount: number): string {
+  const a = parseRgb(from)
+  const b = parseRgb(to)
+  if (!a || !b) {
+    return from
   }
-  const lift = (channel: number): number => Math.min(255, Math.round(channel + (255 - channel) * amount))
-  return `rgb(${lift(rgb.r)}, ${lift(rgb.g)}, ${lift(rgb.b)})`
+  const mix = (left: number, right: number): number => Math.round(left + (right - left) * amount)
+  return `rgb(${mix(a.r, b.r)}, ${mix(a.g, b.g)}, ${mix(a.b, b.b)})`
+}
+
+function canvasBackground(theme: ThemeTokens): string {
+  if (!isDarkTheme()) {
+    return theme.bg
+  }
+  return mixRgb(theme.bg, "#000000", 0.52)
 }
 
 function hashPick(seed: string, palette: string[]): string {
@@ -686,6 +739,7 @@ function bindGraph(
     root: HTMLElement
     spriteText: SpriteTextCtor | null
     bloomPass: BloomPass | null
+    three: ThreeApi | null
   },
 ): void {
   const neighbors = neighborMap(data.links)
@@ -724,6 +778,11 @@ function bindGraph(
       return true
     }
     return labeledHubIds.has(node.id)
+  }
+
+  const nodeWorldRadius = (node: GraphNode): number => {
+    const t = clamp((nodeValue(node) - MIN_NODE_VAL) / 5, 0, 1)
+    return NODE_RADIUS_MIN + t * (NODE_RADIUS_MAX - NODE_RADIUS_MIN)
   }
 
   const isActive = (nodeId: string): boolean => {
@@ -771,7 +830,10 @@ function bindGraph(
       return withAlpha(color, DIM_ALPHA)
     }
     if (isDarkTheme()) {
-      return liftColor(color, 0.16)
+      if (node.type === "tag") {
+        return theme.current.accent
+      }
+      return mixRgb("#f4f1f2", theme.current.accent, 0.38)
     }
     return color
   }
@@ -791,9 +853,9 @@ function bindGraph(
     }
     const dark = isDarkTheme()
     if (link.kind === "tag") {
-      return withAlpha(theme.current.gray, dark ? 0.2 : 0.12)
+      return withAlpha(theme.current.gray, dark ? 0.42 : 0.42)
     }
-    return withAlpha(theme.current.gray, dark ? 0.34 : 0.2)
+    return withAlpha(theme.current.gray, dark ? 0.68 : 0.58)
   }
 
   const currentData = (): GraphData => {
@@ -831,9 +893,9 @@ function bindGraph(
           }
         }
         if (edge.kind === "tag") {
-          return 0.5
+          return 0.65
         }
-        return 0.6
+        return 0.8
       })
     }
     const center = graph.d3Force("center")
@@ -850,22 +912,79 @@ function bindGraph(
   }
 
   const paintLabels3d = (): void => {
-    if (!options.use3d || !options.spriteText || typeof graph.nodeThreeObject !== "function") {
+    if (!options.use3d || typeof graph.nodeThreeObject !== "function") {
       return
     }
     const SpriteText = options.spriteText
+    const three = options.three
     if (typeof graph.nodeThreeObjectExtend === "function") {
-      graph.nodeThreeObjectExtend(true)
+      graph.nodeThreeObjectExtend(three === null)
     }
     graph.nodeThreeObject((node) => {
-      if (!showNodeLabel(node)) {
-        return false
+      const radius = nodeWorldRadius(node)
+      const fill = nodeFill(node)
+      let star: unknown = false
+      if (three) {
+        const material = isDarkTheme()
+          ? new three.MeshLambertMaterial({
+              color: fill,
+              emissive: fill,
+              emissiveIntensity: 0.45,
+            })
+          : new three.MeshBasicMaterial({ color: fill })
+        star = new three.Mesh(new three.SphereGeometry(radius, 14, 14), material)
+      }
+      if (!showNodeLabel(node) || !SpriteText) {
+        return star
       }
       const sprite = new SpriteText(node.name)
       sprite.color = isActive(node.id) ? theme.current.ink : withAlpha(theme.current.ink, DIM_ALPHA)
-      sprite.textHeight = labeledHubIds.has(node.id) ? 7.2 : 5.6
-      sprite.position.y = 10
-      return sprite
+      sprite.fontWeight = "500"
+      sprite.strokeWidth = 0.55
+      sprite.strokeColor = canvasBackground(theme.current)
+      sprite.textHeight = labeledHubIds.has(node.id) ? 12 : 9.5
+      sprite.position.y = radius + 9
+      if (!three || star === false) {
+        return sprite
+      }
+      const group = new three.Group()
+      group.add(star)
+      group.add(sprite)
+      return group
+    })
+  }
+
+  const paintLinks3d = (): void => {
+    const three = options.three
+    if (!options.use3d || !three || typeof graph.linkThreeObject !== "function") {
+      return
+    }
+    const up = new three.Vector3(0, 1, 0)
+    graph.linkThreeObject((link) => {
+      const radius = link.kind === "tag" ? LINK_RADIUS_TAG : LINK_RADIUS_WIKI
+      const material = new three.MeshBasicMaterial({
+        color: edgeStroke(link),
+        transparent: true,
+        opacity: 1,
+      })
+      return new three.Mesh(new three.CylinderGeometry(radius, radius, 1, 6), material)
+    })
+    if (typeof graph.linkPositionUpdate !== "function") {
+      return
+    }
+    graph.linkPositionUpdate((obj, coords) => {
+      const dx = coords.end.x - coords.start.x
+      const dy = coords.end.y - coords.start.y
+      const dz = coords.end.z - coords.start.z
+      const dist = Math.sqrt(dx * dx + dy * dy + dz * dz)
+      obj.position.x = (coords.start.x + coords.end.x) / 2
+      obj.position.y = (coords.start.y + coords.end.y) / 2
+      obj.position.z = (coords.start.z + coords.end.z) / 2
+      obj.scale.x = 1
+      obj.scale.y = Math.max(dist, 0.01)
+      obj.scale.z = 1
+      obj.quaternion.setFromUnitVectors(up, new three.Vector3(dx, dy, dz).normalize())
+      return true
     })
   }
 
@@ -891,14 +1010,15 @@ function bindGraph(
       const source = linkEndpointId(link.source)
       const target = linkEndpointId(link.target)
       if (hoveredId !== null && (source === hoveredId || target === hoveredId)) {
-        return 1.1
+        return 2.1
       }
-      return link.kind === "tag" ? 0.45 : 0.7
+      return link.kind === "tag" ? 1.15 : 1.85
     })
     if (typeof graph.linkOpacity === "function") {
       graph.linkOpacity(LINK_OPACITY)
     }
     refreshParticles()
+    paintLinks3d()
     if (!options.use3d) {
       graph.nodeCanvasObjectMode(() => "replace")
     }
@@ -1053,7 +1173,7 @@ function bindGraph(
   }
 
   graph.graphData(currentData())
-  graph.backgroundColor(theme.current.bg)
+  graph.backgroundColor(canvasBackground(theme.current))
   graph.nodeLabel((node) => node.name)
   graph.nodeRelSize(NODE_REL_SIZE)
   if (typeof graph.nodeOpacity === "function") {
@@ -1103,9 +1223,9 @@ function bindGraph(
       graph.linkDirectionalParticleColor(() => theme.current.accent)
     }
     if (options.bloomPass && typeof graph.postProcessingComposer === "function") {
-      options.bloomPass.strength = isDarkTheme() ? 0.22 : 0
-      options.bloomPass.radius = 0.4
-      options.bloomPass.threshold = 0.42
+      options.bloomPass.strength = isDarkTheme() ? BLOOM_STRENGTH : 0
+      options.bloomPass.radius = BLOOM_RADIUS
+      options.bloomPass.threshold = BLOOM_THRESHOLD
       graph.postProcessingComposer().addPass(options.bloomPass)
     }
     if (typeof graph.cameraPosition === "function") {
@@ -1116,7 +1236,7 @@ function bindGraph(
     graph.warmupTicks(60)
     graph.cooldownTicks(180)
     graph.nodeCanvasObject((node, ctx, globalScale) => {
-      const radius = 1.6 + nodeValue(node) * 0.55
+      const radius = nodeWorldRadius(node)
       const x = node.x ?? 0
       const y = node.y ?? 0
       ctx.save()
@@ -1126,7 +1246,7 @@ function bindGraph(
       ctx.fill()
       if (node.isHub) {
         ctx.strokeStyle = isActive(node.id) ? theme.current.accent : withAlpha(theme.current.accent, DIM_ALPHA)
-        ctx.lineWidth = 0.7 / globalScale
+        ctx.lineWidth = 1.2 / globalScale
         ctx.stroke()
       }
       if (showNodeLabel(node)) {
@@ -1135,13 +1255,13 @@ function bindGraph(
         ctx.fillStyle = isActive(node.id) ? theme.current.ink : withAlpha(theme.current.ink, DIM_ALPHA)
         ctx.textAlign = "center"
         ctx.textBaseline = "bottom"
-        ctx.fillText(node.name, x, y - radius - 4)
+        ctx.fillText(node.name, x, y - radius - 6)
       }
       ctx.restore()
     })
     if (typeof graph.nodePointerAreaPaint === "function") {
       graph.nodePointerAreaPaint((node, color, ctx) => {
-        const radius = 1.6 + nodeValue(node) * 0.55 + 8
+        const radius = nodeWorldRadius(node) + 8
         ctx.beginPath()
         ctx.arc(node.x ?? 0, node.y ?? 0, radius, 0, Math.PI * 2)
         ctx.fillStyle = color
@@ -1244,9 +1364,11 @@ function bindGraph(
 
   const onThemeChange = (): void => {
     theme.current = readTheme()
-    graph.backgroundColor(theme.current.bg)
+    graph.backgroundColor(canvasBackground(theme.current))
     if (options.bloomPass) {
-      options.bloomPass.strength = isDarkTheme() ? 0.22 : 0
+      options.bloomPass.strength = isDarkTheme() ? BLOOM_STRENGTH : 0
+      options.bloomPass.radius = BLOOM_RADIUS
+      options.bloomPass.threshold = BLOOM_THRESHOLD
     }
     refreshAccessors()
     paintLabels3d()
@@ -1399,6 +1521,7 @@ async function initGraphLanding(): Promise<void> {
 
   let spriteText: SpriteTextCtor | null = null
   let bloomPass: BloomPass | null = null
+  let three: ThreeApi | null = null
   if (use3d) {
     try {
       const spriteMod = (await import(SPRITE_TEXT)) as { default?: SpriteTextCtor }
@@ -1406,6 +1529,12 @@ async function initGraphLanding(): Promise<void> {
     } catch (error) {
       console.error("[graph-landing] SpriteText unavailable; 3D hub labels disabled", error)
       spriteText = null
+    }
+    try {
+      three = (await import(THREE_CDN)) as ThreeApi
+    } catch (error) {
+      console.error("[graph-landing] three unavailable; using default node spheres", error)
+      three = null
     }
     try {
       const bloomMod = (await import(UNREAL_BLOOM)) as { UnrealBloomPass?: new () => BloomPass }
@@ -1422,7 +1551,7 @@ async function initGraphLanding(): Promise<void> {
 
   canvas.replaceChildren()
   graph = createGraph(canvas)
-  bindGraph(graph, data, theme, { use3d, root, spriteText, bloomPass })
+  bindGraph(graph, data, theme, { use3d, root, spriteText, bloomPass, three })
 
   if (use3d && !prefersReducedMotion()) {
     const stopRotate = (): void => {

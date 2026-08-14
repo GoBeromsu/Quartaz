@@ -438,9 +438,13 @@
   text-align: center;
 }
 
-:root[saved-theme="dark"] .graph-landing,
-:root[saved-theme="dark"] .graph-landing__hero {
+:root[saved-theme="dark"] .graph-landing {
   background: var(--light);
+}
+
+:root[saved-theme="dark"] .graph-landing__hero,
+:root[saved-theme="dark"] .graph-landing__canvas {
+  background: color-mix(in srgb, var(--light) 48%, black);
 }
 
 :root[saved-theme="dark"] .graph-landing__rail {
