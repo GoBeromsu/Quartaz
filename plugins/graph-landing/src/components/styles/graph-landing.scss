@@ -320,6 +320,45 @@ body:has(.graph-landing) {
   gap: 8px;
 }
 
+.graph-landing__tune-head {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.graph-landing__tools {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.graph-landing__tool {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: var(--gray);
+  cursor: pointer;
+  display: inline-flex;
+  height: 28px;
+  justify-content: center;
+  width: 28px;
+}
+
+.graph-landing__tool:hover {
+  background: color-mix(in srgb, var(--secondary) 8%, transparent);
+  color: var(--secondary);
+}
+
+.graph-landing__tool:focus-visible {
+  outline: 2px solid var(--secondary);
+  outline-offset: 2px;
+}
+
+.graph-landing__tool[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--secondary) 12%, transparent);
+  color: var(--secondary);
+}
+
 .graph-landing__slider {
   display: flex;
   flex-direction: column;
@@ -349,90 +388,6 @@ body:has(.graph-landing) {
 
 .graph-landing__check input {
   accent-color: var(--secondary);
-}
-
-.graph-landing__spacing {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.graph-landing__pills {
-  border: 1px solid var(--lightgray);
-  border-radius: 999px;
-  display: inline-flex;
-  overflow: hidden;
-  width: fit-content;
-}
-
-.graph-landing__pill {
-  background: transparent;
-  border: 0;
-  color: var(--gray);
-  cursor: pointer;
-  font-family: var(--bodyFont);
-  font-size: 12px;
-  line-height: 1.2;
-  min-height: 32px;
-  padding: 6px 10px;
-}
-
-.graph-landing__pill:hover {
-  background: color-mix(in srgb, var(--secondary) 8%, transparent);
-  color: var(--secondary);
-}
-
-.graph-landing__pill:focus-visible {
-  outline: 2px solid var(--secondary);
-  outline-offset: -2px;
-  z-index: 1;
-}
-
-.graph-landing__pill[aria-pressed="true"] {
-  background: color-mix(in srgb, var(--secondary) 14%, transparent);
-  color: var(--secondary);
-  font-weight: 500;
-}
-
-.graph-landing__ghosts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.graph-landing__ghost {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  border-radius: 4px;
-  color: var(--gray);
-  cursor: pointer;
-  display: inline-flex;
-  font-family: var(--bodyFont);
-  font-size: 12px;
-  gap: 6px;
-  line-height: 1.2;
-  min-height: 32px;
-  padding: 6px 8px;
-}
-
-.graph-landing__ghost svg {
-  flex-shrink: 0;
-}
-
-.graph-landing__ghost:hover {
-  background: color-mix(in srgb, var(--secondary) 8%, transparent);
-  color: var(--secondary);
-}
-
-.graph-landing__ghost:focus-visible {
-  outline: 2px solid var(--secondary);
-  outline-offset: 2px;
-}
-
-.graph-landing__ghost[aria-pressed="true"] {
-  background: color-mix(in srgb, var(--secondary) 12%, transparent);
-  color: var(--secondary);
 }
 
 .graph-landing__legend {
