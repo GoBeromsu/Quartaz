@@ -8,7 +8,7 @@ configuration:
     provider: google
     tagId: G-P07C416MPF
   locale: en-US
-  baseUrl: berom.net
+  baseUrl: beomsukoh.com
   ignorePatterns:
     - .git
     - .gitignore
