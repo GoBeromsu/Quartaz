@@ -28,6 +28,8 @@ interface OverlayCopy {
   relayout: string
   notes: string
   tags: string
+  mentions: string
+  previewMention: string
   countsTemplate: string
   lensAll: string
   lensTag: string
@@ -44,6 +46,14 @@ interface OverlayCopy {
   folderRoot: string
   previewHint: string
   previewTagTemplate: string
+  inspectOpen: string
+  inspectConnected: string
+  inspectClose: string
+  inspectEmpty: string
+  tune: string
+  nodeSize: string
+  edgeWidth: string
+  coresOnly: string
 }
 
 interface LocaleToggleLink {
@@ -61,6 +71,8 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
       relayout: "다시 정렬",
       notes: "노트",
       tags: "태그",
+      mentions: "언급",
+      previewMention: "아직 공개되지 않은 언급",
       countsTemplate: "{n} 노드 · {m} 엣지",
       lensAll: "전체",
       lensTag: "태그별",
@@ -75,8 +87,16 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
       themeToggle: "라이트/다크 모드 전환",
       filtersToggle: "필터",
       folderRoot: "루트",
-      previewHint: "클릭하면 본문이 열립니다",
+      previewHint: "클릭하면 연결이 열립니다",
       previewTagTemplate: "{n}개 노트",
+      inspectOpen: "본문 읽기",
+      inspectConnected: "연결",
+      inspectClose: "닫기",
+      inspectEmpty: "직접 연결된 별이 없습니다",
+      tune: "조율",
+      nodeSize: "별 크기",
+      edgeWidth: "선 굵기",
+      coresOnly: "핵심만",
     }
   }
 
@@ -86,6 +106,8 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
     relayout: "Re-layout",
     notes: "Notes",
     tags: "Tags",
+    mentions: "Mentions",
+    previewMention: "Mentioned, not published yet",
     countsTemplate: "{n} nodes · {m} edges",
     lensAll: "All",
     lensTag: "Tags",
@@ -100,8 +122,16 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
     themeToggle: "Toggle light / dark mode",
     filtersToggle: "Filters",
     folderRoot: "Root",
-    previewHint: "Click to open the note",
+    previewHint: "Click to inspect connections",
     previewTagTemplate: "{n} notes",
+    inspectOpen: "Read note",
+    inspectConnected: "Connected",
+    inspectClose: "Close",
+    inspectEmpty: "No direct connections",
+    tune: "Tune",
+    nodeSize: "Star size",
+    edgeWidth: "Line weight",
+    coresOnly: "Cores only",
   }
 }
 
@@ -197,12 +227,17 @@ export default (() => {
         data-folder-root-label={copy.folderRoot}
         data-legend-notes={copy.notes}
         data-legend-tags={copy.tags}
+        data-legend-mentions={copy.mentions}
         data-preview-tag-template={copy.previewTagTemplate}
+        data-preview-mention={copy.previewMention}
+        data-inspect-read={copy.inspectOpen}
+        data-inspect-connected={copy.inspectConnected}
+        data-inspect-empty={copy.inspectEmpty}
       >
         <section class="graph-landing__hero" aria-label="Knowledge graph">
           <div class="graph-landing__canvas" id="graph-landing-mount"></div>
           <div class="graph-landing__overlay">
-            <div class="graph-landing__rail">
+            <div class="graph-landing__rail" {...{ onwheel: "event.stopPropagation()" }}>
               <div class="graph-landing__title-block">
                 <p class="graph-landing__title">Beomsu Koh</p>
                 <p class="graph-landing__counts" data-graph-counts>
@@ -219,9 +254,6 @@ export default (() => {
                 <button type="button" class="graph-landing__chip" data-graph-lens="folder" aria-pressed="false">
                   {copy.lensFolder}
                 </button>
-                <button type="button" class="graph-landing__chip" data-graph-lens="hub" aria-pressed="false">
-                  {copy.lensHub}
-                </button>
               </div>
               <div class="graph-landing__tags">
                 <p class="graph-landing__section-label graph-landing__section-label--tags">{copy.tags}</p>
@@ -236,6 +268,31 @@ export default (() => {
                 <ul class="graph-landing__tag-list" data-graph-tags></ul>
               </div>
               <div class="graph-landing__utils">
+                <div class="graph-landing__tune">
+                  <p class="graph-landing__section-label">{copy.tune}</p>
+                  <label class="graph-landing__slider">
+                    <span>{copy.nodeSize}</span>
+                    <input
+                      type="range"
+                      min="50"
+                      max="150"
+                      value="70"
+                      data-graph-node-scale
+                      aria-label={copy.nodeSize}
+                    />
+                  </label>
+                  <label class="graph-landing__slider">
+                    <span>{copy.edgeWidth}</span>
+                    <input
+                      type="range"
+                      min="50"
+                      max="180"
+                      value="100"
+                      data-graph-edge-scale
+                      aria-label={copy.edgeWidth}
+                    />
+                  </label>
+                </div>
                 <div class="graph-landing__spacing" data-graph-spacing-group>
                   <p class="graph-landing__section-label">{copy.spacing}</p>
                   <div class="graph-landing__pills">
@@ -265,6 +322,10 @@ export default (() => {
                     </button>
                   </div>
                 </div>
+                <label class="graph-landing__check">
+                  <input type="checkbox" data-graph-cores />
+                  <span>{copy.coresOnly}</span>
+                </label>
                 <div class="graph-landing__ghosts">
                   <button type="button" class="graph-landing__ghost" data-graph-relayout>
                     <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
@@ -307,6 +368,10 @@ export default (() => {
                   <span class="graph-landing__legend-item">
                     <span class="graph-landing__dot graph-landing__dot--tag" aria-hidden="true"></span>
                     {copy.tags}
+                  </span>
+                  <span class="graph-landing__legend-item">
+                    <span class="graph-landing__dot graph-landing__dot--mention" aria-hidden="true"></span>
+                    {copy.mentions}
                   </span>
                 </div>
               </div>
@@ -376,6 +441,34 @@ export default (() => {
               <p class="graph-landing__preview-title" data-graph-preview-title></p>
               <p class="graph-landing__preview-excerpt" data-graph-preview-excerpt></p>
               <p class="graph-landing__preview-hint">{copy.previewHint}</p>
+            </aside>
+            <aside
+              class="graph-landing__inspect"
+              data-graph-inspect
+              hidden
+              {...{ onwheel: "event.stopPropagation()" }}
+            >
+              <div class="graph-landing__inspect-bar">
+                <p class="graph-landing__inspect-chip" data-graph-inspect-chip></p>
+                <button
+                  type="button"
+                  class="graph-landing__inspect-close"
+                  data-graph-inspect-close
+                  aria-label={copy.inspectClose}
+                >
+                  {copy.inspectClose}
+                </button>
+              </div>
+              <h2 class="graph-landing__inspect-title" data-graph-inspect-title></h2>
+              <p class="graph-landing__inspect-excerpt" data-graph-inspect-excerpt></p>
+              <ul class="graph-landing__inspect-tags" data-graph-inspect-tags></ul>
+              <p class="graph-landing__inspect-section" data-graph-inspect-connected-label>
+                {copy.inspectConnected}
+              </p>
+              <ul class="graph-landing__inspect-links" data-graph-inspect-connected></ul>
+              <a class="graph-landing__inspect-open" data-graph-inspect-open hidden>
+                {copy.inspectOpen}
+              </a>
             </aside>
           </div>
         </section>
