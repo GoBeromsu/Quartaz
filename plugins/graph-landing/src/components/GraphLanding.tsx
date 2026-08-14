@@ -34,7 +34,6 @@ interface OverlayCopy {
   lensAll: string
   lensTag: string
   lensFolder: string
-  lensHub: string
   spacing: string
   zoom: string
   articles: string
@@ -48,10 +47,10 @@ interface OverlayCopy {
   inspectConnected: string
   inspectClose: string
   inspectEmpty: string
+  folders: string
   tune: string
   nodeSize: string
   edgeWidth: string
-  coresOnly: string
 }
 
 interface LocaleToggleLink {
@@ -73,11 +72,10 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
       previewMention: "아직 공개되지 않은 언급",
       countsTemplate: "{n} 노드 · {m} 엣지",
       lensAll: "전체",
-      lensTag: "태그별",
-      lensFolder: "폴더별",
-      lensHub: "허브",
-      spacing: "노드 간격",
-      zoom: "줌",
+      lensTag: "태그",
+      lensFolder: "폴더",
+      spacing: "Spacing",
+      zoom: "Zoom",
       articles: "Writing",
       about: "About",
       themeToggle: "라이트/다크 모드 전환",
@@ -89,10 +87,10 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
       inspectConnected: "연결",
       inspectClose: "닫기",
       inspectEmpty: "직접 연결된 별이 없습니다",
-      tune: "조율",
-      nodeSize: "별 크기",
-      edgeWidth: "선 굵기",
-      coresOnly: "핵심만",
+      folders: "폴더",
+      tune: "Tune",
+      nodeSize: "Node size",
+      edgeWidth: "Edge width",
     }
   }
 
@@ -108,7 +106,6 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
     lensAll: "All",
     lensTag: "Tags",
     lensFolder: "Folders",
-    lensHub: "Hubs",
     spacing: "Spacing",
     zoom: "Zoom",
     articles: "Writing",
@@ -122,10 +119,10 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
     inspectConnected: "Connected",
     inspectClose: "Close",
     inspectEmpty: "No direct connections",
+    folders: "Folders",
     tune: "Tune",
-    nodeSize: "Star size",
-    edgeWidth: "Line weight",
-    coresOnly: "Cores only",
+    nodeSize: "Node size",
+    edgeWidth: "Edge width",
   }
 }
 
@@ -222,12 +219,15 @@ export default (() => {
         data-legend-notes={copy.notes}
         data-legend-tags={copy.tags}
         data-legend-mentions={copy.mentions}
+        data-legend-folders={copy.folders}
         data-preview-tag-template={copy.previewTagTemplate}
         data-preview-mention={copy.previewMention}
         data-inspect-read={copy.inspectOpen}
         data-inspect-connected={copy.inspectConnected}
         data-inspect-empty={copy.inspectEmpty}
       >
+        <link rel="preconnect" href="https://esm.sh" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://esm.sh" />
         <section class="graph-landing__hero" aria-label="Knowledge graph">
           <div class="graph-landing__canvas" id="graph-landing-mount"></div>
           <div class="graph-landing__overlay">
@@ -250,7 +250,12 @@ export default (() => {
                 </button>
               </div>
               <div class="graph-landing__tags">
-                <p class="graph-landing__section-label graph-landing__section-label--tags">{copy.tags}</p>
+                <p
+                  class="graph-landing__section-label graph-landing__section-label--tags"
+                  data-graph-facet-label
+                >
+                  {copy.tags}
+                </p>
                 <button
                   type="button"
                   class="graph-landing__filters-toggle"
@@ -307,17 +312,6 @@ export default (() => {
                     </div>
                   </div>
                   <label class="graph-landing__slider">
-                    <span>{copy.nodeSize}</span>
-                    <input
-                      type="range"
-                      min="50"
-                      max="150"
-                      value="70"
-                      data-graph-node-scale
-                      aria-label={copy.nodeSize}
-                    />
-                  </label>
-                  <label class="graph-landing__slider">
                     <span>{copy.edgeWidth}</span>
                     <input
                       type="range"
@@ -329,14 +323,14 @@ export default (() => {
                     />
                   </label>
                   <label class="graph-landing__slider">
-                    <span>{copy.zoom}</span>
+                    <span>{copy.nodeSize}</span>
                     <input
                       type="range"
-                      min="60"
-                      max="170"
-                      value="100"
-                      data-graph-zoom
-                      aria-label={copy.zoom}
+                      min="50"
+                      max="150"
+                      value="70"
+                      data-graph-node-scale
+                      aria-label={copy.nodeSize}
                     />
                   </label>
                   <label class="graph-landing__slider">
@@ -350,11 +344,18 @@ export default (() => {
                       aria-label={copy.spacing}
                     />
                   </label>
+                  <label class="graph-landing__slider">
+                    <span>{copy.zoom}</span>
+                    <input
+                      type="range"
+                      min="60"
+                      max="170"
+                      value="100"
+                      data-graph-zoom
+                      aria-label={copy.zoom}
+                    />
+                  </label>
                 </div>
-                <label class="graph-landing__check">
-                  <input type="checkbox" data-graph-cores />
-                  <span>{copy.coresOnly}</span>
-                </label>
                 <div class="graph-landing__legend" data-graph-legend>
                   <span class="graph-landing__legend-item">
                     <span class="graph-landing__dot graph-landing__dot--note" aria-hidden="true"></span>

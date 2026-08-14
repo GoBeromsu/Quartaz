@@ -1,5 +1,11 @@
 ---
 title: Upstage solar skill creator 만들어보자
+translationKey: upstage-solar-skill-creator
+locale: ko
+sourceLocale: ko
+sourcePath: content/Articles/Upstage solar skill creator 만들어보자.md
+sourceHash: sha256:0062acc3d7cec5b4dfb965ba45b024e598a2f447f436ba2b156f0b7c256dd924
+translationStatus: source
 permalink: upstage-solar-skill-creator
 date_created: 2026-04-19
 date_modified: 2026-04-19

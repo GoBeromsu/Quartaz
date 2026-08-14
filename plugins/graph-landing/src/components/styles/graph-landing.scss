@@ -28,13 +28,16 @@ body:has(.graph-landing) {
   width: 100%;
 }
 
+/* Pinned to the viewport so host wrappers (page padding, header rows)
+   can never crop the canvas. */
 .graph-landing__hero {
   background: var(--light);
   height: 100dvh;
-  max-width: 100%;
+  inset: 0;
   overflow: hidden;
-  position: relative;
-  width: 100%;
+  position: fixed;
+  width: 100vw;
+  z-index: 1;
 }
 
 .graph-landing__canvas {
@@ -301,6 +304,12 @@ body:has(.graph-landing) {
   font-weight: 500;
 }
 
+.graph-landing__facet-name {
+  align-items: center;
+  display: inline-flex;
+  gap: 7px;
+}
+
 .graph-landing__tag-count {
   color: var(--gray);
   font-variant-numeric: tabular-nums;
@@ -374,20 +383,6 @@ body:has(.graph-landing) {
   accent-color: var(--secondary);
   cursor: pointer;
   width: 100%;
-}
-
-.graph-landing__check {
-  align-items: center;
-  color: var(--gray);
-  cursor: pointer;
-  display: flex;
-  font-size: 12px;
-  gap: 8px;
-  min-height: 32px;
-}
-
-.graph-landing__check input {
-  accent-color: var(--secondary);
 }
 
 .graph-landing__legend {

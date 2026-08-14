@@ -4,6 +4,13 @@ date_created: 2026-01-11
 date_modified: 2026-01-28
 tags: []
 title: "Think-on-Graph 2.0: Deep and Faithful Large Language Model Reasoning with Knowledge-guided Retrieval Augmented Generation 리뷰"
+translationKey: think-on-graph-2-review
+locale: ko
+sourceLocale: ko
+sourcePath: content/Articles/Think-on-Graph 2.0 review.md
+sourceHash: sha256:3e6bddd5da134d464698faca1062d0b606f54cd823273f2677738057b24b078c
+translationStatus: source
+permalink: think-on-graph-2-review
 ---
 
 ## Introduction

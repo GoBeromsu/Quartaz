@@ -13,6 +13,12 @@ quartz_url: null
 tistory_url: null
 medium_url: null
 type: article
+translationKey: agent-driven-development-process
+locale: en
+sourceLocale: ko
+sourcePath: content/Articles/Agent driven developement process.md
+sourceHash: sha256:47f1e37c0af34b9d4617a8f702d5cc5fef1b114eba890d5c397bbbde341aedbe
+translationStatus: translated
 permalink: agent-driven-development-process
 title: Agent Driven Development Process
 ---
