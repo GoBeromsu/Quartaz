@@ -129,6 +129,17 @@ const layout = await loadQuartzLayout({
         Component.External("content-meta"),
       ],
     },
+    index: {
+      // MinimalFrame does not render header/afterBody. Landing → blog
+      // paths (글/About, locale switcher, theme) live in the graph-landing
+      // overlay so the hero can stay exactly 100dvh.
+      frame: "minimal",
+      header: [],
+      afterBody: [],
+      left: [],
+      right: [],
+      beforeBody: [],
+    },
   },
 })
 

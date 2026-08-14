@@ -193,6 +193,8 @@ plugins:
     options:
       enableSiteMap: true
       enableRSS: true
+  - source: ./plugins/graph-landing
+    enabled: true
   - source: github:quartz-community/favicon
     enabled: true
   - source: github:quartz-community/og-image
@@ -243,3 +245,9 @@ layout:
       positions:
         left: []
         right: []
+    index:
+      template: minimal
+      positions:
+        left: []
+        right: []
+        beforeBody: []
