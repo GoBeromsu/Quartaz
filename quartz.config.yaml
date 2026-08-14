@@ -8,7 +8,7 @@ configuration:
     provider: google
     tagId: G-P07C416MPF
   locale: ko-KR
-  baseUrl: berom.net
+  baseUrl: beomsukoh.com
   multilingual:
     enabled: true
     sourceLocale: ko
