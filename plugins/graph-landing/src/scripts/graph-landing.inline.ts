@@ -1784,6 +1784,18 @@ function bindGraph(
   const inspectConnected = options.root.querySelector("[data-graph-inspect-connected]")
   const inspectOpen = options.root.querySelector("[data-graph-inspect-open]")
 
+  const setRailOpen = (open: boolean): void => {
+    options.root.dataset.railOpen = open ? "true" : "false"
+    const toggle = options.root.querySelector("[data-graph-rail-toggle]")
+    const scrim = options.root.querySelector("[data-graph-rail-scrim]")
+    if (toggle instanceof HTMLButtonElement) {
+      toggle.setAttribute("aria-expanded", open ? "true" : "false")
+    }
+    if (scrim instanceof HTMLElement) {
+      scrim.hidden = !open
+    }
+  }
+
   const setAutoRotate = (enabled: boolean): void => {
     if (prefersReducedMotion() || typeof graph.controls !== "function") {
       return
@@ -1879,6 +1891,7 @@ function bindGraph(
     }
     inspectEl.hidden = false
     options.root.dataset.inspecting = "true"
+    setRailOpen(false)
     hidePreview()
   }
 
@@ -2030,6 +2043,14 @@ function bindGraph(
       clearSelection()
       return
     }
+    if (target.closest("[data-graph-rail-toggle]")) {
+      setRailOpen(options.root.dataset.railOpen !== "true")
+      return
+    }
+    if (target.closest("[data-graph-rail-scrim]")) {
+      setRailOpen(false)
+      return
+    }
     const inspectLink = target.closest("[data-graph-inspect-id]")
     if (inspectLink instanceof HTMLElement && inspectLink.dataset.graphInspectId) {
       const next = data.nodes.find((entry) => entry.id === inspectLink.dataset.graphInspectId)
@@ -2142,6 +2163,10 @@ function bindGraph(
 
   const onKeyDown = (event: KeyboardEvent): void => {
     if (event.key === "Escape") {
+      if (options.root.dataset.railOpen === "true") {
+        setRailOpen(false)
+        return
+      }
       clearSelection()
     }
   }
@@ -2164,7 +2189,7 @@ async function initGraphLanding(): Promise<void> {
     throw new Error("graph-landing: mount element #graph-landing-mount is missing")
   }
 
-  const counts = root.querySelector("[data-graph-counts]")
+  const countEls = root.querySelectorAll("[data-graph-counts]")
   const localeId = root.dataset.locale ?? "ko"
   const sourceLocale = root.dataset.sourceLocale ?? "ko"
   const prefixes = (root.dataset.localePrefixes ?? "")
@@ -2235,10 +2260,11 @@ async function initGraphLanding(): Promise<void> {
     prefixes,
   })
 
-  if (counts) {
-    counts.textContent = countsTemplate
-      .replace("{n}", String(data.nodes.length))
-      .replace("{m}", String(data.links.length))
+  const countText = countsTemplate
+    .replace("{n}", String(data.nodes.length))
+    .replace("{m}", String(data.links.length))
+  for (const el of countEls) {
+    el.textContent = countText
   }
 
   let createGraph: (el: HTMLElement) => ForceGraphInstance

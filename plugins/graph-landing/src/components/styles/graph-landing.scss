@@ -8,7 +8,11 @@ body:has(.graph-landing) {
   row-gap: 0;
 }
 
-.page:has(.graph-landing) footer {
+.page:has(.graph-landing) footer,
+.page:has(.graph-landing) header,
+.page:has(.graph-landing) .left,
+.page:has(.graph-landing) .right,
+.page:has(.graph-landing) .sidebar {
   display: none;
 }
 
@@ -32,11 +36,12 @@ body:has(.graph-landing) {
    can never crop the canvas. */
 .graph-landing__hero {
   background: var(--light);
+  height: 100svh;
   height: 100dvh;
   inset: 0;
   overflow: hidden;
   position: fixed;
-  width: 100vw;
+  width: 100%;
   z-index: 1;
 }
 
@@ -90,18 +95,36 @@ body:has(.graph-landing) {
   flex-shrink: 0;
 }
 
+.graph-landing__chrome {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  left: 0;
+  padding: 1.25rem 1.5rem;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 3;
+}
+
+.graph-landing__title-block--chrome {
+  display: none;
+}
+
+.graph-landing__rail-toggle,
+.graph-landing__scrim {
+  display: none;
+}
+
 .graph-landing__top-right {
   align-items: center;
   display: flex;
   flex-wrap: nowrap;
   gap: 1.25rem;
   justify-content: flex-end;
-  max-width: min(28rem, calc(100% - 16rem));
-  padding: 1.25rem 1.5rem;
   pointer-events: auto;
-  position: absolute;
-  right: 0;
-  top: 0;
 }
 
 .graph-landing__title-block {
@@ -664,10 +687,16 @@ body:has(.graph-landing) {
 
   .graph-landing__inspect {
     border-left: 0;
+    border-radius: 16px 16px 0 0;
     border-top: 1px solid var(--lightgray);
-    max-height: 48dvh;
+    bottom: 0;
+    left: 0;
+    max-height: min(52dvh, calc(100dvh - 4.5rem));
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    right: 0;
     top: auto;
     width: 100%;
+    z-index: 5;
   }
 }
 
@@ -698,15 +727,103 @@ body:has(.graph-landing) {
 }
 
 @media (max-width: 700px) {
+  .graph-landing__chrome {
+    backdrop-filter: blur(10px);
+    background: color-mix(in srgb, var(--light) 78%, transparent);
+    border-bottom: 1px solid var(--lightgray);
+    gap: 6px;
+    justify-content: flex-start;
+    padding: max(8px, env(safe-area-inset-top)) 10px 8px 12px;
+    pointer-events: auto;
+  }
+
+  .graph-landing__title-block--chrome {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .graph-landing__title-block--rail {
+    display: none;
+  }
+
+  .graph-landing__title {
+    font-size: 14px;
+  }
+
+  .graph-landing__top-right {
+    flex: 0 0 auto;
+    gap: 0.7rem;
+  }
+
+  .graph-landing__nav-link {
+    display: none;
+  }
+
+  .graph-landing__rail-toggle {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    border-radius: 8px;
+    color: var(--dark);
+    cursor: pointer;
+    display: inline-flex;
+    flex: 0 0 auto;
+    height: 44px;
+    justify-content: center;
+    pointer-events: auto;
+    width: 44px;
+  }
+
+  .graph-landing__rail-toggle:focus-visible {
+    outline: 2px solid var(--secondary);
+    outline-offset: 2px;
+  }
+
+  .graph-landing__scrim {
+    background: rgba(8, 10, 16, 0.42);
+    border: 0;
+    display: block;
+    inset: 0;
+    pointer-events: auto;
+    position: absolute;
+    z-index: 3;
+  }
+
+  .graph-landing__scrim[hidden] {
+    display: none;
+  }
+
   .graph-landing__rail {
-    border-radius: 12px;
-    left: 8px;
-    max-height: calc(100dvh - 16px);
+    border-radius: 16px 16px 0 0;
+    bottom: 0;
+    box-shadow: 0 -12px 40px rgba(8, 10, 16, 0.22);
+    left: 0;
+    max-height: min(58dvh, calc(100dvh - 4.5rem));
     max-width: none;
-    padding: 10px 12px;
-    right: 8px;
-    top: 8px;
+    padding: 18px 14px max(14px, env(safe-area-inset-bottom));
+    right: 0;
+    top: auto;
+    transform: translateY(110%);
+    transition: transform 0.22s ease;
     width: auto;
+    z-index: 4;
+  }
+
+  .graph-landing__rail::before {
+    background: var(--lightgray);
+    border-radius: 999px;
+    content: "";
+    height: 4px;
+    left: 50%;
+    position: absolute;
+    top: 8px;
+    transform: translateX(-50%);
+    width: 36px;
+  }
+
+  .graph-landing[data-rail-open="true"] .graph-landing__rail {
+    transform: translateY(0);
   }
 
   .graph-landing__lenses {
@@ -719,32 +836,13 @@ body:has(.graph-landing) {
     min-height: 44px;
   }
 
-  .graph-landing__section-label--tags {
-    display: none;
-  }
-
-  .graph-landing__filters-toggle {
-    display: inline-flex;
-    min-height: 44px;
-    padding: 8px;
-  }
-
   .graph-landing__tag-list {
-    display: none;
+    max-height: 16dvh;
+    overflow-y: auto;
   }
 
-  .graph-landing__tags[data-open="true"] .graph-landing__tag-list {
-    display: flex;
-  }
-
-  .graph-landing__utils {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-
-  .graph-landing__top-right {
-    max-width: calc(100% - 1.5rem);
-    padding: 0.75rem 1rem;
+  :root[saved-theme="dark"] .graph-landing__chrome {
+    background: color-mix(in srgb, var(--light) 72%, transparent);
+    border-bottom-color: var(--lightgray);
   }
 }

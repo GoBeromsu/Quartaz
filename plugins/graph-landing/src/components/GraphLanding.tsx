@@ -40,6 +40,7 @@ interface OverlayCopy {
   about: string
   themeToggle: string
   filtersToggle: string
+  controls: string
   folderRoot: string
   previewHint: string
   previewTagTemplate: string
@@ -80,6 +81,7 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
       about: "About",
       themeToggle: "라이트/다크 모드 전환",
       filtersToggle: "필터",
+      controls: "Controls",
       folderRoot: "루트",
       previewHint: "클릭하면 연결이 열립니다",
       previewTagTemplate: "{n}개 노트",
@@ -112,6 +114,7 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
     about: "About",
     themeToggle: "Toggle light / dark mode",
     filtersToggle: "Filters",
+    controls: "Controls",
     folderRoot: "Root",
     previewHint: "Click to inspect connections",
     previewTagTemplate: "{n} notes",
@@ -231,8 +234,106 @@ export default (() => {
         <section class="graph-landing__hero" aria-label="Knowledge graph">
           <div class="graph-landing__canvas" id="graph-landing-mount"></div>
           <div class="graph-landing__overlay">
-            <div class="graph-landing__rail" {...{ onwheel: "event.stopPropagation()" }}>
-              <div class="graph-landing__title-block">
+            <div class="graph-landing__chrome">
+              <div class="graph-landing__title-block graph-landing__title-block--chrome">
+                <p class="graph-landing__title">Beomsu Koh</p>
+                <p class="graph-landing__counts" data-graph-counts>
+                  {copy.countsTemplate.replace("{n}", "–").replace("{m}", "–")}
+                </p>
+              </div>
+              <nav class="graph-landing__top-right" aria-label="Site">
+                <a class="graph-landing__nav-link" href="/articles/">
+                  {copy.articles}
+                </a>
+                <a class="graph-landing__nav-link" href="/about">
+                  {copy.about}
+                </a>
+                {localeToggle ? (
+                  <a
+                    class="graph-landing__locale-toggle"
+                    href={localeToggle.href}
+                    lang={localeToggle.id}
+                    hreflang={localeToggle.id}
+                    aria-label={localeToggle.ariaLabel}
+                    data-preferred-locale={localeToggle.id}
+                  >
+                    {localeToggle.label}
+                  </a>
+                ) : null}
+                <button
+                  type="button"
+                  class="graph-landing__icon-btn"
+                  data-graph-theme
+                  aria-label={copy.themeToggle}
+                >
+                  <svg
+                    class="graph-landing__icon graph-landing__icon--sun"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <circle cx="12" cy="12" r="4.4" fill="none" stroke="currentColor" stroke-width="1.6" />
+                    <path
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.6"
+                      stroke-linecap="round"
+                      d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7"
+                    />
+                  </svg>
+                  <svg
+                    class="graph-landing__icon graph-landing__icon--moon"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.6"
+                      stroke-linejoin="round"
+                      d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"
+                    />
+                  </svg>
+                </button>
+              </nav>
+              <button
+                type="button"
+                class="graph-landing__rail-toggle"
+                data-graph-rail-toggle
+                aria-expanded="false"
+                aria-controls="graph-landing-rail"
+                aria-label={copy.controls}
+                title={copy.controls}
+              >
+                <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" focusable="false">
+                  <path
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    d="M3 5h12M3 9h12M3 13h12"
+                  />
+                </svg>
+              </button>
+            </div>
+            <button
+              type="button"
+              class="graph-landing__scrim"
+              data-graph-rail-scrim
+              aria-label={copy.inspectClose}
+              hidden
+            ></button>
+            <div
+              class="graph-landing__rail"
+              id="graph-landing-rail"
+              {...{ onwheel: "event.stopPropagation()" }}
+            >
+              <div class="graph-landing__title-block graph-landing__title-block--rail">
                 <p class="graph-landing__title">Beomsu Koh</p>
                 <p class="graph-landing__counts" data-graph-counts>
                   {copy.countsTemplate.replace("{n}", "–").replace("{m}", "–")}
@@ -256,14 +357,6 @@ export default (() => {
                 >
                   {copy.tags}
                 </p>
-                <button
-                  type="button"
-                  class="graph-landing__filters-toggle"
-                  data-graph-tags-toggle
-                  aria-expanded="false"
-                >
-                  {copy.filtersToggle}
-                </button>
                 <ul class="graph-landing__tag-list" data-graph-tags></ul>
               </div>
               <div class="graph-landing__utils">
@@ -372,66 +465,6 @@ export default (() => {
                 </div>
               </div>
             </div>
-            <nav class="graph-landing__top-right" aria-label="Site">
-              <a class="graph-landing__nav-link" href="/articles/">
-                {copy.articles}
-              </a>
-              <a class="graph-landing__nav-link" href="/about">
-                {copy.about}
-              </a>
-              {localeToggle ? (
-                <a
-                  class="graph-landing__locale-toggle"
-                  href={localeToggle.href}
-                  lang={localeToggle.id}
-                  hreflang={localeToggle.id}
-                  aria-label={localeToggle.ariaLabel}
-                  data-preferred-locale={localeToggle.id}
-                >
-                  {localeToggle.label}
-                </a>
-              ) : null}
-              <button
-                type="button"
-                class="graph-landing__icon-btn"
-                data-graph-theme
-                aria-label={copy.themeToggle}
-              >
-                <svg
-                  class="graph-landing__icon graph-landing__icon--sun"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <circle cx="12" cy="12" r="4.4" fill="none" stroke="currentColor" stroke-width="1.6" />
-                  <path
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.6"
-                    stroke-linecap="round"
-                    d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7"
-                  />
-                </svg>
-                <svg
-                  class="graph-landing__icon graph-landing__icon--moon"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.6"
-                    stroke-linejoin="round"
-                    d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"
-                  />
-                </svg>
-              </button>
-            </nav>
             <aside class="graph-landing__preview" data-graph-preview hidden aria-live="polite">
               <p class="graph-landing__preview-chip" data-graph-preview-chip></p>
               <p class="graph-landing__preview-title" data-graph-preview-title></p>
