@@ -86,7 +86,9 @@ describe("BlogStyles Ataraxia contract", () => {
   test("prevents duplicate homepage dividers", () => {
     const css = componentCss(BlogStyles())
     const dividerMarkers = [
-      `body[data-slug="index"] .page[data-frame="full-width"] .center.full-width > hr {
+      `body[data-slug="index"] .page[data-frame="full-width"] .center.full-width > hr,
+body[data-slug="ko/index"] .page[data-frame="full-width"] .center.full-width > hr,
+body[data-slug="en/index"] .page[data-frame="full-width"] .center.full-width > hr {
   display: none;`,
     ] as const
 

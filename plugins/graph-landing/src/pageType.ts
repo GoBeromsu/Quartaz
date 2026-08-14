@@ -3,20 +3,20 @@ import GraphLanding from "./components/GraphLanding"
 
 export interface GraphLandingPageOptions {}
 
-const homeMatcher: PageMatcher = ({ slug, fileData }) => {
+const graphPageMatcher: PageMatcher = ({ slug, fileData }) => {
   if (slug === "index") {
     return false
   }
 
   const frontmatter = fileData.frontmatter as Record<string, unknown> | undefined
-  return frontmatter?.translationKey === "home"
+  return frontmatter?.translationKey === "graph"
 }
 
 const GraphLandingPage: QuartzPageTypePlugin<GraphLandingPageOptions> = () => ({
   name: "GraphLanding",
   priority: 20,
-  match: homeMatcher,
-  layout: "index",
+  match: graphPageMatcher,
+  layout: "graph",
   frame: "minimal",
   body: GraphLanding,
 })

@@ -6,6 +6,7 @@ import {
 } from "../../quartz/components/types"
 import { getDate, formatDate } from "../../quartz/components/Date"
 import { byDateAndAlphabetical } from "../../quartz/components/PageList"
+import { QuartzPluginData } from "../../quartz/plugins/vfile"
 import { classNames } from "../../quartz/util/lang"
 import { resolveRelative } from "../../quartz/util/path"
 import { currentLocaleTag, localeScopedFiles } from "./locale"
@@ -13,11 +14,13 @@ import { currentLocaleTag, localeScopedFiles } from "./locale"
 interface Options {
   title: string
   limit: number
+  filter: (file: QuartzPluginData) => boolean
 }
 
 const defaultOptions = (_cfg: GlobalConfiguration): Options => ({
   title: "Latest",
   limit: 3,
+  filter: () => true,
 })
 
 export default ((userOpts?: Partial<Options>) => {
@@ -29,7 +32,7 @@ export default ((userOpts?: Partial<Options>) => {
   }: QuartzComponentProps) => {
     const opts = { ...defaultOptions(cfg), ...userOpts }
     const pages = localeScopedFiles(cfg, fileData, allFiles)
-      .filter((file) => Boolean(file.filePath) && file.slug !== "index")
+      .filter((file) => Boolean(file.filePath) && file.slug !== "index" && opts.filter(file))
       .sort(byDateAndAlphabetical())
       .slice(0, opts.limit)
 

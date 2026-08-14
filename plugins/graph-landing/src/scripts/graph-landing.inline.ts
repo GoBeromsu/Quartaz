@@ -3,6 +3,7 @@ interface ContentEntry {
   title: string
   links: string[]
   tags: string[]
+  content: string
   multilingual?: {
     translationKey?: string
     locale?: string
@@ -12,7 +13,7 @@ interface ContentEntry {
 interface GraphNode {
   id: string
   name: string
-  type: "note" | "tag"
+  type: "note" | "tag" | "mention"
   val: number
   degree: number
   isHub: boolean
@@ -21,6 +22,8 @@ interface GraphNode {
   folder: string
   tags: string[]
   dominantTag: string
+  excerpt: string
+  phase: number
   x?: number
   y?: number
   z?: number
@@ -29,10 +32,12 @@ interface GraphNode {
   vz?: number
 }
 
+type LinkKind = "wikilink" | "tag" | "cooc" | "folder"
+
 interface GraphLink {
   source: string | GraphNode
   target: string | GraphNode
-  kind: "wikilink" | "tag"
+  kind: LinkKind
 }
 
 interface GraphData {
@@ -90,6 +95,7 @@ interface ForceGraphInstance {
   linkWidth: (width: number | ((link: GraphLink) => number)) => unknown
   onNodeHover: (fn: (node: GraphNode | null) => void) => unknown
   onNodeClick: (fn: (node: GraphNode | null, event?: Event) => void) => unknown
+  onBackgroundClick?: (fn: (event?: Event) => void) => unknown
   d3Force: (name: string, force?: unknown) =>
     | {
         strength?: (value: number | ((link: GraphLink) => number)) => unknown
@@ -147,7 +153,12 @@ interface SpriteTextInstance {
   fontWeight: string
   strokeWidth: number
   strokeColor: string
-  position: { y: number }
+  position: { x: number; y: number }
+  center: { set: (x: number, y: number) => void }
+}
+
+interface EmissiveMaterial {
+  emissiveIntensity: number
 }
 
 type SpriteTextCtor = new (text: string) => SpriteTextInstance
@@ -176,7 +187,7 @@ interface ThreeApi {
     color: string
     emissive: string
     emissiveIntensity: number
-  }) => unknown
+  }) => EmissiveMaterial
 }
 
 // Pinned esm.sh URLs. Keep THREE_VERSION identical across 3D imports
@@ -192,33 +203,60 @@ const THREE_CDN = `https://esm.sh/three@${THREE_VERSION}`
 const UNREAL_BLOOM = `https://esm.sh/three@${THREE_VERSION}/examples/jsm/postprocessing/UnrealBloomPass.js`
 
 const HUB_COUNT = 8
-const LABEL_HUB_COUNT = 5
+// Alex grammar: titles are the wayfinding layer, so a generous set of
+// well-connected notes keeps their labels visible at rest.
+const LABEL_HUB_COUNT = 14
 const HUB_EGO_N = 6
 const MIN_NODE_VAL = 1
 const MAX_NODE_VAL = 3.5
-const CENTER_STRENGTH = 0.13
-const NODE_REL_SIZE = 4.2
+const CENTER_STRENGTH = 0.05
+const NODE_REL_SIZE = 2.6
 const NODE_OPACITY = 1
 const LINK_OPACITY = 1
 const DIM_ALPHA = 0.18
 const LENS_STORAGE_KEY = "graph-landing:lens"
+const TUNE_STORAGE_KEY = "graph-landing:tune"
 const AUTO_ROTATE_SPEED = 0.18
-const ZOOM_FIT_PADDING = 64
 const HUB_VAL_SCALE = 1.4
 const TAG_LENS_VAL_SCALE = 1.25
 const FOCUS_TAG_VAL_SCALE = 1.15
-const NODE_RADIUS_MIN = 11
-const NODE_RADIUS_MAX = 21
-const BLOOM_STRENGTH = 1.4
-const BLOOM_RADIUS = 0.62
-const BLOOM_THRESHOLD = 0.12
-const LINK_RADIUS_WIKI = 0.7
-const LINK_RADIUS_TAG = 0.42
+const MENTION_VAL_SCALE = 0.55
+const INITIAL_CAMERA: Vec3 = { x: 420, y: 300, z: 720 }
+const INITIAL_LOOK_AT: Vec3 = { x: 0, y: 0, z: 0 }
+// Alex grammar: small bright cores with tight bloom halos, hairline edges.
+// Bloom stays tight (low radius, mid threshold) so the night-sky background
+// keeps its near-black depth instead of washing into gray fog.
+const NODE_RADIUS_MIN = 1.3
+const NODE_RADIUS_MAX = 3.2
+// Threshold sits below the emissive star cores (>1 HDR) but above label
+// pixels, so text stays crisp while stars glow. Tight halo: the star reads
+// as a bright point, not a blob.
+const BLOOM_STRENGTH = 1.05
+const BLOOM_RADIUS = 0.32
+const BLOOM_THRESHOLD = 0.28
+// Screen-space hairlines: closer camera makes the same world radius read
+// as a tube. Keep these just above the composer aliasing floor.
+const LINK_RADIUS: Record<LinkKind, number> = {
+  wikilink: 0.3,
+  tag: 0.22,
+  cooc: 0.16,
+  folder: 0.16,
+}
+const EDGE_INK_DARK = "#a8b0c2"
+const CLOUD_NOTE = { min: 80, max: 200 }
+const CLOUD_HUB = { min: 40, max: 110 }
+const CLOUD_MENTION = { min: 160, max: 280 }
+const CLOUD_TAG = { min: 90, max: 170 }
+const EXCERPT_LENGTH = 220
+const FOLDER_RING_SKIP = 2
+const TWINKLE_AMPLITUDE = 0.15
+const TWINKLE_SPEED = 0.8
+const PREVIEW_HIDE_DELAY_MS = 350
 
 const SPACING_PRESETS: Record<Spacing, { charge: number; distance: number }> = {
-  tight: { charge: -80, distance: 64 },
-  normal: { charge: -110, distance: 82 },
-  wide: { charge: -130, distance: 90 },
+  tight: { charge: -100, distance: 72 },
+  normal: { charge: -150, distance: 96 },
+  wide: { charge: -190, distance: 116 },
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -253,10 +291,42 @@ function parseContentIndex(raw: Record<string, unknown>): ContentEntry[] {
       title: typeof record.title === "string" ? record.title : slug,
       links: asStringArray(record.links),
       tags: asStringArray(record.tags),
+      content: typeof record.content === "string" ? record.content : "",
       multilingual,
     })
   }
   return entries
+}
+
+function excerptOf(content: string): string {
+  const flattened = content.replace(/\s+/g, " ").trim()
+  if (flattened.length <= EXCERPT_LENGTH) {
+    return flattened
+  }
+  return `${flattened.slice(0, EXCERPT_LENGTH).trimEnd()}…`
+}
+
+function hashPhase(seed: string): number {
+  let hash = 0
+  for (const char of seed) {
+    hash = (hash * 31 + char.charCodeAt(0)) >>> 0
+  }
+  return (hash % 628) / 100
+}
+
+function hashUnit(seed: string): number {
+  return hashPhase(seed) / (2 * Math.PI)
+}
+
+function cloudPoint(seed: string, minRadius: number, maxRadius: number): Vec3 {
+  const theta = hashPhase(seed)
+  const phi = Math.acos(2 * hashUnit(`${seed}:phi`) - 1)
+  const radius = minRadius + (maxRadius - minRadius) * hashUnit(`${seed}:r`)
+  return {
+    x: radius * Math.sin(phi) * Math.cos(theta),
+    y: radius * Math.sin(phi) * Math.sin(theta),
+    z: radius * Math.cos(phi),
+  }
 }
 
 function isFolderIndex(slug: string): boolean {
@@ -267,8 +337,9 @@ function isTagPage(slug: string): boolean {
   return slug === "tags" || slug.startsWith("tags/")
 }
 
-function isHomeNote(entry: ContentEntry): boolean {
-  return entry.multilingual?.translationKey === "home"
+function isUtilityNote(entry: ContentEntry): boolean {
+  const key = entry.multilingual?.translationKey
+  return key === "home" || key === "graph"
 }
 
 function noteBelongsToLocale(entry: ContentEntry, context: LocaleContext): boolean {
@@ -294,6 +365,83 @@ function folderOf(slug: string): string {
   return parts[0] ?? "root"
 }
 
+function lastPathSegment(target: string): string {
+  const parts = target.split("/").filter((part) => part.length > 0)
+  return parts[parts.length - 1] ?? ""
+}
+
+function normalizeLinkKey(target: string): string {
+  return lastPathSegment(target).trim().toLowerCase()
+}
+
+function isUrlTarget(target: string): boolean {
+  return /^[a-z][a-z0-9+.-]*:/i.test(target) || target.startsWith("//")
+}
+
+function shouldSkipLinkTarget(target: string): boolean {
+  const trimmed = target.trim()
+  if (trimmed.length === 0) {
+    return true
+  }
+  if (isUrlTarget(trimmed)) {
+    return true
+  }
+  if (isTagPage(trimmed)) {
+    return true
+  }
+  if (isFolderIndex(trimmed)) {
+    return true
+  }
+  return normalizeLinkKey(trimmed).length === 0
+}
+
+function mentionDisplayName(target: string): string {
+  return lastPathSegment(target).replace(/-/g, " ")
+}
+
+function buildNoteResolvers(notes: ContentEntry[]): {
+  byBasename: Map<string, string>
+  byTitle: Map<string, string>
+} {
+  const byBasename = new Map<string, string>()
+  const byTitle = new Map<string, string>()
+  for (const note of notes) {
+    const base = normalizeLinkKey(note.slug)
+    if (base.length > 0 && !byBasename.has(base)) {
+      byBasename.set(base, note.slug)
+    }
+    const titleKey = note.title.trim().toLowerCase()
+    if (titleKey.length > 0 && !byTitle.has(titleKey)) {
+      byTitle.set(titleKey, note.slug)
+    }
+    const titleSlug = titleKey.replace(/\s+/g, "-")
+    if (titleSlug.length > 0 && !byTitle.has(titleSlug)) {
+      byTitle.set(titleSlug, note.slug)
+    }
+  }
+  return { byBasename, byTitle }
+}
+
+function resolvePublishedNote(
+  target: string,
+  noteIds: Set<string>,
+  resolvers: { byBasename: Map<string, string>; byTitle: Map<string, string> },
+): string | null {
+  if (noteIds.has(target)) {
+    return target
+  }
+  const key = normalizeLinkKey(target)
+  const byBase = resolvers.byBasename.get(key)
+  if (byBase) {
+    return byBase
+  }
+  const byTitle = resolvers.byTitle.get(target.trim().toLowerCase()) ?? resolvers.byTitle.get(key)
+  if (byTitle) {
+    return byTitle
+  }
+  return null
+}
+
 function dominantTagOf(noteTags: string[], tagCounts: Map<string, number>): string {
   if (noteTags.length === 0) {
     return ""
@@ -304,13 +452,15 @@ function dominantTagOf(noteTags: string[], tagCounts: Map<string, number>): stri
 
 function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphData {
   const notes = entries.filter((entry) => {
-    if (isFolderIndex(entry.slug) || isTagPage(entry.slug) || isHomeNote(entry)) {
+    if (isFolderIndex(entry.slug) || isTagPage(entry.slug) || isUtilityNote(entry)) {
       return false
     }
     return noteBelongsToLocale(entry, context)
   })
 
   const noteIds = new Set(notes.map((note) => note.slug))
+  const resolvers = buildNoteResolvers(notes)
+  const mentionNames = new Map<string, string>()
   const degree = new Map<string, number>()
   const links: GraphLink[] = []
   const seenEdges = new Set<string>()
@@ -320,32 +470,107 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
     degree.set(id, (degree.get(id) ?? 0) + 1)
   }
 
-  const addEdge = (source: string, target: string, kind: GraphLink["kind"]): void => {
-    const key = source < target ? `${source}|${target}|${kind}` : `${target}|${source}|${kind}`
+  const edgeKey = (source: string, target: string, kind: LinkKind): string => {
+    return source < target ? `${source}|${target}|${kind}` : `${target}|${source}|${kind}`
+  }
+
+  // Faint layers (cooc/folder) render as web texture but must not inflate
+  // node degrees, hub ranking, or sizes: those stay driven by real
+  // wikilinks and tag membership.
+  const addEdge = (source: string, target: string, kind: LinkKind, countsDegree: boolean): void => {
+    const key = edgeKey(source, target, kind)
     if (seenEdges.has(key)) {
       return
     }
     seenEdges.add(key)
     links.push({ source, target, kind })
-    bumpDegree(source)
-    bumpDegree(target)
+    if (countsDegree) {
+      bumpDegree(source)
+      bumpDegree(target)
+    }
   }
 
   for (const note of notes) {
     for (const target of note.links) {
-      if (noteIds.has(target) && target !== note.slug) {
-        addEdge(note.slug, target, "wikilink")
+      if (shouldSkipLinkTarget(target)) {
+        continue
       }
+      const resolved = resolvePublishedNote(target, noteIds, resolvers)
+      if (resolved !== null) {
+        if (resolved !== note.slug) {
+          addEdge(note.slug, resolved, "wikilink", true)
+        }
+        continue
+      }
+      const mentionId = `mention:${normalizeLinkKey(target)}`
+      if (!mentionNames.has(mentionId)) {
+        mentionNames.set(mentionId, mentionDisplayName(target))
+      }
+      addEdge(note.slug, mentionId, "wikilink", true)
     }
   }
 
   const tagIds = new Set<string>()
+  const notesByTag = new Map<string, string[]>()
   for (const note of notes) {
     for (const tag of note.tags) {
       tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1)
       const tagId = `tag:${tag}`
       tagIds.add(tagId)
-      addEdge(note.slug, tagId, "tag")
+      addEdge(note.slug, tagId, "tag", true)
+      const members = notesByTag.get(tag) ?? []
+      members.push(note.slug)
+      notesByTag.set(tag, members)
+    }
+  }
+
+  // Tag co-occurrence: tags sharing at least one note get a faint tag-tag edge.
+  for (const note of notes) {
+    if (note.tags.length < 2) {
+      continue
+    }
+    for (let i = 0; i < note.tags.length; i += 1) {
+      for (let j = i + 1; j < note.tags.length; j += 1) {
+        addEdge(`tag:${note.tags[i]}`, `tag:${note.tags[j]}`, "cooc", false)
+      }
+    }
+  }
+
+  // Same-folder note-note texture: alphabetical ring with a skip link, so
+  // density stays bounded (~2 edges per note) instead of a full clique.
+  const notesByFolder = new Map<string, string[]>()
+  for (const note of notes) {
+    const folder = folderOf(note.slug)
+    if (folder === "root") {
+      continue
+    }
+    const members = notesByFolder.get(folder) ?? []
+    members.push(note.slug)
+    notesByFolder.set(folder, members)
+  }
+  for (const members of notesByFolder.values()) {
+    if (members.length < 2) {
+      continue
+    }
+    const ring = [...members].sort()
+    for (let i = 0; i < ring.length; i += 1) {
+      const next = ring[(i + 1) % ring.length]
+      const skip = ring[(i + FOLDER_RING_SKIP) % ring.length]
+      const current = ring[i]
+      if (current === undefined || next === undefined) {
+        continue
+      }
+      if (current !== next && !seenEdges.has(edgeKey(current, next, "wikilink"))) {
+        addEdge(current, next, "folder", false)
+      }
+      if (
+        ring.length > FOLDER_RING_SKIP + 1 &&
+        skip !== undefined &&
+        current !== skip &&
+        !seenEdges.has(edgeKey(current, skip, "wikilink"))
+      ) {
+        addEdge(current, skip, "folder", false)
+      }
     }
   }
 
@@ -373,22 +598,56 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
       .map((note) => note.slug),
   )
 
-  const nodes: GraphNode[] = notes.map((note) => ({
-    id: note.slug,
-    name: note.title,
-    type: "note",
-    val: nodeVal(note.slug),
-    degree: degree.get(note.slug) ?? 0,
-    isHub: hubIds.has(note.slug),
-    tag: "",
-    slug: note.slug,
-    folder: folderOf(note.slug),
-    tags: note.tags,
-    dominantTag: dominantTagOf(note.tags, tagCounts),
-  }))
+  const nodes: GraphNode[] = notes.map((note) => {
+    const isHub = hubIds.has(note.slug)
+    const cloud = isHub
+      ? cloudPoint(note.slug, CLOUD_HUB.min, CLOUD_HUB.max)
+      : cloudPoint(note.slug, CLOUD_NOTE.min, CLOUD_NOTE.max)
+    return {
+      id: note.slug,
+      name: note.title,
+      type: "note",
+      val: nodeVal(note.slug),
+      degree: degree.get(note.slug) ?? 0,
+      isHub,
+      tag: "",
+      slug: note.slug,
+      folder: folderOf(note.slug),
+      tags: note.tags,
+      dominantTag: dominantTagOf(note.tags, tagCounts),
+      excerpt: excerptOf(note.content),
+      phase: hashPhase(note.slug),
+      x: cloud.x,
+      y: cloud.y,
+      z: cloud.z,
+    }
+  })
+
+  for (const [mentionId, name] of mentionNames) {
+    const cloud = cloudPoint(mentionId, CLOUD_MENTION.min, CLOUD_MENTION.max)
+    nodes.push({
+      id: mentionId,
+      name,
+      type: "mention",
+      val: nodeVal(mentionId) * MENTION_VAL_SCALE,
+      degree: degree.get(mentionId) ?? 0,
+      isHub: false,
+      tag: "",
+      slug: "",
+      folder: "",
+      tags: [],
+      dominantTag: "",
+      excerpt: "",
+      phase: hashPhase(mentionId),
+      x: cloud.x,
+      y: cloud.y,
+      z: cloud.z,
+    })
+  }
 
   for (const tagId of tagIds) {
     const tag = tagId.slice("tag:".length)
+    const cloud = cloudPoint(tagId, CLOUD_TAG.min, CLOUD_TAG.max)
     nodes.push({
       id: tagId,
       name: tag,
@@ -401,6 +660,11 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
       folder: "tag",
       tags: [tag],
       dominantTag: tag,
+      excerpt: "",
+      phase: hashPhase(tagId),
+      x: cloud.x,
+      y: cloud.y,
+      z: cloud.z,
     })
   }
 
@@ -415,6 +679,11 @@ function neighborMap(links: GraphLink[]): Map<string, Set<string>> {
     neighbors.set(from, existing)
   }
   for (const link of links) {
+    // Hover highlighting follows real relationships only; faint texture
+    // layers (cooc/folder) do not make two nodes "neighbors".
+    if (link.kind !== "wikilink" && link.kind !== "tag") {
+      continue
+    }
     const source = linkEndpointId(link.source)
     const target = linkEndpointId(link.target)
     add(source, target)
@@ -510,7 +779,29 @@ function canvasBackground(theme: ThemeTokens): string {
   if (!isDarkTheme()) {
     return theme.bg
   }
-  return mixRgb(theme.bg, "#000000", 0.52)
+  // Near-black with a hint of blue-black (Alex-style night sky), still
+  // derived from the theme token so custom themes shift with it.
+  return mixRgb(theme.bg, "#05070f", 0.88)
+}
+
+// The 3D pipeline treats the clear color as linear and sRGB-encodes it on
+// output, which lifts near-blacks to washed gray. Pre-compensating with the
+// inverse transfer keeps the rendered background at the intended hex.
+function srgbCompensate(color: string): string {
+  const rgb = parseRgb(color)
+  if (!rgb) {
+    return color
+  }
+  const invert = (channel: number): number => {
+    const c = channel / 255
+    const linear = c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+    return Math.round(linear * 255)
+  }
+  return `rgb(${invert(rgb.r)}, ${invert(rgb.g)}, ${invert(rgb.b)})`
+}
+
+function canvasBackground3d(theme: ThemeTokens): string {
+  return srgbCompensate(canvasBackground(theme))
 }
 
 function hashPick(seed: string, palette: string[]): string {
@@ -586,16 +877,54 @@ async function loadRenderer(use3d: boolean): Promise<(el: HTMLElement) => ForceG
   return factoryFromModule(mod)
 }
 
+interface TuneState {
+  nodeScale: number
+  edgeScale: number
+  coresOnly: boolean
+}
+
 function readStoredLens(): Lens {
   try {
     const raw = sessionStorage.getItem(LENS_STORAGE_KEY)
-    if (raw === "all" || raw === "tag" || raw === "folder" || raw === "hub") {
+    if (raw === "hub") {
+      return "all"
+    }
+    if (raw === "all" || raw === "tag" || raw === "folder") {
       return raw
     }
   } catch (error) {
     console.error("[graph-landing] sessionStorage unavailable for lens persistence", error)
   }
   return "all"
+}
+
+function readStoredTune(): TuneState {
+  const fallback: TuneState = { nodeScale: 0.7, edgeScale: 1, coresOnly: false }
+  try {
+    if (sessionStorage.getItem(LENS_STORAGE_KEY) === "hub") {
+      fallback.coresOnly = true
+    }
+    const raw = sessionStorage.getItem(TUNE_STORAGE_KEY)
+    if (!raw) {
+      return fallback
+    }
+    const parsed = asRecord(JSON.parse(raw))
+    const nodeScale = typeof parsed.nodeScale === "number" ? parsed.nodeScale : fallback.nodeScale
+    const edgeScale = typeof parsed.edgeScale === "number" ? parsed.edgeScale : fallback.edgeScale
+    const coresOnly = typeof parsed.coresOnly === "boolean" ? parsed.coresOnly : fallback.coresOnly
+    return { nodeScale, edgeScale, coresOnly }
+  } catch (error) {
+    console.error("[graph-landing] sessionStorage unavailable for tune persistence", error)
+    return fallback
+  }
+}
+
+function persistTune(tune: TuneState): void {
+  try {
+    sessionStorage.setItem(TUNE_STORAGE_KEY, JSON.stringify(tune))
+  } catch (error) {
+    console.error("[graph-landing] could not persist tune", error)
+  }
 }
 
 function persistLens(lens: Lens): void {
@@ -750,6 +1079,10 @@ function bindGraph(
     focusTag: null,
   }
   let hoveredId: string | null = null
+  let selectedId: string | null = null
+  const tune = readStoredTune()
+
+  const litId = (): string | null => selectedId ?? hoveredId
 
   const labeledHubIds = new Set(
     data.nodes
@@ -774,7 +1107,11 @@ function bindGraph(
   }
 
   const showNodeLabel = (node: GraphNode): boolean => {
-    if (state.allLabels || hoveredId === node.id) {
+    const focus = litId()
+    if (state.allLabels || focus === node.id) {
+      return true
+    }
+    if (focus !== null && (neighbors.get(focus)?.has(node.id) ?? false)) {
       return true
     }
     return labeledHubIds.has(node.id)
@@ -782,12 +1119,13 @@ function bindGraph(
 
   const nodeWorldRadius = (node: GraphNode): number => {
     const t = clamp((nodeValue(node) - MIN_NODE_VAL) / 5, 0, 1)
-    return NODE_RADIUS_MIN + t * (NODE_RADIUS_MAX - NODE_RADIUS_MIN)
+    return (NODE_RADIUS_MIN + t * (NODE_RADIUS_MAX - NODE_RADIUS_MIN)) * tune.nodeScale
   }
 
   const isActive = (nodeId: string): boolean => {
-    if (hoveredId !== null) {
-      return hoveredId === nodeId || (neighbors.get(hoveredId)?.has(nodeId) ?? false)
+    const focus = litId()
+    if (focus !== null) {
+      return focus === nodeId || (neighbors.get(focus)?.has(nodeId) ?? false)
     }
     if (state.focusTag === null) {
       return true
@@ -800,6 +1138,9 @@ function bindGraph(
   }
 
   const baseNodeColor = (node: GraphNode): string => {
+    if (node.type === "mention") {
+      return theme.current.gray
+    }
     if (state.lens === "tag") {
       if (node.type === "tag") {
         return theme.current.tertiary
@@ -822,7 +1163,8 @@ function bindGraph(
   }
 
   const nodeFill = (node: GraphNode): string => {
-    if (hoveredId !== null && (hoveredId === node.id || neighbors.get(hoveredId)?.has(node.id))) {
+    const focus = litId()
+    if (focus !== null && (focus === node.id || (neighbors.get(focus)?.has(node.id) ?? false))) {
       return theme.current.accent
     }
     const color = baseNodeColor(node)
@@ -830,36 +1172,67 @@ function bindGraph(
       return withAlpha(color, DIM_ALPHA)
     }
     if (isDarkTheme()) {
-      if (node.type === "tag") {
-        return theme.current.accent
+      if (node.type === "mention") {
+        return color
       }
-      return mixRgb("#f4f1f2", theme.current.accent, 0.38)
+      // Alex grammar: near-white star cores, accent-family tags, warmer hubs.
+      if (node.type === "tag") {
+        return mixRgb(theme.current.tertiary, "#ffffff", 0.22)
+      }
+      if (node.isHub) {
+        return mixRgb("#fff3e4", theme.current.accent, 0.1)
+      }
+      return mixRgb("#ffffff", theme.current.accent, 0.12)
     }
     return color
   }
 
-  const edgeStroke = (link: GraphLink): string => {
+  // Layered opacities: wikilinks strongest > tag membership > faint texture.
+  const edgeBaseOpacity = (kind: LinkKind): number => {
+    const dark = isDarkTheme()
+    if (kind === "wikilink") {
+      return dark ? 0.34 : 0.34
+    }
+    if (kind === "tag") {
+      return dark ? 0.22 : 0.2
+    }
+    return dark ? 0.12 : 0.11
+  }
+
+  const edgeOpacity = (link: GraphLink): number => {
     const source = linkEndpointId(link.source)
     const target = linkEndpointId(link.target)
-    if (hoveredId !== null && (source === hoveredId || target === hoveredId)) {
-      return theme.current.accent
+    const focus = litId()
+    if (focus !== null && (source === focus || target === focus)) {
+      return isDarkTheme() ? 0.72 : 0.62
     }
-    if (hoveredId !== null || state.focusTag !== null) {
-      const sourceActive = isActive(source)
-      const targetActive = isActive(target)
-      if (!sourceActive || !targetActive) {
-        return withAlpha(theme.current.gray, DIM_ALPHA)
+    if (focus !== null || state.focusTag !== null) {
+      if (!isActive(source) || !isActive(target)) {
+        return edgeBaseOpacity(link.kind) * DIM_ALPHA
       }
     }
-    const dark = isDarkTheme()
-    if (link.kind === "tag") {
-      return withAlpha(theme.current.gray, dark ? 0.42 : 0.42)
+    return edgeBaseOpacity(link.kind)
+  }
+
+  const edgeColor = (link: GraphLink): string => {
+    const source = linkEndpointId(link.source)
+    const target = linkEndpointId(link.target)
+    const focus = litId()
+    if (focus !== null && (source === focus || target === focus)) {
+      return mixRgb(theme.current.accent, EDGE_INK_DARK, 0.45)
     }
-    return withAlpha(theme.current.gray, dark ? 0.68 : 0.58)
+    if (isDarkTheme()) {
+      return EDGE_INK_DARK
+    }
+    return theme.current.gray
+  }
+
+  const edgeStroke = (link: GraphLink): string => {
+    return withAlpha(edgeColor(link), edgeOpacity(link))
   }
 
   const currentData = (): GraphData => {
-    if (state.lens !== "hub") {
+    if (!tune.coresOnly) {
       return data
     }
     return filterGraph(data, hubVisibleIds(data, neighbors))
@@ -882,6 +1255,11 @@ function bindGraph(
     }
     if (link?.strength) {
       link.strength((edge) => {
+        // Faint texture layers barely pull: they draw web lines without
+        // distorting the wikilink/tag layout.
+        if (edge.kind === "cooc" || edge.kind === "folder") {
+          return 0.04
+        }
         if (state.lens === "tag" && edge.kind === "tag") {
           return 0.95
         }
@@ -909,7 +1287,12 @@ function bindGraph(
       "cluster",
       createClusterForce((node) => targets.get(node.id) ?? null, clusterStrength),
     )
+    if (options.use3d) {
+      graph.d3Force("flattenZ", null)
+    }
   }
+
+  const twinkleMaterials = new Map<string, { material: EmissiveMaterial; base: number; phase: number }>()
 
   const paintLabels3d = (): void => {
     if (!options.use3d || typeof graph.nodeThreeObject !== "function") {
@@ -917,6 +1300,7 @@ function bindGraph(
     }
     const SpriteText = options.spriteText
     const three = options.three
+    twinkleMaterials.clear()
     if (typeof graph.nodeThreeObjectExtend === "function") {
       graph.nodeThreeObjectExtend(three === null)
     }
@@ -925,25 +1309,37 @@ function bindGraph(
       const fill = nodeFill(node)
       let star: unknown = false
       if (three) {
-        const material = isDarkTheme()
-          ? new three.MeshLambertMaterial({
-              color: fill,
-              emissive: fill,
-              emissiveIntensity: 0.45,
-            })
-          : new three.MeshBasicMaterial({ color: fill })
-        star = new three.Mesh(new three.SphereGeometry(radius, 14, 14), material)
+        if (isDarkTheme()) {
+          // Smaller cores need hotter emissive to stay above the bloom
+          // threshold and read as glowing points.
+          const base = node.isHub ? 1.35 : 1.1
+          const material = new three.MeshLambertMaterial({
+            color: fill,
+            emissive: fill,
+            emissiveIntensity: base,
+          })
+          twinkleMaterials.set(node.id, { material, base, phase: node.phase })
+          star = new three.Mesh(new three.SphereGeometry(radius, 14, 14), material)
+        } else {
+          star = new three.Mesh(
+            new three.SphereGeometry(radius, 14, 14),
+            new three.MeshBasicMaterial({ color: fill }),
+          )
+        }
       }
       if (!showNodeLabel(node) || !SpriteText) {
         return star
       }
+      // Alex-style label: small, no stroke bubble, floating beside the star.
       const sprite = new SpriteText(node.name)
-      sprite.color = isActive(node.id) ? theme.current.ink : withAlpha(theme.current.ink, DIM_ALPHA)
-      sprite.fontWeight = "500"
-      sprite.strokeWidth = 0.55
-      sprite.strokeColor = canvasBackground(theme.current)
-      sprite.textHeight = labeledHubIds.has(node.id) ? 12 : 9.5
-      sprite.position.y = radius + 9
+      const labelInk = isDarkTheme() ? "rgba(255, 255, 255, 0.85)" : theme.current.ink
+      sprite.color = isActive(node.id) ? labelInk : withAlpha(labelInk, DIM_ALPHA)
+      sprite.fontWeight = "400"
+      sprite.strokeWidth = 0
+      sprite.textHeight = labeledHubIds.has(node.id) ? 6.5 : 5.5
+      sprite.center.set(0, 0.5)
+      sprite.position.x = radius + 2
+      sprite.position.y = 0
       if (!three || star === false) {
         return sprite
       }
@@ -961,13 +1357,14 @@ function bindGraph(
     }
     const up = new three.Vector3(0, 1, 0)
     graph.linkThreeObject((link) => {
-      const radius = link.kind === "tag" ? LINK_RADIUS_TAG : LINK_RADIUS_WIKI
+      const radius = LINK_RADIUS[link.kind] * tune.edgeScale
       const material = new three.MeshBasicMaterial({
-        color: edgeStroke(link),
+        color: edgeColor(link),
         transparent: true,
-        opacity: 1,
+        opacity: edgeOpacity(link),
+        depthWrite: false,
       })
-      return new three.Mesh(new three.CylinderGeometry(radius, radius, 1, 6), material)
+      return new three.Mesh(new three.CylinderGeometry(radius, radius, 1, 5), material)
     })
     if (typeof graph.linkPositionUpdate !== "function") {
       return
@@ -993,12 +1390,13 @@ function bindGraph(
       return
     }
     graph.linkDirectionalParticles((link) => {
-      if (hoveredId === null) {
+      const focus = litId()
+      if (focus === null) {
         return 0
       }
       const source = linkEndpointId(link.source)
       const target = linkEndpointId(link.target)
-      return source === hoveredId || target === hoveredId ? 2 : 0
+      return source === focus || target === focus ? 2 : 0
     })
   }
 
@@ -1009,10 +1407,15 @@ function bindGraph(
     graph.linkWidth((link) => {
       const source = linkEndpointId(link.source)
       const target = linkEndpointId(link.target)
-      if (hoveredId !== null && (source === hoveredId || target === hoveredId)) {
-        return 2.1
+      const focus = litId()
+      const scale = tune.edgeScale
+      if (focus !== null && (source === focus || target === focus)) {
+        return 0.7 * scale
       }
-      return link.kind === "tag" ? 1.15 : 1.85
+      if (link.kind === "wikilink") {
+        return 0.5 * scale
+      }
+      return (link.kind === "tag" ? 0.35 : 0.25) * scale
     })
     if (typeof graph.linkOpacity === "function") {
       graph.linkOpacity(LINK_OPACITY)
@@ -1053,9 +1456,11 @@ function bindGraph(
     }
     const notesLabel = options.root.dataset.legendNotes ?? "Notes"
     const tagsLabel = options.root.dataset.legendTags ?? "Tags"
+    const mentionsLabel = options.root.dataset.legendMentions ?? "Mentions"
     legend.replaceChildren(
       makeItem(theme.current.ink, notesLabel),
       makeItem(theme.current.tertiary, tagsLabel),
+      makeItem(theme.current.gray, mentionsLabel),
     )
   }
 
@@ -1091,45 +1496,7 @@ function bindGraph(
     list.replaceChildren(...items)
   }
 
-  const focusNode = (node: GraphNode): void => {
-    if (options.use3d && typeof graph.cameraPosition === "function") {
-      const x = node.x ?? 0
-      const y = node.y ?? 0
-      const z = node.z ?? 0
-      graph.cameraPosition({ x: x + 36, y: y + 18, z: z + 150 }, { x, y, z }, 700)
-      return
-    }
-    if (typeof graph.centerAt === "function" && typeof graph.zoom === "function") {
-      graph.centerAt(node.x ?? 0, node.y ?? 0, 600)
-      graph.zoom(2.3, 600)
-    }
-  }
-
-  let fitTimer = 0
-  window.addCleanup(() => window.clearTimeout(fitTimer))
-
-  const fitPadding = (): number => {
-    if (window.innerWidth <= 700) {
-      return 72
-    }
-    return ZOOM_FIT_PADDING
-  }
-
-  const fitAllNodes = (duration: number): void => {
-    if (typeof graph.zoomToFit !== "function") {
-      return
-    }
-    graph.zoomToFit(duration, fitPadding())
-  }
-
-  const scheduleFit = (delay: number, duration: number): void => {
-    window.clearTimeout(fitTimer)
-    fitTimer = window.setTimeout(() => {
-      fitAllNodes(duration)
-    }, delay)
-  }
-
-  const applyView = (shouldFit: boolean): void => {
+  const applyView = (): void => {
     graph.graphData(currentData())
     applyForces()
     refreshAccessors()
@@ -1143,9 +1510,6 @@ function bindGraph(
       }
     }
     graph.d3ReheatSimulation()
-    if (shouldFit) {
-      scheduleFit(280, prefersReducedMotion() ? 0 : 900)
-    }
   }
 
   const setLens = (lens: Lens): void => {
@@ -1154,7 +1518,7 @@ function bindGraph(
       state.focusTag = null
     }
     persistLens(lens)
-    applyView(true)
+    applyView()
   }
 
   const setFocusTag = (tag: string): void => {
@@ -1163,17 +1527,14 @@ function bindGraph(
       state.lens = "tag"
       persistLens("tag")
     }
-    applyView(false)
-    const tagNode = data.nodes.find((node) => node.id === `tag:${tag}`)
-    if (tagNode && state.focusTag) {
-      focusNode(tagNode)
-      return
-    }
-    scheduleFit(280, prefersReducedMotion() ? 0 : 900)
+    applyView()
   }
 
+  const activeBackground = (): string =>
+    options.use3d ? canvasBackground3d(theme.current) : canvasBackground(theme.current)
+
   graph.graphData(currentData())
-  graph.backgroundColor(canvasBackground(theme.current))
+  graph.backgroundColor(activeBackground())
   graph.nodeLabel((node) => node.name)
   graph.nodeRelSize(NODE_REL_SIZE)
   if (typeof graph.nodeOpacity === "function") {
@@ -1185,8 +1546,66 @@ function bindGraph(
   applyForces()
   refreshAccessors()
 
+  // Alex signature: bottom preview card with type chip, title, excerpt.
+  const previewEl = options.root.querySelector("[data-graph-preview]")
+  const previewChip = options.root.querySelector("[data-graph-preview-chip]")
+  const previewTitle = options.root.querySelector("[data-graph-preview-title]")
+  const previewExcerpt = options.root.querySelector("[data-graph-preview-excerpt]")
+  let previewHideTimer = 0
+  window.addCleanup(() => window.clearTimeout(previewHideTimer))
+
+  const showPreview = (node: GraphNode): void => {
+    if (
+      !(previewEl instanceof HTMLElement) ||
+      !(previewChip instanceof HTMLElement) ||
+      !(previewTitle instanceof HTMLElement) ||
+      !(previewExcerpt instanceof HTMLElement)
+    ) {
+      return
+    }
+    window.clearTimeout(previewHideTimer)
+    const notesLabel = options.root.dataset.legendNotes ?? "Notes"
+    const tagsLabel = options.root.dataset.legendTags ?? "Tags"
+    const mentionsLabel = options.root.dataset.legendMentions ?? "Mentions"
+    if (node.type === "tag") {
+      const template = options.root.dataset.previewTagTemplate ?? "{n} notes"
+      previewChip.textContent = tagsLabel
+      previewTitle.textContent = `#${node.tag}`
+      previewExcerpt.textContent = template.replace("{n}", String(node.degree))
+    } else if (node.type === "mention") {
+      previewChip.textContent = mentionsLabel
+      previewTitle.textContent = node.name
+      previewExcerpt.textContent =
+        options.root.dataset.previewMention ?? "Mentioned, not published yet"
+    } else {
+      previewChip.textContent = notesLabel
+      previewTitle.textContent = node.name
+      previewExcerpt.textContent = node.excerpt
+    }
+    previewEl.hidden = false
+    previewEl.dataset.visible = "true"
+  }
+
+  const hidePreview = (): void => {
+    if (!(previewEl instanceof HTMLElement)) {
+      return
+    }
+    window.clearTimeout(previewHideTimer)
+    previewHideTimer = window.setTimeout(() => {
+      previewEl.dataset.visible = "false"
+      previewEl.hidden = true
+    }, PREVIEW_HIDE_DELAY_MS)
+  }
+
   graph.onNodeHover((node) => {
     hoveredId = node ? node.id : null
+    if (selectedId === null) {
+      if (node) {
+        showPreview(node)
+      } else {
+        hidePreview()
+      }
+    }
     refreshAccessors()
     if (options.use3d) {
       paintLabels3d()
@@ -1229,9 +1648,23 @@ function bindGraph(
       graph.postProcessingComposer().addPass(options.bloomPass)
     }
     if (typeof graph.cameraPosition === "function") {
-      graph.cameraPosition({ x: 0, y: 80, z: 720 })
+      graph.cameraPosition(INITIAL_CAMERA, INITIAL_LOOK_AT)
     }
     paintLabels3d()
+    // Subtle emissive twinkle: rAF-driven sine per node, +-15%, dark only.
+    if (!prefersReducedMotion()) {
+      let twinkleFrame = 0
+      const twinkle = (): void => {
+        const t = (performance.now() / 1000) * TWINKLE_SPEED
+        for (const entry of twinkleMaterials.values()) {
+          entry.material.emissiveIntensity =
+            entry.base * (1 + TWINKLE_AMPLITUDE * Math.sin(t + entry.phase))
+        }
+        twinkleFrame = window.requestAnimationFrame(twinkle)
+      }
+      twinkleFrame = window.requestAnimationFrame(twinkle)
+      window.addCleanup(() => window.cancelAnimationFrame(twinkleFrame))
+    }
   } else {
     graph.warmupTicks(60)
     graph.cooldownTicks(180)
@@ -1250,7 +1683,7 @@ function bindGraph(
         ctx.stroke()
       }
       if (showNodeLabel(node)) {
-        const fontSize = 13 / globalScale
+        const fontSize = 11.5 / globalScale
         ctx.font = `${fontSize}px ${theme.current.font}`
         ctx.fillStyle = isActive(node.id) ? theme.current.ink : withAlpha(theme.current.ink, DIM_ALPHA)
         ctx.textAlign = "center"
@@ -1270,12 +1703,141 @@ function bindGraph(
     }
   }
 
-  const activateNode = (node: GraphNode): void => {
-    if (node.type === "tag") {
-      setFocusTag(node.tag)
+  const inspectEl = options.root.querySelector("[data-graph-inspect]")
+  const inspectChip = options.root.querySelector("[data-graph-inspect-chip]")
+  const inspectTitle = options.root.querySelector("[data-graph-inspect-title]")
+  const inspectExcerpt = options.root.querySelector("[data-graph-inspect-excerpt]")
+  const inspectTags = options.root.querySelector("[data-graph-inspect-tags]")
+  const inspectConnected = options.root.querySelector("[data-graph-inspect-connected]")
+  const inspectOpen = options.root.querySelector("[data-graph-inspect-open]")
+
+  const setAutoRotate = (enabled: boolean): void => {
+    if (prefersReducedMotion() || typeof graph.controls !== "function") {
       return
     }
-    navigateToSlug(node.slug)
+    graph.controls().autoRotate = enabled
+  }
+
+  const connectedNeighbors = (node: GraphNode): GraphNode[] => {
+    const ids = neighbors.get(node.id) ?? new Set<string>()
+    const found: GraphNode[] = []
+    for (const id of ids) {
+      const neighbor = data.nodes.find((entry) => entry.id === id)
+      if (neighbor) {
+        found.push(neighbor)
+      }
+    }
+    return found.sort((a, b) => b.degree - a.degree)
+  }
+
+  const fillInspect = (node: GraphNode): void => {
+    if (
+      !(inspectEl instanceof HTMLElement) ||
+      !(inspectChip instanceof HTMLElement) ||
+      !(inspectTitle instanceof HTMLElement) ||
+      !(inspectExcerpt instanceof HTMLElement) ||
+      !(inspectTags instanceof HTMLElement) ||
+      !(inspectConnected instanceof HTMLElement)
+    ) {
+      return
+    }
+    const notesLabel = options.root.dataset.legendNotes ?? "Notes"
+    const tagsLabel = options.root.dataset.legendTags ?? "Tags"
+    const mentionsLabel = options.root.dataset.legendMentions ?? "Mentions"
+    const emptyLabel = options.root.dataset.inspectEmpty ?? "No direct connections"
+    if (node.type === "tag") {
+      inspectChip.textContent = tagsLabel
+      inspectTitle.textContent = `#${node.tag}`
+      inspectExcerpt.textContent = (options.root.dataset.previewTagTemplate ?? "{n} notes").replace(
+        "{n}",
+        String(node.degree),
+      )
+    } else if (node.type === "mention") {
+      inspectChip.textContent = mentionsLabel
+      inspectTitle.textContent = node.name
+      inspectExcerpt.textContent =
+        options.root.dataset.previewMention ?? "Mentioned, not published yet"
+    } else {
+      inspectChip.textContent = notesLabel
+      inspectTitle.textContent = node.name
+      inspectExcerpt.textContent = node.excerpt
+    }
+    const tagItems = node.tags.map((tag) => {
+      const item = document.createElement("li")
+      item.textContent = tag
+      return item
+    })
+    inspectTags.replaceChildren(...tagItems)
+    inspectTags.hidden = tagItems.length === 0
+    const related = connectedNeighbors(node).slice(0, 12)
+    if (related.length === 0) {
+      const empty = document.createElement("li")
+      empty.className = "graph-landing__inspect-empty"
+      empty.textContent = emptyLabel
+      inspectConnected.replaceChildren(empty)
+    } else {
+      inspectConnected.replaceChildren(
+        ...related.map((neighbor) => {
+          const item = document.createElement("li")
+          const button = document.createElement("button")
+          button.type = "button"
+          button.className = "graph-landing__inspect-link"
+          button.dataset.graphInspectId = neighbor.id
+          const kind =
+            neighbor.type === "tag" ? tagsLabel : neighbor.type === "mention" ? mentionsLabel : notesLabel
+          const kindEl = document.createElement("span")
+          kindEl.textContent = kind
+          const nameEl = document.createElement("strong")
+          nameEl.textContent = neighbor.type === "tag" ? `#${neighbor.tag}` : neighbor.name
+          button.append(kindEl, nameEl)
+          item.append(button)
+          return item
+        }),
+      )
+    }
+    if (inspectOpen instanceof HTMLAnchorElement) {
+      if (node.type === "note" && node.slug.length > 0) {
+        inspectOpen.hidden = false
+        inspectOpen.href = resolveNoteUrl(node.slug).toString()
+      } else {
+        inspectOpen.hidden = true
+        inspectOpen.removeAttribute("href")
+      }
+    }
+    inspectEl.hidden = false
+    options.root.dataset.inspecting = "true"
+    hidePreview()
+  }
+
+  const clearSelection = (): void => {
+    selectedId = null
+    if (inspectEl instanceof HTMLElement) {
+      inspectEl.hidden = true
+    }
+    options.root.dataset.inspecting = "false"
+    setAutoRotate(true)
+    refreshAccessors()
+    if (options.use3d) {
+      paintLabels3d()
+    }
+  }
+
+  const selectNode = (node: GraphNode): void => {
+    if (selectedId === node.id && node.type === "note" && node.slug.length > 0) {
+      navigateToSlug(node.slug)
+      return
+    }
+    selectedId = node.id
+    setAutoRotate(false)
+    fillInspect(node)
+    refreshAccessors()
+    if (options.use3d) {
+      paintLabels3d()
+    }
+  }
+
+  const activateNode = (node: GraphNode): void => {
+    selectNode(node)
   }
 
   let libraryHandledClick = false
@@ -1289,6 +1851,11 @@ function bindGraph(
     }
     activateNode(node)
   })
+  if (typeof graph.onBackgroundClick === "function") {
+    graph.onBackgroundClick(() => {
+      clearSelection()
+    })
+  }
 
   const mount = options.root.querySelector("#graph-landing-mount")
   if (mount instanceof HTMLElement) {
@@ -1338,6 +1905,8 @@ function bindGraph(
         const hit = nearestNode(event.clientX, event.clientY)
         if (hit) {
           activateNode(hit)
+        } else {
+          clearSelection()
         }
       }, 0)
     }
@@ -1353,18 +1922,20 @@ function bindGraph(
   renderLegend()
   renderTags()
   if (state.lens !== "all") {
-    applyView(false)
+    applyView()
   }
-  const instantFit = prefersReducedMotion()
-  scheduleFit(400, instantFit ? 0 : 800)
-  const settleTimer = window.setTimeout(() => {
-    fitAllNodes(instantFit ? 0 : 400)
-  }, 1400)
-  window.addCleanup(() => window.clearTimeout(settleTimer))
+  if (!options.use3d) {
+    if (typeof graph.centerAt === "function") {
+      graph.centerAt(0, 0, 0)
+    }
+    if (typeof graph.zoom === "function") {
+      graph.zoom(1, 0)
+    }
+  }
 
   const onThemeChange = (): void => {
     theme.current = readTheme()
-    graph.backgroundColor(canvasBackground(theme.current))
+    graph.backgroundColor(activeBackground())
     if (options.bloomPass) {
       options.bloomPass.strength = isDarkTheme() ? BLOOM_STRENGTH : 0
       options.bloomPass.radius = BLOOM_RADIUS
@@ -1380,6 +1951,18 @@ function bindGraph(
   const onRootClick = (event: Event): void => {
     const target = event.target
     if (!(target instanceof Element)) {
+      return
+    }
+    if (target.closest("[data-graph-inspect-close]")) {
+      clearSelection()
+      return
+    }
+    const inspectLink = target.closest("[data-graph-inspect-id]")
+    if (inspectLink instanceof HTMLElement && inspectLink.dataset.graphInspectId) {
+      const next = data.nodes.find((entry) => entry.id === inspectLink.dataset.graphInspectId)
+      if (next) {
+        selectNode(next)
+      }
       return
     }
     const lensBtn = target.closest("[data-graph-lens]")
@@ -1440,8 +2023,53 @@ function bindGraph(
       }
     }
   }
+  const nodeScaleInput = options.root.querySelector("[data-graph-node-scale]")
+  const edgeScaleInput = options.root.querySelector("[data-graph-edge-scale]")
+  const coresInput = options.root.querySelector("[data-graph-cores]")
+  if (nodeScaleInput instanceof HTMLInputElement) {
+    nodeScaleInput.value = String(Math.round(tune.nodeScale * 100))
+    const onNodeScale = (): void => {
+      tune.nodeScale = Number(nodeScaleInput.value) / 100
+      persistTune(tune)
+      refreshAccessors()
+      if (options.use3d) {
+        paintLabels3d()
+      }
+    }
+    nodeScaleInput.addEventListener("input", onNodeScale)
+    window.addCleanup(() => nodeScaleInput.removeEventListener("input", onNodeScale))
+  }
+  if (edgeScaleInput instanceof HTMLInputElement) {
+    edgeScaleInput.value = String(Math.round(tune.edgeScale * 100))
+    const onEdgeScale = (): void => {
+      tune.edgeScale = Number(edgeScaleInput.value) / 100
+      persistTune(tune)
+      refreshAccessors()
+    }
+    edgeScaleInput.addEventListener("input", onEdgeScale)
+    window.addCleanup(() => edgeScaleInput.removeEventListener("input", onEdgeScale))
+  }
+  if (coresInput instanceof HTMLInputElement) {
+    coresInput.checked = tune.coresOnly
+    const onCores = (): void => {
+      tune.coresOnly = coresInput.checked
+      persistTune(tune)
+      applyView()
+    }
+    coresInput.addEventListener("change", onCores)
+    window.addCleanup(() => coresInput.removeEventListener("change", onCores))
+  }
+
   options.root.addEventListener("click", onRootClick)
   window.addCleanup(() => options.root.removeEventListener("click", onRootClick))
+
+  const onKeyDown = (event: KeyboardEvent): void => {
+    if (event.key === "Escape") {
+      clearSelection()
+    }
+  }
+  window.addEventListener("keydown", onKeyDown)
+  window.addCleanup(() => window.removeEventListener("keydown", onKeyDown))
 }
 
 async function initGraphLanding(): Promise<void> {
@@ -1551,6 +2179,9 @@ async function initGraphLanding(): Promise<void> {
 
   canvas.replaceChildren()
   graph = createGraph(canvas)
+  // Debug handle for browser QA (edge/kind breakdown, hover simulation).
+  ;(canvas as HTMLElement & { __graphLanding?: ForceGraphInstance }).__graphLanding = graph
+  ;(canvas as HTMLElement & { __graphData?: GraphData }).__graphData = data
   bindGraph(graph, data, theme, { use3d, root, spriteText, bloomPass, three })
 
   if (use3d && !prefersReducedMotion()) {

@@ -1,2115 +1,9 @@
-var __create = Object.create;
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getProtoOf = Object.getPrototypeOf;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __commonJS = (cb, mod) => function __require() {
-  return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
-};
-var __export = (target, all) => {
-  for (var name2 in all)
-    __defProp(target, name2, { get: all[name2], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
-  // If the importer is in node compatibility mode or this is not an ESM
-  // file that has been converted to a CommonJS file using a Babel-
-  // compatible transform (i.e. "__esModule" has not been set), then set
-  // "default" to the CommonJS "module.exports" for node compatibility.
-  __defProp(target, "default", { value: mod, enumerable: true }) ,
-  mod
-));
+// src/scripts/graph-landing.inline.ts
+var graph_landing_inline_default = 'var pe="0.179.1",ht="https://esm.sh/force-graph@1.51.4",bt=`https://esm.sh/3d-force-graph@1.80.0?deps=three@${pe}`,yt=`https://esm.sh/three-spritetext@1.9.2?deps=three@${pe}`,wt=`https://esm.sh/three@${pe}`,kt=`https://esm.sh/three@${pe}/examples/jsm/postprocessing/UnrealBloomPass.js`,Tt=8,Et=14,Lt=6,Z=1,Te=3.5,vt=.05,St=2.6,Ct=1,Ae=1,Y=.18,Le="graph-landing:lens",Qe="graph-landing:tune",Mt=.18,xt=1.4,Nt=1.25,Gt=1.15,It=.55,_t={x:420,y:300,z:720},Pt={x:0,y:0,z:0},Oe=1.3,At=3.2,De=1.05,He=.32,Re=.28,Ot={wikilink:.3,tag:.22,cooc:.16,folder:.16},Be="#a8b0c2",Fe={min:80,max:200},ze={min:40,max:110},$e={min:160,max:280},Ue={min:90,max:170},Ve=220,qe=2,Dt=.15,Ht=.8,Rt=350,Bt={tight:{charge:-100,distance:72},normal:{charge:-150,distance:96},wide:{charge:-190,distance:116}};function ve(e){if(e&&typeof e=="object")return e;throw new Error("graph-landing: expected an object in content index")}function Ke(e){return Array.isArray(e)?e.filter(n=>typeof n=="string"):[]}function Ft(e){let n=[];for(let o of Object.values(e)){let r=ve(o),l=typeof r.slug=="string"?r.slug:"";if(l.length===0)continue;let a=r.multilingual,m=a&&typeof a=="object"?a:void 0;n.push({slug:l,title:typeof r.title=="string"?r.title:l,links:Ke(r.links),tags:Ke(r.tags),content:typeof r.content=="string"?r.content:"",multilingual:m})}return n}function zt(e){let n=e.replace(/\\s+/g," ").trim();return n.length<=Ve?n:`${n.slice(0,Ve).trimEnd()}\\u2026`}function ee(e){let n=0;for(let o of e)n=n*31+o.charCodeAt(0)>>>0;return n%628/100}function We(e){return ee(e)/(2*Math.PI)}function ge(e,n,o){let r=ee(e),l=Math.acos(2*We(`${e}:phi`)-1),a=n+(o-n)*We(`${e}:r`);return{x:a*Math.sin(l)*Math.cos(r),y:a*Math.sin(l)*Math.sin(r),z:a*Math.cos(l)}}function et(e){return e==="index"||e.endsWith("/index")}function tt(e){return e==="tags"||e.startsWith("tags/")}function $t(e){let n=e.multilingual?.translationKey;return n==="home"||n==="graph"}function Ut(e,n){return e.multilingual?.locale?e.multilingual.locale===n.localeId:e.slug.startsWith(`${n.localeId}/`)?!0:!n.prefixes.some(r=>e.slug.startsWith(`${r}/`))&&n.localeId===n.sourceLocale}function nt(e,n,o){return Math.min(o,Math.max(n,e))}function je(e){let n=e.split("/").filter(o=>o.length>0);return n.length<2?"root":n[0]??"root"}function rt(e){let n=e.split("/").filter(o=>o.length>0);return n[n.length-1]??""}function he(e){return rt(e).trim().toLowerCase()}function Vt(e){return/^[a-z][a-z0-9+.-]*:/i.test(e)||e.startsWith("//")}function qt(e){let n=e.trim();return n.length===0||Vt(n)||tt(n)||et(n)?!0:he(n).length===0}function Kt(e){return rt(e).replace(/-/g," ")}function Wt(e){let n=new Map,o=new Map;for(let r of e){let l=he(r.slug);l.length>0&&!n.has(l)&&n.set(l,r.slug);let a=r.title.trim().toLowerCase();a.length>0&&!o.has(a)&&o.set(a,r.slug);let m=a.replace(/\\s+/g,"-");m.length>0&&!o.has(m)&&o.set(m,r.slug)}return{byBasename:n,byTitle:o}}function jt(e,n,o){if(n.has(e))return e;let r=he(e),l=o.byBasename.get(r);if(l)return l;let a=o.byTitle.get(e.trim().toLowerCase())??o.byTitle.get(r);return a||null}function Yt(e,n){return e.length===0?"":[...e].sort((r,l)=>(n.get(l)??0)-(n.get(r)??0))[0]??""}function Xt(e,n){let o=e.filter(i=>et(i.slug)||tt(i.slug)||$t(i)?!1:Ut(i,n)),r=new Set(o.map(i=>i.slug)),l=Wt(o),a=new Map,m=new Map,k=[],w=new Set,v=new Map,R=i=>{m.set(i,(m.get(i)??0)+1)},A=(i,d,p)=>i<d?`${i}|${d}|${p}`:`${d}|${i}|${p}`,C=(i,d,p,L)=>{let S=A(i,d,p);w.has(S)||(w.add(S),k.push({source:i,target:d,kind:p}),L&&(R(i),R(d)))};for(let i of o)for(let d of i.links){if(qt(d))continue;let p=jt(d,r,l);if(p!==null){p!==i.slug&&C(i.slug,p,"wikilink",!0);continue}let L=`mention:${he(d)}`;a.has(L)||a.set(L,Kt(d)),C(i.slug,L,"wikilink",!0)}let I=new Set,N=new Map;for(let i of o)for(let d of i.tags){v.set(d,(v.get(d)??0)+1);let p=`tag:${d}`;I.add(p),C(i.slug,p,"tag",!0);let L=N.get(d)??[];L.push(i.slug),N.set(d,L)}for(let i of o)if(!(i.tags.length<2))for(let d=0;d<i.tags.length;d+=1)for(let p=d+1;p<i.tags.length;p+=1)C(`tag:${i.tags[d]}`,`tag:${i.tags[p]}`,"cooc",!1);let O=new Map;for(let i of o){let d=je(i.slug);if(d==="root")continue;let p=O.get(d)??[];p.push(i.slug),O.set(d,p)}for(let i of O.values()){if(i.length<2)continue;let d=[...i].sort();for(let p=0;p<d.length;p+=1){let L=d[(p+1)%d.length],S=d[(p+qe)%d.length],M=d[p];M===void 0||L===void 0||(M!==L&&!w.has(A(M,L,"wikilink"))&&C(M,L,"folder",!1),d.length>qe+1&&S!==void 0&&M!==S&&!w.has(A(M,S,"wikilink"))&&C(M,S,"folder",!1))}}let G=[...m.values()],H=G.length>0?Math.min(...G):0,T=G.length>0?Math.max(...G):0,z=i=>{let d=m.get(i)??0,p=Math.sqrt(d),L=Math.sqrt(H),M=Math.sqrt(T)-L;return M===0?(Z+Te)/2:Z+(p-L)/M*(Te-Z)},be=[...o].sort((i,d)=>(m.get(d.slug)??0)-(m.get(i.slug)??0)),V=new Set(be.filter(i=>(m.get(i.slug)??0)>0).slice(0,Tt).map(i=>i.slug)),B=o.map(i=>{let d=V.has(i.slug),p=d?ge(i.slug,ze.min,ze.max):ge(i.slug,Fe.min,Fe.max);return{id:i.slug,name:i.title,type:"note",val:z(i.slug),degree:m.get(i.slug)??0,isHub:d,tag:"",slug:i.slug,folder:je(i.slug),tags:i.tags,dominantTag:Yt(i.tags,v),excerpt:zt(i.content),phase:ee(i.slug),x:p.x,y:p.y,z:p.z}});for(let[i,d]of a){let p=ge(i,$e.min,$e.max);B.push({id:i,name:d,type:"mention",val:z(i)*It,degree:m.get(i)??0,isHub:!1,tag:"",slug:"",folder:"",tags:[],dominantTag:"",excerpt:"",phase:ee(i),x:p.x,y:p.y,z:p.z})}for(let i of I){let d=i.slice(4),p=ge(i,Ue.min,Ue.max);B.push({id:i,name:d,type:"tag",val:nt(z(i)*.7,Z,Te),degree:m.get(i)??0,isHub:!1,tag:d,slug:`tags/${d}`,folder:"tag",tags:[d],dominantTag:d,excerpt:"",phase:ee(i),x:p.x,y:p.y,z:p.z})}return{nodes:B,links:k}}function Jt(e){let n=new Map,o=(r,l)=>{let a=n.get(r)??new Set;a.add(l),n.set(r,a)};for(let r of e){if(r.kind!=="wikilink"&&r.kind!=="tag")continue;let l=x(r.source),a=x(r.target);o(l,a),o(a,l)}return n}function x(e){return typeof e=="string"?e:e.id}function X(e,n){let o=document.createElement("span");o.style.color=`var(${e})`,o.style.position="absolute",o.style.visibility="hidden",document.body.appendChild(o);let r=getComputedStyle(o).color;return o.remove(),r||n}function ot(){let e=getComputedStyle(document.documentElement).getPropertyValue("--bodyFont").trim();return{bg:X("--light","#ffffff"),ink:X("--darkgray","#0f0f0f"),accent:X("--secondary","#a52142"),tertiary:X("--tertiary","#c75b75"),gray:X("--gray","#737373"),font:e.length>0?e:"Inter, sans-serif"}}function te(){return window.matchMedia("(prefers-reduced-motion: reduce)").matches}function Zt(){return window.matchMedia("(pointer: fine)").matches}function Qt(){let e=document.createElement("canvas");return(e.getContext("webgl")??e.getContext("experimental-webgl"))!==null}function en(){return Zt()&&Qt()&&window.innerWidth>700&&!te()}function P(){return document.documentElement.getAttribute("saved-theme")==="dark"}function me(e){let n=e.match(/rgba?\\(\\s*(\\d+)\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)/);if(n&&n[1]&&n[2]&&n[3])return{r:Number(n[1]),g:Number(n[2]),b:Number(n[3])};let o=e.match(/^#([0-9a-f]{6})$/i);if(o&&o[1]){let r=parseInt(o[1],16);return{r:r>>16&255,g:r>>8&255,b:r&255}}return null}function J(e,n){let o=me(e);return o?`rgba(${o.r}, ${o.g}, ${o.b}, ${n})`:e}function Q(e,n,o){let r=me(e),l=me(n);if(!r||!l)return e;let a=(m,k)=>Math.round(m+(k-m)*o);return`rgb(${a(r.r,l.r)}, ${a(r.g,l.g)}, ${a(r.b,l.b)})`}function st(e){return P()?Q(e.bg,"#05070f",.88):e.bg}function tn(e){let n=me(e);if(!n)return e;let o=r=>{let l=r/255,a=l<=.04045?l/12.92:Math.pow((l+.055)/1.055,2.4);return Math.round(a*255)};return`rgb(${o(n.r)}, ${o(n.g)}, ${o(n.b)})`}function nn(e){return tn(st(e))}function at(e,n){let o=0;for(let r of e)o=o*31+r.charCodeAt(0)>>>0;return n[o%n.length]??n[0]??e}function Ye(e,n){return e==="articles"?n.accent:e==="inbox"?n.tertiary:e==="root"?n.ink:at(e,[n.accent,n.tertiary,n.ink,n.gray])}function rn(e,n){return e.length===0?n.ink:at(e,[n.accent,n.tertiary])}function it(e){let n=e.split("/").map(a=>encodeURIComponent(a)).join("/"),o=document.querySelector("base")?.getAttribute("href"),r="/";o&&o.startsWith("/")&&!o.startsWith("//")&&(r=o.endsWith("/")?o:`${o}/`);let l=`${r}${n}`.replace(/\\/{2,}/g,"/");return new URL(l,window.location.origin)}function on(e){if(e.length===0)throw new Error("graph-landing: cannot navigate a node without a slug");let n=it(e);window.location.assign(n.toString())}function sn(e){let n=e.default;if(typeof n!="function")throw new Error("graph-landing: CDN module did not export a graph factory");return n()}function Xe(e,n){e.textContent=n,e.classList.add("graph-landing__error")}async function an(e){let o=await import(e?bt:ht);return e&&typeof o.default=="function"?o.default({controlType:"orbit"}):sn(o)}function cn(){try{let e=sessionStorage.getItem(Le);if(e==="hub")return"all";if(e==="all"||e==="tag"||e==="folder")return e}catch(e){console.error("[graph-landing] sessionStorage unavailable for lens persistence",e)}return"all"}function ln(){let e={nodeScale:.7,edgeScale:1,coresOnly:!1};try{sessionStorage.getItem(Le)==="hub"&&(e.coresOnly=!0);let n=sessionStorage.getItem(Qe);if(!n)return e;let o=ve(JSON.parse(n)),r=typeof o.nodeScale=="number"?o.nodeScale:e.nodeScale,l=typeof o.edgeScale=="number"?o.edgeScale:e.edgeScale,a=typeof o.coresOnly=="boolean"?o.coresOnly:e.coresOnly;return{nodeScale:r,edgeScale:l,coresOnly:a}}catch(n){return console.error("[graph-landing] sessionStorage unavailable for tune persistence",n),e}}function Ee(e){try{sessionStorage.setItem(Qe,JSON.stringify(e))}catch(n){console.error("[graph-landing] could not persist tune",n)}}function Je(e){try{sessionStorage.setItem(Le,e)}catch(n){console.error("[graph-landing] could not persist lens",n)}}function un(e){return e==="all"||e==="tag"||e==="folder"||e==="hub"}function dn(e){return e==="tight"||e==="normal"||e==="wide"}function gn(e,n){let o=e.nodes.filter(l=>l.type==="note").sort((l,a)=>a.degree-l.degree).slice(0,Lt),r=new Set;for(let l of o){r.add(l.id);for(let a of n.get(l.id)??[])r.add(a)}return r}function fn(e,n){return{nodes:e.nodes.filter(o=>n.has(o.id)),links:e.links.filter(o=>n.has(x(o.source))&&n.has(x(o.target)))}}function mn(e,n){return e.type==="tag"?e.tag===n:e.tags.includes(n)}function Ze(e,n){let o=x(n),r=e.find(l=>l.id===o);return!r||r.type!=="note"?null:r.folder}function pn(e,n,o){let r=new Map;if(n==="folder"){let l=[...new Set(e.nodes.filter(a=>a.type==="note").map(a=>a.folder))];return l.forEach((a,m)=>{let k=Math.PI*2*m/Math.max(l.length,1),w={x:Math.cos(k)*o,y:Math.sin(k)*o,z:0};for(let v of e.nodes)v.type==="note"&&v.folder===a&&r.set(v.id,w)}),r}if(n==="tag"){let l=e.nodes.filter(m=>m.type==="tag"),a=new Map;l.forEach((m,k)=>{let w=Math.PI*2*k/Math.max(l.length,1);a.set(m.tag,{x:Math.cos(w)*o,y:Math.sin(w)*o,z:0})});for(let m of e.nodes)if(m.type==="tag"){let k=a.get(m.tag);k&&r.set(m.id,k)}else if(m.dominantTag.length>0){let k=a.get(m.dominantTag);k&&r.set(m.id,k)}}return r}function hn(e,n){let o=[],r=l=>{let a=n*l;for(let m of o){let k=e(m);k&&(m.vx=(m.vx??0)+(k.x-(m.x??0))*a,m.vy=(m.vy??0)+(k.y-(m.y??0))*a,m.vz=(m.vz??0)+(k.z-(m.z??0))*a)}};return r.initialize=l=>{o=l},r}function fe(e,n,o,r){for(let l of e.querySelectorAll(n)){if(!(l instanceof HTMLElement))continue;let a=l.getAttribute(r);l.setAttribute("aria-pressed",a===o?"true":"false")}}function bn(e,n,o,r){let l=Jt(n.links),a={lens:cn(),spacing:"normal",allLabels:!1,focusTag:null},m=null,k=null,w=ln(),v=()=>k??m,R=new Set(n.nodes.filter(t=>t.type==="note").sort((t,s)=>s.degree-t.degree).slice(0,Et).map(t=>t.id)),A=t=>{let s=t.val;return t.isHub&&(s*=xt),a.lens==="tag"&&t.type==="tag"&&(s*=Nt),a.focusTag&&t.id===`tag:${a.focusTag}`&&(s*=Gt),s},C=t=>{let s=v();return a.allLabels||s===t.id||s!==null&&(l.get(s)?.has(t.id)??!1)?!0:R.has(t.id)},I=t=>{let s=nt((A(t)-Z)/5,0,1);return(Oe+s*(At-Oe))*w.nodeScale},N=t=>{let s=v();if(s!==null)return s===t||(l.get(s)?.has(t)??!1);if(a.focusTag===null)return!0;let c=n.nodes.find(u=>u.id===t);return c?mn(c,a.focusTag):!1},O=t=>t.type==="mention"?o.current.gray:a.lens==="tag"?t.type==="tag"?o.current.tertiary:rn(t.dominantTag,o.current):a.lens==="folder"?t.type==="tag"?o.current.tertiary:Ye(t.folder,o.current):a.lens==="hub"?t.type==="tag"?o.current.tertiary:t.isHub?o.current.accent:o.current.ink:t.type==="tag"?o.current.tertiary:o.current.ink,G=t=>{let s=v();if(s!==null&&(s===t.id||(l.get(s)?.has(t.id)??!1)))return o.current.accent;let c=O(t);return N(t.id)?P()?t.type==="mention"?c:t.type==="tag"?Q(o.current.tertiary,"#ffffff",.22):t.isHub?Q("#fff3e4",o.current.accent,.1):Q("#ffffff",o.current.accent,.12):c:J(c,Y)},H=t=>{let s=P();return t==="wikilink"?.34:t==="tag"?s?.22:.2:s?.12:.11},T=t=>{let s=x(t.source),c=x(t.target),u=v();return u!==null&&(s===u||c===u)?P()?.72:.62:(u!==null||a.focusTag!==null)&&(!N(s)||!N(c))?H(t.kind)*Y:H(t.kind)},z=t=>{let s=x(t.source),c=x(t.target),u=v();return u!==null&&(s===u||c===u)?Q(o.current.accent,Be,.45):P()?Be:o.current.gray},be=t=>J(z(t),T(t)),V=()=>w.coresOnly?fn(n,gn(n,l)):n,B=()=>{let t=Bt[a.spacing],s=e.d3Force("charge");s?.strength&&s.strength(t.charge);let c=e.d3Force("link");c?.distance&&c.distance(f=>a.lens==="tag"&&f.kind==="tag"?t.distance*.72:t.distance),c?.strength&&c.strength(f=>{if(f.kind==="cooc"||f.kind==="folder")return .04;if(a.lens==="tag"&&f.kind==="tag")return .95;if(a.lens==="folder"){let y=Ze(n.nodes,f.source),E=Ze(n.nodes,f.target);if(y!==null&&y===E)return .72}return f.kind==="tag"?.65:.8});let u=e.d3Force("center");u?.strength&&u.strength(vt);let g=a.spacing==="wide"?260:a.spacing==="tight"?130:190,b=pn(n,a.lens,g),h=a.lens==="folder"||a.lens==="tag"?.08:0;e.d3Force("cluster",hn(f=>b.get(f.id)??null,h)),r.use3d&&e.d3Force("flattenZ",null)},i=new Map,d=()=>{if(!r.use3d||typeof e.nodeThreeObject!="function")return;let t=r.spriteText,s=r.three;i.clear(),typeof e.nodeThreeObjectExtend=="function"&&e.nodeThreeObjectExtend(s===null),e.nodeThreeObject(c=>{let u=I(c),g=G(c),b=!1;if(s)if(P()){let E=c.isHub?1.35:1.1,_=new s.MeshLambertMaterial({color:g,emissive:g,emissiveIntensity:E});i.set(c.id,{material:_,base:E,phase:c.phase}),b=new s.Mesh(new s.SphereGeometry(u,14,14),_)}else b=new s.Mesh(new s.SphereGeometry(u,14,14),new s.MeshBasicMaterial({color:g}));if(!C(c)||!t)return b;let h=new t(c.name),f=P()?"rgba(255, 255, 255, 0.85)":o.current.ink;if(h.color=N(c.id)?f:J(f,Y),h.fontWeight="400",h.strokeWidth=0,h.textHeight=R.has(c.id)?6.5:5.5,h.center.set(0,.5),h.position.x=u+2,h.position.y=0,!s||b===!1)return h;let y=new s.Group;return y.add(b),y.add(h),y})},p=()=>{let t=r.three;if(!r.use3d||!t||typeof e.linkThreeObject!="function")return;let s=new t.Vector3(0,1,0);e.linkThreeObject(c=>{let u=Ot[c.kind]*w.edgeScale,g=new t.MeshBasicMaterial({color:z(c),transparent:!0,opacity:T(c),depthWrite:!1});return new t.Mesh(new t.CylinderGeometry(u,u,1,5),g)}),typeof e.linkPositionUpdate=="function"&&e.linkPositionUpdate((c,u)=>{let g=u.end.x-u.start.x,b=u.end.y-u.start.y,h=u.end.z-u.start.z,f=Math.sqrt(g*g+b*b+h*h);return c.position.x=(u.start.x+u.end.x)/2,c.position.y=(u.start.y+u.end.y)/2,c.position.z=(u.start.z+u.end.z)/2,c.scale.x=1,c.scale.y=Math.max(f,.01),c.scale.z=1,c.quaternion.setFromUnitVectors(s,new t.Vector3(g,b,h).normalize()),!0})},L=()=>{!r.use3d||typeof e.linkDirectionalParticles!="function"||e.linkDirectionalParticles(t=>{let s=v();if(s===null)return 0;let c=x(t.source),u=x(t.target);return c===s||u===s?2:0})},S=()=>{e.nodeVal(A),e.nodeColor(G),e.linkColor(be),e.linkWidth(t=>{let s=x(t.source),c=x(t.target),u=v(),g=w.edgeScale;return u!==null&&(s===u||c===u)?.7*g:t.kind==="wikilink"?.5*g:(t.kind==="tag"?.35:.25)*g}),typeof e.linkOpacity=="function"&&e.linkOpacity(Ae),L(),p(),r.use3d||e.nodeCanvasObjectMode(()=>"replace")},M=()=>{let t=r.root.querySelector("[data-graph-legend]");if(!(t instanceof HTMLElement))return;let s=(b,h)=>{let f=document.createElement("span");f.className="graph-landing__legend-item";let y=document.createElement("span");y.className="graph-landing__dot",y.setAttribute("aria-hidden","true"),y.style.background=b;let E=document.createElement("span");return E.textContent=h,f.append(y,E),f};if(a.lens==="folder"){let b=[...new Set(n.nodes.filter(f=>f.type==="note").map(f=>f.folder))],h=r.root.dataset.folderRootLabel??"root";t.replaceChildren(...b.map(f=>s(Ye(f,o.current),f==="root"?h:f)));return}let c=r.root.dataset.legendNotes??"Notes",u=r.root.dataset.legendTags??"Tags",g=r.root.dataset.legendMentions??"Mentions";t.replaceChildren(s(o.current.ink,c),s(o.current.tertiary,u),s(o.current.gray,g))},ct=()=>{let t=r.root.querySelector("[data-graph-tags]");if(!(t instanceof HTMLElement))return;let s=n.nodes.filter(g=>g.type==="tag").sort((g,b)=>b.degree-g.degree).slice(0,16),c=r.root.querySelector(".graph-landing__tags");c instanceof HTMLElement&&(c.hidden=s.length===0);let u=s.map(g=>{let b=document.createElement("li"),h=document.createElement("button");h.type="button",h.className="graph-landing__tag-item",h.dataset.graphTag=g.tag,h.setAttribute("aria-pressed",a.focusTag===g.tag?"true":"false");let f=document.createElement("span");f.textContent=g.tag;let y=document.createElement("span");return y.className="graph-landing__tag-count",y.textContent=String(g.degree),h.append(f,y),b.append(h),b});t.replaceChildren(...u)},ne=()=>{e.graphData(V()),B(),S(),d(),M(),fe(r.root,"[data-graph-lens]",a.lens,"data-graph-lens"),fe(r.root,"[data-graph-spacing]",a.spacing,"data-graph-spacing");for(let t of r.root.querySelectorAll("[data-graph-tag]"))t instanceof HTMLElement&&t.setAttribute("aria-pressed",t.dataset.graphTag===a.focusTag?"true":"false");e.d3ReheatSimulation()},lt=t=>{a.lens=t,t!=="tag"&&(a.focusTag=null),Je(t),ne()},ut=t=>{a.focusTag=a.focusTag===t?null:t,a.focusTag&&(a.lens="tag",Je("tag")),ne()},Se=()=>r.use3d?nn(o.current):st(o.current);e.graphData(V()),e.backgroundColor(Se()),e.nodeLabel(t=>t.name),e.nodeRelSize(St),typeof e.nodeOpacity=="function"&&e.nodeOpacity(Ct),typeof e.linkOpacity=="function"&&e.linkOpacity(Ae),B(),S();let $=r.root.querySelector("[data-graph-preview]"),re=r.root.querySelector("[data-graph-preview-chip]"),oe=r.root.querySelector("[data-graph-preview-title]"),se=r.root.querySelector("[data-graph-preview-excerpt]"),ae=0;window.addCleanup(()=>window.clearTimeout(ae));let dt=t=>{if(!($ instanceof HTMLElement)||!(re instanceof HTMLElement)||!(oe instanceof HTMLElement)||!(se instanceof HTMLElement))return;window.clearTimeout(ae);let s=r.root.dataset.legendNotes??"Notes",c=r.root.dataset.legendTags??"Tags",u=r.root.dataset.legendMentions??"Mentions";if(t.type==="tag"){let g=r.root.dataset.previewTagTemplate??"{n} notes";re.textContent=c,oe.textContent=`#${t.tag}`,se.textContent=g.replace("{n}",String(t.degree))}else t.type==="mention"?(re.textContent=u,oe.textContent=t.name,se.textContent=r.root.dataset.previewMention??"Mentioned, not published yet"):(re.textContent=s,oe.textContent=t.name,se.textContent=t.excerpt);$.hidden=!1,$.dataset.visible="true"},Ce=()=>{$ instanceof HTMLElement&&(window.clearTimeout(ae),ae=window.setTimeout(()=>{$.dataset.visible="false",$.hidden=!0},Rt))};if(e.onNodeHover(t=>{m=t?t.id:null,k===null&&(t?dt(t):Ce()),S(),r.use3d&&d()}),r.use3d){if(typeof e.showNavInfo=="function"&&e.showNavInfo(!1),typeof e.enableNavigationControls=="function"&&e.enableNavigationControls(!0),!te()&&typeof e.controls=="function"){let t=e.controls();t.autoRotate=!1,t.autoRotateSpeed=Mt;let s=window.setTimeout(()=>{typeof e.controls=="function"&&(e.controls().autoRotate=!0)},1600);window.addCleanup(()=>window.clearTimeout(s))}if(e.warmupTicks(50),e.cooldownTicks(200),typeof e.linkDirectionalParticleWidth=="function"&&e.linkDirectionalParticleWidth(1.1),typeof e.linkDirectionalParticleSpeed=="function"&&e.linkDirectionalParticleSpeed(.004),typeof e.linkDirectionalParticleColor=="function"&&e.linkDirectionalParticleColor(()=>o.current.accent),r.bloomPass&&typeof e.postProcessingComposer=="function"&&(r.bloomPass.strength=P()?De:0,r.bloomPass.radius=He,r.bloomPass.threshold=Re,e.postProcessingComposer().addPass(r.bloomPass)),typeof e.cameraPosition=="function"&&e.cameraPosition(_t,Pt),d(),!te()){let t=0,s=()=>{let c=performance.now()/1e3*Ht;for(let u of i.values())u.material.emissiveIntensity=u.base*(1+Dt*Math.sin(c+u.phase));t=window.requestAnimationFrame(s)};t=window.requestAnimationFrame(s),window.addCleanup(()=>window.cancelAnimationFrame(t))}}else e.warmupTicks(60),e.cooldownTicks(180),e.nodeCanvasObject((t,s,c)=>{let u=I(t),g=t.x??0,b=t.y??0;if(s.save(),s.beginPath(),s.arc(g,b,u,0,Math.PI*2),s.fillStyle=G(t),s.fill(),t.isHub&&(s.strokeStyle=N(t.id)?o.current.accent:J(o.current.accent,Y),s.lineWidth=1.2/c,s.stroke()),C(t)){let h=11.5/c;s.font=`${h}px ${o.current.font}`,s.fillStyle=N(t.id)?o.current.ink:J(o.current.ink,Y),s.textAlign="center",s.textBaseline="bottom",s.fillText(t.name,g,b-u-6)}s.restore()}),typeof e.nodePointerAreaPaint=="function"&&e.nodePointerAreaPaint((t,s,c)=>{let u=I(t)+8;c.beginPath(),c.arc(t.x??0,t.y??0,u,0,Math.PI*2),c.fillStyle=s,c.fill()});let ie=r.root.querySelector("[data-graph-inspect]"),ce=r.root.querySelector("[data-graph-inspect-chip]"),le=r.root.querySelector("[data-graph-inspect-title]"),ue=r.root.querySelector("[data-graph-inspect-excerpt]"),ye=r.root.querySelector("[data-graph-inspect-tags]"),we=r.root.querySelector("[data-graph-inspect-connected]"),q=r.root.querySelector("[data-graph-inspect-open]"),Me=t=>{te()||typeof e.controls!="function"||(e.controls().autoRotate=t)},gt=t=>{let s=l.get(t.id)??new Set,c=[];for(let u of s){let g=n.nodes.find(b=>b.id===u);g&&c.push(g)}return c.sort((u,g)=>g.degree-u.degree)},ft=t=>{if(!(ie instanceof HTMLElement)||!(ce instanceof HTMLElement)||!(le instanceof HTMLElement)||!(ue instanceof HTMLElement)||!(ye instanceof HTMLElement)||!(we instanceof HTMLElement))return;let s=r.root.dataset.legendNotes??"Notes",c=r.root.dataset.legendTags??"Tags",u=r.root.dataset.legendMentions??"Mentions",g=r.root.dataset.inspectEmpty??"No direct connections";t.type==="tag"?(ce.textContent=c,le.textContent=`#${t.tag}`,ue.textContent=(r.root.dataset.previewTagTemplate??"{n} notes").replace("{n}",String(t.degree))):t.type==="mention"?(ce.textContent=u,le.textContent=t.name,ue.textContent=r.root.dataset.previewMention??"Mentioned, not published yet"):(ce.textContent=s,le.textContent=t.name,ue.textContent=t.excerpt);let b=t.tags.map(f=>{let y=document.createElement("li");return y.textContent=f,y});ye.replaceChildren(...b),ye.hidden=b.length===0;let h=gt(t).slice(0,12);if(h.length===0){let f=document.createElement("li");f.className="graph-landing__inspect-empty",f.textContent=g,we.replaceChildren(f)}else we.replaceChildren(...h.map(f=>{let y=document.createElement("li"),E=document.createElement("button");E.type="button",E.className="graph-landing__inspect-link",E.dataset.graphInspectId=f.id;let _=f.type==="tag"?c:f.type==="mention"?u:s,D=document.createElement("span");D.textContent=_;let F=document.createElement("strong");return F.textContent=f.type==="tag"?`#${f.tag}`:f.name,E.append(D,F),y.append(E),y}));q instanceof HTMLAnchorElement&&(t.type==="note"&&t.slug.length>0?(q.hidden=!1,q.href=it(t.slug).toString()):(q.hidden=!0,q.removeAttribute("href"))),ie.hidden=!1,r.root.dataset.inspecting="true",Ce()},de=()=>{k=null,ie instanceof HTMLElement&&(ie.hidden=!0),r.root.dataset.inspecting="false",Me(!0),S(),r.use3d&&d()},xe=t=>{if(k===t.id&&t.type==="note"&&t.slug.length>0){on(t.slug);return}k=t.id,Me(!1),ft(t),S(),r.use3d&&d()},Ne=t=>{xe(t)},ke=!1;e.onNodeClick((t,s)=>{t&&(ke=!0,s&&typeof s.stopPropagation=="function"&&s.stopPropagation(),Ne(t))}),typeof e.onBackgroundClick=="function"&&e.onBackgroundClick(()=>{de()});let U=r.root.querySelector("#graph-landing-mount");if(U instanceof HTMLElement){let t=null,s=g=>{t={x:g.clientX,y:g.clientY}},c=(g,b)=>{if(typeof e.graph2ScreenCoords!="function")return null;let h=U.getBoundingClientRect(),f=g-h.left,y=b-h.top,E=null,_=4096;for(let D of V().nodes){if(D.x===void 0||D.y===void 0)continue;let F=e.graph2ScreenCoords(D.x,D.y,D.z??0),mt=(F.x-f)**2+(F.y-y)**2,pt=(F.x-g)**2+(F.y-b)**2,Pe=Math.min(mt,pt);Pe<_&&(_=Pe,E=D)}return E},u=g=>{let b=t;t=null,!(!b||(g.clientX-b.x)**2+(g.clientY-b.y)**2>25)&&window.setTimeout(()=>{if(ke){ke=!1;return}let f=c(g.clientX,g.clientY);f?Ne(f):de()},0)};U.addEventListener("pointerdown",s,!0),U.addEventListener("pointerup",u,!0),window.addCleanup(()=>{U.removeEventListener("pointerdown",s,!0),U.removeEventListener("pointerup",u,!0)})}fe(r.root,"[data-graph-lens]",a.lens,"data-graph-lens"),M(),ct(),a.lens!=="all"&&ne(),r.use3d||(typeof e.centerAt=="function"&&e.centerAt(0,0,0),typeof e.zoom=="function"&&e.zoom(1,0));let Ge=()=>{o.current=ot(),e.backgroundColor(Se()),r.bloomPass&&(r.bloomPass.strength=P()?De:0,r.bloomPass.radius=He,r.bloomPass.threshold=Re),S(),d(),M()};document.addEventListener("themechange",Ge),window.addCleanup(()=>document.removeEventListener("themechange",Ge));let Ie=t=>{let s=t.target;if(!(s instanceof Element))return;if(s.closest("[data-graph-inspect-close]")){de();return}let c=s.closest("[data-graph-inspect-id]");if(c instanceof HTMLElement&&c.dataset.graphInspectId){let y=n.nodes.find(E=>E.id===c.dataset.graphInspectId);y&&xe(y);return}let u=s.closest("[data-graph-lens]");if(u instanceof HTMLElement&&u.dataset.graphLens&&un(u.dataset.graphLens)){lt(u.dataset.graphLens);return}let g=s.closest("[data-graph-spacing]");if(g instanceof HTMLElement&&g.dataset.graphSpacing&&dn(g.dataset.graphSpacing)){a.spacing=g.dataset.graphSpacing,B(),e.d3ReheatSimulation(),fe(r.root,"[data-graph-spacing]",a.spacing,"data-graph-spacing");return}let b=s.closest("[data-graph-tag]");if(b instanceof HTMLElement&&b.dataset.graphTag){ut(b.dataset.graphTag);return}if(s.closest("[data-graph-relayout]")){e.d3ReheatSimulation();return}let h=s.closest("[data-graph-labels]");if(h instanceof HTMLButtonElement){a.allLabels=!a.allLabels,h.setAttribute("aria-pressed",a.allLabels?"true":"false");let y=h.dataset.labelShow??"Labels",E=h.dataset.labelHide??"Labels",_=h.querySelector("[data-graph-labels-text]");_&&(_.textContent=a.allLabels?E:y),d();return}if(s.closest("[data-graph-theme]")){let y=P()?"light":"dark";document.documentElement.setAttribute("saved-theme",y),localStorage.setItem("theme",y),document.body.classList.remove("theme-dark","theme-light"),document.body.classList.add(`theme-${y}`),document.dispatchEvent(new CustomEvent("themechange",{detail:{theme:y}}));return}let f=s.closest("[data-graph-tags-toggle]");if(f instanceof HTMLButtonElement){let y=r.root.querySelector(".graph-landing__tags");if(y instanceof HTMLElement){let E=y.dataset.open==="true";y.dataset.open=E?"false":"true",f.setAttribute("aria-expanded",E?"false":"true")}}},K=r.root.querySelector("[data-graph-node-scale]"),W=r.root.querySelector("[data-graph-edge-scale]"),j=r.root.querySelector("[data-graph-cores]");if(K instanceof HTMLInputElement){K.value=String(Math.round(w.nodeScale*100));let t=()=>{w.nodeScale=Number(K.value)/100,Ee(w),S(),r.use3d&&d()};K.addEventListener("input",t),window.addCleanup(()=>K.removeEventListener("input",t))}if(W instanceof HTMLInputElement){W.value=String(Math.round(w.edgeScale*100));let t=()=>{w.edgeScale=Number(W.value)/100,Ee(w),S()};W.addEventListener("input",t),window.addCleanup(()=>W.removeEventListener("input",t))}if(j instanceof HTMLInputElement){j.checked=w.coresOnly;let t=()=>{w.coresOnly=j.checked,Ee(w),ne()};j.addEventListener("change",t),window.addCleanup(()=>j.removeEventListener("change",t))}r.root.addEventListener("click",Ie),window.addCleanup(()=>r.root.removeEventListener("click",Ie));let _e=t=>{t.key==="Escape"&&de()};window.addEventListener("keydown",_e),window.addCleanup(()=>window.removeEventListener("keydown",_e))}async function yn(){let e=document.querySelector(".graph-landing");if(!(e instanceof HTMLElement)||e.dataset.graphReady==="1")return;e.dataset.graphReady="1";let n=e.querySelector("#graph-landing-mount");if(!(n instanceof HTMLElement))throw new Error("graph-landing: mount element #graph-landing-mount is missing");let o=e.querySelector("[data-graph-counts]"),r=e.dataset.locale??"ko",l=e.dataset.sourceLocale??"ko",a=(e.dataset.localePrefixes??"").split(",").map(T=>T.trim()).filter(T=>T.length>0),m=e.dataset.countsTemplate??"{n} nodes \\xB7 {m} edges",k=!1,w=null,v={current:ot()},R=()=>{k=!0,w&&(w._destructor(),w=null),delete e.dataset.graphReady};window.addCleanup(R);let A;try{A=ve(await fetchData)}catch(T){throw Xe(n,"Graph could not load content index."),T}if(k)return;let C=Xt(Ft(A),{localeId:r,sourceLocale:l,prefixes:a});o&&(o.textContent=m.replace("{n}",String(C.nodes.length)).replace("{m}",String(C.links.length)));let I=en(),N;try{N=await an(I)}catch(T){throw Xe(n,"Graph could not load. Check your network connection."),T}if(k)return;let O=null,G=null,H=null;if(I){try{O=(await import(yt)).default??null}catch(T){console.error("[graph-landing] SpriteText unavailable; 3D hub labels disabled",T),O=null}try{H=await import(wt)}catch(T){console.error("[graph-landing] three unavailable; using default node spheres",T),H=null}try{let T=await import(kt);G=T.UnrealBloomPass?new T.UnrealBloomPass:null}catch(T){console.error("[graph-landing] UnrealBloomPass unavailable; dark-mode bloom disabled",T),G=null}}if(!k&&(n.replaceChildren(),w=N(n),n.__graphLanding=w,n.__graphData=C,bn(w,C,v,{use3d:I,root:e,spriteText:O,bloomPass:G,three:H}),I&&!te())){let T=()=>{!w||typeof w.controls!="function"||(w.controls().autoRotate=!1)};n.addEventListener("pointerdown",T,{once:!0}),window.addCleanup(()=>n.removeEventListener("pointerdown",T))}}var wn="preferred-locale";document.addEventListener("click",e=>{let n=e.target;if(!(n instanceof Element))return;let o=n.closest("a[data-preferred-locale]");if(!(o instanceof HTMLAnchorElement))return;let r=o.dataset.preferredLocale;if(r)try{localStorage.setItem(wn,r)}catch(l){console.error("[graph-landing] failed to persist preferred-locale",l)}});document.addEventListener("nav",()=>{yn()});\n';
 
-// node_modules/inline-style-parser/cjs/index.js
-var require_cjs = __commonJS({
-  "node_modules/inline-style-parser/cjs/index.js"(exports, module) {
-    var COMMENT_REGEX = /\/\*[^*]*\*+([^/*][^*]*\*+)*\//g;
-    var NEWLINE_REGEX = /\n/g;
-    var WHITESPACE_REGEX = /^\s*/;
-    var PROPERTY_REGEX = /^(\*?[-#/*\\\w]+(\[[0-9a-z_-]+\])?)\s*/;
-    var COLON_REGEX = /^:\s*/;
-    var VALUE_REGEX = /^((?:'(?:\\'|.)*?'|"(?:\\"|.)*?"|\([^)]*?\)|[^};])+)/;
-    var SEMICOLON_REGEX = /^[;\s]*/;
-    var TRIM_REGEX = /^\s+|\s+$/g;
-    var NEWLINE = "\n";
-    var FORWARD_SLASH = "/";
-    var ASTERISK = "*";
-    var EMPTY_STRING = "";
-    var TYPE_COMMENT = "comment";
-    var TYPE_DECLARATION = "declaration";
-    function index2(style, options) {
-      if (typeof style !== "string") {
-        throw new TypeError("First argument must be a string");
-      }
-      if (!style) return [];
-      options = options || {};
-      var lineno = 1;
-      var column = 1;
-      function updatePosition(str) {
-        var lines = str.match(NEWLINE_REGEX);
-        if (lines) lineno += lines.length;
-        var i2 = str.lastIndexOf(NEWLINE);
-        column = ~i2 ? str.length - i2 : column + str.length;
-      }
-      function position3() {
-        var start2 = { line: lineno, column };
-        return function(node) {
-          node.position = new Position(start2);
-          whitespace2();
-          return node;
-        };
-      }
-      function Position(start2) {
-        this.start = start2;
-        this.end = { line: lineno, column };
-        this.source = options.source;
-      }
-      Position.prototype.content = style;
-      function error(msg) {
-        var err = new Error(
-          options.source + ":" + lineno + ":" + column + ": " + msg
-        );
-        err.reason = msg;
-        err.filename = options.source;
-        err.line = lineno;
-        err.column = column;
-        err.source = style;
-        if (options.silent) ;
-        else {
-          throw err;
-        }
-      }
-      function match(re2) {
-        var m2 = re2.exec(style);
-        if (!m2) return;
-        var str = m2[0];
-        updatePosition(str);
-        style = style.slice(str.length);
-        return m2;
-      }
-      function whitespace2() {
-        match(WHITESPACE_REGEX);
-      }
-      function comments(rules) {
-        var c2;
-        rules = rules || [];
-        while (c2 = comment()) {
-          if (c2 !== false) {
-            rules.push(c2);
-          }
-        }
-        return rules;
-      }
-      function comment() {
-        var pos = position3();
-        if (FORWARD_SLASH != style.charAt(0) || ASTERISK != style.charAt(1)) return;
-        var i2 = 2;
-        while (EMPTY_STRING != style.charAt(i2) && (ASTERISK != style.charAt(i2) || FORWARD_SLASH != style.charAt(i2 + 1))) {
-          ++i2;
-        }
-        i2 += 2;
-        if (EMPTY_STRING === style.charAt(i2 - 1)) {
-          return error("End of comment missing");
-        }
-        var str = style.slice(2, i2 - 2);
-        column += 2;
-        updatePosition(str);
-        style = style.slice(i2);
-        column += 2;
-        return pos({
-          type: TYPE_COMMENT,
-          comment: str
-        });
-      }
-      function declaration() {
-        var pos = position3();
-        var prop = match(PROPERTY_REGEX);
-        if (!prop) return;
-        comment();
-        if (!match(COLON_REGEX)) return error("property missing ':'");
-        var val = match(VALUE_REGEX);
-        var ret = pos({
-          type: TYPE_DECLARATION,
-          property: trim(prop[0].replace(COMMENT_REGEX, EMPTY_STRING)),
-          value: val ? trim(val[0].replace(COMMENT_REGEX, EMPTY_STRING)) : EMPTY_STRING
-        });
-        match(SEMICOLON_REGEX);
-        return ret;
-      }
-      function declarations() {
-        var decls = [];
-        comments(decls);
-        var decl;
-        while (decl = declaration()) {
-          if (decl !== false) {
-            decls.push(decl);
-            comments(decls);
-          }
-        }
-        return decls;
-      }
-      whitespace2();
-      return declarations();
-    }
-    function trim(str) {
-      return str ? str.replace(TRIM_REGEX, EMPTY_STRING) : EMPTY_STRING;
-    }
-    module.exports = index2;
-  }
-});
-
-// node_modules/style-to-object/cjs/index.js
-var require_cjs2 = __commonJS({
-  "node_modules/style-to-object/cjs/index.js"(exports) {
-    var __importDefault = exports && exports.__importDefault || function(mod) {
-      return mod && mod.__esModule ? mod : { "default": mod };
-    };
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.default = StyleToObject;
-    var inline_style_parser_1 = __importDefault(require_cjs());
-    function StyleToObject(style, iterator) {
-      let styleObject = null;
-      if (!style || typeof style !== "string") {
-        return styleObject;
-      }
-      const declarations = (0, inline_style_parser_1.default)(style);
-      const hasIterator = typeof iterator === "function";
-      declarations.forEach((declaration) => {
-        if (declaration.type !== "declaration") {
-          return;
-        }
-        const { property, value } = declaration;
-        if (hasIterator) {
-          iterator(property, value, declaration);
-        } else if (value) {
-          styleObject = styleObject || {};
-          styleObject[property] = value;
-        }
-      });
-      return styleObject;
-    }
-  }
-});
-
-// node_modules/style-to-js/cjs/utilities.js
-var require_utilities = __commonJS({
-  "node_modules/style-to-js/cjs/utilities.js"(exports) {
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.camelCase = void 0;
-    var CUSTOM_PROPERTY_REGEX = /^--[a-zA-Z0-9_-]+$/;
-    var HYPHEN_REGEX = /-([a-z])/g;
-    var NO_HYPHEN_REGEX = /^[^-]+$/;
-    var VENDOR_PREFIX_REGEX = /^-(webkit|moz|ms|o|khtml)-/;
-    var MS_VENDOR_PREFIX_REGEX = /^-(ms)-/;
-    var skipCamelCase = function(property) {
-      return !property || NO_HYPHEN_REGEX.test(property) || CUSTOM_PROPERTY_REGEX.test(property);
-    };
-    var capitalize = function(match, character) {
-      return character.toUpperCase();
-    };
-    var trimHyphen = function(match, prefix) {
-      return "".concat(prefix, "-");
-    };
-    var camelCase = function(property, options) {
-      if (options === void 0) {
-        options = {};
-      }
-      if (skipCamelCase(property)) {
-        return property;
-      }
-      property = property.toLowerCase();
-      if (options.reactCompat) {
-        property = property.replace(MS_VENDOR_PREFIX_REGEX, trimHyphen);
-      } else {
-        property = property.replace(VENDOR_PREFIX_REGEX, trimHyphen);
-      }
-      return property.replace(HYPHEN_REGEX, capitalize);
-    };
-    exports.camelCase = camelCase;
-  }
-});
-
-// node_modules/style-to-js/cjs/index.js
-var require_cjs3 = __commonJS({
-  "node_modules/style-to-js/cjs/index.js"(exports, module) {
-    var __importDefault = exports && exports.__importDefault || function(mod) {
-      return mod && mod.__esModule ? mod : { "default": mod };
-    };
-    var style_to_object_1 = __importDefault(require_cjs2());
-    var utilities_1 = require_utilities();
-    function StyleToJS(style, options) {
-      var output = {};
-      if (!style || typeof style !== "string") {
-        return output;
-      }
-      (0, style_to_object_1.default)(style, function(property, value) {
-        if (property && value) {
-          output[(0, utilities_1.camelCase)(property, options)] = value;
-        }
-      });
-      return output;
-    }
-    StyleToJS.default = StyleToJS;
-    module.exports = StyleToJS;
-  }
-});
-
-// node_modules/comma-separated-tokens/index.js
-function stringify(values, options) {
-  const settings = {};
-  const input = values[values.length - 1] === "" ? [...values, ""] : values;
-  return input.join(
-    (settings.padRight ? " " : "") + "," + (settings.padLeft === false ? "" : " ")
-  ).trim();
-}
-
-// node_modules/devlop/lib/default.js
-function ok() {
-}
-
-// node_modules/estree-util-is-identifier-name/lib/index.js
-var nameRe = /^[$_\p{ID_Start}][$_\u{200C}\u{200D}\p{ID_Continue}]*$/u;
-var nameReJsx = /^[$_\p{ID_Start}][-$_\u{200C}\u{200D}\p{ID_Continue}]*$/u;
-var emptyOptions = {};
-function name(name2, options) {
-  const settings = emptyOptions;
-  const re2 = settings.jsx ? nameReJsx : nameRe;
-  return re2.test(name2);
-}
-
-// node_modules/hast-util-whitespace/lib/index.js
-var re = /[ \t\n\f\r]/g;
-function whitespace(thing) {
-  return typeof thing === "object" ? thing.type === "text" ? empty(thing.value) : false : empty(thing);
-}
-function empty(value) {
-  return value.replace(re, "") === "";
-}
-
-// node_modules/property-information/lib/util/schema.js
-var Schema = class {
-  /**
-   * @param {SchemaType['property']} property
-   *   Property.
-   * @param {SchemaType['normal']} normal
-   *   Normal.
-   * @param {Space | undefined} [space]
-   *   Space.
-   * @returns
-   *   Schema.
-   */
-  constructor(property, normal, space) {
-    this.normal = normal;
-    this.property = property;
-    if (space) {
-      this.space = space;
-    }
-  }
-};
-Schema.prototype.normal = {};
-Schema.prototype.property = {};
-Schema.prototype.space = void 0;
-
-// node_modules/property-information/lib/util/merge.js
-function merge(definitions, space) {
-  const property = {};
-  const normal = {};
-  for (const definition of definitions) {
-    Object.assign(property, definition.property);
-    Object.assign(normal, definition.normal);
-  }
-  return new Schema(property, normal, space);
-}
-
-// node_modules/property-information/lib/normalize.js
-function normalize(value) {
-  return value.toLowerCase();
-}
-
-// node_modules/property-information/lib/util/info.js
-var Info = class {
-  /**
-   * @param {string} property
-   *   Property.
-   * @param {string} attribute
-   *   Attribute.
-   * @returns
-   *   Info.
-   */
-  constructor(property, attribute) {
-    this.attribute = attribute;
-    this.property = property;
-  }
-};
-Info.prototype.attribute = "";
-Info.prototype.booleanish = false;
-Info.prototype.boolean = false;
-Info.prototype.commaOrSpaceSeparated = false;
-Info.prototype.commaSeparated = false;
-Info.prototype.defined = false;
-Info.prototype.mustUseProperty = false;
-Info.prototype.number = false;
-Info.prototype.overloadedBoolean = false;
-Info.prototype.property = "";
-Info.prototype.spaceSeparated = false;
-Info.prototype.space = void 0;
-
-// node_modules/property-information/lib/util/types.js
-var types_exports = {};
-__export(types_exports, {
-  boolean: () => boolean,
-  booleanish: () => booleanish,
-  commaOrSpaceSeparated: () => commaOrSpaceSeparated,
-  commaSeparated: () => commaSeparated,
-  number: () => number,
-  overloadedBoolean: () => overloadedBoolean,
-  spaceSeparated: () => spaceSeparated
-});
-var powers = 0;
-var boolean = increment();
-var booleanish = increment();
-var overloadedBoolean = increment();
-var number = increment();
-var spaceSeparated = increment();
-var commaSeparated = increment();
-var commaOrSpaceSeparated = increment();
-function increment() {
-  return 2 ** ++powers;
-}
-
-// node_modules/property-information/lib/util/defined-info.js
-var checks = (
-  /** @type {ReadonlyArray<keyof typeof types>} */
-  Object.keys(types_exports)
-);
-var DefinedInfo = class extends Info {
-  /**
-   * @constructor
-   * @param {string} property
-   *   Property.
-   * @param {string} attribute
-   *   Attribute.
-   * @param {number | null | undefined} [mask]
-   *   Mask.
-   * @param {Space | undefined} [space]
-   *   Space.
-   * @returns
-   *   Info.
-   */
-  constructor(property, attribute, mask, space) {
-    let index2 = -1;
-    super(property, attribute);
-    mark(this, "space", space);
-    if (typeof mask === "number") {
-      while (++index2 < checks.length) {
-        const check = checks[index2];
-        mark(this, checks[index2], (mask & types_exports[check]) === types_exports[check]);
-      }
-    }
-  }
-};
-DefinedInfo.prototype.defined = true;
-function mark(values, key, value) {
-  if (value) {
-    values[key] = value;
-  }
-}
-
-// node_modules/property-information/lib/util/create.js
-function create(definition) {
-  const properties = {};
-  const normals = {};
-  for (const [property, value] of Object.entries(definition.properties)) {
-    const info = new DefinedInfo(
-      property,
-      definition.transform(definition.attributes || {}, property),
-      value,
-      definition.space
-    );
-    if (definition.mustUseProperty && definition.mustUseProperty.includes(property)) {
-      info.mustUseProperty = true;
-    }
-    properties[property] = info;
-    normals[normalize(property)] = property;
-    normals[normalize(info.attribute)] = property;
-  }
-  return new Schema(properties, normals, definition.space);
-}
-
-// node_modules/property-information/lib/aria.js
-var aria = create({
-  properties: {
-    ariaActiveDescendant: null,
-    ariaAtomic: booleanish,
-    ariaAutoComplete: null,
-    ariaBusy: booleanish,
-    ariaChecked: booleanish,
-    ariaColCount: number,
-    ariaColIndex: number,
-    ariaColSpan: number,
-    ariaControls: spaceSeparated,
-    ariaCurrent: null,
-    ariaDescribedBy: spaceSeparated,
-    ariaDetails: null,
-    ariaDisabled: booleanish,
-    ariaDropEffect: spaceSeparated,
-    ariaErrorMessage: null,
-    ariaExpanded: booleanish,
-    ariaFlowTo: spaceSeparated,
-    ariaGrabbed: booleanish,
-    ariaHasPopup: null,
-    ariaHidden: booleanish,
-    ariaInvalid: null,
-    ariaKeyShortcuts: null,
-    ariaLabel: null,
-    ariaLabelledBy: spaceSeparated,
-    ariaLevel: number,
-    ariaLive: null,
-    ariaModal: booleanish,
-    ariaMultiLine: booleanish,
-    ariaMultiSelectable: booleanish,
-    ariaOrientation: null,
-    ariaOwns: spaceSeparated,
-    ariaPlaceholder: null,
-    ariaPosInSet: number,
-    ariaPressed: booleanish,
-    ariaReadOnly: booleanish,
-    ariaRelevant: null,
-    ariaRequired: booleanish,
-    ariaRoleDescription: spaceSeparated,
-    ariaRowCount: number,
-    ariaRowIndex: number,
-    ariaRowSpan: number,
-    ariaSelected: booleanish,
-    ariaSetSize: number,
-    ariaSort: null,
-    ariaValueMax: number,
-    ariaValueMin: number,
-    ariaValueNow: number,
-    ariaValueText: null,
-    role: null
-  },
-  transform(_2, property) {
-    return property === "role" ? property : "aria-" + property.slice(4).toLowerCase();
-  }
-});
-
-// node_modules/property-information/lib/util/case-sensitive-transform.js
-function caseSensitiveTransform(attributes, attribute) {
-  return attribute in attributes ? attributes[attribute] : attribute;
-}
-
-// node_modules/property-information/lib/util/case-insensitive-transform.js
-function caseInsensitiveTransform(attributes, property) {
-  return caseSensitiveTransform(attributes, property.toLowerCase());
-}
-
-// node_modules/property-information/lib/html.js
-var html = create({
-  attributes: {
-    acceptcharset: "accept-charset",
-    classname: "class",
-    htmlfor: "for",
-    httpequiv: "http-equiv"
-  },
-  mustUseProperty: ["checked", "multiple", "muted", "selected"],
-  properties: {
-    // Standard Properties.
-    abbr: null,
-    accept: commaSeparated,
-    acceptCharset: spaceSeparated,
-    accessKey: spaceSeparated,
-    action: null,
-    allow: null,
-    allowFullScreen: boolean,
-    allowPaymentRequest: boolean,
-    allowUserMedia: boolean,
-    alpha: boolean,
-    alt: null,
-    as: null,
-    async: boolean,
-    autoCapitalize: null,
-    autoComplete: spaceSeparated,
-    autoFocus: boolean,
-    autoPlay: boolean,
-    blocking: spaceSeparated,
-    capture: null,
-    charSet: null,
-    checked: boolean,
-    cite: null,
-    className: spaceSeparated,
-    closedBy: null,
-    colorSpace: null,
-    cols: number,
-    colSpan: number,
-    command: null,
-    commandFor: null,
-    content: null,
-    contentEditable: booleanish,
-    controls: boolean,
-    controlsList: spaceSeparated,
-    coords: number | commaSeparated,
-    crossOrigin: null,
-    data: null,
-    dateTime: null,
-    decoding: null,
-    default: boolean,
-    defer: boolean,
-    dir: null,
-    dirName: null,
-    disabled: boolean,
-    download: overloadedBoolean,
-    draggable: booleanish,
-    encType: null,
-    enterKeyHint: null,
-    fetchPriority: null,
-    form: null,
-    formAction: null,
-    formEncType: null,
-    formMethod: null,
-    formNoValidate: boolean,
-    formTarget: null,
-    headers: spaceSeparated,
-    height: number,
-    hidden: overloadedBoolean,
-    high: number,
-    href: null,
-    hrefLang: null,
-    htmlFor: spaceSeparated,
-    httpEquiv: spaceSeparated,
-    id: null,
-    imageSizes: null,
-    imageSrcSet: null,
-    inert: boolean,
-    inputMode: null,
-    integrity: null,
-    is: null,
-    isMap: boolean,
-    itemId: null,
-    itemProp: spaceSeparated,
-    itemRef: spaceSeparated,
-    itemScope: boolean,
-    itemType: spaceSeparated,
-    kind: null,
-    label: null,
-    lang: null,
-    language: null,
-    list: null,
-    loading: null,
-    loop: boolean,
-    low: number,
-    manifest: null,
-    max: null,
-    maxLength: number,
-    media: null,
-    method: null,
-    min: null,
-    minLength: number,
-    multiple: boolean,
-    muted: boolean,
-    name: null,
-    nonce: null,
-    noModule: boolean,
-    noValidate: boolean,
-    onAbort: null,
-    onAfterPrint: null,
-    onAuxClick: null,
-    onBeforeMatch: null,
-    onBeforePrint: null,
-    onBeforeToggle: null,
-    onBeforeUnload: null,
-    onBlur: null,
-    onCancel: null,
-    onCanPlay: null,
-    onCanPlayThrough: null,
-    onChange: null,
-    onClick: null,
-    onClose: null,
-    onContextLost: null,
-    onContextMenu: null,
-    onContextRestored: null,
-    onCopy: null,
-    onCueChange: null,
-    onCut: null,
-    onDblClick: null,
-    onDrag: null,
-    onDragEnd: null,
-    onDragEnter: null,
-    onDragExit: null,
-    onDragLeave: null,
-    onDragOver: null,
-    onDragStart: null,
-    onDrop: null,
-    onDurationChange: null,
-    onEmptied: null,
-    onEnded: null,
-    onError: null,
-    onFocus: null,
-    onFormData: null,
-    onHashChange: null,
-    onInput: null,
-    onInvalid: null,
-    onKeyDown: null,
-    onKeyPress: null,
-    onKeyUp: null,
-    onLanguageChange: null,
-    onLoad: null,
-    onLoadedData: null,
-    onLoadedMetadata: null,
-    onLoadEnd: null,
-    onLoadStart: null,
-    onMessage: null,
-    onMessageError: null,
-    onMouseDown: null,
-    onMouseEnter: null,
-    onMouseLeave: null,
-    onMouseMove: null,
-    onMouseOut: null,
-    onMouseOver: null,
-    onMouseUp: null,
-    onOffline: null,
-    onOnline: null,
-    onPageHide: null,
-    onPageShow: null,
-    onPaste: null,
-    onPause: null,
-    onPlay: null,
-    onPlaying: null,
-    onPopState: null,
-    onProgress: null,
-    onRateChange: null,
-    onRejectionHandled: null,
-    onReset: null,
-    onResize: null,
-    onScroll: null,
-    onScrollEnd: null,
-    onSecurityPolicyViolation: null,
-    onSeeked: null,
-    onSeeking: null,
-    onSelect: null,
-    onSlotChange: null,
-    onStalled: null,
-    onStorage: null,
-    onSubmit: null,
-    onSuspend: null,
-    onTimeUpdate: null,
-    onToggle: null,
-    onUnhandledRejection: null,
-    onUnload: null,
-    onVolumeChange: null,
-    onWaiting: null,
-    onWheel: null,
-    open: boolean,
-    optimum: number,
-    pattern: null,
-    ping: spaceSeparated,
-    placeholder: null,
-    playsInline: boolean,
-    popover: null,
-    popoverTarget: null,
-    popoverTargetAction: null,
-    poster: null,
-    preload: null,
-    readOnly: boolean,
-    referrerPolicy: null,
-    rel: spaceSeparated,
-    required: boolean,
-    reversed: boolean,
-    rows: number,
-    rowSpan: number,
-    sandbox: spaceSeparated,
-    scope: null,
-    scoped: boolean,
-    seamless: boolean,
-    selected: boolean,
-    shadowRootClonable: boolean,
-    shadowRootCustomElementRegistry: boolean,
-    shadowRootDelegatesFocus: boolean,
-    shadowRootMode: null,
-    shadowRootSerializable: boolean,
-    shape: null,
-    size: number,
-    sizes: null,
-    slot: null,
-    span: number,
-    spellCheck: booleanish,
-    src: null,
-    srcDoc: null,
-    srcLang: null,
-    srcSet: null,
-    start: number,
-    step: null,
-    style: null,
-    tabIndex: number,
-    target: null,
-    title: null,
-    translate: null,
-    type: null,
-    typeMustMatch: boolean,
-    useMap: null,
-    value: booleanish,
-    width: number,
-    wrap: null,
-    writingSuggestions: null,
-    // Legacy.
-    // See: https://html.spec.whatwg.org/#other-elements,-attributes-and-apis
-    align: null,
-    // Several. Use CSS `text-align` instead,
-    aLink: null,
-    // `<body>`. Use CSS `a:active {color}` instead
-    archive: spaceSeparated,
-    // `<object>`. List of URIs to archives
-    axis: null,
-    // `<td>` and `<th>`. Use `scope` on `<th>`
-    background: null,
-    // `<body>`. Use CSS `background-image` instead
-    bgColor: null,
-    // `<body>` and table elements. Use CSS `background-color` instead
-    border: number,
-    // `<table>`. Use CSS `border-width` instead,
-    borderColor: null,
-    // `<table>`. Use CSS `border-color` instead,
-    bottomMargin: number,
-    // `<body>`
-    cellPadding: null,
-    // `<table>`
-    cellSpacing: null,
-    // `<table>`
-    char: null,
-    // Several table elements. When `align=char`, sets the character to align on
-    charOff: null,
-    // Several table elements. When `char`, offsets the alignment
-    classId: null,
-    // `<object>`
-    clear: null,
-    // `<br>`. Use CSS `clear` instead
-    code: null,
-    // `<object>`
-    codeBase: null,
-    // `<object>`
-    codeType: null,
-    // `<object>`
-    color: null,
-    // `<font>` and `<hr>`. Use CSS instead
-    compact: boolean,
-    // Lists. Use CSS to reduce space between items instead
-    declare: boolean,
-    // `<object>`
-    event: null,
-    // `<script>`
-    face: null,
-    // `<font>`. Use CSS instead
-    frame: null,
-    // `<table>`
-    frameBorder: null,
-    // `<iframe>`. Use CSS `border` instead
-    hSpace: number,
-    // `<img>` and `<object>`
-    leftMargin: number,
-    // `<body>`
-    link: null,
-    // `<body>`. Use CSS `a:link {color: *}` instead
-    longDesc: null,
-    // `<frame>`, `<iframe>`, and `<img>`. Use an `<a>`
-    lowSrc: null,
-    // `<img>`. Use a `<picture>`
-    marginHeight: number,
-    // `<body>`
-    marginWidth: number,
-    // `<body>`
-    noResize: boolean,
-    // `<frame>`
-    noHref: boolean,
-    // `<area>`. Use no href instead of an explicit `nohref`
-    noShade: boolean,
-    // `<hr>`. Use background-color and height instead of borders
-    noWrap: boolean,
-    // `<td>` and `<th>`
-    object: null,
-    // `<applet>`
-    profile: null,
-    // `<head>`
-    prompt: null,
-    // `<isindex>`
-    rev: null,
-    // `<link>`
-    rightMargin: number,
-    // `<body>`
-    rules: null,
-    // `<table>`
-    scheme: null,
-    // `<meta>`
-    scrolling: booleanish,
-    // `<frame>`. Use overflow in the child context
-    standby: null,
-    // `<object>`
-    summary: null,
-    // `<table>`
-    text: null,
-    // `<body>`. Use CSS `color` instead
-    topMargin: number,
-    // `<body>`
-    valueType: null,
-    // `<param>`
-    version: null,
-    // `<html>`. Use a doctype.
-    vAlign: null,
-    // Several. Use CSS `vertical-align` instead
-    vLink: null,
-    // `<body>`. Use CSS `a:visited {color}` instead
-    vSpace: number,
-    // `<img>` and `<object>`
-    // Non-standard Properties.
-    allowTransparency: null,
-    autoCorrect: null,
-    autoSave: null,
-    credentialless: boolean,
-    disablePictureInPicture: boolean,
-    disableRemotePlayback: boolean,
-    exportParts: commaSeparated,
-    part: spaceSeparated,
-    prefix: null,
-    property: null,
-    results: number,
-    security: null,
-    unselectable: null
-  },
-  space: "html",
-  transform: caseInsensitiveTransform
-});
-
-// node_modules/property-information/lib/svg.js
-var svg = create({
-  attributes: {
-    accentHeight: "accent-height",
-    alignmentBaseline: "alignment-baseline",
-    arabicForm: "arabic-form",
-    baselineShift: "baseline-shift",
-    capHeight: "cap-height",
-    className: "class",
-    clipPath: "clip-path",
-    clipRule: "clip-rule",
-    colorInterpolation: "color-interpolation",
-    colorInterpolationFilters: "color-interpolation-filters",
-    colorProfile: "color-profile",
-    colorRendering: "color-rendering",
-    crossOrigin: "crossorigin",
-    dataType: "datatype",
-    dominantBaseline: "dominant-baseline",
-    enableBackground: "enable-background",
-    fillOpacity: "fill-opacity",
-    fillRule: "fill-rule",
-    floodColor: "flood-color",
-    floodOpacity: "flood-opacity",
-    fontFamily: "font-family",
-    fontSize: "font-size",
-    fontSizeAdjust: "font-size-adjust",
-    fontStretch: "font-stretch",
-    fontStyle: "font-style",
-    fontVariant: "font-variant",
-    fontWeight: "font-weight",
-    glyphName: "glyph-name",
-    glyphOrientationHorizontal: "glyph-orientation-horizontal",
-    glyphOrientationVertical: "glyph-orientation-vertical",
-    hrefLang: "hreflang",
-    horizAdvX: "horiz-adv-x",
-    horizOriginX: "horiz-origin-x",
-    horizOriginY: "horiz-origin-y",
-    imageRendering: "image-rendering",
-    letterSpacing: "letter-spacing",
-    lightingColor: "lighting-color",
-    markerEnd: "marker-end",
-    markerMid: "marker-mid",
-    markerStart: "marker-start",
-    maskType: "mask-type",
-    navDown: "nav-down",
-    navDownLeft: "nav-down-left",
-    navDownRight: "nav-down-right",
-    navLeft: "nav-left",
-    navNext: "nav-next",
-    navPrev: "nav-prev",
-    navRight: "nav-right",
-    navUp: "nav-up",
-    navUpLeft: "nav-up-left",
-    navUpRight: "nav-up-right",
-    onAbort: "onabort",
-    onActivate: "onactivate",
-    onAfterPrint: "onafterprint",
-    onBeforePrint: "onbeforeprint",
-    onBegin: "onbegin",
-    onCancel: "oncancel",
-    onCanPlay: "oncanplay",
-    onCanPlayThrough: "oncanplaythrough",
-    onChange: "onchange",
-    onClick: "onclick",
-    onClose: "onclose",
-    onCopy: "oncopy",
-    onCueChange: "oncuechange",
-    onCut: "oncut",
-    onDblClick: "ondblclick",
-    onDrag: "ondrag",
-    onDragEnd: "ondragend",
-    onDragEnter: "ondragenter",
-    onDragExit: "ondragexit",
-    onDragLeave: "ondragleave",
-    onDragOver: "ondragover",
-    onDragStart: "ondragstart",
-    onDrop: "ondrop",
-    onDurationChange: "ondurationchange",
-    onEmptied: "onemptied",
-    onEnd: "onend",
-    onEnded: "onended",
-    onError: "onerror",
-    onFocus: "onfocus",
-    onFocusIn: "onfocusin",
-    onFocusOut: "onfocusout",
-    onHashChange: "onhashchange",
-    onInput: "oninput",
-    onInvalid: "oninvalid",
-    onKeyDown: "onkeydown",
-    onKeyPress: "onkeypress",
-    onKeyUp: "onkeyup",
-    onLoad: "onload",
-    onLoadedData: "onloadeddata",
-    onLoadedMetadata: "onloadedmetadata",
-    onLoadStart: "onloadstart",
-    onMessage: "onmessage",
-    onMouseDown: "onmousedown",
-    onMouseEnter: "onmouseenter",
-    onMouseLeave: "onmouseleave",
-    onMouseMove: "onmousemove",
-    onMouseOut: "onmouseout",
-    onMouseOver: "onmouseover",
-    onMouseUp: "onmouseup",
-    onMouseWheel: "onmousewheel",
-    onOffline: "onoffline",
-    onOnline: "ononline",
-    onPageHide: "onpagehide",
-    onPageShow: "onpageshow",
-    onPaste: "onpaste",
-    onPause: "onpause",
-    onPlay: "onplay",
-    onPlaying: "onplaying",
-    onPopState: "onpopstate",
-    onProgress: "onprogress",
-    onRateChange: "onratechange",
-    onRepeat: "onrepeat",
-    onReset: "onreset",
-    onResize: "onresize",
-    onScroll: "onscroll",
-    onSeeked: "onseeked",
-    onSeeking: "onseeking",
-    onSelect: "onselect",
-    onShow: "onshow",
-    onStalled: "onstalled",
-    onStorage: "onstorage",
-    onSubmit: "onsubmit",
-    onSuspend: "onsuspend",
-    onTimeUpdate: "ontimeupdate",
-    onToggle: "ontoggle",
-    onUnload: "onunload",
-    onVolumeChange: "onvolumechange",
-    onWaiting: "onwaiting",
-    onZoom: "onzoom",
-    overlinePosition: "overline-position",
-    overlineThickness: "overline-thickness",
-    paintOrder: "paint-order",
-    panose1: "panose-1",
-    pointerEvents: "pointer-events",
-    referrerPolicy: "referrerpolicy",
-    renderingIntent: "rendering-intent",
-    shapeRendering: "shape-rendering",
-    stopColor: "stop-color",
-    stopOpacity: "stop-opacity",
-    strikethroughPosition: "strikethrough-position",
-    strikethroughThickness: "strikethrough-thickness",
-    strokeDashArray: "stroke-dasharray",
-    strokeDashOffset: "stroke-dashoffset",
-    strokeLineCap: "stroke-linecap",
-    strokeLineJoin: "stroke-linejoin",
-    strokeMiterLimit: "stroke-miterlimit",
-    strokeOpacity: "stroke-opacity",
-    strokeWidth: "stroke-width",
-    tabIndex: "tabindex",
-    textAnchor: "text-anchor",
-    textDecoration: "text-decoration",
-    textRendering: "text-rendering",
-    transformOrigin: "transform-origin",
-    typeOf: "typeof",
-    underlinePosition: "underline-position",
-    underlineThickness: "underline-thickness",
-    unicodeBidi: "unicode-bidi",
-    unicodeRange: "unicode-range",
-    unitsPerEm: "units-per-em",
-    vAlphabetic: "v-alphabetic",
-    vHanging: "v-hanging",
-    vIdeographic: "v-ideographic",
-    vMathematical: "v-mathematical",
-    vectorEffect: "vector-effect",
-    vertAdvY: "vert-adv-y",
-    vertOriginX: "vert-origin-x",
-    vertOriginY: "vert-origin-y",
-    wordSpacing: "word-spacing",
-    writingMode: "writing-mode",
-    xHeight: "x-height",
-    // These were camelcased in Tiny. Now lowercased in SVG 2
-    playbackOrder: "playbackorder",
-    timelineBegin: "timelinebegin"
-  },
-  properties: {
-    about: commaOrSpaceSeparated,
-    accentHeight: number,
-    accumulate: null,
-    additive: null,
-    alignmentBaseline: null,
-    alphabetic: number,
-    amplitude: number,
-    arabicForm: null,
-    ascent: number,
-    attributeName: null,
-    attributeType: null,
-    azimuth: number,
-    bandwidth: null,
-    baselineShift: null,
-    baseFrequency: null,
-    baseProfile: null,
-    bbox: null,
-    begin: null,
-    bias: number,
-    by: null,
-    calcMode: null,
-    capHeight: number,
-    className: spaceSeparated,
-    clip: null,
-    clipPath: null,
-    clipPathUnits: null,
-    clipRule: null,
-    color: null,
-    colorInterpolation: null,
-    colorInterpolationFilters: null,
-    colorProfile: null,
-    colorRendering: null,
-    content: null,
-    contentScriptType: null,
-    contentStyleType: null,
-    crossOrigin: null,
-    cursor: null,
-    cx: null,
-    cy: null,
-    d: null,
-    dataType: null,
-    defaultAction: null,
-    descent: number,
-    diffuseConstant: number,
-    direction: null,
-    display: null,
-    dur: null,
-    divisor: number,
-    dominantBaseline: null,
-    download: boolean,
-    dx: null,
-    dy: null,
-    edgeMode: null,
-    editable: null,
-    elevation: number,
-    enableBackground: null,
-    end: null,
-    event: null,
-    exponent: number,
-    externalResourcesRequired: null,
-    fill: null,
-    fillOpacity: number,
-    fillRule: null,
-    filter: null,
-    filterRes: null,
-    filterUnits: null,
-    floodColor: null,
-    floodOpacity: null,
-    focusable: null,
-    focusHighlight: null,
-    fontFamily: null,
-    fontSize: null,
-    fontSizeAdjust: null,
-    fontStretch: null,
-    fontStyle: null,
-    fontVariant: null,
-    fontWeight: null,
-    format: null,
-    fr: null,
-    from: null,
-    fx: null,
-    fy: null,
-    g1: commaSeparated,
-    g2: commaSeparated,
-    glyphName: commaSeparated,
-    glyphOrientationHorizontal: null,
-    glyphOrientationVertical: null,
-    glyphRef: null,
-    gradientTransform: null,
-    gradientUnits: null,
-    handler: null,
-    hanging: number,
-    hatchContentUnits: null,
-    hatchUnits: null,
-    height: null,
-    href: null,
-    hrefLang: null,
-    horizAdvX: number,
-    horizOriginX: number,
-    horizOriginY: number,
-    id: null,
-    ideographic: number,
-    imageRendering: null,
-    initialVisibility: null,
-    in: null,
-    in2: null,
-    intercept: number,
-    k: number,
-    k1: number,
-    k2: number,
-    k3: number,
-    k4: number,
-    kernelMatrix: commaOrSpaceSeparated,
-    kernelUnitLength: null,
-    keyPoints: null,
-    // SEMI_COLON_SEPARATED
-    keySplines: null,
-    // SEMI_COLON_SEPARATED
-    keyTimes: null,
-    // SEMI_COLON_SEPARATED
-    kerning: null,
-    lang: null,
-    lengthAdjust: null,
-    letterSpacing: null,
-    lightingColor: null,
-    limitingConeAngle: number,
-    local: null,
-    markerEnd: null,
-    markerMid: null,
-    markerStart: null,
-    markerHeight: null,
-    markerUnits: null,
-    markerWidth: null,
-    mask: null,
-    maskContentUnits: null,
-    maskType: null,
-    maskUnits: null,
-    mathematical: null,
-    max: null,
-    media: null,
-    mediaCharacterEncoding: null,
-    mediaContentEncodings: null,
-    mediaSize: number,
-    mediaTime: null,
-    method: null,
-    min: null,
-    mode: null,
-    name: null,
-    navDown: null,
-    navDownLeft: null,
-    navDownRight: null,
-    navLeft: null,
-    navNext: null,
-    navPrev: null,
-    navRight: null,
-    navUp: null,
-    navUpLeft: null,
-    navUpRight: null,
-    numOctaves: null,
-    observer: null,
-    offset: null,
-    onAbort: null,
-    onActivate: null,
-    onAfterPrint: null,
-    onBeforePrint: null,
-    onBegin: null,
-    onCancel: null,
-    onCanPlay: null,
-    onCanPlayThrough: null,
-    onChange: null,
-    onClick: null,
-    onClose: null,
-    onCopy: null,
-    onCueChange: null,
-    onCut: null,
-    onDblClick: null,
-    onDrag: null,
-    onDragEnd: null,
-    onDragEnter: null,
-    onDragExit: null,
-    onDragLeave: null,
-    onDragOver: null,
-    onDragStart: null,
-    onDrop: null,
-    onDurationChange: null,
-    onEmptied: null,
-    onEnd: null,
-    onEnded: null,
-    onError: null,
-    onFocus: null,
-    onFocusIn: null,
-    onFocusOut: null,
-    onHashChange: null,
-    onInput: null,
-    onInvalid: null,
-    onKeyDown: null,
-    onKeyPress: null,
-    onKeyUp: null,
-    onLoad: null,
-    onLoadedData: null,
-    onLoadedMetadata: null,
-    onLoadStart: null,
-    onMessage: null,
-    onMouseDown: null,
-    onMouseEnter: null,
-    onMouseLeave: null,
-    onMouseMove: null,
-    onMouseOut: null,
-    onMouseOver: null,
-    onMouseUp: null,
-    onMouseWheel: null,
-    onOffline: null,
-    onOnline: null,
-    onPageHide: null,
-    onPageShow: null,
-    onPaste: null,
-    onPause: null,
-    onPlay: null,
-    onPlaying: null,
-    onPopState: null,
-    onProgress: null,
-    onRateChange: null,
-    onRepeat: null,
-    onReset: null,
-    onResize: null,
-    onScroll: null,
-    onSeeked: null,
-    onSeeking: null,
-    onSelect: null,
-    onShow: null,
-    onStalled: null,
-    onStorage: null,
-    onSubmit: null,
-    onSuspend: null,
-    onTimeUpdate: null,
-    onToggle: null,
-    onUnload: null,
-    onVolumeChange: null,
-    onWaiting: null,
-    onZoom: null,
-    opacity: null,
-    operator: null,
-    order: null,
-    orient: null,
-    orientation: null,
-    origin: null,
-    overflow: null,
-    overlay: null,
-    overlinePosition: number,
-    overlineThickness: number,
-    paintOrder: null,
-    panose1: null,
-    path: null,
-    pathLength: number,
-    patternContentUnits: null,
-    patternTransform: null,
-    patternUnits: null,
-    phase: null,
-    ping: spaceSeparated,
-    pitch: null,
-    playbackOrder: null,
-    pointerEvents: null,
-    points: null,
-    pointsAtX: number,
-    pointsAtY: number,
-    pointsAtZ: number,
-    preserveAlpha: null,
-    preserveAspectRatio: null,
-    primitiveUnits: null,
-    propagate: null,
-    property: commaOrSpaceSeparated,
-    r: null,
-    radius: null,
-    referrerPolicy: null,
-    refX: null,
-    refY: null,
-    rel: commaOrSpaceSeparated,
-    rev: commaOrSpaceSeparated,
-    renderingIntent: null,
-    repeatCount: null,
-    repeatDur: null,
-    requiredExtensions: commaOrSpaceSeparated,
-    requiredFeatures: commaOrSpaceSeparated,
-    requiredFonts: commaOrSpaceSeparated,
-    requiredFormats: commaOrSpaceSeparated,
-    resource: null,
-    restart: null,
-    result: null,
-    rotate: null,
-    rx: null,
-    ry: null,
-    scale: null,
-    seed: null,
-    shapeRendering: null,
-    side: null,
-    slope: null,
-    snapshotTime: null,
-    specularConstant: number,
-    specularExponent: number,
-    spreadMethod: null,
-    spacing: null,
-    startOffset: null,
-    stdDeviation: null,
-    stemh: null,
-    stemv: null,
-    stitchTiles: null,
-    stopColor: null,
-    stopOpacity: null,
-    strikethroughPosition: number,
-    strikethroughThickness: number,
-    string: null,
-    stroke: null,
-    strokeDashArray: commaOrSpaceSeparated,
-    strokeDashOffset: null,
-    strokeLineCap: null,
-    strokeLineJoin: null,
-    strokeMiterLimit: number,
-    strokeOpacity: number,
-    strokeWidth: null,
-    style: null,
-    surfaceScale: number,
-    syncBehavior: null,
-    syncBehaviorDefault: null,
-    syncMaster: null,
-    syncTolerance: null,
-    syncToleranceDefault: null,
-    systemLanguage: commaOrSpaceSeparated,
-    tabIndex: number,
-    tableValues: null,
-    target: null,
-    targetX: number,
-    targetY: number,
-    textAnchor: null,
-    textDecoration: null,
-    textRendering: null,
-    textLength: null,
-    timelineBegin: null,
-    title: null,
-    transformBehavior: null,
-    type: null,
-    typeOf: commaOrSpaceSeparated,
-    to: null,
-    transform: null,
-    transformOrigin: null,
-    u1: null,
-    u2: null,
-    underlinePosition: number,
-    underlineThickness: number,
-    unicode: null,
-    unicodeBidi: null,
-    unicodeRange: null,
-    unitsPerEm: number,
-    values: null,
-    vAlphabetic: number,
-    vMathematical: number,
-    vectorEffect: null,
-    vHanging: number,
-    vIdeographic: number,
-    version: null,
-    vertAdvY: number,
-    vertOriginX: number,
-    vertOriginY: number,
-    viewBox: null,
-    viewTarget: null,
-    visibility: null,
-    width: null,
-    widths: null,
-    wordSpacing: null,
-    writingMode: null,
-    x: null,
-    x1: null,
-    x2: null,
-    xChannelSelector: null,
-    xHeight: number,
-    y: null,
-    y1: null,
-    y2: null,
-    yChannelSelector: null,
-    z: null,
-    zoomAndPan: null
-  },
-  space: "svg",
-  transform: caseSensitiveTransform
-});
-
-// node_modules/property-information/lib/xlink.js
-var xlink = create({
-  properties: {
-    xLinkActuate: null,
-    xLinkArcRole: null,
-    xLinkHref: null,
-    xLinkRole: null,
-    xLinkShow: null,
-    xLinkTitle: null,
-    xLinkType: null
-  },
-  space: "xlink",
-  transform(_2, property) {
-    return "xlink:" + property.slice(5).toLowerCase();
-  }
-});
-
-// node_modules/property-information/lib/xmlns.js
-var xmlns = create({
-  attributes: { xmlnsxlink: "xmlns:xlink" },
-  properties: { xmlnsXLink: null, xmlns: null },
-  space: "xmlns",
-  transform: caseInsensitiveTransform
-});
-
-// node_modules/property-information/lib/xml.js
-var xml = create({
-  properties: { xmlBase: null, xmlLang: null, xmlSpace: null },
-  space: "xml",
-  transform(_2, property) {
-    return "xml:" + property.slice(3).toLowerCase();
-  }
-});
-
-// node_modules/property-information/lib/hast-to-react.js
-var hastToReact = {
-  classId: "classID",
-  dataType: "datatype",
-  itemId: "itemID",
-  strokeDashArray: "strokeDasharray",
-  strokeDashOffset: "strokeDashoffset",
-  strokeLineCap: "strokeLinecap",
-  strokeLineJoin: "strokeLinejoin",
-  strokeMiterLimit: "strokeMiterlimit",
-  typeOf: "typeof",
-  xLinkActuate: "xlinkActuate",
-  xLinkArcRole: "xlinkArcrole",
-  xLinkHref: "xlinkHref",
-  xLinkRole: "xlinkRole",
-  xLinkShow: "xlinkShow",
-  xLinkTitle: "xlinkTitle",
-  xLinkType: "xlinkType",
-  xmlnsXLink: "xmlnsXlink"
-};
-
-// node_modules/property-information/lib/find.js
-var cap = /[A-Z]/g;
-var dash = /-[a-z]/g;
-var valid = /^data[-\w.:]+$/i;
-function find(schema, value) {
-  const normal = normalize(value);
-  let property = value;
-  let Type = Info;
-  if (normal in schema.normal) {
-    return schema.property[schema.normal[normal]];
-  }
-  if (normal.length > 4 && normal.slice(0, 4) === "data" && valid.test(value)) {
-    if (value.charAt(4) === "-") {
-      const rest = value.slice(5).replace(dash, camelcase);
-      property = "data" + rest.charAt(0).toUpperCase() + rest.slice(1);
-    } else {
-      const rest = value.slice(4);
-      if (!dash.test(rest)) {
-        let dashes = rest.replace(cap, kebab);
-        if (dashes.charAt(0) !== "-") {
-          dashes = "-" + dashes;
-        }
-        value = "data" + dashes;
-      }
-    }
-    Type = DefinedInfo;
-  }
-  return new Type(property, value);
-}
-function kebab($0) {
-  return "-" + $0.toLowerCase();
-}
-function camelcase($0) {
-  return $0.charAt(1).toUpperCase();
-}
-
-// node_modules/property-information/index.js
-var html2 = merge([aria, html, xlink, xmlns, xml], "html");
-var svg2 = merge([aria, svg, xlink, xmlns, xml], "svg");
-
-// node_modules/space-separated-tokens/index.js
-function stringify2(values) {
-  return values.join(" ").trim();
-}
-
-// node_modules/hast-util-to-jsx-runtime/lib/index.js
-var import_style_to_js = __toESM(require_cjs3());
-var pointStart = point("start");
-function point(type) {
-  return point3;
-  function point3(node) {
-    const point4 = node && node.position && node.position[type] || {};
-    if (typeof point4.line === "number" && point4.line > 0 && typeof point4.column === "number" && point4.column > 0) {
-      return {
-        line: point4.line,
-        column: point4.column,
-        offset: typeof point4.offset === "number" && point4.offset > -1 ? point4.offset : void 0
-      };
-    }
-  }
-}
-
-// node_modules/unist-util-stringify-position/lib/index.js
-function stringifyPosition(value) {
-  if (!value || typeof value !== "object") {
-    return "";
-  }
-  if ("position" in value || "type" in value) {
-    return position2(value.position);
-  }
-  if ("start" in value || "end" in value) {
-    return position2(value);
-  }
-  if ("line" in value || "column" in value) {
-    return point2(value);
-  }
-  return "";
-}
-function point2(point3) {
-  return index(point3 && point3.line) + ":" + index(point3 && point3.column);
-}
-function position2(pos) {
-  return point2(pos && pos.start) + "-" + point2(pos && pos.end);
-}
-function index(value) {
-  return value && typeof value === "number" ? value : 1;
-}
-
-// node_modules/vfile-message/lib/index.js
-var VFileMessage = class extends Error {
-  /**
-   * Create a message for `reason`.
-   *
-   * > 🪦 **Note**: also has obsolete signatures.
-   *
-   * @overload
-   * @param {string} reason
-   * @param {Options | null | undefined} [options]
-   * @returns
-   *
-   * @overload
-   * @param {string} reason
-   * @param {Node | NodeLike | null | undefined} parent
-   * @param {string | null | undefined} [origin]
-   * @returns
-   *
-   * @overload
-   * @param {string} reason
-   * @param {Point | Position | null | undefined} place
-   * @param {string | null | undefined} [origin]
-   * @returns
-   *
-   * @overload
-   * @param {string} reason
-   * @param {string | null | undefined} [origin]
-   * @returns
-   *
-   * @overload
-   * @param {Error | VFileMessage} cause
-   * @param {Node | NodeLike | null | undefined} parent
-   * @param {string | null | undefined} [origin]
-   * @returns
-   *
-   * @overload
-   * @param {Error | VFileMessage} cause
-   * @param {Point | Position | null | undefined} place
-   * @param {string | null | undefined} [origin]
-   * @returns
-   *
-   * @overload
-   * @param {Error | VFileMessage} cause
-   * @param {string | null | undefined} [origin]
-   * @returns
-   *
-   * @param {Error | VFileMessage | string} causeOrReason
-   *   Reason for message, should use markdown.
-   * @param {Node | NodeLike | Options | Point | Position | string | null | undefined} [optionsOrParentOrPlace]
-   *   Configuration (optional).
-   * @param {string | null | undefined} [origin]
-   *   Place in code where the message originates (example:
-   *   `'my-package:my-rule'` or `'my-rule'`).
-   * @returns
-   *   Instance of `VFileMessage`.
-   */
-  // eslint-disable-next-line complexity
-  constructor(causeOrReason, optionsOrParentOrPlace, origin) {
-    super();
-    if (typeof optionsOrParentOrPlace === "string") {
-      origin = optionsOrParentOrPlace;
-      optionsOrParentOrPlace = void 0;
-    }
-    let reason = "";
-    let options = {};
-    let legacyCause = false;
-    if (optionsOrParentOrPlace) {
-      if ("line" in optionsOrParentOrPlace && "column" in optionsOrParentOrPlace) {
-        options = { place: optionsOrParentOrPlace };
-      } else if ("start" in optionsOrParentOrPlace && "end" in optionsOrParentOrPlace) {
-        options = { place: optionsOrParentOrPlace };
-      } else if ("type" in optionsOrParentOrPlace) {
-        options = {
-          ancestors: [optionsOrParentOrPlace],
-          place: optionsOrParentOrPlace.position
-        };
-      } else {
-        options = { ...optionsOrParentOrPlace };
-      }
-    }
-    if (typeof causeOrReason === "string") {
-      reason = causeOrReason;
-    } else if (!options.cause && causeOrReason) {
-      legacyCause = true;
-      reason = causeOrReason.message;
-      options.cause = causeOrReason;
-    }
-    if (!options.ruleId && !options.source && typeof origin === "string") {
-      const index2 = origin.indexOf(":");
-      if (index2 === -1) {
-        options.ruleId = origin;
-      } else {
-        options.source = origin.slice(0, index2);
-        options.ruleId = origin.slice(index2 + 1);
-      }
-    }
-    if (!options.place && options.ancestors && options.ancestors) {
-      const parent = options.ancestors[options.ancestors.length - 1];
-      if (parent) {
-        options.place = parent.position;
-      }
-    }
-    const start2 = options.place && "start" in options.place ? options.place.start : options.place;
-    this.ancestors = options.ancestors || void 0;
-    this.cause = options.cause || void 0;
-    this.column = start2 ? start2.column : void 0;
-    this.fatal = void 0;
-    this.file = "";
-    this.message = reason;
-    this.line = start2 ? start2.line : void 0;
-    this.name = stringifyPosition(options.place) || "1:1";
-    this.place = options.place || void 0;
-    this.reason = this.message;
-    this.ruleId = options.ruleId || void 0;
-    this.source = options.source || void 0;
-    this.stack = legacyCause && options.cause && typeof options.cause.stack === "string" ? options.cause.stack : "";
-    this.actual = void 0;
-    this.expected = void 0;
-    this.note = void 0;
-    this.url = void 0;
-  }
-};
-VFileMessage.prototype.file = "";
-VFileMessage.prototype.name = "";
-VFileMessage.prototype.reason = "";
-VFileMessage.prototype.message = "";
-VFileMessage.prototype.stack = "";
-VFileMessage.prototype.column = void 0;
-VFileMessage.prototype.line = void 0;
-VFileMessage.prototype.ancestors = void 0;
-VFileMessage.prototype.cause = void 0;
-VFileMessage.prototype.fatal = void 0;
-VFileMessage.prototype.place = void 0;
-VFileMessage.prototype.ruleId = void 0;
-VFileMessage.prototype.source = void 0;
-
-// node_modules/hast-util-to-jsx-runtime/lib/index.js
-var own = {}.hasOwnProperty;
-var emptyMap = /* @__PURE__ */ new Map();
-var cap2 = /[A-Z]/g;
-var tableElements = /* @__PURE__ */ new Set(["table", "tbody", "thead", "tfoot", "tr"]);
-var tableCellElement = /* @__PURE__ */ new Set(["td", "th"]);
-var docs = "https://github.com/syntax-tree/hast-util-to-jsx-runtime";
-function toJsxRuntime(tree, options) {
-  if (!options || options.Fragment === void 0) {
-    throw new TypeError("Expected `Fragment` in options");
-  }
-  const filePath = options.filePath || void 0;
-  let create2;
-  if (options.development) {
-    if (typeof options.jsxDEV !== "function") {
-      throw new TypeError(
-        "Expected `jsxDEV` in options when `development: true`"
-      );
-    }
-    create2 = developmentCreate(filePath, options.jsxDEV);
-  } else {
-    if (typeof options.jsx !== "function") {
-      throw new TypeError("Expected `jsx` in production options");
-    }
-    if (typeof options.jsxs !== "function") {
-      throw new TypeError("Expected `jsxs` in production options");
-    }
-    create2 = productionCreate(filePath, options.jsx, options.jsxs);
-  }
-  const state = {
-    Fragment: options.Fragment,
-    ancestors: [],
-    components: options.components || {},
-    create: create2,
-    elementAttributeNameCase: options.elementAttributeNameCase || "react",
-    evaluater: options.createEvaluater ? options.createEvaluater() : void 0,
-    filePath,
-    ignoreInvalidStyle: options.ignoreInvalidStyle || false,
-    passKeys: options.passKeys !== false,
-    passNode: options.passNode || false,
-    schema: options.space === "svg" ? svg2 : html2,
-    stylePropertyNameCase: options.stylePropertyNameCase || "dom",
-    tableCellAlignToStyle: options.tableCellAlignToStyle !== false
-  };
-  const result = one(state, tree, void 0);
-  if (result && typeof result !== "string") {
-    return result;
-  }
-  return state.create(
-    tree,
-    state.Fragment,
-    { children: result || void 0 },
-    void 0
-  );
-}
-function one(state, node, key) {
-  if (node.type === "element") {
-    return element(state, node, key);
-  }
-  if (node.type === "mdxFlowExpression" || node.type === "mdxTextExpression") {
-    return mdxExpression(state, node);
-  }
-  if (node.type === "mdxJsxFlowElement" || node.type === "mdxJsxTextElement") {
-    return mdxJsxElement(state, node, key);
-  }
-  if (node.type === "mdxjsEsm") {
-    return mdxEsm(state, node);
-  }
-  if (node.type === "root") {
-    return root(state, node, key);
-  }
-  if (node.type === "text") {
-    return text(state, node);
-  }
-}
-function element(state, node, key) {
-  const parentSchema = state.schema;
-  let schema = parentSchema;
-  if (node.tagName.toLowerCase() === "svg" && parentSchema.space === "html") {
-    schema = svg2;
-    state.schema = schema;
-  }
-  state.ancestors.push(node);
-  const type = findComponentFromName(state, node.tagName, false);
-  const props = createElementProps(state, node);
-  let children = createChildren(state, node);
-  if (tableElements.has(node.tagName)) {
-    children = children.filter(function(child) {
-      return typeof child === "string" ? !whitespace(child) : true;
-    });
-  }
-  addNode(state, props, type, node);
-  addChildren(props, children);
-  state.ancestors.pop();
-  state.schema = parentSchema;
-  return state.create(node, type, props, key);
-}
-function mdxExpression(state, node) {
-  if (node.data && node.data.estree && state.evaluater) {
-    const program = node.data.estree;
-    const expression = program.body[0];
-    ok(expression.type === "ExpressionStatement");
-    return (
-      /** @type {Child | undefined} */
-      state.evaluater.evaluateExpression(expression.expression)
-    );
-  }
-  crashEstree(state, node.position);
-}
-function mdxEsm(state, node) {
-  if (node.data && node.data.estree && state.evaluater) {
-    return (
-      /** @type {Child | undefined} */
-      state.evaluater.evaluateProgram(node.data.estree)
-    );
-  }
-  crashEstree(state, node.position);
-}
-function mdxJsxElement(state, node, key) {
-  const parentSchema = state.schema;
-  let schema = parentSchema;
-  if (node.name === "svg" && parentSchema.space === "html") {
-    schema = svg2;
-    state.schema = schema;
-  }
-  state.ancestors.push(node);
-  const type = node.name === null ? state.Fragment : findComponentFromName(state, node.name, true);
-  const props = createJsxElementProps(state, node);
-  const children = createChildren(state, node);
-  addNode(state, props, type, node);
-  addChildren(props, children);
-  state.ancestors.pop();
-  state.schema = parentSchema;
-  return state.create(node, type, props, key);
-}
-function root(state, node, key) {
-  const props = {};
-  addChildren(props, createChildren(state, node));
-  return state.create(node, state.Fragment, props, key);
-}
-function text(_2, node) {
-  return node.value;
-}
-function addNode(state, props, type, node) {
-  if (typeof type !== "string" && type !== state.Fragment && state.passNode) {
-    props.node = node;
-  }
-}
-function addChildren(props, children) {
-  if (children.length > 0) {
-    const value = children.length > 1 ? children : children[0];
-    if (value) {
-      props.children = value;
-    }
-  }
-}
-function productionCreate(_2, jsx, jsxs) {
-  return create2;
-  function create2(_3, type, props, key) {
-    const isStaticChildren = Array.isArray(props.children);
-    const fn = isStaticChildren ? jsxs : jsx;
-    return key ? fn(type, props, key) : fn(type, props);
-  }
-}
-function developmentCreate(filePath, jsxDEV) {
-  return create2;
-  function create2(node, type, props, key) {
-    const isStaticChildren = Array.isArray(props.children);
-    const point3 = pointStart(node);
-    return jsxDEV(
-      type,
-      props,
-      key,
-      isStaticChildren,
-      {
-        columnNumber: point3 ? point3.column - 1 : void 0,
-        fileName: filePath,
-        lineNumber: point3 ? point3.line : void 0
-      },
-      void 0
-    );
-  }
-}
-function createElementProps(state, node) {
-  const props = {};
-  let alignValue;
-  let prop;
-  for (prop in node.properties) {
-    if (prop !== "children" && own.call(node.properties, prop)) {
-      const result = createProperty(state, prop, node.properties[prop]);
-      if (result) {
-        const [key, value] = result;
-        if (state.tableCellAlignToStyle && key === "align" && typeof value === "string" && tableCellElement.has(node.tagName)) {
-          alignValue = value;
-        } else {
-          props[key] = value;
-        }
-      }
-    }
-  }
-  if (alignValue) {
-    const style = (
-      /** @type {Style} */
-      props.style || (props.style = {})
-    );
-    style[state.stylePropertyNameCase === "css" ? "text-align" : "textAlign"] = alignValue;
-  }
-  return props;
-}
-function createJsxElementProps(state, node) {
-  const props = {};
-  for (const attribute of node.attributes) {
-    if (attribute.type === "mdxJsxExpressionAttribute") {
-      if (attribute.data && attribute.data.estree && state.evaluater) {
-        const program = attribute.data.estree;
-        const expression = program.body[0];
-        ok(expression.type === "ExpressionStatement");
-        const objectExpression = expression.expression;
-        ok(objectExpression.type === "ObjectExpression");
-        const property = objectExpression.properties[0];
-        ok(property.type === "SpreadElement");
-        Object.assign(
-          props,
-          state.evaluater.evaluateExpression(property.argument)
-        );
-      } else {
-        crashEstree(state, node.position);
-      }
-    } else {
-      const name2 = attribute.name;
-      let value;
-      if (attribute.value && typeof attribute.value === "object") {
-        if (attribute.value.data && attribute.value.data.estree && state.evaluater) {
-          const program = attribute.value.data.estree;
-          const expression = program.body[0];
-          ok(expression.type === "ExpressionStatement");
-          value = state.evaluater.evaluateExpression(expression.expression);
-        } else {
-          crashEstree(state, node.position);
-        }
-      } else {
-        value = attribute.value === null ? true : attribute.value;
-      }
-      props[name2] = /** @type {Props[keyof Props]} */
-      value;
-    }
-  }
-  return props;
-}
-function createChildren(state, node) {
-  const children = [];
-  let index2 = -1;
-  const countsByName = state.passKeys ? /* @__PURE__ */ new Map() : emptyMap;
-  while (++index2 < node.children.length) {
-    const child = node.children[index2];
-    let key;
-    if (state.passKeys) {
-      const name2 = child.type === "element" ? child.tagName : child.type === "mdxJsxFlowElement" || child.type === "mdxJsxTextElement" ? child.name : void 0;
-      if (name2) {
-        const count = countsByName.get(name2) || 0;
-        key = name2 + "-" + count;
-        countsByName.set(name2, count + 1);
-      }
-    }
-    const result = one(state, child, key);
-    if (result !== void 0) children.push(result);
-  }
-  return children;
-}
-function createProperty(state, prop, value) {
-  const info = find(state.schema, prop);
-  if (value === null || value === void 0 || typeof value === "number" && Number.isNaN(value)) {
-    return;
-  }
-  if (Array.isArray(value)) {
-    value = info.commaSeparated ? stringify(value) : stringify2(value);
-  }
-  if (info.property === "style") {
-    let styleObject = typeof value === "object" ? value : parseStyle(state, String(value));
-    if (state.stylePropertyNameCase === "css") {
-      styleObject = transformStylesToCssCasing(styleObject);
-    }
-    return ["style", styleObject];
-  }
-  return [
-    state.elementAttributeNameCase === "react" && info.space ? hastToReact[info.property] || info.property : info.attribute,
-    value
-  ];
-}
-function parseStyle(state, value) {
-  try {
-    return (0, import_style_to_js.default)(value, { reactCompat: true });
-  } catch (error) {
-    if (state.ignoreInvalidStyle) {
-      return {};
-    }
-    const cause = (
-      /** @type {Error} */
-      error
-    );
-    const message = new VFileMessage("Cannot parse `style` attribute", {
-      ancestors: state.ancestors,
-      cause,
-      ruleId: "style",
-      source: "hast-util-to-jsx-runtime"
-    });
-    message.file = state.filePath || void 0;
-    message.url = docs + "#cannot-parse-style-attribute";
-    throw message;
-  }
-}
-function findComponentFromName(state, name2, allowExpression) {
-  let result;
-  if (!allowExpression) {
-    result = { type: "Literal", value: name2 };
-  } else if (name2.includes(".")) {
-    const identifiers = name2.split(".");
-    let index2 = -1;
-    let node;
-    while (++index2 < identifiers.length) {
-      const prop = name(identifiers[index2]) ? { type: "Identifier", name: identifiers[index2] } : { type: "Literal", value: identifiers[index2] };
-      node = node ? {
-        type: "MemberExpression",
-        object: node,
-        property: prop,
-        computed: Boolean(index2 && prop.type === "Literal"),
-        optional: false
-      } : prop;
-    }
-    result = node;
-  } else {
-    result = name(name2) && !/^[a-z]/.test(name2) ? { type: "Identifier", name: name2 } : { type: "Literal", value: name2 };
-  }
-  if (result.type === "Literal") {
-    const name3 = (
-      /** @type {string | number} */
-      result.value
-    );
-    return own.call(state.components, name3) ? state.components[name3] : name3;
-  }
-  if (state.evaluater) {
-    return state.evaluater.evaluateExpression(result);
-  }
-  crashEstree(state);
-}
-function crashEstree(state, place) {
-  const message = new VFileMessage(
-    "Cannot handle MDX estrees without `createEvaluater`",
-    {
-      ancestors: state.ancestors,
-      place,
-      ruleId: "mdx-estree",
-      source: "hast-util-to-jsx-runtime"
-    }
-  );
-  message.file = state.filePath || void 0;
-  message.url = docs + "#cannot-handle-mdx-estrees-without-createevaluater";
-  throw message;
-}
-function transformStylesToCssCasing(domCasing) {
-  const cssCasing = {};
-  let from;
-  for (from in domCasing) {
-    if (own.call(domCasing, from)) {
-      cssCasing[transformStyleToCssCasing(from)] = domCasing[from];
-    }
-  }
-  return cssCasing;
-}
-function transformStyleToCssCasing(from) {
-  let to = from.replace(cap2, toDash);
-  if (to.slice(0, 3) === "ms-") to = "-" + to;
-  return to;
-}
-function toDash($0) {
-  return "-" + $0.toLowerCase();
-}
+// src/components/styles/graph-landing.scss
+var graph_landing_default = 'html:has(.graph-landing),\nbody:has(.graph-landing) {\n  height: 100dvh;\n  overflow: hidden;\n}\n\n.page:has(.graph-landing) > #quartz-body {\n  row-gap: 0;\n}\n\n.page:has(.graph-landing) footer {\n  display: none;\n}\n\n.center.minimal:has(.graph-landing) {\n  max-width: 100%;\n  min-width: 100%;\n  margin: 0;\n  padding: 0;\n}\n\n.graph-landing {\n  background: var(--light);\n  color: var(--dark);\n  font-family: var(--bodyFont);\n  max-width: 100%;\n  overflow-x: hidden;\n  width: 100%;\n}\n\n.graph-landing__hero {\n  background: var(--light);\n  height: 100dvh;\n  max-width: 100%;\n  overflow: hidden;\n  position: relative;\n  width: 100%;\n}\n\n.graph-landing__canvas {\n  height: 100%;\n  inset: 0;\n  position: absolute;\n  width: 100%;\n}\n\n.graph-landing__canvas canvas {\n  display: block;\n  height: 100% !important;\n  width: 100% !important;\n}\n\n.graph-landing__overlay {\n  height: 100%;\n  inset: 0;\n  pointer-events: none;\n  position: absolute;\n  width: 100%;\n  z-index: 2;\n}\n\n.graph-landing__rail {\n  backdrop-filter: blur(10px);\n  background: color-mix(in srgb, var(--light) 78%, transparent);\n  border: 1px solid var(--lightgray);\n  border-radius: 14px;\n  box-shadow: 0 12px 40px rgba(8, 10, 16, 0.18);\n  box-sizing: border-box;\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n  left: 16px;\n  max-height: calc(100dvh - 32px);\n  max-width: 248px;\n  overflow-x: hidden;\n  overflow-y: auto;\n  overscroll-behavior: contain;\n  padding: 14px 14px 12px;\n  pointer-events: auto;\n  touch-action: pan-y;\n  position: absolute;\n  top: 16px;\n  width: 248px;\n}\n\n.graph-landing__rail > * {\n  flex-shrink: 0;\n}\n\n.graph-landing__top-right {\n  align-items: center;\n  display: flex;\n  flex-wrap: nowrap;\n  gap: 1.25rem;\n  justify-content: flex-end;\n  max-width: min(28rem, 100% - 16rem);\n  padding: 1.25rem 1.5rem;\n  pointer-events: auto;\n  position: absolute;\n  right: 0;\n  top: 0;\n}\n\n.graph-landing__title-block {\n  align-items: baseline;\n  display: flex;\n  flex-wrap: wrap;\n  gap: 4px 8px;\n}\n\n.graph-landing__title {\n  color: var(--dark);\n  font-family: var(--bodyFont);\n  font-size: 16px;\n  font-weight: 600;\n  letter-spacing: 0;\n  line-height: 1.2;\n  margin: 0;\n}\n\n.graph-landing__counts {\n  color: var(--gray);\n  cursor: default;\n  font-family: var(--bodyFont);\n  font-size: 12px;\n  line-height: 1.4;\n  margin: 0;\n}\n\n.graph-landing__lenses {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 0 4px;\n}\n\n.graph-landing__chip {\n  background: transparent;\n  border: 0;\n  border-radius: 4px;\n  color: var(--gray);\n  cursor: pointer;\n  font-family: var(--bodyFont);\n  font-size: 13px;\n  line-height: 1.2;\n  min-height: 44px;\n  padding: 12px 8px;\n  position: relative;\n}\n\n.graph-landing__chip:hover {\n  background: color-mix(in srgb, var(--secondary) 8%, transparent);\n  color: var(--secondary);\n}\n\n.graph-landing__chip:focus-visible {\n  background: color-mix(in srgb, var(--secondary) 8%, transparent);\n  color: var(--secondary);\n  outline: 2px solid var(--secondary);\n  outline-offset: 2px;\n}\n\n.graph-landing__chip[aria-pressed=true] {\n  color: var(--secondary);\n  font-weight: 500;\n}\n\n.graph-landing__chip[aria-pressed=true]::after {\n  background: currentColor;\n  bottom: 11px;\n  content: "";\n  height: 1px;\n  left: 8px;\n  pointer-events: none;\n  position: absolute;\n  right: 8px;\n}\n\n.graph-landing__section-label {\n  color: var(--gray);\n  cursor: default;\n  font-family: var(--bodyFont);\n  font-size: 11px;\n  letter-spacing: 0.04em;\n  line-height: 1.3;\n  margin: 0 0 4px;\n  pointer-events: none;\n}\n\n.graph-landing__nav-link,\n.graph-landing__locale-toggle,\n.graph-landing__icon-btn,\n.graph-landing__filters-toggle {\n  align-items: center;\n  background: transparent;\n  border: 0;\n  color: var(--gray);\n  cursor: pointer;\n  display: inline-flex;\n  font-family: var(--bodyFont);\n  font-size: 13px;\n  font-weight: 400;\n  height: 44px;\n  justify-content: center;\n  line-height: 1;\n  min-height: 44px;\n  padding: 0;\n  text-decoration: none;\n}\n\n.graph-landing__nav-link:hover,\n.graph-landing__nav-link:focus-visible,\n.graph-landing__locale-toggle:hover,\n.graph-landing__locale-toggle:focus-visible,\n.graph-landing__icon-btn:hover,\n.graph-landing__icon-btn:focus-visible,\n.graph-landing__filters-toggle:hover,\n.graph-landing__filters-toggle:focus-visible {\n  color: var(--secondary);\n  outline: none;\n}\n\n.graph-landing__nav-link:focus-visible,\n.graph-landing__locale-toggle:focus-visible,\n.graph-landing__icon-btn:focus-visible,\n.graph-landing__filters-toggle:focus-visible {\n  outline: 2px solid var(--secondary);\n  outline-offset: 2px;\n}\n\n.graph-landing__nav-link,\n.graph-landing__locale-toggle {\n  color: var(--dark);\n}\n\n.graph-landing__icon-btn {\n  min-width: 44px;\n}\n\n/* Sun shows in dark mode (click -> light), moon in light mode. */\n.graph-landing__icon--sun {\n  display: none;\n}\n\n:root[saved-theme=dark] .graph-landing__icon--sun {\n  display: block;\n}\n\n:root[saved-theme=dark] .graph-landing__icon--moon {\n  display: none;\n}\n\n.graph-landing__tags {\n  min-width: 0;\n}\n\n.graph-landing__filters-toggle {\n  display: none;\n}\n\n.graph-landing__tag-list {\n  display: flex;\n  flex-direction: column;\n  gap: 0;\n  list-style: none;\n  margin: 0;\n  padding: 0;\n}\n\n.graph-landing__tag-item {\n  background: transparent;\n  border: 0;\n  border-radius: 4px;\n  color: var(--gray);\n  cursor: pointer;\n  display: flex;\n  font-family: var(--bodyFont);\n  font-size: 13px;\n  gap: 8px;\n  justify-content: space-between;\n  line-height: 1.4;\n  min-height: 32px;\n  padding: 6px 8px;\n  text-align: left;\n  width: 100%;\n}\n\n.graph-landing__tag-item:hover {\n  background: color-mix(in srgb, var(--secondary) 8%, transparent);\n  color: var(--secondary);\n}\n\n.graph-landing__tag-item:focus-visible {\n  background: color-mix(in srgb, var(--secondary) 8%, transparent);\n  color: var(--secondary);\n  outline: 2px solid var(--secondary);\n  outline-offset: 2px;\n}\n\n.graph-landing__tag-item[aria-pressed=true] {\n  color: var(--secondary);\n  font-weight: 500;\n}\n\n.graph-landing__tag-count {\n  color: var(--gray);\n  font-variant-numeric: tabular-nums;\n}\n\n.graph-landing__utils {\n  border-top: 1px solid var(--lightgray);\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n  padding-top: 8px;\n}\n\n.graph-landing__tune {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n\n.graph-landing__slider {\n  display: flex;\n  flex-direction: column;\n  gap: 4px;\n}\n\n.graph-landing__slider span {\n  color: var(--gray);\n  font-size: 11px;\n}\n\n.graph-landing__slider input[type=range] {\n  accent-color: var(--secondary);\n  cursor: pointer;\n  width: 100%;\n}\n\n.graph-landing__check {\n  align-items: center;\n  color: var(--gray);\n  cursor: pointer;\n  display: flex;\n  font-size: 12px;\n  gap: 8px;\n  min-height: 32px;\n}\n\n.graph-landing__check input {\n  accent-color: var(--secondary);\n}\n\n.graph-landing__spacing {\n  display: flex;\n  flex-direction: column;\n  gap: 4px;\n}\n\n.graph-landing__pills {\n  border: 1px solid var(--lightgray);\n  border-radius: 999px;\n  display: inline-flex;\n  overflow: hidden;\n  width: fit-content;\n}\n\n.graph-landing__pill {\n  background: transparent;\n  border: 0;\n  color: var(--gray);\n  cursor: pointer;\n  font-family: var(--bodyFont);\n  font-size: 12px;\n  line-height: 1.2;\n  min-height: 32px;\n  padding: 6px 10px;\n}\n\n.graph-landing__pill:hover {\n  background: color-mix(in srgb, var(--secondary) 8%, transparent);\n  color: var(--secondary);\n}\n\n.graph-landing__pill:focus-visible {\n  outline: 2px solid var(--secondary);\n  outline-offset: -2px;\n  z-index: 1;\n}\n\n.graph-landing__pill[aria-pressed=true] {\n  background: color-mix(in srgb, var(--secondary) 14%, transparent);\n  color: var(--secondary);\n  font-weight: 500;\n}\n\n.graph-landing__ghosts {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 4px;\n}\n\n.graph-landing__ghost {\n  align-items: center;\n  background: transparent;\n  border: 0;\n  border-radius: 4px;\n  color: var(--gray);\n  cursor: pointer;\n  display: inline-flex;\n  font-family: var(--bodyFont);\n  font-size: 12px;\n  gap: 6px;\n  line-height: 1.2;\n  min-height: 32px;\n  padding: 6px 8px;\n}\n\n.graph-landing__ghost svg {\n  flex-shrink: 0;\n}\n\n.graph-landing__ghost:hover {\n  background: color-mix(in srgb, var(--secondary) 8%, transparent);\n  color: var(--secondary);\n}\n\n.graph-landing__ghost:focus-visible {\n  outline: 2px solid var(--secondary);\n  outline-offset: 2px;\n}\n\n.graph-landing__ghost[aria-pressed=true] {\n  background: color-mix(in srgb, var(--secondary) 12%, transparent);\n  color: var(--secondary);\n}\n\n.graph-landing__legend {\n  align-items: center;\n  color: var(--gray);\n  cursor: default;\n  display: flex;\n  flex-wrap: wrap;\n  font-size: 12px;\n  gap: 8px 12px;\n  line-height: 1.3;\n}\n\n.graph-landing__legend-item {\n  align-items: center;\n  display: inline-flex;\n  gap: 6px;\n}\n\n.graph-landing__dot {\n  border-radius: 50%;\n  display: inline-block;\n  height: 7px;\n  width: 7px;\n}\n\n.graph-landing__dot--note {\n  background: var(--darkgray);\n}\n\n.graph-landing__dot--tag {\n  background: var(--tertiary);\n}\n\n.graph-landing__dot--mention {\n  background: var(--gray);\n}\n\n.graph-landing__preview {\n  background: color-mix(in srgb, var(--light) 88%, transparent);\n  backdrop-filter: blur(14px);\n  border: 1px solid color-mix(in srgb, var(--lightgray) 70%, transparent);\n  border-radius: 14px;\n  bottom: 2rem;\n  left: 50%;\n  margin: 0;\n  max-width: 560px;\n  opacity: 0;\n  padding: 1rem 1.3rem 0.9rem;\n  pointer-events: none;\n  position: absolute;\n  transform: translate(-58%, 6px);\n  transition: opacity 0.22s ease, transform 0.22s ease;\n  width: min(560px, 100% - 2.5rem);\n}\n\n.graph-landing__preview[data-visible=true] {\n  opacity: 1;\n  transform: translate(-58%, 0);\n}\n\n.graph-landing__preview-chip {\n  color: var(--gray);\n  font-size: 10px;\n  letter-spacing: 0.14em;\n  margin: 0 0 0.35rem;\n  text-transform: uppercase;\n}\n\n.graph-landing__preview-title {\n  color: var(--dark);\n  font-size: 15px;\n  font-weight: 600;\n  line-height: 1.35;\n  margin: 0 0 0.4rem;\n}\n\n.graph-landing__preview-excerpt {\n  color: var(--darkgray);\n  display: -webkit-box;\n  font-size: 13px;\n  line-height: 1.5;\n  margin: 0 0 0.55rem;\n  overflow: hidden;\n  -webkit-box-orient: vertical;\n  -webkit-line-clamp: 3;\n}\n\n.graph-landing__preview-hint {\n  color: var(--gray);\n  font-size: 10px;\n  letter-spacing: 0.12em;\n  margin: 0;\n  text-transform: uppercase;\n}\n\n:root[saved-theme=dark] .graph-landing__preview {\n  background: rgba(15, 17, 25, 0.78);\n  border-color: rgba(219, 226, 242, 0.14);\n}\n\n:root[saved-theme=dark] .graph-landing__preview-title {\n  color: rgba(255, 255, 255, 0.92);\n}\n\n:root[saved-theme=dark] .graph-landing__preview-excerpt {\n  color: rgba(219, 226, 242, 0.72);\n}\n\n.graph-landing__inspect {\n  background: color-mix(in srgb, var(--light) 90%, transparent);\n  backdrop-filter: blur(16px);\n  border-left: 1px solid var(--lightgray);\n  bottom: 0;\n  box-sizing: border-box;\n  display: flex;\n  flex-direction: column;\n  gap: 10px;\n  max-height: calc(100dvh - 4.5rem);\n  overflow-x: hidden;\n  overflow-y: auto;\n  overscroll-behavior: contain;\n  padding: 1.1rem 1.2rem 1.3rem;\n  pointer-events: auto;\n  position: absolute;\n  right: 0;\n  top: 4.5rem;\n  width: min(22rem, 100% - 15rem);\n}\n\n.graph-landing__inspect[hidden] {\n  display: none;\n}\n\n.graph-landing__inspect-bar {\n  align-items: center;\n  display: flex;\n  justify-content: space-between;\n}\n\n.graph-landing__inspect-chip {\n  color: var(--gray);\n  font-size: 10px;\n  letter-spacing: 0.14em;\n  margin: 0;\n  text-transform: uppercase;\n}\n\n.graph-landing__inspect-close {\n  background: transparent;\n  border: 0;\n  color: var(--gray);\n  cursor: pointer;\n  font-family: var(--bodyFont);\n  font-size: 12px;\n  min-height: 32px;\n  padding: 0 4px;\n}\n\n.graph-landing__inspect-title {\n  color: var(--dark);\n  font-size: 1.05rem;\n  font-weight: 600;\n  line-height: 1.35;\n  margin: 0;\n}\n\n.graph-landing__inspect-excerpt {\n  color: var(--darkgray);\n  font-size: 13px;\n  line-height: 1.55;\n  margin: 0;\n}\n\n.graph-landing__inspect-tags {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 6px;\n  list-style: none;\n  margin: 0;\n  padding: 0;\n}\n\n.graph-landing__inspect-tags li {\n  border: 1px solid var(--lightgray);\n  border-radius: 999px;\n  color: var(--gray);\n  font-size: 11px;\n  padding: 2px 8px;\n}\n\n.graph-landing__inspect-section {\n  color: var(--gray);\n  font-size: 10px;\n  letter-spacing: 0.14em;\n  margin: 6px 0 0;\n  text-transform: uppercase;\n}\n\n.graph-landing__inspect-links {\n  display: flex;\n  flex-direction: column;\n  gap: 2px;\n  list-style: none;\n  margin: 0;\n  padding: 0;\n}\n\n.graph-landing__inspect-link {\n  align-items: baseline;\n  background: transparent;\n  border: 0;\n  border-radius: 4px;\n  color: var(--dark);\n  cursor: pointer;\n  display: flex;\n  font-family: var(--bodyFont);\n  gap: 8px;\n  min-height: 32px;\n  padding: 4px 2px;\n  text-align: left;\n  width: 100%;\n}\n\n.graph-landing__inspect-link span {\n  color: var(--gray);\n  flex: 0 0 3.2rem;\n  font-size: 10px;\n  letter-spacing: 0.08em;\n  text-transform: uppercase;\n}\n\n.graph-landing__inspect-link strong {\n  font-size: 13px;\n  font-weight: 500;\n}\n\n.graph-landing__inspect-empty {\n  color: var(--gray);\n  font-size: 12px;\n  padding: 4px 0;\n}\n\n.graph-landing__inspect-open {\n  align-self: flex-start;\n  color: var(--secondary);\n  font-size: 13px;\n  font-weight: 500;\n  margin-top: 8px;\n  min-height: 44px;\n  padding: 10px 0;\n  text-decoration: none;\n}\n\n.graph-landing__inspect-open[hidden] {\n  display: none;\n}\n\n:root[saved-theme=dark] .graph-landing__inspect {\n  background: rgba(12, 14, 20, 0.86);\n  border-left-color: rgba(219, 226, 242, 0.12);\n}\n\n:root[saved-theme=dark] .graph-landing__inspect-title,\n:root[saved-theme=dark] .graph-landing__inspect-link {\n  color: rgba(255, 255, 255, 0.92);\n}\n\n:root[saved-theme=dark] .graph-landing__inspect-excerpt {\n  color: rgba(219, 226, 242, 0.72);\n}\n\n@media (max-width: 700px) {\n  .graph-landing__preview {\n    display: none;\n  }\n  .graph-landing__inspect {\n    border-left: 0;\n    border-top: 1px solid var(--lightgray);\n    max-height: 48dvh;\n    top: auto;\n    width: 100%;\n  }\n}\n.graph-landing__error {\n  align-items: center;\n  color: var(--gray);\n  display: flex;\n  font-size: 0.9rem;\n  height: 100%;\n  justify-content: center;\n  padding: 1.5rem;\n  text-align: center;\n}\n\n:root[saved-theme=dark] .graph-landing {\n  background: var(--light);\n}\n\n:root[saved-theme=dark] .graph-landing__hero,\n:root[saved-theme=dark] .graph-landing__canvas {\n  background: color-mix(in srgb, var(--light) 12%, #05070f);\n}\n\n:root[saved-theme=dark] .graph-landing__rail {\n  background: color-mix(in srgb, var(--light) 72%, transparent);\n  border-color: var(--lightgray);\n  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.38);\n}\n\n@media (max-width: 700px) {\n  .graph-landing__rail {\n    border-radius: 12px;\n    left: 8px;\n    max-height: calc(100dvh - 16px);\n    max-width: none;\n    padding: 10px 12px;\n    right: 8px;\n    top: 8px;\n    width: auto;\n  }\n  .graph-landing__lenses {\n    flex-wrap: nowrap;\n    overflow-x: auto;\n  }\n  .graph-landing__chip {\n    flex: 0 0 auto;\n    min-height: 44px;\n  }\n  .graph-landing__section-label--tags {\n    display: none;\n  }\n  .graph-landing__filters-toggle {\n    display: inline-flex;\n    min-height: 44px;\n    padding: 8px;\n  }\n  .graph-landing__tag-list {\n    display: none;\n  }\n  .graph-landing__tags[data-open=true] .graph-landing__tag-list {\n    display: flex;\n  }\n  .graph-landing__utils {\n    flex-direction: row;\n    flex-wrap: wrap;\n    align-items: center;\n  }\n  .graph-landing__top-right {\n    max-width: calc(100% - 1.5rem);\n    padding: 0.75rem 1rem;\n  }\n}';
 var l;
-function S(n2) {
-  return n2.children;
-}
 l = { __e: function(n2, l2, u3, t2) {
   for (var i2, r2, o2; l2 = l2.__; ) if ((i2 = l2.__c) && !i2.__) try {
     if ((r2 = i2.constructor) && null != r2.getDerivedStateFromError && (i2.setState(r2.getDerivedStateFromError(n2)), o2 = i2.__d), null != i2.componentDidCatch && (i2.componentDidCatch(n2, t2 || {}), o2 = i2.__d), o2) return i2.__E = i2;
@@ -2130,35 +24,7 @@ function u2(e2, t2, n2, o2, i2, u3) {
   return l.vnode && l.vnode(l2), l2;
 }
 
-// src/htmlToJsx.ts
-function htmlToJsx(tree) {
-  return toJsxRuntime(tree, {
-    Fragment: S,
-    jsx: u2,
-    jsxs: u2,
-    elementAttributeNameCase: "html"
-  });
-}
-
-// src/scripts/graph-landing.inline.ts
-var graph_landing_inline_default = 'var U="0.179.1",Pn="https://esm.sh/force-graph@1.51.4",Mn=`https://esm.sh/3d-force-graph@1.80.0?deps=three@${U}`,Nn=`https://esm.sh/three-spritetext@1.9.2?deps=three@${U}`,An=`https://esm.sh/three@${U}`,_n=`https://esm.sh/three@${U}/examples/jsm/postprocessing/UnrealBloomPass.js`,Dn=8,Rn=5,In=6,z=1,Y=3.5,On=.13,Hn=4.2,Fn=1,cn=1,H=.18,wn="graph-landing:lens",zn=.18,Bn=64,Vn=1.4,$n=1.25,Un=1.15,ln=11,Wn=21,un=1.4,dn=.62,gn=.12,jn=.7,qn=.42,Kn={tight:{charge:-80,distance:64},normal:{charge:-110,distance:82},wide:{charge:-130,distance:90}};function yn(n){if(n&&typeof n=="object")return n;throw new Error("graph-landing: expected an object in content index")}function fn(n){return Array.isArray(n)?n.filter(t=>typeof t=="string"):[]}function Yn(n){let t=[];for(let r of Object.values(n)){let o=yn(r),c=typeof o.slug=="string"?o.slug:"";if(c.length===0)continue;let a=o.multilingual,u=a&&typeof a=="object"?a:void 0;t.push({slug:c,title:typeof o.title=="string"?o.title:c,links:fn(o.links),tags:fn(o.tags),multilingual:u})}return t}function Xn(n){return n==="index"||n.endsWith("/index")}function Zn(n){return n==="tags"||n.startsWith("tags/")}function Jn(n){return n.multilingual?.translationKey==="home"}function Qn(n,t){return n.multilingual?.locale?n.multilingual.locale===t.localeId:n.slug.startsWith(`${t.localeId}/`)?!0:!t.prefixes.some(o=>n.slug.startsWith(`${o}/`))&&t.localeId===t.sourceLocale}function kn(n,t,r){return Math.min(r,Math.max(t,n))}function ne(n){let t=n.split("/").filter(r=>r.length>0);return t.length<2?"root":t[0]??"root"}function ee(n,t){return n.length===0?"":[...n].sort((o,c)=>(t.get(c)??0)-(t.get(o)??0))[0]??""}function te(n,t){let r=n.filter(i=>Xn(i.slug)||Zn(i.slug)||Jn(i)?!1:Qn(i,t)),o=new Set(r.map(i=>i.slug)),c=new Map,a=[],u=new Set,h=new Map,w=i=>{c.set(i,(c.get(i)??0)+1)},E=(i,b,T)=>{let G=i<b?`${i}|${b}|${T}`:`${b}|${i}|${T}`;u.has(G)||(u.add(G),a.push({source:i,target:b,kind:T}),w(i),w(b))};for(let i of r)for(let b of i.links)o.has(b)&&b!==i.slug&&E(i.slug,b,"wikilink");let P=new Set;for(let i of r)for(let b of i.tags){h.set(b,(h.get(b)??0)+1);let T=`tag:${b}`;P.add(T),E(i.slug,T,"tag")}let k=[...c.values()],N=k.length>0?Math.min(...k):0,S=k.length>0?Math.max(...k):0,M=i=>{let b=c.get(i)??0,T=Math.sqrt(b),G=Math.sqrt(N),B=Math.sqrt(S)-G;return B===0?(z+Y)/2:z+(T-G)/B*(Y-z)},C=[...r].sort((i,b)=>(c.get(b.slug)??0)-(c.get(i.slug)??0)),x=new Set(C.filter(i=>(c.get(i.slug)??0)>0).slice(0,Dn).map(i=>i.slug)),L=r.map(i=>({id:i.slug,name:i.title,type:"note",val:M(i.slug),degree:c.get(i.slug)??0,isHub:x.has(i.slug),tag:"",slug:i.slug,folder:ne(i.slug),tags:i.tags,dominantTag:ee(i.tags,h)}));for(let i of P){let b=i.slice(4);L.push({id:i,name:b,type:"tag",val:kn(M(i)*.7,z,Y),degree:c.get(i)??0,isHub:!1,tag:b,slug:`tags/${b}`,folder:"tag",tags:[b],dominantTag:b})}return{nodes:L,links:a}}function re(n){let t=new Map,r=(o,c)=>{let a=t.get(o)??new Set;a.add(c),t.set(o,a)};for(let o of n){let c=v(o.source),a=v(o.target);r(c,a),r(a,c)}return t}function v(n){return typeof n=="string"?n:n.id}function F(n,t){let r=document.createElement("span");r.style.color=`var(${n})`,r.style.position="absolute",r.style.visibility="hidden",document.body.appendChild(r);let o=getComputedStyle(r).color;return r.remove(),o||t}function Tn(){let n=getComputedStyle(document.documentElement).getPropertyValue("--bodyFont").trim();return{bg:F("--light","#ffffff"),ink:F("--darkgray","#0f0f0f"),accent:F("--secondary","#a52142"),tertiary:F("--tertiary","#c75b75"),gray:F("--gray","#737373"),font:n.length>0?n:"Inter, sans-serif"}}function O(){return window.matchMedia("(prefers-reduced-motion: reduce)").matches}function oe(){return window.matchMedia("(pointer: fine)").matches}function se(){let n=document.createElement("canvas");return(n.getContext("webgl")??n.getContext("experimental-webgl"))!==null}function ae(){return oe()&&se()&&window.innerWidth>700&&!O()}function D(){return document.documentElement.getAttribute("saved-theme")==="dark"}function Z(n){let t=n.match(/rgba?\\(\\s*(\\d+)\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)/);if(t&&t[1]&&t[2]&&t[3])return{r:Number(t[1]),g:Number(t[2]),b:Number(t[3])};let r=n.match(/^#([0-9a-f]{6})$/i);if(r&&r[1]){let o=parseInt(r[1],16);return{r:o>>16&255,g:o>>8&255,b:o&255}}return null}function _(n,t){let r=Z(n);return r?`rgba(${r.r}, ${r.g}, ${r.b}, ${t})`:n}function Ln(n,t,r){let o=Z(n),c=Z(t);if(!o||!c)return n;let a=(u,h)=>Math.round(u+(h-u)*r);return`rgb(${a(o.r,c.r)}, ${a(o.g,c.g)}, ${a(o.b,c.b)})`}function X(n){return D()?Ln(n.bg,"#000000",.52):n.bg}function En(n,t){let r=0;for(let o of n)r=r*31+o.charCodeAt(0)>>>0;return t[r%t.length]??t[0]??n}function mn(n,t){return n==="articles"?t.accent:n==="inbox"?t.tertiary:n==="root"?t.ink:En(n,[t.accent,t.tertiary,t.ink,t.gray])}function ie(n,t){return n.length===0?t.ink:En(n,[t.accent,t.tertiary])}function ce(n){let t=n.split("/").map(a=>encodeURIComponent(a)).join("/"),r=document.querySelector("base")?.getAttribute("href"),o="/";r&&r.startsWith("/")&&!r.startsWith("//")&&(o=r.endsWith("/")?r:`${r}/`);let c=`${o}${t}`.replace(/\\/{2,}/g,"/");return new URL(c,window.location.origin)}function le(n){if(n.length===0)throw new Error("graph-landing: cannot navigate a node without a slug");let t=ce(n);window.location.assign(t.toString())}function ue(n){let t=n.default;if(typeof t!="function")throw new Error("graph-landing: CDN module did not export a graph factory");return t()}function pn(n,t){n.textContent=t,n.classList.add("graph-landing__error")}async function de(n){let r=await import(n?Mn:Pn);return n&&typeof r.default=="function"?r.default({controlType:"orbit"}):ue(r)}function ge(){try{let n=sessionStorage.getItem(wn);if(n==="all"||n==="tag"||n==="folder"||n==="hub")return n}catch(n){console.error("[graph-landing] sessionStorage unavailable for lens persistence",n)}return"all"}function hn(n){try{sessionStorage.setItem(wn,n)}catch(t){console.error("[graph-landing] could not persist lens",t)}}function fe(n){return n==="all"||n==="tag"||n==="folder"||n==="hub"}function me(n){return n==="tight"||n==="normal"||n==="wide"}function pe(n,t){let r=n.nodes.filter(c=>c.type==="note").sort((c,a)=>a.degree-c.degree).slice(0,In),o=new Set;for(let c of r){o.add(c.id);for(let a of t.get(c.id)??[])o.add(a)}return o}function he(n,t){return{nodes:n.nodes.filter(r=>t.has(r.id)),links:n.links.filter(r=>t.has(v(r.source))&&t.has(v(r.target)))}}function be(n,t){return n.type==="tag"?n.tag===t:n.tags.includes(t)}function bn(n,t){let r=v(t),o=n.find(c=>c.id===r);return!o||o.type!=="note"?null:o.folder}function we(n,t,r){let o=new Map;if(t==="folder"){let c=[...new Set(n.nodes.filter(a=>a.type==="note").map(a=>a.folder))];return c.forEach((a,u)=>{let h=Math.PI*2*u/Math.max(c.length,1),w={x:Math.cos(h)*r,y:Math.sin(h)*r,z:0};for(let E of n.nodes)E.type==="note"&&E.folder===a&&o.set(E.id,w)}),o}if(t==="tag"){let c=n.nodes.filter(u=>u.type==="tag"),a=new Map;c.forEach((u,h)=>{let w=Math.PI*2*h/Math.max(c.length,1);a.set(u.tag,{x:Math.cos(w)*r,y:Math.sin(w)*r,z:0})});for(let u of n.nodes)if(u.type==="tag"){let h=a.get(u.tag);h&&o.set(u.id,h)}else if(u.dominantTag.length>0){let h=a.get(u.dominantTag);h&&o.set(u.id,h)}}return o}function ye(n,t){let r=[],o=c=>{let a=t*c;for(let u of r){let h=n(u);h&&(u.vx=(u.vx??0)+(h.x-(u.x??0))*a,u.vy=(u.vy??0)+(h.y-(u.y??0))*a,u.vz=(u.vz??0)+(h.z-(u.z??0))*a)}};return o.initialize=c=>{r=c},o}function $(n,t,r,o){for(let c of n.querySelectorAll(t)){if(!(c instanceof HTMLElement))continue;let a=c.getAttribute(o);c.setAttribute("aria-pressed",a===r?"true":"false")}}function ke(n,t,r,o){let c=re(t.links),a={lens:ge(),spacing:"normal",allLabels:!1,focusTag:null},u=null,h=new Set(t.nodes.filter(e=>e.type==="note").sort((e,s)=>s.degree-e.degree).slice(0,Rn).map(e=>e.id)),w=e=>{let s=e.val;return e.isHub&&(s*=Vn),a.lens==="tag"&&e.type==="tag"&&(s*=$n),a.focusTag&&e.id===`tag:${a.focusTag}`&&(s*=Un),s},E=e=>a.allLabels||u===e.id?!0:h.has(e.id),P=e=>{let s=kn((w(e)-z)/5,0,1);return ln+s*(Wn-ln)},k=e=>{if(u!==null)return u===e||(c.get(u)?.has(e)??!1);if(a.focusTag===null)return!0;let s=t.nodes.find(l=>l.id===e);return s?be(s,a.focusTag):!1},N=e=>a.lens==="tag"?e.type==="tag"?r.current.tertiary:ie(e.dominantTag,r.current):a.lens==="folder"?e.type==="tag"?r.current.tertiary:mn(e.folder,r.current):a.lens==="hub"?e.type==="tag"?r.current.tertiary:e.isHub?r.current.accent:r.current.ink:e.type==="tag"?r.current.tertiary:r.current.ink,S=e=>{if(u!==null&&(u===e.id||c.get(u)?.has(e.id)))return r.current.accent;let s=N(e);return k(e.id)?D()?e.type==="tag"?r.current.accent:Ln("#f4f1f2",r.current.accent,.38):s:_(s,H)},M=e=>{let s=v(e.source),l=v(e.target);if(u!==null&&(s===u||l===u))return r.current.accent;if(u!==null||a.focusTag!==null){let g=k(s),p=k(l);if(!g||!p)return _(r.current.gray,H)}let d=D();return e.kind==="tag"?_(r.current.gray,.42):_(r.current.gray,d?.68:.58)},C=()=>a.lens!=="hub"?t:he(t,pe(t,c)),x=()=>{let e=Kn[a.spacing],s=n.d3Force("charge");s?.strength&&s.strength(e.charge);let l=n.d3Force("link");l?.distance&&l.distance(m=>a.lens==="tag"&&m.kind==="tag"?e.distance*.72:e.distance),l?.strength&&l.strength(m=>{if(a.lens==="tag"&&m.kind==="tag")return .95;if(a.lens==="folder"){let y=bn(t.nodes,m.source),A=bn(t.nodes,m.target);if(y!==null&&y===A)return .72}return m.kind==="tag"?.65:.8});let d=n.d3Force("center");d?.strength&&d.strength(On);let g=a.spacing==="wide"?260:a.spacing==="tight"?130:190,p=we(t,a.lens,g),f=a.lens==="folder"||a.lens==="tag"?.08:0;n.d3Force("cluster",ye(m=>p.get(m.id)??null,f))},L=()=>{if(!o.use3d||typeof n.nodeThreeObject!="function")return;let e=o.spriteText,s=o.three;typeof n.nodeThreeObjectExtend=="function"&&n.nodeThreeObjectExtend(s===null),n.nodeThreeObject(l=>{let d=P(l),g=S(l),p=!1;if(s){let y=D()?new s.MeshLambertMaterial({color:g,emissive:g,emissiveIntensity:.45}):new s.MeshBasicMaterial({color:g});p=new s.Mesh(new s.SphereGeometry(d,14,14),y)}if(!E(l)||!e)return p;let f=new e(l.name);if(f.color=k(l.id)?r.current.ink:_(r.current.ink,H),f.fontWeight="500",f.strokeWidth=.55,f.strokeColor=X(r.current),f.textHeight=h.has(l.id)?12:9.5,f.position.y=d+9,!s||p===!1)return f;let m=new s.Group;return m.add(p),m.add(f),m})},i=()=>{let e=o.three;if(!o.use3d||!e||typeof n.linkThreeObject!="function")return;let s=new e.Vector3(0,1,0);n.linkThreeObject(l=>{let d=l.kind==="tag"?qn:jn,g=new e.MeshBasicMaterial({color:M(l),transparent:!0,opacity:1});return new e.Mesh(new e.CylinderGeometry(d,d,1,6),g)}),typeof n.linkPositionUpdate=="function"&&n.linkPositionUpdate((l,d)=>{let g=d.end.x-d.start.x,p=d.end.y-d.start.y,f=d.end.z-d.start.z,m=Math.sqrt(g*g+p*p+f*f);return l.position.x=(d.start.x+d.end.x)/2,l.position.y=(d.start.y+d.end.y)/2,l.position.z=(d.start.z+d.end.z)/2,l.scale.x=1,l.scale.y=Math.max(m,.01),l.scale.z=1,l.quaternion.setFromUnitVectors(s,new e.Vector3(g,p,f).normalize()),!0})},b=()=>{!o.use3d||typeof n.linkDirectionalParticles!="function"||n.linkDirectionalParticles(e=>{if(u===null)return 0;let s=v(e.source),l=v(e.target);return s===u||l===u?2:0})},T=()=>{n.nodeVal(w),n.nodeColor(S),n.linkColor(M),n.linkWidth(e=>{let s=v(e.source),l=v(e.target);return u!==null&&(s===u||l===u)?2.1:e.kind==="tag"?1.15:1.85}),typeof n.linkOpacity=="function"&&n.linkOpacity(cn),b(),i(),o.use3d||n.nodeCanvasObjectMode(()=>"replace")},G=()=>{let e=o.root.querySelector("[data-graph-legend]");if(!(e instanceof HTMLElement))return;let s=(g,p)=>{let f=document.createElement("span");f.className="graph-landing__legend-item";let m=document.createElement("span");m.className="graph-landing__dot",m.setAttribute("aria-hidden","true"),m.style.background=g;let y=document.createElement("span");return y.textContent=p,f.append(m,y),f};if(a.lens==="folder"){let g=[...new Set(t.nodes.filter(f=>f.type==="note").map(f=>f.folder))],p=o.root.dataset.folderRootLabel??"root";e.replaceChildren(...g.map(f=>s(mn(f,r.current),f==="root"?p:f)));return}let l=o.root.dataset.legendNotes??"Notes",d=o.root.dataset.legendTags??"Tags";e.replaceChildren(s(r.current.ink,l),s(r.current.tertiary,d))},J=()=>{let e=o.root.querySelector("[data-graph-tags]");if(!(e instanceof HTMLElement))return;let s=t.nodes.filter(g=>g.type==="tag").sort((g,p)=>p.degree-g.degree).slice(0,16),l=o.root.querySelector(".graph-landing__tags");l instanceof HTMLElement&&(l.hidden=s.length===0);let d=s.map(g=>{let p=document.createElement("li"),f=document.createElement("button");f.type="button",f.className="graph-landing__tag-item",f.dataset.graphTag=g.tag,f.setAttribute("aria-pressed",a.focusTag===g.tag?"true":"false");let m=document.createElement("span");m.textContent=g.tag;let y=document.createElement("span");return y.className="graph-landing__tag-count",y.textContent=String(g.degree),f.append(m,y),p.append(f),p});e.replaceChildren(...d)},B=e=>{if(o.use3d&&typeof n.cameraPosition=="function"){let s=e.x??0,l=e.y??0,d=e.z??0;n.cameraPosition({x:s+36,y:l+18,z:d+150},{x:s,y:l,z:d},700);return}typeof n.centerAt=="function"&&typeof n.zoom=="function"&&(n.centerAt(e.x??0,e.y??0,600),n.zoom(2.3,600))},W=0;window.addCleanup(()=>window.clearTimeout(W));let vn=()=>window.innerWidth<=700?72:Bn,Q=e=>{typeof n.zoomToFit=="function"&&n.zoomToFit(e,vn())},j=(e,s)=>{window.clearTimeout(W),W=window.setTimeout(()=>{Q(s)},e)},q=e=>{n.graphData(C()),x(),T(),L(),G(),$(o.root,"[data-graph-lens]",a.lens,"data-graph-lens"),$(o.root,"[data-graph-spacing]",a.spacing,"data-graph-spacing");for(let s of o.root.querySelectorAll("[data-graph-tag]"))s instanceof HTMLElement&&s.setAttribute("aria-pressed",s.dataset.graphTag===a.focusTag?"true":"false");n.d3ReheatSimulation(),e&&j(280,O()?0:900)},Sn=e=>{a.lens=e,e!=="tag"&&(a.focusTag=null),hn(e),q(!0)},nn=e=>{a.focusTag=a.focusTag===e?null:e,a.focusTag&&(a.lens="tag",hn("tag")),q(!1);let s=t.nodes.find(l=>l.id===`tag:${e}`);if(s&&a.focusTag){B(s);return}j(280,O()?0:900)};if(n.graphData(C()),n.backgroundColor(X(r.current)),n.nodeLabel(e=>e.name),n.nodeRelSize(Hn),typeof n.nodeOpacity=="function"&&n.nodeOpacity(Fn),typeof n.linkOpacity=="function"&&n.linkOpacity(cn),x(),T(),n.onNodeHover(e=>{u=e?e.id:null,T(),o.use3d&&L()}),o.use3d){if(typeof n.showNavInfo=="function"&&n.showNavInfo(!1),typeof n.enableNavigationControls=="function"&&n.enableNavigationControls(!0),!O()&&typeof n.controls=="function"){let e=n.controls();e.autoRotate=!1,e.autoRotateSpeed=zn;let s=window.setTimeout(()=>{typeof n.controls=="function"&&(n.controls().autoRotate=!0)},1600);window.addCleanup(()=>window.clearTimeout(s))}n.warmupTicks(50),n.cooldownTicks(200),typeof n.linkDirectionalParticleWidth=="function"&&n.linkDirectionalParticleWidth(1.1),typeof n.linkDirectionalParticleSpeed=="function"&&n.linkDirectionalParticleSpeed(.004),typeof n.linkDirectionalParticleColor=="function"&&n.linkDirectionalParticleColor(()=>r.current.accent),o.bloomPass&&typeof n.postProcessingComposer=="function"&&(o.bloomPass.strength=D()?un:0,o.bloomPass.radius=dn,o.bloomPass.threshold=gn,n.postProcessingComposer().addPass(o.bloomPass)),typeof n.cameraPosition=="function"&&n.cameraPosition({x:0,y:80,z:720}),L()}else n.warmupTicks(60),n.cooldownTicks(180),n.nodeCanvasObject((e,s,l)=>{let d=P(e),g=e.x??0,p=e.y??0;if(s.save(),s.beginPath(),s.arc(g,p,d,0,Math.PI*2),s.fillStyle=S(e),s.fill(),e.isHub&&(s.strokeStyle=k(e.id)?r.current.accent:_(r.current.accent,H),s.lineWidth=1.2/l,s.stroke()),E(e)){let f=13/l;s.font=`${f}px ${r.current.font}`,s.fillStyle=k(e.id)?r.current.ink:_(r.current.ink,H),s.textAlign="center",s.textBaseline="bottom",s.fillText(e.name,g,p-d-6)}s.restore()}),typeof n.nodePointerAreaPaint=="function"&&n.nodePointerAreaPaint((e,s,l)=>{let d=P(e)+8;l.beginPath(),l.arc(e.x??0,e.y??0,d,0,Math.PI*2),l.fillStyle=s,l.fill()});let en=e=>{if(e.type==="tag"){nn(e.tag);return}le(e.slug)},K=!1;n.onNodeClick((e,s)=>{e&&(K=!0,s&&typeof s.stopPropagation=="function"&&s.stopPropagation(),en(e))});let R=o.root.querySelector("#graph-landing-mount");if(R instanceof HTMLElement){let e=null,s=g=>{e={x:g.clientX,y:g.clientY}},l=(g,p)=>{if(typeof n.graph2ScreenCoords!="function")return null;let f=R.getBoundingClientRect(),m=g-f.left,y=p-f.top,A=null,sn=4096;for(let I of C().nodes){if(I.x===void 0||I.y===void 0)continue;let V=n.graph2ScreenCoords(I.x,I.y,I.z??0),xn=(V.x-m)**2+(V.y-y)**2,Gn=(V.x-g)**2+(V.y-p)**2,an=Math.min(xn,Gn);an<sn&&(sn=an,A=I)}return A},d=g=>{let p=e;e=null,!(!p||(g.clientX-p.x)**2+(g.clientY-p.y)**2>25)&&window.setTimeout(()=>{if(K){K=!1;return}let m=l(g.clientX,g.clientY);m&&en(m)},0)};R.addEventListener("pointerdown",s,!0),R.addEventListener("pointerup",d,!0),window.addCleanup(()=>{R.removeEventListener("pointerdown",s,!0),R.removeEventListener("pointerup",d,!0)})}$(o.root,"[data-graph-lens]",a.lens,"data-graph-lens"),G(),J(),a.lens!=="all"&&q(!1);let tn=O();j(400,tn?0:800);let Cn=window.setTimeout(()=>{Q(tn?0:400)},1400);window.addCleanup(()=>window.clearTimeout(Cn));let rn=()=>{r.current=Tn(),n.backgroundColor(X(r.current)),o.bloomPass&&(o.bloomPass.strength=D()?un:0,o.bloomPass.radius=dn,o.bloomPass.threshold=gn),T(),L(),G()};document.addEventListener("themechange",rn),window.addCleanup(()=>document.removeEventListener("themechange",rn));let on=e=>{let s=e.target;if(!(s instanceof Element))return;let l=s.closest("[data-graph-lens]");if(l instanceof HTMLElement&&l.dataset.graphLens&&fe(l.dataset.graphLens)){Sn(l.dataset.graphLens);return}let d=s.closest("[data-graph-spacing]");if(d instanceof HTMLElement&&d.dataset.graphSpacing&&me(d.dataset.graphSpacing)){a.spacing=d.dataset.graphSpacing,x(),n.d3ReheatSimulation(),$(o.root,"[data-graph-spacing]",a.spacing,"data-graph-spacing");return}let g=s.closest("[data-graph-tag]");if(g instanceof HTMLElement&&g.dataset.graphTag){nn(g.dataset.graphTag);return}if(s.closest("[data-graph-relayout]")){n.d3ReheatSimulation();return}let p=s.closest("[data-graph-labels]");if(p instanceof HTMLButtonElement){a.allLabels=!a.allLabels,p.setAttribute("aria-pressed",a.allLabels?"true":"false");let m=p.dataset.labelShow??"Labels",y=p.dataset.labelHide??"Labels",A=p.querySelector("[data-graph-labels-text]");A&&(A.textContent=a.allLabels?y:m),L();return}if(s.closest("[data-graph-theme]")){let m=D()?"light":"dark";document.documentElement.setAttribute("saved-theme",m),localStorage.setItem("theme",m),document.body.classList.remove("theme-dark","theme-light"),document.body.classList.add(`theme-${m}`),document.dispatchEvent(new CustomEvent("themechange",{detail:{theme:m}}));return}let f=s.closest("[data-graph-tags-toggle]");if(f instanceof HTMLButtonElement){let m=o.root.querySelector(".graph-landing__tags");if(m instanceof HTMLElement){let y=m.dataset.open==="true";m.dataset.open=y?"false":"true",f.setAttribute("aria-expanded",y?"false":"true")}}};o.root.addEventListener("click",on),window.addCleanup(()=>o.root.removeEventListener("click",on))}async function Te(){let n=document.querySelector(".graph-landing");if(!(n instanceof HTMLElement)||n.dataset.graphReady==="1")return;n.dataset.graphReady="1";let t=n.querySelector("#graph-landing-mount");if(!(t instanceof HTMLElement))throw new Error("graph-landing: mount element #graph-landing-mount is missing");let r=n.querySelector("[data-graph-counts]"),o=n.dataset.locale??"ko",c=n.dataset.sourceLocale??"ko",a=(n.dataset.localePrefixes??"").split(",").map(i=>i.trim()).filter(i=>i.length>0),u=n.dataset.countsTemplate??"{n} nodes \\xB7 {m} edges",h=!1,w=null,E={current:Tn()},P=()=>{h=!0,w&&(w._destructor(),w=null),delete n.dataset.graphReady};window.addCleanup(P);let k;try{k=yn(await fetchData)}catch(i){throw pn(t,"Graph could not load content index."),i}if(h)return;let N=te(Yn(k),{localeId:o,sourceLocale:c,prefixes:a});r&&(r.textContent=u.replace("{n}",String(N.nodes.length)).replace("{m}",String(N.links.length)));let S=ae(),M;try{M=await de(S)}catch(i){throw pn(t,"Graph could not load. Check your network connection."),i}if(h)return;let C=null,x=null,L=null;if(S){try{C=(await import(Nn)).default??null}catch(i){console.error("[graph-landing] SpriteText unavailable; 3D hub labels disabled",i),C=null}try{L=await import(An)}catch(i){console.error("[graph-landing] three unavailable; using default node spheres",i),L=null}try{let i=await import(_n);x=i.UnrealBloomPass?new i.UnrealBloomPass:null}catch(i){console.error("[graph-landing] UnrealBloomPass unavailable; dark-mode bloom disabled",i),x=null}}if(!h&&(t.replaceChildren(),w=M(t),ke(w,N,E,{use3d:S,root:n,spriteText:C,bloomPass:x,three:L}),S&&!O())){let i=()=>{!w||typeof w.controls!="function"||(w.controls().autoRotate=!1)};t.addEventListener("pointerdown",i,{once:!0}),window.addCleanup(()=>t.removeEventListener("pointerdown",i))}}var Le="preferred-locale";document.addEventListener("click",n=>{let t=n.target;if(!(t instanceof Element))return;let r=t.closest("a[data-preferred-locale]");if(!(r instanceof HTMLAnchorElement))return;let o=r.dataset.preferredLocale;if(o)try{localStorage.setItem(Le,o)}catch(c){console.error("[graph-landing] failed to persist preferred-locale",c)}});document.addEventListener("nav",()=>{Te()});\n';
-
-// src/components/styles/graph-landing.scss
-var graph_landing_default = ".center.minimal:has(.graph-landing) {\n  max-width: 100%;\n  min-width: 100%;\n  margin: 0;\n  padding: 0;\n}\n\n.graph-landing {\n  background: var(--light);\n  color: var(--dark);\n  font-family: var(--bodyFont);\n  max-width: 100%;\n  overflow-x: hidden;\n  width: 100%;\n}\n\n.graph-landing__hero {\n  background: var(--light);\n  height: 100dvh;\n  max-width: 100%;\n  overflow: hidden;\n  position: relative;\n  width: 100%;\n}\n\n.graph-landing__canvas {\n  height: 100%;\n  inset: 0;\n  position: absolute;\n  width: 100%;\n}\n\n.graph-landing__canvas canvas {\n  display: block;\n  height: 100% !important;\n  width: 100% !important;\n}\n\n.graph-landing__overlay {\n  inset: 0;\n  pointer-events: none;\n  position: absolute;\n  z-index: 2;\n}\n\n.graph-landing__rail {\n  backdrop-filter: blur(6px);\n  background: color-mix(in srgb, var(--light) 82%, transparent);\n  border: 1px solid var(--lightgray);\n  border-radius: 0 0 8px 0;\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n  left: 0;\n  max-width: 240px;\n  padding: 16px;\n  pointer-events: auto;\n  position: absolute;\n  top: 0;\n  width: 240px;\n}\n\n.graph-landing__top-right {\n  align-items: center;\n  display: flex;\n  flex-wrap: wrap;\n  gap: 0.75rem 1rem;\n  justify-content: flex-end;\n  max-width: min(28rem, 100% - 16rem);\n  padding: 1.25rem 1.5rem;\n  pointer-events: auto;\n  position: absolute;\n  right: 0;\n  top: 0;\n}\n\n.graph-landing__title-block {\n  align-items: baseline;\n  display: flex;\n  flex-wrap: wrap;\n  gap: 4px 8px;\n}\n\n.graph-landing__title {\n  color: var(--dark);\n  font-family: var(--bodyFont);\n  font-size: 16px;\n  font-weight: 600;\n  letter-spacing: 0;\n  line-height: 1.2;\n  margin: 0;\n}\n\n.graph-landing__counts {\n  color: var(--gray);\n  cursor: default;\n  font-family: var(--bodyFont);\n  font-size: 12px;\n  line-height: 1.4;\n  margin: 0;\n}\n\n.graph-landing__lenses {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 0 4px;\n}\n\n.graph-landing__chip {\n  background: transparent;\n  border: 0;\n  border-radius: 4px;\n  color: var(--gray);\n  cursor: pointer;\n  font-family: var(--bodyFont);\n  font-size: 13px;\n  line-height: 1.2;\n  min-height: 44px;\n  padding: 12px 8px;\n}\n\n.graph-landing__chip:hover {\n  background: color-mix(in srgb, var(--secondary) 8%, transparent);\n  color: var(--secondary);\n}\n\n.graph-landing__chip:focus-visible {\n  background: color-mix(in srgb, var(--secondary) 8%, transparent);\n  color: var(--secondary);\n  outline: 2px solid var(--secondary);\n  outline-offset: 2px;\n}\n\n.graph-landing__chip[aria-pressed=true] {\n  box-shadow: inset 0 -2px 0 0 var(--secondary);\n  color: var(--secondary);\n  font-weight: 500;\n}\n\n.graph-landing__section-label {\n  color: var(--gray);\n  cursor: default;\n  font-family: var(--bodyFont);\n  font-size: 11px;\n  letter-spacing: 0.04em;\n  line-height: 1.3;\n  margin: 0 0 4px;\n  pointer-events: none;\n}\n\n.graph-landing__text-btn,\n.graph-landing__nav-link,\n.graph-landing__locale,\n.graph-landing__filters-toggle {\n  background: transparent;\n  border: 0;\n  color: var(--gray);\n  cursor: pointer;\n  font-family: var(--bodyFont);\n  font-size: 13px;\n  line-height: 1.3;\n  min-height: 32px;\n  padding: 0.2rem 0;\n  text-decoration: none;\n}\n\n.graph-landing__text-btn:hover,\n.graph-landing__text-btn:focus-visible,\n.graph-landing__nav-link:hover,\n.graph-landing__nav-link:focus-visible,\n.graph-landing__locale:hover,\n.graph-landing__locale:focus-visible,\n.graph-landing__filters-toggle:hover,\n.graph-landing__filters-toggle:focus-visible {\n  color: var(--secondary);\n  outline: none;\n}\n\n.graph-landing__text-btn:focus-visible,\n.graph-landing__nav-link:focus-visible,\n.graph-landing__locale:focus-visible,\n.graph-landing__filters-toggle:focus-visible {\n  outline: 2px solid var(--secondary);\n  outline-offset: 2px;\n}\n\n.graph-landing__nav-link {\n  color: var(--dark);\n}\n\n.graph-landing__locales {\n  display: inline-flex;\n  flex-wrap: wrap;\n  gap: 0.45rem 0.55rem;\n}\n\n.graph-landing__locale {\n  align-items: center;\n  display: inline-flex;\n  justify-content: center;\n  min-height: 44px;\n  min-width: 44px;\n}\n\n.graph-landing__locale--current {\n  color: var(--dark);\n  cursor: default;\n  font-weight: 600;\n}\n\n.graph-landing__tags {\n  min-width: 0;\n}\n\n.graph-landing__filters-toggle {\n  display: none;\n}\n\n.graph-landing__tag-list {\n  display: flex;\n  flex-direction: column;\n  gap: 0;\n  list-style: none;\n  margin: 0;\n  max-height: 28vh;\n  overflow: auto;\n  padding: 0;\n}\n\n.graph-landing__tag-item {\n  background: transparent;\n  border: 0;\n  border-radius: 4px;\n  color: var(--gray);\n  cursor: pointer;\n  display: flex;\n  font-family: var(--bodyFont);\n  font-size: 13px;\n  gap: 8px;\n  justify-content: space-between;\n  line-height: 1.4;\n  min-height: 32px;\n  padding: 6px 8px;\n  text-align: left;\n  width: 100%;\n}\n\n.graph-landing__tag-item:hover {\n  background: color-mix(in srgb, var(--secondary) 8%, transparent);\n  color: var(--secondary);\n}\n\n.graph-landing__tag-item:focus-visible {\n  background: color-mix(in srgb, var(--secondary) 8%, transparent);\n  color: var(--secondary);\n  outline: 2px solid var(--secondary);\n  outline-offset: 2px;\n}\n\n.graph-landing__tag-item[aria-pressed=true] {\n  color: var(--secondary);\n  font-weight: 500;\n}\n\n.graph-landing__tag-count {\n  color: var(--gray);\n  font-variant-numeric: tabular-nums;\n}\n\n.graph-landing__utils {\n  border-top: 1px solid var(--lightgray);\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n  padding-top: 8px;\n}\n\n.graph-landing__spacing {\n  display: flex;\n  flex-direction: column;\n  gap: 4px;\n}\n\n.graph-landing__pills {\n  border: 1px solid var(--lightgray);\n  border-radius: 999px;\n  display: inline-flex;\n  overflow: hidden;\n  width: fit-content;\n}\n\n.graph-landing__pill {\n  background: transparent;\n  border: 0;\n  color: var(--gray);\n  cursor: pointer;\n  font-family: var(--bodyFont);\n  font-size: 12px;\n  line-height: 1.2;\n  min-height: 32px;\n  padding: 6px 10px;\n}\n\n.graph-landing__pill:hover {\n  background: color-mix(in srgb, var(--secondary) 8%, transparent);\n  color: var(--secondary);\n}\n\n.graph-landing__pill:focus-visible {\n  outline: 2px solid var(--secondary);\n  outline-offset: -2px;\n  z-index: 1;\n}\n\n.graph-landing__pill[aria-pressed=true] {\n  background: color-mix(in srgb, var(--secondary) 14%, transparent);\n  color: var(--secondary);\n  font-weight: 500;\n}\n\n.graph-landing__ghosts {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 4px;\n}\n\n.graph-landing__ghost {\n  align-items: center;\n  background: transparent;\n  border: 0;\n  border-radius: 4px;\n  color: var(--gray);\n  cursor: pointer;\n  display: inline-flex;\n  font-family: var(--bodyFont);\n  font-size: 12px;\n  gap: 6px;\n  line-height: 1.2;\n  min-height: 32px;\n  padding: 6px 8px;\n}\n\n.graph-landing__ghost svg {\n  flex-shrink: 0;\n}\n\n.graph-landing__ghost:hover {\n  background: color-mix(in srgb, var(--secondary) 8%, transparent);\n  color: var(--secondary);\n}\n\n.graph-landing__ghost:focus-visible {\n  outline: 2px solid var(--secondary);\n  outline-offset: 2px;\n}\n\n.graph-landing__ghost[aria-pressed=true] {\n  background: color-mix(in srgb, var(--secondary) 12%, transparent);\n  color: var(--secondary);\n}\n\n.graph-landing__legend {\n  align-items: center;\n  color: var(--gray);\n  cursor: default;\n  display: flex;\n  flex-wrap: wrap;\n  font-size: 12px;\n  gap: 8px 12px;\n  line-height: 1.3;\n}\n\n.graph-landing__legend-item {\n  align-items: center;\n  display: inline-flex;\n  gap: 6px;\n}\n\n.graph-landing__dot {\n  border-radius: 50%;\n  display: inline-block;\n  height: 7px;\n  width: 7px;\n}\n\n.graph-landing__dot--note {\n  background: var(--darkgray);\n}\n\n.graph-landing__dot--tag {\n  background: var(--tertiary);\n}\n\n.graph-landing__scroll {\n  align-items: center;\n  bottom: 1.25rem;\n  color: var(--gray);\n  display: flex;\n  flex-direction: column;\n  gap: 0.2rem;\n  left: 50%;\n  pointer-events: auto;\n  position: absolute;\n  text-decoration: none;\n  transform: translateX(-50%);\n}\n\n.graph-landing__scroll:hover,\n.graph-landing__scroll:focus-visible {\n  color: var(--secondary);\n  outline: none;\n}\n\n.graph-landing__scroll-label {\n  font-size: 12px;\n}\n\n.graph-landing__chevron {\n  border-right: 1px solid currentColor;\n  border-bottom: 1px solid currentColor;\n  display: block;\n  height: 7px;\n  transform: rotate(45deg);\n  width: 7px;\n}\n\n.graph-landing__body {\n  color: var(--dark);\n  font-family: var(--bodyFont);\n  font-size: 16px;\n  line-height: 1.5;\n  margin: 0 auto;\n  max-width: 40rem;\n  padding: 2rem 2rem 4rem;\n  width: min(40rem, 100% - 2.5rem);\n}\n\n.graph-landing__error {\n  align-items: center;\n  color: var(--gray);\n  display: flex;\n  font-size: 0.9rem;\n  height: 100%;\n  justify-content: center;\n  padding: 1.5rem;\n  text-align: center;\n}\n\n:root[saved-theme=dark] .graph-landing {\n  background: var(--light);\n}\n\n:root[saved-theme=dark] .graph-landing__hero,\n:root[saved-theme=dark] .graph-landing__canvas {\n  background: color-mix(in srgb, var(--light) 48%, black);\n}\n\n:root[saved-theme=dark] .graph-landing__rail {\n  background: color-mix(in srgb, var(--light) 82%, transparent);\n  border-color: var(--lightgray);\n}\n\n@media (max-width: 700px) {\n  .graph-landing__rail {\n    border-radius: 0;\n    max-width: 100%;\n    padding: 8px 12px;\n    width: 100%;\n  }\n  .graph-landing__lenses {\n    flex-wrap: nowrap;\n    overflow-x: auto;\n  }\n  .graph-landing__chip {\n    flex: 0 0 auto;\n    min-height: 44px;\n  }\n  .graph-landing__section-label--tags {\n    display: none;\n  }\n  .graph-landing__filters-toggle {\n    display: inline-flex;\n    min-height: 44px;\n    padding: 8px;\n  }\n  .graph-landing__tag-list {\n    display: none;\n    max-height: 28vh;\n  }\n  .graph-landing__tags[data-open=true] .graph-landing__tag-list {\n    display: flex;\n  }\n  .graph-landing__utils {\n    flex-direction: row;\n    flex-wrap: wrap;\n    align-items: center;\n  }\n  .graph-landing__top-right {\n    max-width: calc(100% - 1.5rem);\n    padding: 0.75rem 1rem;\n  }\n  .graph-landing__scroll {\n    bottom: 0.85rem;\n  }\n}\n@media (prefers-reduced-motion: reduce) {\n  .graph-landing__chevron {\n    animation: none;\n  }\n}";
-
 // src/components/GraphLanding.tsx
-function collectText(node) {
-  if (node.type === "text" && "value" in node && typeof node.value === "string") {
-    return node.value;
-  }
-  if ("children" in node && Array.isArray(node.children)) {
-    return node.children.map((child) => collectText(child)).join("");
-  }
-  return "";
-}
-function hasMeaningfulBody(tree) {
-  return collectText(tree).trim().length > 0;
-}
 function overlayCopyForLocale(localeId) {
   if (localeId === "ko") {
     return {
@@ -2167,6 +33,8 @@ function overlayCopyForLocale(localeId) {
       relayout: "\uB2E4\uC2DC \uC815\uB82C",
       notes: "\uB178\uD2B8",
       tags: "\uD0DC\uADF8",
+      mentions: "\uC5B8\uAE09",
+      previewMention: "\uC544\uC9C1 \uACF5\uAC1C\uB418\uC9C0 \uC54A\uC740 \uC5B8\uAE09",
       countsTemplate: "{n} \uB178\uB4DC \xB7 {m} \uC5E3\uC9C0",
       lensAll: "\uC804\uCCB4",
       lensTag: "\uD0DC\uADF8\uBCC4",
@@ -2176,12 +44,21 @@ function overlayCopyForLocale(localeId) {
       spacingTight: "\uC881\uAC8C",
       spacingNormal: "\uBCF4\uD1B5",
       spacingWide: "\uB113\uAC8C",
-      articles: "\uAE00",
+      articles: "Writing",
       about: "About",
-      theme: "\uD14C\uB9C8",
+      themeToggle: "\uB77C\uC774\uD2B8/\uB2E4\uD06C \uBAA8\uB4DC \uC804\uD658",
       filtersToggle: "\uD544\uD130",
-      scrollHint: "\uC544\uB798\uB85C",
-      folderRoot: "\uB8E8\uD2B8"
+      folderRoot: "\uB8E8\uD2B8",
+      previewHint: "\uD074\uB9AD\uD558\uBA74 \uC5F0\uACB0\uC774 \uC5F4\uB9BD\uB2C8\uB2E4",
+      previewTagTemplate: "{n}\uAC1C \uB178\uD2B8",
+      inspectOpen: "\uBCF8\uBB38 \uC77D\uAE30",
+      inspectConnected: "\uC5F0\uACB0",
+      inspectClose: "\uB2EB\uAE30",
+      inspectEmpty: "\uC9C1\uC811 \uC5F0\uACB0\uB41C \uBCC4\uC774 \uC5C6\uC2B5\uB2C8\uB2E4",
+      tune: "\uC870\uC728",
+      nodeSize: "\uBCC4 \uD06C\uAE30",
+      edgeWidth: "\uC120 \uAD75\uAE30",
+      coresOnly: "\uD575\uC2EC\uB9CC"
     };
   }
   return {
@@ -2190,6 +67,8 @@ function overlayCopyForLocale(localeId) {
     relayout: "Re-layout",
     notes: "Notes",
     tags: "Tags",
+    mentions: "Mentions",
+    previewMention: "Mentioned, not published yet",
     countsTemplate: "{n} nodes \xB7 {m} edges",
     lensAll: "All",
     lensTag: "Tags",
@@ -2201,45 +80,65 @@ function overlayCopyForLocale(localeId) {
     spacingWide: "Wide",
     articles: "Writing",
     about: "About",
-    theme: "Theme",
+    themeToggle: "Toggle light / dark mode",
     filtersToggle: "Filters",
-    scrollHint: "Scroll",
-    folderRoot: "Root"
+    folderRoot: "Root",
+    previewHint: "Click to inspect connections",
+    previewTagTemplate: "{n} notes",
+    inspectOpen: "Read note",
+    inspectConnected: "Connected",
+    inspectClose: "Close",
+    inspectEmpty: "No direct connections",
+    tune: "Tune",
+    nodeSize: "Star size",
+    edgeWidth: "Line weight",
+    coresOnly: "Cores only"
   };
 }
 function slugToAbsHref(slug) {
-  const withoutIndex = slug === "index" || slug.endsWith("/index") ? slug.replace(/\/?index$/, "") : slug;
+  const isIndex = slug === "index" || slug.endsWith("/index");
+  const withoutIndex = isIndex ? slug.replace(/\/?index$/, "") : slug;
   if (withoutIndex.length === 0) {
     return "/";
   }
   const encoded = withoutIndex.split("/").map((segment) => encodeURIComponent(segment)).join("/");
-  return `/${encoded}/`;
+  return isIndex ? `/${encoded}/` : `/${encoded}`;
 }
-function homeLocaleLinks(allFiles, locales, currentLocale) {
-  const homes = allFiles.filter((file) => {
-    const frontmatter = file.frontmatter;
-    return frontmatter?.translationKey === "home" && typeof file.slug === "string" && file.slug !== "index";
-  });
-  const links = [];
-  for (const locale of locales) {
-    const home = homes.find((file) => {
-      const multilingual = file.multilingual;
-      return multilingual?.locale === locale.id;
-    });
-    if (!home || typeof home.slug !== "string") {
-      continue;
-    }
-    links.push({
-      id: locale.id,
-      href: slugToAbsHref(home.slug),
-      label: locale.nativeName ?? locale.id,
-      current: locale.id === currentLocale
-    });
+function switchAriaLabel(targetLocaleId, targetName) {
+  if (targetLocaleId === "en") {
+    return "Switch to English";
   }
-  return links;
+  if (targetLocaleId === "ko") {
+    return "\uD55C\uAD6D\uC5B4\uB85C \uC804\uD658";
+  }
+  return `Switch to ${targetName}`;
+}
+function findLocaleSlug(allFiles, translationKey, localeId) {
+  const match = allFiles.find((file) => {
+    const multilingual = file.multilingual;
+    return multilingual?.translationKey === translationKey && multilingual?.locale === localeId && typeof file.slug === "string" && file.slug !== "index";
+  });
+  return typeof match?.slug === "string" ? match.slug : null;
+}
+function localeToggleLink(allFiles, locales, currentLocale, translationKey) {
+  const other = locales.find((locale) => locale.id !== currentLocale);
+  if (!other) {
+    return null;
+  }
+  const slug = findLocaleSlug(allFiles, translationKey, other.id) ?? findLocaleSlug(allFiles, "home", other.id);
+  if (!slug) {
+    return null;
+  }
+  const label = other.id === "en" ? "English" : other.id === "ko" ? "Korean" : other.nativeName ?? other.id;
+  return {
+    id: other.id,
+    href: slugToAbsHref(slug),
+    label,
+    ariaLabel: switchAriaLabel(other.id, label)
+  };
 }
 var GraphLanding_default = (() => {
-  const GraphLanding = ({ fileData, tree, cfg, allFiles }) => {
+  const GraphLanding = ({ fileData, cfg, allFiles }) => {
     const multilingual = fileData.multilingual;
     const slug = typeof fileData.slug === "string" ? fileData.slug : "";
     const localeId = multilingual?.locale ?? slug.split("/")[0] ?? "ko";
@@ -2248,9 +147,8 @@ var GraphLanding_default = (() => {
     const locales = multilingualCfg?.locales ?? [];
     const localePrefixes = locales.map((locale) => locale.id).join(",");
     const copy = overlayCopyForLocale(localeId);
-    const localeLinks = homeLocaleLinks(allFiles, locales, localeId);
-    const showBody = hasMeaningfulBody(tree);
-    const body = showBody ? htmlToJsx(tree) : null;
+    const translationKey = multilingual?.translationKey ?? "graph";
+    const localeToggle = localeToggleLink(allFiles, locales, localeId, translationKey);
     return /* @__PURE__ */ u2(
       "div",
       {
@@ -2262,160 +160,278 @@ var GraphLanding_default = (() => {
         "data-folder-root-label": copy.folderRoot,
         "data-legend-notes": copy.notes,
         "data-legend-tags": copy.tags,
-        children: [
-          /* @__PURE__ */ u2("section", { class: "graph-landing__hero", "aria-label": "Knowledge graph", children: [
-            /* @__PURE__ */ u2("div", { class: "graph-landing__canvas", id: "graph-landing-mount" }),
-            /* @__PURE__ */ u2("div", { class: "graph-landing__overlay", children: [
-              /* @__PURE__ */ u2("div", { class: "graph-landing__rail", children: [
-                /* @__PURE__ */ u2("div", { class: "graph-landing__title-block", children: [
-                  /* @__PURE__ */ u2("p", { class: "graph-landing__title", children: "Beomsu Koh" }),
-                  /* @__PURE__ */ u2("p", { class: "graph-landing__counts", "data-graph-counts": true, children: copy.countsTemplate.replace("{n}", "\u2013").replace("{m}", "\u2013") })
+        "data-legend-mentions": copy.mentions,
+        "data-preview-tag-template": copy.previewTagTemplate,
+        "data-preview-mention": copy.previewMention,
+        "data-inspect-read": copy.inspectOpen,
+        "data-inspect-connected": copy.inspectConnected,
+        "data-inspect-empty": copy.inspectEmpty,
+        children: /* @__PURE__ */ u2("section", { class: "graph-landing__hero", "aria-label": "Knowledge graph", children: [
+          /* @__PURE__ */ u2("div", { class: "graph-landing__canvas", id: "graph-landing-mount" }),
+          /* @__PURE__ */ u2("div", { class: "graph-landing__overlay", children: [
+            /* @__PURE__ */ u2("div", { class: "graph-landing__rail", ...{ onwheel: "event.stopPropagation()" }, children: [
+              /* @__PURE__ */ u2("div", { class: "graph-landing__title-block", children: [
+                /* @__PURE__ */ u2("p", { class: "graph-landing__title", children: "Beomsu Koh" }),
+                /* @__PURE__ */ u2("p", { class: "graph-landing__counts", "data-graph-counts": true, children: copy.countsTemplate.replace("{n}", "\u2013").replace("{m}", "\u2013") })
+              ] }),
+              /* @__PURE__ */ u2("div", { class: "graph-landing__lenses", role: "tablist", "aria-label": "Graph lens", children: [
+                /* @__PURE__ */ u2("button", { type: "button", class: "graph-landing__chip", "data-graph-lens": "all", "aria-pressed": "true", children: copy.lensAll }),
+                /* @__PURE__ */ u2("button", { type: "button", class: "graph-landing__chip", "data-graph-lens": "tag", "aria-pressed": "false", children: copy.lensTag }),
+                /* @__PURE__ */ u2("button", { type: "button", class: "graph-landing__chip", "data-graph-lens": "folder", "aria-pressed": "false", children: copy.lensFolder })
+              ] }),
+              /* @__PURE__ */ u2("div", { class: "graph-landing__tags", children: [
+                /* @__PURE__ */ u2("p", { class: "graph-landing__section-label graph-landing__section-label--tags", children: copy.tags }),
+                /* @__PURE__ */ u2(
+                  "button",
+                  {
+                    type: "button",
+                    class: "graph-landing__filters-toggle",
+                    "data-graph-tags-toggle": true,
+                    "aria-expanded": "false",
+                    children: copy.filtersToggle
+                  }
+                ),
+                /* @__PURE__ */ u2("ul", { class: "graph-landing__tag-list", "data-graph-tags": true })
+              ] }),
+              /* @__PURE__ */ u2("div", { class: "graph-landing__utils", children: [
+                /* @__PURE__ */ u2("div", { class: "graph-landing__tune", children: [
+                  /* @__PURE__ */ u2("p", { class: "graph-landing__section-label", children: copy.tune }),
+                  /* @__PURE__ */ u2("label", { class: "graph-landing__slider", children: [
+                    /* @__PURE__ */ u2("span", { children: copy.nodeSize }),
+                    /* @__PURE__ */ u2(
+                      "input",
+                      {
+                        type: "range",
+                        min: "50",
+                        max: "150",
+                        value: "70",
+                        "data-graph-node-scale": true,
+                        "aria-label": copy.nodeSize
+                      }
+                    )
+                  ] }),
+                  /* @__PURE__ */ u2("label", { class: "graph-landing__slider", children: [
+                    /* @__PURE__ */ u2("span", { children: copy.edgeWidth }),
+                    /* @__PURE__ */ u2(
+                      "input",
+                      {
+                        type: "range",
+                        min: "50",
+                        max: "180",
+                        value: "100",
+                        "data-graph-edge-scale": true,
+                        "aria-label": copy.edgeWidth
+                      }
+                    )
+                  ] })
                 ] }),
-                /* @__PURE__ */ u2("div", { class: "graph-landing__lenses", role: "tablist", "aria-label": "Graph lens", children: [
-                  /* @__PURE__ */ u2("button", { type: "button", class: "graph-landing__chip", "data-graph-lens": "all", "aria-pressed": "true", children: copy.lensAll }),
-                  /* @__PURE__ */ u2("button", { type: "button", class: "graph-landing__chip", "data-graph-lens": "tag", "aria-pressed": "false", children: copy.lensTag }),
-                  /* @__PURE__ */ u2("button", { type: "button", class: "graph-landing__chip", "data-graph-lens": "folder", "aria-pressed": "false", children: copy.lensFolder }),
-                  /* @__PURE__ */ u2("button", { type: "button", class: "graph-landing__chip", "data-graph-lens": "hub", "aria-pressed": "false", children: copy.lensHub })
+                /* @__PURE__ */ u2("div", { class: "graph-landing__spacing", "data-graph-spacing-group": true, children: [
+                  /* @__PURE__ */ u2("p", { class: "graph-landing__section-label", children: copy.spacing }),
+                  /* @__PURE__ */ u2("div", { class: "graph-landing__pills", children: [
+                    /* @__PURE__ */ u2(
+                      "button",
+                      {
+                        type: "button",
+                        class: "graph-landing__pill",
+                        "data-graph-spacing": "tight",
+                        "aria-pressed": "false",
+                        children: copy.spacingTight
+                      }
+                    ),
+                    /* @__PURE__ */ u2(
+                      "button",
+                      {
+                        type: "button",
+                        class: "graph-landing__pill",
+                        "data-graph-spacing": "normal",
+                        "aria-pressed": "true",
+                        children: copy.spacingNormal
+                      }
+                    ),
+                    /* @__PURE__ */ u2(
+                      "button",
+                      {
+                        type: "button",
+                        class: "graph-landing__pill",
+                        "data-graph-spacing": "wide",
+                        "aria-pressed": "false",
+                        children: copy.spacingWide
+                      }
+                    )
+                  ] })
                 ] }),
-                /* @__PURE__ */ u2("div", { class: "graph-landing__tags", children: [
-                  /* @__PURE__ */ u2("p", { class: "graph-landing__section-label graph-landing__section-label--tags", children: copy.tags }),
+                /* @__PURE__ */ u2("label", { class: "graph-landing__check", children: [
+                  /* @__PURE__ */ u2("input", { type: "checkbox", "data-graph-cores": true }),
+                  /* @__PURE__ */ u2("span", { children: copy.coresOnly })
+                ] }),
+                /* @__PURE__ */ u2("div", { class: "graph-landing__ghosts", children: [
+                  /* @__PURE__ */ u2("button", { type: "button", class: "graph-landing__ghost", "data-graph-relayout": true, children: [
+                    /* @__PURE__ */ u2("svg", { width: "16", height: "16", viewBox: "0 0 16 16", "aria-hidden": "true", focusable: "false", children: [
+                      /* @__PURE__ */ u2(
+                        "path",
+                        {
+                          fill: "none",
+                          stroke: "currentColor",
+                          "stroke-width": "1.4",
+                          "stroke-linecap": "round",
+                          d: "M13 8A5 5 0 1 1 11.6 4.4"
+                        }
+                      ),
+                      /* @__PURE__ */ u2("path", { fill: "currentColor", d: "M13.2 2.2v3.1h-3.1z" })
+                    ] }),
+                    /* @__PURE__ */ u2("span", { children: copy.relayout })
+                  ] }),
                   /* @__PURE__ */ u2(
                     "button",
                     {
                       type: "button",
-                      class: "graph-landing__filters-toggle",
-                      "data-graph-tags-toggle": true,
-                      "aria-expanded": "false",
-                      children: copy.filtersToggle
-                    }
-                  ),
-                  /* @__PURE__ */ u2("ul", { class: "graph-landing__tag-list", "data-graph-tags": true })
-                ] }),
-                /* @__PURE__ */ u2("div", { class: "graph-landing__utils", children: [
-                  /* @__PURE__ */ u2("div", { class: "graph-landing__spacing", "data-graph-spacing-group": true, children: [
-                    /* @__PURE__ */ u2("p", { class: "graph-landing__section-label", children: copy.spacing }),
-                    /* @__PURE__ */ u2("div", { class: "graph-landing__pills", children: [
-                      /* @__PURE__ */ u2(
-                        "button",
-                        {
-                          type: "button",
-                          class: "graph-landing__pill",
-                          "data-graph-spacing": "tight",
-                          "aria-pressed": "false",
-                          children: copy.spacingTight
-                        }
-                      ),
-                      /* @__PURE__ */ u2(
-                        "button",
-                        {
-                          type: "button",
-                          class: "graph-landing__pill",
-                          "data-graph-spacing": "normal",
-                          "aria-pressed": "true",
-                          children: copy.spacingNormal
-                        }
-                      ),
-                      /* @__PURE__ */ u2(
-                        "button",
-                        {
-                          type: "button",
-                          class: "graph-landing__pill",
-                          "data-graph-spacing": "wide",
-                          "aria-pressed": "false",
-                          children: copy.spacingWide
-                        }
-                      )
-                    ] })
-                  ] }),
-                  /* @__PURE__ */ u2("div", { class: "graph-landing__ghosts", children: [
-                    /* @__PURE__ */ u2("button", { type: "button", class: "graph-landing__ghost", "data-graph-relayout": true, children: [
-                      /* @__PURE__ */ u2("svg", { width: "16", height: "16", viewBox: "0 0 16 16", "aria-hidden": "true", focusable: "false", children: [
-                        /* @__PURE__ */ u2(
+                      class: "graph-landing__ghost",
+                      "data-graph-labels": true,
+                      "data-label-show": copy.labelsShow,
+                      "data-label-hide": copy.labelsHide,
+                      "aria-pressed": "false",
+                      children: [
+                        /* @__PURE__ */ u2("svg", { width: "16", height: "16", viewBox: "0 0 16 16", "aria-hidden": "true", focusable: "false", children: /* @__PURE__ */ u2(
                           "path",
                           {
                             fill: "none",
                             stroke: "currentColor",
                             "stroke-width": "1.4",
                             "stroke-linecap": "round",
-                            d: "M13 8A5 5 0 1 1 11.6 4.4"
+                            d: "M3 12.5 6.6 3.5h2.8L13 12.5M4.6 9.2h6.8"
                           }
-                        ),
-                        /* @__PURE__ */ u2("path", { fill: "currentColor", d: "M13.2 2.2v3.1h-3.1z" })
-                      ] }),
-                      /* @__PURE__ */ u2("span", { children: copy.relayout })
-                    ] }),
+                        ) }),
+                        /* @__PURE__ */ u2("span", { "data-graph-labels-text": true, children: copy.labelsShow })
+                      ]
+                    }
+                  )
+                ] }),
+                /* @__PURE__ */ u2("div", { class: "graph-landing__legend", "data-graph-legend": true, children: [
+                  /* @__PURE__ */ u2("span", { class: "graph-landing__legend-item", children: [
+                    /* @__PURE__ */ u2("span", { class: "graph-landing__dot graph-landing__dot--note", "aria-hidden": "true" }),
+                    copy.notes
+                  ] }),
+                  /* @__PURE__ */ u2("span", { class: "graph-landing__legend-item", children: [
+                    /* @__PURE__ */ u2("span", { class: "graph-landing__dot graph-landing__dot--tag", "aria-hidden": "true" }),
+                    copy.tags
+                  ] }),
+                  /* @__PURE__ */ u2("span", { class: "graph-landing__legend-item", children: [
+                    /* @__PURE__ */ u2("span", { class: "graph-landing__dot graph-landing__dot--mention", "aria-hidden": "true" }),
+                    copy.mentions
+                  ] })
+                ] })
+              ] })
+            ] }),
+            /* @__PURE__ */ u2("nav", { class: "graph-landing__top-right", "aria-label": "Site", children: [
+              /* @__PURE__ */ u2("a", { class: "graph-landing__nav-link", href: "/articles/", children: copy.articles }),
+              /* @__PURE__ */ u2("a", { class: "graph-landing__nav-link", href: "/about", children: copy.about }),
+              localeToggle ? /* @__PURE__ */ u2(
+                "a",
+                {
+                  class: "graph-landing__locale-toggle",
+                  href: localeToggle.href,
+                  lang: localeToggle.id,
+                  hreflang: localeToggle.id,
+                  "aria-label": localeToggle.ariaLabel,
+                  "data-preferred-locale": localeToggle.id,
+                  children: localeToggle.label
+                }
+              ) : null,
+              /* @__PURE__ */ u2(
+                "button",
+                {
+                  type: "button",
+                  class: "graph-landing__icon-btn",
+                  "data-graph-theme": true,
+                  "aria-label": copy.themeToggle,
+                  children: [
                     /* @__PURE__ */ u2(
-                      "button",
+                      "svg",
                       {
-                        type: "button",
-                        class: "graph-landing__ghost",
-                        "data-graph-labels": true,
-                        "data-label-show": copy.labelsShow,
-                        "data-label-hide": copy.labelsHide,
-                        "aria-pressed": "false",
+                        class: "graph-landing__icon graph-landing__icon--sun",
+                        width: "18",
+                        height: "18",
+                        viewBox: "0 0 24 24",
+                        "aria-hidden": "true",
+                        focusable: "false",
                         children: [
-                          /* @__PURE__ */ u2("svg", { width: "16", height: "16", viewBox: "0 0 16 16", "aria-hidden": "true", focusable: "false", children: /* @__PURE__ */ u2(
+                          /* @__PURE__ */ u2("circle", { cx: "12", cy: "12", r: "4.4", fill: "none", stroke: "currentColor", "stroke-width": "1.6" }),
+                          /* @__PURE__ */ u2(
                             "path",
                             {
                               fill: "none",
                               stroke: "currentColor",
-                              "stroke-width": "1.4",
+                              "stroke-width": "1.6",
                               "stroke-linecap": "round",
-                              d: "M3 12.5 6.6 3.5h2.8L13 12.5M4.6 9.2h6.8"
+                              d: "M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7"
                             }
-                          ) }),
-                          /* @__PURE__ */ u2("span", { "data-graph-labels-text": true, children: copy.labelsShow })
+                          )
                         ]
+                      }
+                    ),
+                    /* @__PURE__ */ u2(
+                      "svg",
+                      {
+                        class: "graph-landing__icon graph-landing__icon--moon",
+                        width: "18",
+                        height: "18",
+                        viewBox: "0 0 24 24",
+                        "aria-hidden": "true",
+                        focusable: "false",
+                        children: /* @__PURE__ */ u2(
+                          "path",
+                          {
+                            fill: "none",
+                            stroke: "currentColor",
+                            "stroke-width": "1.6",
+                            "stroke-linejoin": "round",
+                            d: "M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"
+                          }
+                        )
+                      }
+                    )
+                  ]
+                }
+              )
+            ] }),
+            /* @__PURE__ */ u2("aside", { class: "graph-landing__preview", "data-graph-preview": true, hidden: true, "aria-live": "polite", children: [
+              /* @__PURE__ */ u2("p", { class: "graph-landing__preview-chip", "data-graph-preview-chip": true }),
+              /* @__PURE__ */ u2("p", { class: "graph-landing__preview-title", "data-graph-preview-title": true }),
+              /* @__PURE__ */ u2("p", { class: "graph-landing__preview-excerpt", "data-graph-preview-excerpt": true }),
+              /* @__PURE__ */ u2("p", { class: "graph-landing__preview-hint", children: copy.previewHint })
+            ] }),
+            /* @__PURE__ */ u2(
+              "aside",
+              {
+                class: "graph-landing__inspect",
+                "data-graph-inspect": true,
+                hidden: true,
+                ...{ onwheel: "event.stopPropagation()" },
+                children: [
+                  /* @__PURE__ */ u2("div", { class: "graph-landing__inspect-bar", children: [
+                    /* @__PURE__ */ u2("p", { class: "graph-landing__inspect-chip", "data-graph-inspect-chip": true }),
+                    /* @__PURE__ */ u2(
+                      "button",
+                      {
+                        type: "button",
+                        class: "graph-landing__inspect-close",
+                        "data-graph-inspect-close": true,
+                        "aria-label": copy.inspectClose,
+                        children: copy.inspectClose
                       }
                     )
                   ] }),
-                  /* @__PURE__ */ u2("div", { class: "graph-landing__legend", "data-graph-legend": true, children: [
-                    /* @__PURE__ */ u2("span", { class: "graph-landing__legend-item", children: [
-                      /* @__PURE__ */ u2("span", { class: "graph-landing__dot graph-landing__dot--note", "aria-hidden": "true" }),
-                      copy.notes
-                    ] }),
-                    /* @__PURE__ */ u2("span", { class: "graph-landing__legend-item", children: [
-                      /* @__PURE__ */ u2("span", { class: "graph-landing__dot graph-landing__dot--tag", "aria-hidden": "true" }),
-                      copy.tags
-                    ] })
-                  ] })
-                ] })
-              ] }),
-              /* @__PURE__ */ u2("nav", { class: "graph-landing__top-right", "aria-label": "Site", children: [
-                /* @__PURE__ */ u2("a", { class: "graph-landing__nav-link", href: "/articles/", children: copy.articles }),
-                /* @__PURE__ */ u2("a", { class: "graph-landing__nav-link", href: "/about", children: copy.about }),
-                /* @__PURE__ */ u2("span", { class: "graph-landing__locales", children: localeLinks.map(
-                  (link) => link.current ? /* @__PURE__ */ u2(
-                    "span",
-                    {
-                      class: "graph-landing__locale graph-landing__locale--current",
-                      "aria-current": "page",
-                      "aria-label": link.label,
-                      lang: link.id,
-                      children: link.label
-                    }
-                  ) : /* @__PURE__ */ u2(
-                    "a",
-                    {
-                      class: "graph-landing__locale",
-                      href: link.href,
-                      lang: link.id,
-                      "aria-label": link.label,
-                      "data-preferred-locale": link.id,
-                      children: link.label
-                    }
-                  )
-                ) }),
-                /* @__PURE__ */ u2("button", { type: "button", class: "graph-landing__text-btn", "data-graph-theme": true, children: copy.theme })
-              ] }),
-              showBody ? /* @__PURE__ */ u2("a", { class: "graph-landing__scroll", href: "#graph-landing-body", children: [
-                /* @__PURE__ */ u2("span", { class: "graph-landing__scroll-label", children: copy.scrollHint }),
-                /* @__PURE__ */ u2("span", { class: "graph-landing__chevron", "aria-hidden": "true" })
-              ] }) : null
-            ] })
-          ] }),
-          body ? /* @__PURE__ */ u2("article", { class: "graph-landing__body popover-hint", id: "graph-landing-body", children: /* @__PURE__ */ u2("div", { class: "markdown-preview-view markdown-rendered", children: body }) }) : null
-        ]
+                  /* @__PURE__ */ u2("h2", { class: "graph-landing__inspect-title", "data-graph-inspect-title": true }),
+                  /* @__PURE__ */ u2("p", { class: "graph-landing__inspect-excerpt", "data-graph-inspect-excerpt": true }),
+                  /* @__PURE__ */ u2("ul", { class: "graph-landing__inspect-tags", "data-graph-inspect-tags": true }),
+                  /* @__PURE__ */ u2("p", { class: "graph-landing__inspect-section", "data-graph-inspect-connected-label": true, children: copy.inspectConnected }),
+                  /* @__PURE__ */ u2("ul", { class: "graph-landing__inspect-links", "data-graph-inspect-connected": true }),
+                  /* @__PURE__ */ u2("a", { class: "graph-landing__inspect-open", "data-graph-inspect-open": true, hidden: true, children: copy.inspectOpen })
+                ]
+              }
+            )
+          ] })
+        ] })
       }
     );
   };
@@ -2425,18 +441,18 @@ var GraphLanding_default = (() => {
 });
 
 // src/pageType.ts
-var homeMatcher = ({ slug, fileData }) => {
+var graphPageMatcher = ({ slug, fileData }) => {
   if (slug === "index") {
     return false;
   }
   const frontmatter = fileData.frontmatter;
-  return frontmatter?.translationKey === "home";
+  return frontmatter?.translationKey === "graph";
 };
 var GraphLandingPage = () => ({
   name: "GraphLanding",
   priority: 20,
-  match: homeMatcher,
-  layout: "index",
+  match: graphPageMatcher,
+  layout: "graph",
   frame: "minimal",
   body: GraphLanding_default
 });

@@ -3,14 +3,13 @@ import type {
   QuartzComponentConstructor,
   QuartzComponentProps,
 } from "@quartz-community/types"
-import type { Node } from "hast"
-import { htmlToJsx } from "../htmlToJsx"
 // @ts-expect-error - inline script import handled by tsup inline-script-loader
 import graphLandingScript from "../scripts/graph-landing.inline.ts"
 import styles from "./styles/graph-landing.scss"
 
 interface MultilingualFields {
   locale?: string
+  translationKey?: string
 }
 
 interface LocaleEntry {
@@ -29,6 +28,8 @@ interface OverlayCopy {
   relayout: string
   notes: string
   tags: string
+  mentions: string
+  previewMention: string
   countsTemplate: string
   lensAll: string
   lensTag: string
@@ -40,33 +41,26 @@ interface OverlayCopy {
   spacingWide: string
   articles: string
   about: string
-  theme: string
+  themeToggle: string
   filtersToggle: string
-  scrollHint: string
   folderRoot: string
+  previewHint: string
+  previewTagTemplate: string
+  inspectOpen: string
+  inspectConnected: string
+  inspectClose: string
+  inspectEmpty: string
+  tune: string
+  nodeSize: string
+  edgeWidth: string
+  coresOnly: string
 }
 
-interface HomeLocaleLink {
+interface LocaleToggleLink {
   id: string
   href: string
   label: string
-  current: boolean
-}
-
-function collectText(node: Node): string {
-  if (node.type === "text" && "value" in node && typeof node.value === "string") {
-    return node.value
-  }
-
-  if ("children" in node && Array.isArray(node.children)) {
-    return node.children.map((child) => collectText(child as Node)).join("")
-  }
-
-  return ""
-}
-
-function hasMeaningfulBody(tree: Node): boolean {
-  return collectText(tree).trim().length > 0
+  ariaLabel: string
 }
 
 function overlayCopyForLocale(localeId: string): OverlayCopy {
@@ -77,6 +71,8 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
       relayout: "다시 정렬",
       notes: "노트",
       tags: "태그",
+      mentions: "언급",
+      previewMention: "아직 공개되지 않은 언급",
       countsTemplate: "{n} 노드 · {m} 엣지",
       lensAll: "전체",
       lensTag: "태그별",
@@ -86,12 +82,21 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
       spacingTight: "좁게",
       spacingNormal: "보통",
       spacingWide: "넓게",
-      articles: "글",
+      articles: "Writing",
       about: "About",
-      theme: "테마",
+      themeToggle: "라이트/다크 모드 전환",
       filtersToggle: "필터",
-      scrollHint: "아래로",
       folderRoot: "루트",
+      previewHint: "클릭하면 연결이 열립니다",
+      previewTagTemplate: "{n}개 노트",
+      inspectOpen: "본문 읽기",
+      inspectConnected: "연결",
+      inspectClose: "닫기",
+      inspectEmpty: "직접 연결된 별이 없습니다",
+      tune: "조율",
+      nodeSize: "별 크기",
+      edgeWidth: "선 굵기",
+      coresOnly: "핵심만",
     }
   }
 
@@ -101,6 +106,8 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
     relayout: "Re-layout",
     notes: "Notes",
     tags: "Tags",
+    mentions: "Mentions",
+    previewMention: "Mentioned, not published yet",
     countsTemplate: "{n} nodes · {m} edges",
     lensAll: "All",
     lensTag: "Tags",
@@ -112,16 +119,25 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
     spacingWide: "Wide",
     articles: "Writing",
     about: "About",
-    theme: "Theme",
+    themeToggle: "Toggle light / dark mode",
     filtersToggle: "Filters",
-    scrollHint: "Scroll",
     folderRoot: "Root",
+    previewHint: "Click to inspect connections",
+    previewTagTemplate: "{n} notes",
+    inspectOpen: "Read note",
+    inspectConnected: "Connected",
+    inspectClose: "Close",
+    inspectEmpty: "No direct connections",
+    tune: "Tune",
+    nodeSize: "Star size",
+    edgeWidth: "Line weight",
+    coresOnly: "Cores only",
   }
 }
 
 function slugToAbsHref(slug: string): string {
-  const withoutIndex =
-    slug === "index" || slug.endsWith("/index") ? slug.replace(/\/?index$/, "") : slug
+  const isIndex = slug === "index" || slug.endsWith("/index")
+  const withoutIndex = isIndex ? slug.replace(/\/?index$/, "") : slug
   if (withoutIndex.length === 0) {
     return "/"
   }
@@ -129,44 +145,66 @@ function slugToAbsHref(slug: string): string {
     .split("/")
     .map((segment) => encodeURIComponent(segment))
     .join("/")
-  return `/${encoded}/`
+  // Flat pages (ko/graph.html) are served extensionless without a trailing
+  // slash on GitHub Pages; only folder indexes keep the trailing slash.
+  return isIndex ? `/${encoded}/` : `/${encoded}`
 }
 
-function homeLocaleLinks(
+function switchAriaLabel(targetLocaleId: string, targetName: string): string {
+  if (targetLocaleId === "en") {
+    return "Switch to English"
+  }
+  if (targetLocaleId === "ko") {
+    return "한국어로 전환"
+  }
+  return `Switch to ${targetName}`
+}
+
+function findLocaleSlug(
   allFiles: QuartzComponentProps["allFiles"],
-  locales: LocaleEntry[],
-  currentLocale: string,
-): HomeLocaleLink[] {
-  const homes = allFiles.filter((file) => {
-    const frontmatter = file.frontmatter as Record<string, unknown> | undefined
+  translationKey: string,
+  localeId: string,
+): string | null {
+  const match = allFiles.find((file) => {
+    const multilingual = file.multilingual as MultilingualFields | undefined
     return (
-      frontmatter?.translationKey === "home" &&
+      multilingual?.translationKey === translationKey &&
+      multilingual?.locale === localeId &&
       typeof file.slug === "string" &&
       file.slug !== "index"
     )
   })
+  return typeof match?.slug === "string" ? match.slug : null
+}
 
-  const links: HomeLocaleLink[] = []
-  for (const locale of locales) {
-    const home = homes.find((file) => {
-      const multilingual = file.multilingual as MultilingualFields | undefined
-      return multilingual?.locale === locale.id
-    })
-    if (!home || typeof home.slug !== "string") {
-      continue
-    }
-    links.push({
-      id: locale.id,
-      href: slugToAbsHref(home.slug),
-      label: locale.nativeName ?? locale.id,
-      current: locale.id === currentLocale,
-    })
+// Single toggle to the other published language: same page's translation
+// via translationKey, falling back to the target locale home.
+function localeToggleLink(
+  allFiles: QuartzComponentProps["allFiles"],
+  locales: LocaleEntry[],
+  currentLocale: string,
+  translationKey: string,
+): LocaleToggleLink | null {
+  const other = locales.find((locale) => locale.id !== currentLocale)
+  if (!other) {
+    return null
   }
-  return links
+  const slug =
+    findLocaleSlug(allFiles, translationKey, other.id) ?? findLocaleSlug(allFiles, "home", other.id)
+  if (!slug) {
+    return null
+  }
+  const label = other.id === "en" ? "English" : other.id === "ko" ? "Korean" : (other.nativeName ?? other.id)
+  return {
+    id: other.id,
+    href: slugToAbsHref(slug),
+    label,
+    ariaLabel: switchAriaLabel(other.id, label),
+  }
 }
 
 export default (() => {
-  const GraphLanding: QuartzComponent = ({ fileData, tree, cfg, allFiles }: QuartzComponentProps) => {
+  const GraphLanding: QuartzComponent = ({ fileData, cfg, allFiles }: QuartzComponentProps) => {
     const multilingual = fileData.multilingual as MultilingualFields | undefined
     const slug = typeof fileData.slug === "string" ? fileData.slug : ""
     const localeId = multilingual?.locale ?? slug.split("/")[0] ?? "ko"
@@ -176,9 +214,8 @@ export default (() => {
     const locales = multilingualCfg?.locales ?? []
     const localePrefixes = locales.map((locale) => locale.id).join(",")
     const copy = overlayCopyForLocale(localeId)
-    const localeLinks = homeLocaleLinks(allFiles, locales, localeId)
-    const showBody = hasMeaningfulBody(tree as Node)
-    const body = showBody ? htmlToJsx(tree as Node) : null
+    const translationKey = multilingual?.translationKey ?? "graph"
+    const localeToggle = localeToggleLink(allFiles, locales, localeId, translationKey)
 
     return (
       <div
@@ -190,11 +227,17 @@ export default (() => {
         data-folder-root-label={copy.folderRoot}
         data-legend-notes={copy.notes}
         data-legend-tags={copy.tags}
+        data-legend-mentions={copy.mentions}
+        data-preview-tag-template={copy.previewTagTemplate}
+        data-preview-mention={copy.previewMention}
+        data-inspect-read={copy.inspectOpen}
+        data-inspect-connected={copy.inspectConnected}
+        data-inspect-empty={copy.inspectEmpty}
       >
         <section class="graph-landing__hero" aria-label="Knowledge graph">
           <div class="graph-landing__canvas" id="graph-landing-mount"></div>
           <div class="graph-landing__overlay">
-            <div class="graph-landing__rail">
+            <div class="graph-landing__rail" {...{ onwheel: "event.stopPropagation()" }}>
               <div class="graph-landing__title-block">
                 <p class="graph-landing__title">Beomsu Koh</p>
                 <p class="graph-landing__counts" data-graph-counts>
@@ -211,9 +254,6 @@ export default (() => {
                 <button type="button" class="graph-landing__chip" data-graph-lens="folder" aria-pressed="false">
                   {copy.lensFolder}
                 </button>
-                <button type="button" class="graph-landing__chip" data-graph-lens="hub" aria-pressed="false">
-                  {copy.lensHub}
-                </button>
               </div>
               <div class="graph-landing__tags">
                 <p class="graph-landing__section-label graph-landing__section-label--tags">{copy.tags}</p>
@@ -228,6 +268,31 @@ export default (() => {
                 <ul class="graph-landing__tag-list" data-graph-tags></ul>
               </div>
               <div class="graph-landing__utils">
+                <div class="graph-landing__tune">
+                  <p class="graph-landing__section-label">{copy.tune}</p>
+                  <label class="graph-landing__slider">
+                    <span>{copy.nodeSize}</span>
+                    <input
+                      type="range"
+                      min="50"
+                      max="150"
+                      value="70"
+                      data-graph-node-scale
+                      aria-label={copy.nodeSize}
+                    />
+                  </label>
+                  <label class="graph-landing__slider">
+                    <span>{copy.edgeWidth}</span>
+                    <input
+                      type="range"
+                      min="50"
+                      max="180"
+                      value="100"
+                      data-graph-edge-scale
+                      aria-label={copy.edgeWidth}
+                    />
+                  </label>
+                </div>
                 <div class="graph-landing__spacing" data-graph-spacing-group>
                   <p class="graph-landing__section-label">{copy.spacing}</p>
                   <div class="graph-landing__pills">
@@ -257,6 +322,10 @@ export default (() => {
                     </button>
                   </div>
                 </div>
+                <label class="graph-landing__check">
+                  <input type="checkbox" data-graph-cores />
+                  <span>{copy.coresOnly}</span>
+                </label>
                 <div class="graph-landing__ghosts">
                   <button type="button" class="graph-landing__ghost" data-graph-relayout>
                     <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
@@ -300,6 +369,10 @@ export default (() => {
                     <span class="graph-landing__dot graph-landing__dot--tag" aria-hidden="true"></span>
                     {copy.tags}
                   </span>
+                  <span class="graph-landing__legend-item">
+                    <span class="graph-landing__dot graph-landing__dot--mention" aria-hidden="true"></span>
+                    {copy.mentions}
+                  </span>
                 </div>
               </div>
             </div>
@@ -310,47 +383,95 @@ export default (() => {
               <a class="graph-landing__nav-link" href="/about">
                 {copy.about}
               </a>
-              <span class="graph-landing__locales">
-                {localeLinks.map((link) =>
-                  link.current ? (
-                    <span
-                      class="graph-landing__locale graph-landing__locale--current"
-                      aria-current="page"
-                      aria-label={link.label}
-                      lang={link.id}
-                    >
-                      {link.label}
-                    </span>
-                  ) : (
-                    <a
-                      class="graph-landing__locale"
-                      href={link.href}
-                      lang={link.id}
-                      aria-label={link.label}
-                      data-preferred-locale={link.id}
-                    >
-                      {link.label}
-                    </a>
-                  ),
-                )}
-              </span>
-              <button type="button" class="graph-landing__text-btn" data-graph-theme>
-                {copy.theme}
+              {localeToggle ? (
+                <a
+                  class="graph-landing__locale-toggle"
+                  href={localeToggle.href}
+                  lang={localeToggle.id}
+                  hreflang={localeToggle.id}
+                  aria-label={localeToggle.ariaLabel}
+                  data-preferred-locale={localeToggle.id}
+                >
+                  {localeToggle.label}
+                </a>
+              ) : null}
+              <button
+                type="button"
+                class="graph-landing__icon-btn"
+                data-graph-theme
+                aria-label={copy.themeToggle}
+              >
+                <svg
+                  class="graph-landing__icon graph-landing__icon--sun"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <circle cx="12" cy="12" r="4.4" fill="none" stroke="currentColor" stroke-width="1.6" />
+                  <path
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7"
+                  />
+                </svg>
+                <svg
+                  class="graph-landing__icon graph-landing__icon--moon"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linejoin="round"
+                    d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"
+                  />
+                </svg>
               </button>
             </nav>
-            {showBody ? (
-              <a class="graph-landing__scroll" href="#graph-landing-body">
-                <span class="graph-landing__scroll-label">{copy.scrollHint}</span>
-                <span class="graph-landing__chevron" aria-hidden="true"></span>
+            <aside class="graph-landing__preview" data-graph-preview hidden aria-live="polite">
+              <p class="graph-landing__preview-chip" data-graph-preview-chip></p>
+              <p class="graph-landing__preview-title" data-graph-preview-title></p>
+              <p class="graph-landing__preview-excerpt" data-graph-preview-excerpt></p>
+              <p class="graph-landing__preview-hint">{copy.previewHint}</p>
+            </aside>
+            <aside
+              class="graph-landing__inspect"
+              data-graph-inspect
+              hidden
+              {...{ onwheel: "event.stopPropagation()" }}
+            >
+              <div class="graph-landing__inspect-bar">
+                <p class="graph-landing__inspect-chip" data-graph-inspect-chip></p>
+                <button
+                  type="button"
+                  class="graph-landing__inspect-close"
+                  data-graph-inspect-close
+                  aria-label={copy.inspectClose}
+                >
+                  {copy.inspectClose}
+                </button>
+              </div>
+              <h2 class="graph-landing__inspect-title" data-graph-inspect-title></h2>
+              <p class="graph-landing__inspect-excerpt" data-graph-inspect-excerpt></p>
+              <ul class="graph-landing__inspect-tags" data-graph-inspect-tags></ul>
+              <p class="graph-landing__inspect-section" data-graph-inspect-connected-label>
+                {copy.inspectConnected}
+              </p>
+              <ul class="graph-landing__inspect-links" data-graph-inspect-connected></ul>
+              <a class="graph-landing__inspect-open" data-graph-inspect-open hidden>
+                {copy.inspectOpen}
               </a>
-            ) : null}
+            </aside>
           </div>
         </section>
-        {body ? (
-          <article class="graph-landing__body popover-hint" id="graph-landing-body">
-            <div class="markdown-preview-view markdown-rendered">{body}</div>
-          </article>
-        ) : null}
       </div>
     )
   }
