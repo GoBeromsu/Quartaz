@@ -34,9 +34,6 @@ interface OverlayCopy {
   lensTag: string
   lensFolder: string
   lensHub: string
-  colorBy: string
-  colorType: string
-  colorFolder: string
   spacing: string
   spacingTight: string
   spacingNormal: string
@@ -44,7 +41,7 @@ interface OverlayCopy {
   articles: string
   about: string
   theme: string
-  tagsToggle: string
+  filtersToggle: string
   scrollHint: string
   folderRoot: string
 }
@@ -85,9 +82,6 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
       lensTag: "태그별",
       lensFolder: "폴더별",
       lensHub: "허브",
-      colorBy: "색상 기준",
-      colorType: "유형",
-      colorFolder: "폴더",
       spacing: "노드 간격",
       spacingTight: "좁게",
       spacingNormal: "보통",
@@ -95,7 +89,7 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
       articles: "글",
       about: "About",
       theme: "테마",
-      tagsToggle: "태그",
+      filtersToggle: "필터",
       scrollHint: "아래로",
       folderRoot: "루트",
     }
@@ -112,9 +106,6 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
     lensTag: "Tags",
     lensFolder: "Folders",
     lensHub: "Hubs",
-    colorBy: "Color",
-    colorType: "Type",
-    colorFolder: "Folder",
     spacing: "Spacing",
     spacingTight: "Tight",
     spacingNormal: "Mid",
@@ -122,7 +113,7 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
     articles: "Writing",
     about: "About",
     theme: "Theme",
-    tagsToggle: "Tags",
+    filtersToggle: "Filters",
     scrollHint: "Scroll",
     folderRoot: "Root",
   }
@@ -203,7 +194,7 @@ export default (() => {
         <section class="graph-landing__hero" aria-label="Knowledge graph">
           <div class="graph-landing__canvas" id="graph-landing-mount"></div>
           <div class="graph-landing__overlay">
-            <div class="graph-landing__top-left">
+            <div class="graph-landing__rail">
               <div class="graph-landing__title-block">
                 <p class="graph-landing__title">Beomsu Koh</p>
                 <p class="graph-landing__counts" data-graph-counts>
@@ -224,72 +215,92 @@ export default (() => {
                   {copy.lensHub}
                 </button>
               </div>
-              <div class="graph-landing__controls">
-                <span class="graph-landing__seg" data-graph-color-group>
-                  <span class="graph-landing__seg-label">{copy.colorBy}</span>
-                  <button type="button" class="graph-landing__text-btn" data-graph-color="type" aria-pressed="true">
-                    {copy.colorType}
-                  </button>
-                  <button
-                    type="button"
-                    class="graph-landing__text-btn"
-                    data-graph-color="folder"
-                    aria-pressed="false"
-                  >
-                    {copy.colorFolder}
-                  </button>
-                </span>
-                <span class="graph-landing__seg" data-graph-spacing-group>
-                  <span class="graph-landing__seg-label">{copy.spacing}</span>
-                  <button
-                    type="button"
-                    class="graph-landing__text-btn"
-                    data-graph-spacing="tight"
-                    aria-pressed="false"
-                  >
-                    {copy.spacingTight}
-                  </button>
-                  <button
-                    type="button"
-                    class="graph-landing__text-btn"
-                    data-graph-spacing="normal"
-                    aria-pressed="true"
-                  >
-                    {copy.spacingNormal}
-                  </button>
-                  <button
-                    type="button"
-                    class="graph-landing__text-btn"
-                    data-graph-spacing="wide"
-                    aria-pressed="false"
-                  >
-                    {copy.spacingWide}
-                  </button>
-                </span>
-                <button type="button" class="graph-landing__text-btn" data-graph-relayout>
-                  {copy.relayout}
-                </button>
-                <button
-                  type="button"
-                  class="graph-landing__text-btn"
-                  data-graph-labels
-                  data-label-show={copy.labelsShow}
-                  data-label-hide={copy.labelsHide}
-                  aria-pressed="false"
-                >
-                  {copy.labelsShow}
-                </button>
-              </div>
               <div class="graph-landing__tags">
+                <p class="graph-landing__section-label graph-landing__section-label--tags">{copy.tags}</p>
                 <button
                   type="button"
-                  class="graph-landing__tags-toggle"
+                  class="graph-landing__filters-toggle"
                   data-graph-tags-toggle
                   aria-expanded="false"
                 >
-                  {copy.tagsToggle}
+                  {copy.filtersToggle}
                 </button>
                 <ul class="graph-landing__tag-list" data-graph-tags></ul>
+              </div>
+              <div class="graph-landing__utils">
+                <div class="graph-landing__spacing" data-graph-spacing-group>
+                  <p class="graph-landing__section-label">{copy.spacing}</p>
+                  <div class="graph-landing__pills">
+                    <button
+                      type="button"
+                      class="graph-landing__pill"
+                      data-graph-spacing="tight"
+                      aria-pressed="false"
+                    >
+                      {copy.spacingTight}
+                    </button>
+                    <button
+                      type="button"
+                      class="graph-landing__pill"
+                      data-graph-spacing="normal"
+                      aria-pressed="true"
+                    >
+                      {copy.spacingNormal}
+                    </button>
+                    <button
+                      type="button"
+                      class="graph-landing__pill"
+                      data-graph-spacing="wide"
+                      aria-pressed="false"
+                    >
+                      {copy.spacingWide}
+                    </button>
+                  </div>
+                </div>
+                <div class="graph-landing__ghosts">
+                  <button type="button" class="graph-landing__ghost" data-graph-relayout>
+                    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                      <path
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.4"
+                        stroke-linecap="round"
+                        d="M13 8A5 5 0 1 1 11.6 4.4"
+                      />
+                      <path fill="currentColor" d="M13.2 2.2v3.1h-3.1z" />
+                    </svg>
+                    <span>{copy.relayout}</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="graph-landing__ghost"
+                    data-graph-labels
+                    data-label-show={copy.labelsShow}
+                    data-label-hide={copy.labelsHide}
+                    aria-pressed="false"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                      <path
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.4"
+                        stroke-linecap="round"
+                        d="M3 12.5 6.6 3.5h2.8L13 12.5M4.6 9.2h6.8"
+                      />
+                    </svg>
+                    <span data-graph-labels-text>{copy.labelsShow}</span>
+                  </button>
+                </div>
+                <div class="graph-landing__legend" data-graph-legend>
+                  <span class="graph-landing__legend-item">
+                    <span class="graph-landing__dot graph-landing__dot--note" aria-hidden="true"></span>
+                    {copy.notes}
+                  </span>
+                  <span class="graph-landing__legend-item">
+                    <span class="graph-landing__dot graph-landing__dot--tag" aria-hidden="true"></span>
+                    {copy.tags}
+                  </span>
+                </div>
               </div>
             </div>
             <nav class="graph-landing__top-right" aria-label="Site">
@@ -316,18 +327,6 @@ export default (() => {
                 {copy.theme}
               </button>
             </nav>
-            <div class="graph-landing__bottom-left">
-              <span class="graph-landing__legend" data-graph-legend>
-                <span class="graph-landing__legend-item">
-                  <span class="graph-landing__dot graph-landing__dot--note" aria-hidden="true"></span>
-                  {copy.notes}
-                </span>
-                <span class="graph-landing__legend-item">
-                  <span class="graph-landing__dot graph-landing__dot--tag" aria-hidden="true"></span>
-                  {copy.tags}
-                </span>
-              </span>
-            </div>
             {showBody ? (
               <a class="graph-landing__scroll" href="#graph-landing-body">
                 <span class="graph-landing__scroll-label">{copy.scrollHint}</span>

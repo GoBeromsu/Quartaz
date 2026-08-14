@@ -56,12 +56,10 @@ interface LocaleContext {
 }
 
 type Lens = "all" | "tag" | "folder" | "hub"
-type ColorBy = "type" | "folder"
 type Spacing = "tight" | "normal" | "wide"
 
 interface ViewState {
   lens: Lens
-  colorBy: ColorBy
   spacing: Spacing
   allLabels: boolean
   focusTag: string | null
@@ -86,6 +84,7 @@ interface ForceGraphInstance {
   nodeVal: (accessor: string | ((node: GraphNode) => number)) => unknown
   nodeColor: (fn: (node: GraphNode) => string) => unknown
   nodeRelSize: (size: number) => unknown
+  nodeOpacity?: (opacity: number) => unknown
   linkColor: (fn: (link: GraphLink) => string) => unknown
   linkOpacity?: (opacity: number) => unknown
   linkWidth: (width: number | ((link: GraphLink) => number)) => unknown
@@ -155,19 +154,26 @@ const SPRITE_TEXT = `https://esm.sh/three-spritetext@1.9.2?deps=three@${THREE_VE
 const UNREAL_BLOOM = `https://esm.sh/three@${THREE_VERSION}/examples/jsm/postprocessing/UnrealBloomPass.js`
 
 const HUB_COUNT = 8
+const LABEL_HUB_COUNT = 5
 const HUB_EGO_N = 6
-const MIN_NODE_VAL = 2.6
-const MAX_NODE_VAL = 11
-const CENTER_STRENGTH = 0.05
-const LINK_OPACITY_3D = 0.25
+const MIN_NODE_VAL = 1
+const MAX_NODE_VAL = 3.5
+const CENTER_STRENGTH = 0.065
+const NODE_REL_SIZE = 1.8
+const NODE_OPACITY = 1
+const LINK_OPACITY = 1
 const DIM_ALPHA = 0.15
 const LENS_STORAGE_KEY = "graph-landing:lens"
-const AUTO_ROTATE_SPEED = 0.35
+const AUTO_ROTATE_SPEED = 0.18
+const ZOOM_FIT_PADDING = 100
+const HUB_VAL_SCALE = 1.18
+const TAG_LENS_VAL_SCALE = 1.35
+const FOCUS_TAG_VAL_SCALE = 1.15
 
 const SPACING_PRESETS: Record<Spacing, { charge: number; distance: number }> = {
-  tight: { charge: -26, distance: 64 },
-  normal: { charge: -52, distance: 118 },
-  wide: { charge: -88, distance: 190 },
+  tight: { charge: -80, distance: 52 },
+  normal: { charge: -130, distance: 70 },
+  wide: { charge: -180, distance: 98 },
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -301,14 +307,17 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
   const rawDegrees = [...degree.values()]
   const minDegree = rawDegrees.length > 0 ? Math.min(...rawDegrees) : 0
   const maxDegree = rawDegrees.length > 0 ? Math.max(...rawDegrees) : 0
-  const span = maxDegree - minDegree
 
   const nodeVal = (id: string): number => {
     const current = degree.get(id) ?? 0
-    if (span === 0) {
+    const scaled = Math.sqrt(current)
+    const minScaled = Math.sqrt(minDegree)
+    const maxScaled = Math.sqrt(maxDegree)
+    const scaledSpan = maxScaled - minScaled
+    if (scaledSpan === 0) {
       return (MIN_NODE_VAL + MAX_NODE_VAL) / 2
     }
-    return MIN_NODE_VAL + ((current - minDegree) / span) * (MAX_NODE_VAL - MIN_NODE_VAL)
+    return MIN_NODE_VAL + ((scaled - minScaled) / scaledSpan) * (MAX_NODE_VAL - MIN_NODE_VAL)
   }
 
   const rankedNotes = [...notes].sort((a, b) => (degree.get(b.slug) ?? 0) - (degree.get(a.slug) ?? 0))
@@ -339,7 +348,7 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
       id: tagId,
       name: tag,
       type: "tag",
-      val: clamp(nodeVal(tagId) * 0.75, 1.8, 6.5),
+      val: clamp(nodeVal(tagId) * 0.7, MIN_NODE_VAL, MAX_NODE_VAL),
       degree: degree.get(tagId) ?? 0,
       isHub: false,
       tag,
@@ -421,17 +430,34 @@ function isDarkTheme(): boolean {
   return document.documentElement.getAttribute("saved-theme") === "dark"
 }
 
-function withAlpha(color: string, alpha: number): string {
+function parseRgb(color: string): { r: number; g: number; b: number } | null {
   const rgb = color.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/)
   if (rgb && rgb[1] && rgb[2] && rgb[3]) {
-    return `rgba(${rgb[1]}, ${rgb[2]}, ${rgb[3]}, ${alpha})`
+    return { r: Number(rgb[1]), g: Number(rgb[2]), b: Number(rgb[3]) }
   }
   const hex = color.match(/^#([0-9a-f]{6})$/i)
   if (hex && hex[1]) {
     const n = parseInt(hex[1], 16)
-    return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`
+    return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 }
   }
-  return color
+  return null
+}
+
+function withAlpha(color: string, alpha: number): string {
+  const rgb = parseRgb(color)
+  if (!rgb) {
+    return color
+  }
+  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`
+}
+
+function liftColor(color: string, amount: number): string {
+  const rgb = parseRgb(color)
+  if (!rgb) {
+    return color
+  }
+  const lift = (channel: number): number => Math.min(255, Math.round(channel + (255 - channel) * amount))
+  return `rgb(${lift(rgb.r)}, ${lift(rgb.g)}, ${lift(rgb.b)})`
 }
 
 function hashPick(seed: string, palette: string[]): string {
@@ -529,10 +555,6 @@ function persistLens(lens: Lens): void {
 
 function isLens(value: string): value is Lens {
   return value === "all" || value === "tag" || value === "folder" || value === "hub"
-}
-
-function isColorBy(value: string): value is ColorBy {
-  return value === "type" || value === "folder"
 }
 
 function isSpacing(value: string): value is Spacing {
@@ -669,25 +691,39 @@ function bindGraph(
   const neighbors = neighborMap(data.links)
   const state: ViewState = {
     lens: readStoredLens(),
-    colorBy: "type",
     spacing: "normal",
     allLabels: false,
     focusTag: null,
   }
   let hoveredId: string | null = null
 
+  const labeledHubIds = new Set(
+    data.nodes
+      .filter((node) => node.type === "note")
+      .sort((a, b) => b.degree - a.degree)
+      .slice(0, LABEL_HUB_COUNT)
+      .map((node) => node.id),
+  )
+
   const nodeValue = (node: GraphNode): number => {
     let value = node.val
     if (node.isHub) {
-      value *= 1.28
+      value *= HUB_VAL_SCALE
     }
     if (state.lens === "tag" && node.type === "tag") {
-      value *= 1.65
+      value *= TAG_LENS_VAL_SCALE
     }
     if (state.focusTag && node.id === `tag:${state.focusTag}`) {
-      value *= 1.25
+      value *= FOCUS_TAG_VAL_SCALE
     }
     return value
+  }
+
+  const showNodeLabel = (node: GraphNode): boolean => {
+    if (state.allLabels || hoveredId === node.id) {
+      return true
+    }
+    return labeledHubIds.has(node.id)
   }
 
   const isActive = (nodeId: string): boolean => {
@@ -711,11 +747,17 @@ function bindGraph(
       }
       return tagFamilyColor(node.dominantTag, theme.current)
     }
-    if (state.lens === "folder" || state.colorBy === "folder") {
+    if (state.lens === "folder") {
       if (node.type === "tag") {
         return theme.current.tertiary
       }
       return folderColor(node.folder, theme.current)
+    }
+    if (state.lens === "hub") {
+      if (node.type === "tag") {
+        return theme.current.tertiary
+      }
+      return node.isHub ? theme.current.accent : theme.current.ink
     }
     return node.type === "tag" ? theme.current.tertiary : theme.current.ink
   }
@@ -727,6 +769,9 @@ function bindGraph(
     const color = baseNodeColor(node)
     if (!isActive(node.id)) {
       return withAlpha(color, DIM_ALPHA)
+    }
+    if (isDarkTheme()) {
+      return liftColor(color, 0.16)
     }
     return color
   }
@@ -744,7 +789,11 @@ function bindGraph(
         return withAlpha(theme.current.gray, DIM_ALPHA)
       }
     }
-    return withAlpha(theme.current.gray, options.use3d ? 0.55 : 0.7)
+    const dark = isDarkTheme()
+    if (link.kind === "tag") {
+      return withAlpha(theme.current.gray, dark ? 0.2 : 0.12)
+    }
+    return withAlpha(theme.current.gray, dark ? 0.34 : 0.2)
   }
 
   const currentData = (): GraphData => {
@@ -782,16 +831,16 @@ function bindGraph(
           }
         }
         if (edge.kind === "tag") {
-          return 0.28
+          return 0.5
         }
-        return 0.42
+        return 0.6
       })
     }
     const center = graph.d3Force("center")
     if (center?.strength) {
       center.strength(CENTER_STRENGTH)
     }
-    const radius = state.spacing === "wide" ? 220 : state.spacing === "tight" ? 110 : 160
+    const radius = state.spacing === "wide" ? 260 : state.spacing === "tight" ? 130 : 190
     const targets = clusterTargets(data, state.lens, radius)
     const clusterStrength = state.lens === "folder" || state.lens === "tag" ? 0.08 : 0
     graph.d3Force(
@@ -809,14 +858,13 @@ function bindGraph(
       graph.nodeThreeObjectExtend(true)
     }
     graph.nodeThreeObject((node) => {
-      const show = state.allLabels || node.isHub
-      if (!show) {
+      if (!showNodeLabel(node)) {
         return false
       }
       const sprite = new SpriteText(node.name)
       sprite.color = isActive(node.id) ? theme.current.ink : withAlpha(theme.current.ink, DIM_ALPHA)
-      sprite.textHeight = node.isHub ? 3.4 : 2.6
-      sprite.position.y = 8
+      sprite.textHeight = labeledHubIds.has(node.id) ? 7.2 : 5.6
+      sprite.position.y = 10
       return sprite
     })
   }
@@ -843,10 +891,13 @@ function bindGraph(
       const source = linkEndpointId(link.source)
       const target = linkEndpointId(link.target)
       if (hoveredId !== null && (source === hoveredId || target === hoveredId)) {
-        return 1.35
+        return 1.1
       }
-      return 0.55
+      return link.kind === "tag" ? 0.45 : 0.7
     })
+    if (typeof graph.linkOpacity === "function") {
+      graph.linkOpacity(LINK_OPACITY)
+    }
     refreshParticles()
     if (!options.use3d) {
       graph.nodeCanvasObjectMode(() => "replace")
@@ -870,7 +921,7 @@ function bindGraph(
       item.append(dot, text)
       return item
     }
-    if (state.lens === "folder" || state.colorBy === "folder") {
+    if (state.lens === "folder") {
       const folders = [...new Set(data.nodes.filter((node) => node.type === "note").map((node) => node.folder))]
       const rootLabel = options.root.dataset.folderRootLabel ?? "root"
       legend.replaceChildren(
@@ -934,14 +985,37 @@ function bindGraph(
     }
   }
 
-  const applyView = (): void => {
+  let fitTimer = 0
+  window.addCleanup(() => window.clearTimeout(fitTimer))
+
+  const fitPadding = (): number => {
+    if (window.innerWidth <= 700) {
+      return 72
+    }
+    return ZOOM_FIT_PADDING
+  }
+
+  const fitAllNodes = (duration: number): void => {
+    if (typeof graph.zoomToFit !== "function") {
+      return
+    }
+    graph.zoomToFit(duration, fitPadding())
+  }
+
+  const scheduleFit = (delay: number, duration: number): void => {
+    window.clearTimeout(fitTimer)
+    fitTimer = window.setTimeout(() => {
+      fitAllNodes(duration)
+    }, delay)
+  }
+
+  const applyView = (shouldFit: boolean): void => {
     graph.graphData(currentData())
     applyForces()
     refreshAccessors()
     paintLabels3d()
     renderLegend()
     setPressed(options.root, "[data-graph-lens]", state.lens, "data-graph-lens")
-    setPressed(options.root, "[data-graph-color]", state.colorBy, "data-graph-color")
     setPressed(options.root, "[data-graph-spacing]", state.spacing, "data-graph-spacing")
     for (const el of options.root.querySelectorAll("[data-graph-tag]")) {
       if (el instanceof HTMLElement) {
@@ -949,6 +1023,9 @@ function bindGraph(
       }
     }
     graph.d3ReheatSimulation()
+    if (shouldFit) {
+      scheduleFit(280, prefersReducedMotion() ? 0 : 900)
+    }
   }
 
   const setLens = (lens: Lens): void => {
@@ -956,11 +1033,8 @@ function bindGraph(
     if (lens !== "tag") {
       state.focusTag = null
     }
-    if (lens === "folder") {
-      state.colorBy = "folder"
-    }
     persistLens(lens)
-    applyView()
+    applyView(true)
   }
 
   const setFocusTag = (tag: string): void => {
@@ -969,19 +1043,24 @@ function bindGraph(
       state.lens = "tag"
       persistLens("tag")
     }
-    applyView()
+    applyView(false)
     const tagNode = data.nodes.find((node) => node.id === `tag:${tag}`)
     if (tagNode && state.focusTag) {
       focusNode(tagNode)
+      return
     }
+    scheduleFit(280, prefersReducedMotion() ? 0 : 900)
   }
 
   graph.graphData(currentData())
   graph.backgroundColor(theme.current.bg)
   graph.nodeLabel((node) => node.name)
-  graph.nodeRelSize(5.5)
+  graph.nodeRelSize(NODE_REL_SIZE)
+  if (typeof graph.nodeOpacity === "function") {
+    graph.nodeOpacity(NODE_OPACITY)
+  }
   if (typeof graph.linkOpacity === "function") {
-    graph.linkOpacity(LINK_OPACITY_3D)
+    graph.linkOpacity(LINK_OPACITY)
   }
   applyForces()
   refreshAccessors()
@@ -1003,9 +1082,17 @@ function bindGraph(
     }
     if (!prefersReducedMotion() && typeof graph.controls === "function") {
       const controls = graph.controls()
-      controls.autoRotate = true
+      controls.autoRotate = false
       controls.autoRotateSpeed = AUTO_ROTATE_SPEED
+      const rotateTimer = window.setTimeout(() => {
+        if (typeof graph.controls === "function") {
+          graph.controls().autoRotate = true
+        }
+      }, 1600)
+      window.addCleanup(() => window.clearTimeout(rotateTimer))
     }
+    graph.warmupTicks(50)
+    graph.cooldownTicks(200)
     if (typeof graph.linkDirectionalParticleWidth === "function") {
       graph.linkDirectionalParticleWidth(1.1)
     }
@@ -1016,29 +1103,20 @@ function bindGraph(
       graph.linkDirectionalParticleColor(() => theme.current.accent)
     }
     if (options.bloomPass && typeof graph.postProcessingComposer === "function") {
-      options.bloomPass.strength = isDarkTheme() ? 0.48 : 0
-      options.bloomPass.radius = 0.36
-      options.bloomPass.threshold = 0.28
+      options.bloomPass.strength = isDarkTheme() ? 0.22 : 0
+      options.bloomPass.radius = 0.4
+      options.bloomPass.threshold = 0.42
       graph.postProcessingComposer().addPass(options.bloomPass)
     }
-    if (!prefersReducedMotion() && typeof graph.cameraPosition === "function") {
-      graph.cameraPosition({ x: 0, y: 160, z: 860 })
-      window.requestAnimationFrame(() => {
-        graph.cameraPosition?.({ x: 0, y: 0, z: 280 }, { x: 0, y: 0, z: 0 }, 1600)
-      })
-    }
-    if (typeof graph.zoomToFit === "function") {
-      const fitTimer = window.setTimeout(() => {
-        graph.zoomToFit?.(1100, 90)
-      }, 1700)
-      window.addCleanup(() => window.clearTimeout(fitTimer))
+    if (typeof graph.cameraPosition === "function") {
+      graph.cameraPosition({ x: 0, y: 80, z: 720 })
     }
     paintLabels3d()
   } else {
     graph.warmupTicks(60)
     graph.cooldownTicks(180)
     graph.nodeCanvasObject((node, ctx, globalScale) => {
-      const radius = Math.max(3.4, nodeValue(node) * 1.15)
+      const radius = 1.6 + nodeValue(node) * 0.55
       const x = node.x ?? 0
       const y = node.y ?? 0
       ctx.save()
@@ -1048,23 +1126,22 @@ function bindGraph(
       ctx.fill()
       if (node.isHub) {
         ctx.strokeStyle = isActive(node.id) ? theme.current.accent : withAlpha(theme.current.accent, DIM_ALPHA)
-        ctx.lineWidth = 1.15 / globalScale
+        ctx.lineWidth = 0.7 / globalScale
         ctx.stroke()
       }
-      const showLabel = state.allLabels || node.isHub || hoveredId === node.id
-      if (showLabel) {
-        const fontSize = 12 / globalScale
+      if (showNodeLabel(node)) {
+        const fontSize = 13 / globalScale
         ctx.font = `${fontSize}px ${theme.current.font}`
         ctx.fillStyle = isActive(node.id) ? theme.current.ink : withAlpha(theme.current.ink, DIM_ALPHA)
-        ctx.textAlign = "left"
-        ctx.textBaseline = "middle"
-        ctx.fillText(node.name, x + radius + 4, y)
+        ctx.textAlign = "center"
+        ctx.textBaseline = "bottom"
+        ctx.fillText(node.name, x, y - radius - 4)
       }
       ctx.restore()
     })
     if (typeof graph.nodePointerAreaPaint === "function") {
       graph.nodePointerAreaPaint((node, color, ctx) => {
-        const radius = Math.max(3.4, nodeValue(node) * 1.15) + 6
+        const radius = 1.6 + nodeValue(node) * 0.55 + 8
         ctx.beginPath()
         ctx.arc(node.x ?? 0, node.y ?? 0, radius, 0, Math.PI * 2)
         ctx.fillStyle = color
@@ -1156,14 +1233,20 @@ function bindGraph(
   renderLegend()
   renderTags()
   if (state.lens !== "all") {
-    applyView()
+    applyView(false)
   }
+  const instantFit = prefersReducedMotion()
+  scheduleFit(400, instantFit ? 0 : 800)
+  const settleTimer = window.setTimeout(() => {
+    fitAllNodes(instantFit ? 0 : 400)
+  }, 1400)
+  window.addCleanup(() => window.clearTimeout(settleTimer))
 
   const onThemeChange = (): void => {
     theme.current = readTheme()
     graph.backgroundColor(theme.current.bg)
     if (options.bloomPass) {
-      options.bloomPass.strength = isDarkTheme() ? 0.48 : 0
+      options.bloomPass.strength = isDarkTheme() ? 0.22 : 0
     }
     refreshAccessors()
     paintLabels3d()
@@ -1180,14 +1263,6 @@ function bindGraph(
     const lensBtn = target.closest("[data-graph-lens]")
     if (lensBtn instanceof HTMLElement && lensBtn.dataset.graphLens && isLens(lensBtn.dataset.graphLens)) {
       setLens(lensBtn.dataset.graphLens)
-      return
-    }
-    const colorBtn = target.closest("[data-graph-color]")
-    if (colorBtn instanceof HTMLElement && colorBtn.dataset.graphColor && isColorBy(colorBtn.dataset.graphColor)) {
-      state.colorBy = colorBtn.dataset.graphColor
-      refreshAccessors()
-      renderLegend()
-      setPressed(options.root, "[data-graph-color]", state.colorBy, "data-graph-color")
       return
     }
     const spacingBtn = target.closest("[data-graph-spacing]")
@@ -1217,7 +1292,10 @@ function bindGraph(
       labelsBtn.setAttribute("aria-pressed", state.allLabels ? "true" : "false")
       const show = labelsBtn.dataset.labelShow ?? "Labels"
       const hide = labelsBtn.dataset.labelHide ?? "Labels"
-      labelsBtn.textContent = state.allLabels ? hide : show
+      const labelText = labelsBtn.querySelector("[data-graph-labels-text]")
+      if (labelText) {
+        labelText.textContent = state.allLabels ? hide : show
+      }
       paintLabels3d()
       return
     }
