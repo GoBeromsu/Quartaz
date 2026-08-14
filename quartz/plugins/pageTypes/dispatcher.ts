@@ -10,7 +10,11 @@ import { StaticResources } from "../../util/resources"
 import { render } from "preact-render-to-string"
 import { fromHtml } from "hast-util-from-html"
 import { Root as HtmlRoot } from "hast"
-import { isTranslationMetadata } from "../../util/multilingual"
+import {
+  buildLocaleEntryRedirectScript,
+  isTranslationMetadata,
+  localeEntryRedirectPayload,
+} from "../../util/multilingual"
 
 function escapeHtmlAttribute(value: string): string {
   return value
@@ -45,9 +49,13 @@ async function* emitMultilingualXDefaultPage(ctx: BuildCtx) {
     .join("\n")
   const languageLinks = multilingual.locales
     .map((locale) => {
-      return `<li><a href="${escapeHtmlAttribute(locale.routePrefix)}" lang="${escapeHtmlAttribute(locale.locale)}">${escapeHtmlAttribute(locale.id)}</a></li>`
+      const label = escapeHtmlAttribute(locale.nativeName)
+      const href = escapeHtmlAttribute(locale.routePrefix)
+      const lang = escapeHtmlAttribute(locale.locale)
+      return `<li><a href="${href}" lang="${lang}" hreflang="${lang}">${label}</a></li>`
     })
     .join("\n")
+  const redirectScript = buildLocaleEntryRedirectScript(localeEntryRedirectPayload(multilingual))
 
   yield write({
     ctx,
@@ -62,6 +70,7 @@ async function* emitMultilingualXDefaultPage(ctx: BuildCtx) {
 ${alternateLinks}
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>${redirectScript}</script>
 </head>
 <body>
 <main>
