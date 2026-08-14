@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="ko-KR" dir="ltr"><head><title>Upstage 와 N8N 을 활용한 지옥의 폴더 정리</title><meta charset="utf-8"/><link rel="preload" href="../index-69b0f35b.css" as="style"/><link rel="preload" href="../prescript-ee7931aa.js" as="script"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com"/><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&amp;family=Inter:ital,wght@0,400;0,600;1,400;1,600&amp;family=IBM Plex Mono:wght@400;600&amp;display=swap"/><link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin="anonymous"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="og:site_name" content="Beomsu Koh"/><meta property="og:title" content="Upstage 와 N8N 을 활용한 지옥의 폴더 정리"/><meta property="og:type" content="website"/><meta name="twitter:card" content="summary_large_image"/><meta name="twitter:title" content="Upstage 와 N8N 을 활용한 지옥의 폴더 정리"/><meta name="twitter:description" content="Tldr Downloads, Documents, Desktop 에 쌓이는 파일을 n8n + Upstage API 로 자동 분류하여 Zotero (PDF), Eagle (이미지/영상), DEVONthink (기타) 에 임포트하는 No Code 워크플로우입니다."/><meta property="og:description" content="Tldr Downloads, Documents, Desktop 에 쌓이는 파일을 n8n + Upstage API 로 자동 분류하여 Zotero (PDF), Eagle (이미지/영상), DEVONthink (기타) 에 임포트하는 No Code 워크플로우입니다."/><meta property="og:image:alt" content="Tldr Downloads, Documents, Desktop 에 쌓이는 파일을 n8n + Upstage API 로 자동 분류하여 Zotero (PDF), Eagle (이미지/영상), DEVONthink (기타) 에 임포트하는 No Code 워크플로우입니다."/><meta property="twitter:domain" content="beomsukoh.com"/><meta property="og:url" content="https://beomsukoh.com/articles/upstage-와-n8n-을-활용한-지옥의-폴더-정리"/><meta property="twitter:url" content="https://beomsukoh.com/articles/upstage-와-n8n-을-활용한-지옥의-폴더-정리"/><link rel="icon" href="../static/icon.png"/><meta name="description" content="Tldr Downloads, Documents, Desktop 에 쌓이는 파일을 n8n + Upstage API 로 자동 분류하여 Zotero (PDF), Eagle (이미지/영상), DEVONthink (기타) 에 임포트하는 No Code 워크플로우입니다."/><meta name="generator" content="Quartz"/><link href="../index-69b0f35b.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-53b25b2b.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-2b69177d.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-bcc4f7d3.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-8a06014f.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-77d6a441.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-735924e0.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-589c1cea.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-2911f5d1.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-51caa3ed.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-34413bc1.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-43b970c8.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-963ab258.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-7f220492.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-274a3dfe.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-94cb6c84.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-8f4e49d0.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-bbc3f7c0.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-788c9ca3.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../static/resource-style-a5c806d2.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../static/resource-style-6bd36952.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" rel="stylesheet" type="text/css" data-persist="true"/><script src="../prescript-ee7931aa.js" type="application/javascript" data-persist="true"></script><script type="application/javascript" data-persist="true">const fetchData = fetch("../static/contentIndex.json").then(data => data.json())</script><meta property="og:image:width" content="1200"/><meta property="og:image:height" content="630"/><meta property="og:image" content="https://beomsukoh.com/articles/upstage-와-n8n-을-활용한-지옥의-폴더-정리-og-image.webp"/><meta property="og:image:url" content="https://beomsukoh.com/articles/upstage-와-n8n-을-활용한-지옥의-폴더-정리-og-image.webp"/><meta name="twitter:image" content="https://beomsukoh.com/articles/upstage-와-n8n-을-활용한-지옥의-폴더-정리-og-image.webp"/><meta property="og:image:type" content="image/webp"/></head><body data-slug="articles/upstage-와-n8n-을-활용한-지옥의-폴더-정리" data-basepath><div id="quartz-root" class="page" data-frame="full-width"><div id="quartz-body"><div class="center full-width"><div class="page-header"><header><div class="flex-component" style="flex-direction: row; flex-wrap: wrap; gap: 1.5rem;"><div style="flex-grow: 0; flex-shrink: 1; flex-basis: auto; order: 0; align-self: center; justify-self: center;"><h2 class="page-title"><a href="..">Beomsu Koh</a></h2></div><div style="flex-grow: 0; flex-shrink: 1; flex-basis: auto; order: 0; align-self: center; justify-self: center;"><div class="spacer"></div></div><div style="flex-grow: 0; flex-shrink: 1; flex-basis: auto; order: 0; align-self: center; justify-self: center;"><nav class="blog-links-header"><a href="/graph">Graph</a><a href="/about">About</a></nav></div><div style="flex-grow: 0; flex-shrink: 1; flex-basis: auto; order: 0; align-self: center; justify-self: center;"><nav class="blog-language-switcher" data-locale-entry="{&quot;locales&quot;:[{&quot;id&quot;:&quot;ko&quot;,&quot;prefix&quot;:&quot;/ko/&quot;,&quot;tags&quot;:[&quot;ko&quot;,&quot;ko-KR&quot;]},{&quot;id&quot;:&quot;en&quot;,&quot;prefix&quot;:&quot;/en/&quot;,&quot;tags&quot;:[&quot;en&quot;,&quot;en-US&quot;]}],&quot;sourceLocale&quot;:&quot;ko&quot;,&quot;storageKey&quot;:&quot;preferred-locale&quot;}"><a class="blog-language-switcher-toggle" href="/en/" lang="en-US" hreflang="en-US" data-preferred-locale="en" aria-label="Switch to English">English</a></nav></div><div style="flex-grow: 0; flex-shrink: 1; flex-basis: auto; order: 0; align-self: center; justify-self: center;"><div class="search"><button class="search-button" aria-label="검색" aria-expanded="false"><svg role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.9 19.7"><title>Search</title><g class="search-path" fill="none"><path stroke-linecap="square" d="M18.5 18.3l-5.4-5.4"></path><circle cx="8" cy="8" r="7"></circle></g></svg><p>검색</p></button><div class="search-container"><div class="search-space"><input autocomplete="off" class="search-bar" name="search" type="text" aria-label="검색어를 입력하세요" placeholder="검색어를 입력하세요"/><div class="search-layout" data-preview="true" data-field-priority="[&quot;title&quot;,&quot;content&quot;,&quot;tags&quot;]"></div></div></div></div></div><div style="flex-grow: 0; flex-shrink: 1; flex-basis: auto; order: 0; align-self: center; justify-self: center;"><button class="darkmode" aria-label="다크 모드"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="dayIcon" x="0px" y="0px" viewBox="0 0 35 35" style="enable-background:new 0 0 35 35" xml:space="preserve" aria-label="다크 모드"><title>다크 모드</title><path d="M6,17.5C6,16.672,5.328,16,4.5,16h-3C0.672,16,0,16.672,0,17.5    S0.672,19,1.5,19h3C5.328,19,6,18.328,6,17.5z M7.5,26c-0.414,0-0.789,0.168-1.061,0.439l-2,2C4.168,28.711,4,29.086,4,29.5    C4,30.328,4.671,31,5.5,31c0.414,0,0.789-0.168,1.06-0.44l2-2C8.832,28.289,9,27.914,9,27.5C9,26.672,8.329,26,7.5,26z M17.5,6    C18.329,6,19,5.328,19,4.5v-3C19,0.672,18.329,0,17.5,0S16,0.672,16,1.5v3C16,5.328,16.671,6,17.5,6z M27.5,9    c0.414,0,0.789-0.168,1.06-0.439l2-2C30.832,6.289,31,5.914,31,5.5C31,4.672,30.329,4,29.5,4c-0.414,0-0.789,0.168-1.061,0.44    l-2,2C26.168,6.711,26,7.086,26,7.5C26,8.328,26.671,9,27.5,9z M6.439,8.561C6.711,8.832,7.086,9,7.5,9C8.328,9,9,8.328,9,7.5    c0-0.414-0.168-0.789-0.439-1.061l-2-2C6.289,4.168,5.914,4,5.5,4C4.672,4,4,4.672,4,5.5c0,0.414,0.168,0.789,0.439,1.06    L6.439,8.561z M33.5,16h-3c-0.828,0-1.5,0.672-1.5,1.5s0.672,1.5,1.5,1.5h3c0.828,0,1.5-0.672,1.5-1.5S34.328,16,33.5,16z     M28.561,26.439C28.289,26.168,27.914,26,27.5,26c-0.828,0-1.5,0.672-1.5,1.5c0,0.414,0.168,0.789,0.439,1.06l2,2    C28.711,30.832,29.086,31,29.5,31c0.828,0,1.5-0.672,1.5-1.5c0-0.414-0.168-0.789-0.439-1.061L28.561,26.439z M17.5,29    c-0.829,0-1.5,0.672-1.5,1.5v3c0,0.828,0.671,1.5,1.5,1.5s1.5-0.672,1.5-1.5v-3C19,29.672,18.329,29,17.5,29z M17.5,7    C11.71,7,7,11.71,7,17.5S11.71,28,17.5,28S28,23.29,28,17.5S23.29,7,17.5,7z M17.5,25c-4.136,0-7.5-3.364-7.5-7.5    c0-4.136,3.364-7.5,7.5-7.5c4.136,0,7.5,3.364,7.5,7.5C25,21.636,21.636,25,17.5,25z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="nightIcon" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background:new 0 0 100 100" xml:space="preserve" aria-label="라이트 모드"><title>라이트 모드</title><path d="M96.76,66.458c-0.853-0.852-2.15-1.064-3.23-0.534c-6.063,2.991-12.858,4.571-19.655,4.571  C62.022,70.495,50.88,65.88,42.5,57.5C29.043,44.043,25.658,23.536,34.076,6.47c0.532-1.08,0.318-2.379-0.534-3.23  c-0.851-0.852-2.15-1.064-3.23-0.534c-4.918,2.427-9.375,5.619-13.246,9.491c-9.447,9.447-14.65,22.008-14.65,35.369  c0,13.36,5.203,25.921,14.65,35.368s22.008,14.65,35.368,14.65c13.361,0,25.921-5.203,35.369-14.65  c3.872-3.871,7.064-8.328,9.491-13.246C97.826,68.608,97.611,67.309,96.76,66.458z"></path></svg></button></div></div></header><div class="popover-hint"><nav class="breadcrumb-container" aria-label="breadcrumbs"><div class="breadcrumb-element"><a href="../">Home</a><p> ❯ </p></div><div class="breadcrumb-element"><a href="../articles/">Articles</a><p> ❯ </p></div><div class="breadcrumb-element"><a href>Upstage 와 N8N 을 활용한 지옥의 폴더 정리</a></div></nav><h1 class="article-title">Upstage 와 N8N 을 활용한 지옥의 폴더 정리</h1><p show-comma="true" class="content-meta"><time datetime="2026-03-25T15:00:00.000Z">2026년 3월 26일</time><span>18 min read</span></p></div></div><article class="popover-hint"><div class="markdown-preview-view markdown-rendered"><blockquote class="callout abstract" data-callout="abstract">
+<div class="callout-title">
+                  <div class="callout-icon"></div>
+                  <div class="callout-title-inner"><p>Tldr</p></div>
+                  
+                </div>
+<div class="callout-content">
+<p>Downloads, Documents, Desktop 에 쌓이는 파일을 n8n + Upstage API 로 자동 분류하여 Zotero (PDF), Eagle (이미지/영상), DEVONthink (기타) 에 임포트하는 No Code 워크플로우입니다.</p>
+</div>
+</blockquote>
+<h2 id="해결한-문제">해결한 문제<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#해결한-문제" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h2>
+<p>macOS 에서 파일을 다운로드하면 Downloads 폴더에 쌓입니다. PDF 는 Zotero 에, 스크린샷은 Eagle 에, 나머지는 DEVONthink 에 넣어야 하는데, 이 작업을 매번 수동으로 하면 두 가지 문제가 반복됩니다.</p>
+<ol>
+<li><strong>파일명이 의미 없습니다</strong> — <code>CleanShot 2026-03-26 at 17.57.45@2x.png</code>, <code>document(3).pdf</code> 같은 이름은 나중에 찾을 수 없습니다</li>
+<li><strong>앱 선택이 번거롭습니다</strong> — 파일마다 어떤 앱으로 보낼지 판단하고, 앱을 열고, 임포트해야 합니다</li>
+</ol>
+<p>이 워크플로우는 Upstage Document Parse 로 파일 내용을 추출하고, Solar Pro 3 로 폴더와 파일명을 결정하여 두 문제를 자동으로 해결합니다. 10 분마다 실행되며 사용자 개입 없이 동작합니다.</p>
+<h2 id="motivation">Motivation<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#motivation" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h2>
+<p>Claude Code, OpenClaw 등 이미 강력한 자동화 도구가 있는 상황에서 n8n + Solar 조합만의 차별점은 <strong>이벤트 트리거 기반 상시 자동화</strong>에 있습니다. Claude Code 의 협업 모드(cowork)는 sandbox 환경이라 로컬 폴더에 직접 접근할 수 없고, OpenClaw 은 상시 데몬으로 운영하기에는 리소스 부담이 큽니다. 가장 단순한 상시 자동화 방법은 n8n 이라는 결론에 도달했습니다.</p>
+<p>제가 겪는 문제는 Downloads, Documents, Desktop 에 파일이 쌓이는 것입니다. 주기적으로 정리하지 않으면 반복적으로 쌓이고 까먹게 되는 것들을 자동으로 정리해주기를 원했습니다. 이를 해결하기 위해 Upstage API (Document Parse + Solar Pro 3) 를 활용한 <strong>로컬 파일 자동 분류 시스템</strong>을 구성하였습니다. 파일이 생기면 내용을 분석하고 적절한 앱으로 자동 import 합니다.</p>
+<p>전 Zotero, DEVONthink, Eagle 3 개의 프로그램을 주로 사용합니다. Zotero 는 PDF, Eagle 은 이미지와 영상 그리고 DEVONthink 는 이 외 나머지 파일들 webarchive 등을 저장하는 총괄 데이터베이스로 사용하고 있습니다.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="table-container"><table><thead><tr><th>앱</th><th>대상 파일</th><th>Import 방식</th></tr></thead><tbody><tr><td>Zotero</td><td>PDF</td><td><code>zt import</code> / <code>zt create:item</code> + <code>zt attach</code></td></tr><tr><td>Eagle</td><td>이미지, 동영상</td><td><code>eg import:path</code></td></tr><tr><td>DEVONthink</td><td>기타 문서</td><td><code>dt add</code></td></tr></tbody></table></div>
+<p><img src="../_attachments/n8n-file-organizer-workflow.png" alt="n8n File Organizer 전체 워크플로우"/></p>
+<p>전체 흐름은 Scan → Extract → Classify 입니다. Downloads, Documents, Desktop 에 쌓인 파일을 스캔하고, Upstage Document Parse 로 콘텐츠를 추출한 뒤, Solar Pro 3 가 폴더와 파일명을 결정합니다. 최종 임포트는 각 앱의 CLI 를 통해 수행합니다.</p>
+<h2 id="파일-분류-흐름">파일 분류 흐름<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#파일-분류-흐름" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h2>
+<h3 id="1-단계-사전-필터링--앱-라우팅-stage--categorize">1 단계: 사전 필터링 + 앱 라우팅 (Stage &amp; Categorize)<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#1-단계-사전-필터링--앱-라우팅-stage--categorize" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h3>
+<p>파이프라인의 게이트키퍼입니다. Solar API 호출 전에 불필요한 파일을 걸러냅니다. 숨김 파일, 빈 파일, 인스톨러는 skip 하거나 <code>_Inbox</code> 로 이동시키고, PDF 는 <code>%PDF-</code> 헤더를 검증하여 잘못된 파일을 걸러냅니다.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="table-container"><table><thead><tr><th>조건</th><th>처리</th></tr></thead><tbody><tr><td>숨김/빈/임시 파일</td><td>skip</td></tr><tr><td>인스톨러 (<code>.dmg</code>, <code>.pkg</code>, <code>.app</code>, <code>.iso</code>)</td><td><code>_Inbox</code> 로 이동 + skip</td></tr><tr><td>잘못된 PDF (<code>%PDF-</code> 헤더 없음)</td><td><code>_Inbox</code> 로 이동 + skip</td></tr></tbody></table></div>
+<p>정상적으로 파일이 처리가 되는 경우 아래와 같이 진행됩니다.</p>
+<pre><button class="expand-button" aria-label="Expand mermaid diagram" data-view-component="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M3.72 3.72a.75.75 0 011.06 1.06L2.56 7h10.88l-2.22-2.22a.75.75 0 011.06-1.06l3.5 3.5a.75.75 0 010 1.06l-3.5 3.5a.75.75 0 11-1.06-1.06l2.22-2.22H2.56l2.22 2.22a.75.75 0 11-1.06 1.06l-3.5-3.5a.75.75 0 010-1.06l3.5-3.5z"></path></svg></button><code class="mermaid" data-clipboard="&quot;flowchart LR\n    Scan[\&quot;Scan\&quot;] --> Filter{\&quot;사전 필터링\&quot;}\n    Filter -->|설치/잘못된PDF| Out[\&quot;_Inbox 로 이동\&quot;]\n    Filter -->|정상| Route{\&quot;확장자 라우팅\&quot;}\n    Route -->|pdf| ZT[\&quot;Zotero\&quot;]\n    Route -->|img/vid| EG[\&quot;Eagle\&quot;]\n    Route -->|기타| DT[\&quot;DEVONthink\&quot;]&quot;">flowchart LR
+    Scan[&quot;Scan&quot;] --> Filter{&quot;사전 필터링&quot;}
+    Filter -->|설치/잘못된PDF| Out[&quot;_Inbox 로 이동&quot;]
+    Filter -->|정상| Route{&quot;확장자 라우팅&quot;}
+    Route -->|pdf| ZT[&quot;Zotero&quot;]
+    Route -->|img/vid| EG[&quot;Eagle&quot;]
+    Route -->|기타| DT[&quot;DEVONthink&quot;]
+</code><div id="mermaid-container" role="dialog"><div id="mermaid-space"><div class="mermaid-content"></div></div></div></pre>
+<p>1 회 실행 시 최대 12 개 파일을 처리하며, 그 중 PDF 는 4 개로 제한합니다. PDF 에 제한을 두는 이유는 Document Parse API 호출 비용과 시간 때문입니다. OCR 1 건당 최대 60 초 timeout 이 걸려 있어, PDF 가 많으면 전체 처리 시간이 길어집니다.</p>
+<p>중복 처리에 대한 별도 관리는 하지 않습니다. 파이프라인이 끝나면 원본 파일이 삭제되거나 <code>_Inbox</code> 로 이동되므로, 다음 실행에서 같은 파일이 다시 잡히지 않습니다. 10 분 스케줄에 처리 시간이 1 분 이내이므로, 실행 간 겹칠 가능성도 구조적으로 없습니다.</p>
+<p>또한 n8n 의 Switch 노드가 확장자별로 브랜치를 나누고, 각 브랜치 내에서는 순차 처리가 되므로 같은 앱에 동시 import 가 일어나지 않습니다. 즉, <strong>n8n 의 브랜치 구조 자체가 앱별 큐 역할</strong>을 합니다.</p>
+<p>앱 선택은 확장자로 확정되며 Solar 가 변경하지 않습니다. Eagle, Zotero, DEVONthink 는 각각 처리하는 파일 유형이 정해져 있기 때문입니다.</p>
+<h4 id="파일-안정성-staging-이동">파일 안정성: Staging 이동<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#파일-안정성-staging-이동" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h4>
+<p>Stage &amp; Categorize 는 파일 경로를 기록한 뒤 실제 처리까지 30~100 초가 소요됩니다. 이 사이에 외부 앱(CleanShot 등)이 파일을 rename 하거나 이동하면 ENOENT 오류가 발생합니다. 이를 방지하기 위해, 파일 발견 즉시 <code>~/.n8n-organizer/staging/</code> 디렉토리로 <code>fs.renameSync</code> (atomic move) 합니다.</p>
+<ul>
+<li>모든 downstream 노드는 staging 경로(<code>filePath</code>)로 작업합니다</li>
+<li>원본 경로는 <code>originalPath</code> 필드에 보존하여 로그에 기록합니다</li>
+<li>파이프라인 크래시 대비: 매 실행 시작 시 staging 에 30 분 이상 머문 파일을 <code>_Inbox</code> 로 복원합니다</li>
+</ul>
+<h3 id="2-단계-app-extract">2 단계: App Extract<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#2-단계-app-extract" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h3>
+<p>2 단계는 <strong>폴더 목록 조회</strong>와 <strong>콘텐츠 추출</strong> 두 하위 단계로 구성됩니다.</p>
+<h4 id="2-1-폴더-목록-조회">2-1. 폴더 목록 조회<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#2-1-폴더-목록-조회" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h4>
+<p>각 앱의 <strong>실제 폴더/컬렉션 목록</strong>을 CLI 로 가져옵니다. 30 분 TTL 캐시를 적용합니다. 여러 파일을 처리할 때 매번 폴더 트리를 가져오면 병목이 생기므로 캐시를 적용합니다. 10 분 스케줄에 30 분 TTL 이 적당합니다.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="table-container"><table><thead><tr><th>앱</th><th>CLI 명령</th><th>파라미터 설명</th><th>출력 포맷</th></tr></thead><tbody><tr><td>Zotero</td><td><code>zt collections</code></td><td>전체 컬렉션 목록을 JSON 으로 반환합니다</td><td><code>ZK3ATEUT | 00. Inbox</code> (key | name)</td></tr><tr><td>Eagle</td><td><code>eg folder:list</code></td><td>폴더 트리를 재귀적으로 JSON 으로 반환합니다</td><td><code>M8RRO78FRS1VZ | Resources/Meme</code> (id | path)</td></tr><tr><td>DEVONthink</td><td><code>dt databases --property name</code></td><td>데이터베이스 목록을 name 필드만 반환합니다</td><td><code>[{&quot;name&quot;: &quot;01. Personal&quot;}]</code></td></tr><tr><td></td><td><code>dt groups --db &quot;DB명&quot; --property name</code></td><td>지정 DB 의 최상위 그룹을 name 필드만 반환합니다</td><td><code>[{&quot;name&quot;: &quot;00. Inbox&quot;}, ...]</code></td></tr><tr><td></td><td><code>dt groups --db &quot;DB명&quot; &quot;/그룹명&quot; --property name</code></td><td>하위 그룹을 name 필드만 반환합니다</td><td><code>[{&quot;name&quot;: &quot;창업&quot;}, ...]</code></td></tr></tbody></table></div>
+<h4 id="2-2-콘텐츠-추출">2-2. 콘텐츠 추출<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#2-2-콘텐츠-추출" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h4>
+<p>콘텐츠 추출은 확장자에 따라 분기됩니다. PDF 와 이미지는 n8n 의 <strong>HTTP Request 노드</strong>를 통해 Upstage Document Parse API 를 명시적으로 호출하므로, 워크플로우 UI 에서 데이터 흐름을 직접 확인할 수 있습니다. 기존에 Code 노드 안에 숨겨두었던 curl 호출을 HTTP Request 노드로 전환한 것입니다.</p>
+<ul>
+<li><strong>PDF</strong>: mdls (Spotlight) 로 텍스트 추출 → 300 자 미만이면 Upstage Document Parse API (<code>HTTP Request</code> 노드) 로 OCR 수행</li>
+<li><strong>이미지</strong>: Upstage Document Parse API (<code>HTTP Request</code> 노드) 로 텍스트 추출</li>
+<li><strong>동영상</strong>: 콘텐츠 추출 없이 파일명 기반으로 바로 Solar 분류 단계로 진행</li>
+<li><strong>기타</strong>: 파일명 기반</li>
+</ul>
+<p>동영상은 Document Parse 로 분석할 수 없으므로 폴더 목록만 조회한 뒤 파일명 기반으로 Solar 에 전달합니다.</p>
+<pre><button class="expand-button" aria-label="Expand mermaid diagram" data-view-component="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M3.72 3.72a.75.75 0 011.06 1.06L2.56 7h10.88l-2.22-2.22a.75.75 0 011.06-1.06l3.5 3.5a.75.75 0 010 1.06l-3.5 3.5a.75.75 0 11-1.06-1.06l2.22-2.22H2.56l2.22 2.22a.75.75 0 11-1.06 1.06l-3.5-3.5a.75.75 0 010-1.06l3.5-3.5z"></path></svg></button><code class="mermaid" data-clipboard="&quot;flowchart LR\n    Route{\&quot;확장자 라우팅\&quot;} -->|pdf| ZT[\&quot;ZT Folders\&quot;]\n    Route -->|image| EG[\&quot;EG Folders\&quot;]\n    Route -->|video| EGV[\&quot;EG Folders Video\&quot;]\n    Route -->|other| DT[\&quot;DT Folders\&quot;]\n    ZT --> Check{\&quot;텍스트 충분?\&quot;}\n    Check -->|yes| Prompt[\&quot;Build Solar Prompt\&quot;]\n    Check -->|no| ReadPDF[\&quot;Read PDF\&quot;] --> DPPDF[\&quot;Document Parse PDF\&quot;]\n    DPPDF --> SetPDF[\&quot;Set PDF Text\&quot;] --> Prompt\n    EG --> ReadImg[\&quot;Read Image\&quot;] --> DPImg[\&quot;Document Parse Image\&quot;]\n    DPImg --> SetImg[\&quot;Set Image Text\&quot;] --> Prompt\n    EGV --> Prompt\n    DT --> Prompt&quot;">flowchart LR
+    Route{&quot;확장자 라우팅&quot;} -->|pdf| ZT[&quot;ZT Folders&quot;]
+    Route -->|image| EG[&quot;EG Folders&quot;]
+    Route -->|video| EGV[&quot;EG Folders Video&quot;]
+    Route -->|other| DT[&quot;DT Folders&quot;]
+    ZT --> Check{&quot;텍스트 충분?&quot;}
+    Check -->|yes| Prompt[&quot;Build Solar Prompt&quot;]
+    Check -->|no| ReadPDF[&quot;Read PDF&quot;] --> DPPDF[&quot;Document Parse PDF&quot;]
+    DPPDF --> SetPDF[&quot;Set PDF Text&quot;] --> Prompt
+    EG --> ReadImg[&quot;Read Image&quot;] --> DPImg[&quot;Document Parse Image&quot;]
+    DPImg --> SetImg[&quot;Set Image Text&quot;] --> Prompt
+    EGV --> Prompt
+    DT --> Prompt
+</code><div id="mermaid-container" role="dialog"><div id="mermaid-space"><div class="mermaid-content"></div></div></div></pre>
+<h3 id="3-단계-solar-pro-3-폴더-분류--파일명-생성">3 단계: Solar Pro 3 폴더 분류 + 파일명 생성<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#3-단계-solar-pro-3-폴더-분류--파일명-생성" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h3>
+<p>추출된 텍스트 + 파일명 + 해당 앱의 폴더 목록을 Solar Pro 3 에 전달합니다. Solar 는 1 단계에서 확정된 앱은 변경하지 않으며, 폴더 선택과 파일명 생성만 담당합니다:</p>
+<figure data-rehype-pretty-code-figure><pre tabindex="0" data-language="json" data-theme="github-light github-dark"><code data-language="json" data-theme="github-light github-dark" style="display:grid;"><span data-line><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">{</span></span>
+<span data-line><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="punctuation">  &quot;document_type&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">: </span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;" data-token-type="string">&quot;academic_paper&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">,</span></span>
+<span data-line><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="punctuation">  &quot;target_folder&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">: </span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;" data-token-type="string">&quot;ZK3ATEUT&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">,</span></span>
+<span data-line><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="punctuation">  &quot;new_filename&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">: </span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;" data-token-type="string">&quot;2026-03-25_AI_기반_정보_자동_분류.pdf&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">,</span></span>
+<span data-line><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="punctuation">  &quot;rating&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">: </span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="value">8</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">,</span></span>
+<span data-line><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="punctuation">  &quot;criteria&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">: {</span></span>
+<span data-line><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="punctuation">    &quot;folder_match&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">: </span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="value">9</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">,</span></span>
+<span data-line><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="punctuation">    &quot;filename_quality&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">: </span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="value">7</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">,</span></span>
+<span data-line><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="punctuation">    &quot;content_understanding&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">: </span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="value">8</span></span>
+<span data-line><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">  },</span></span>
+<span data-line><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="punctuation">  &quot;feedback&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">: </span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;" data-token-type="string">&quot;AI 관련 학술 자료로 Zotero 컬렉션에 적합&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">,</span></span>
+<span data-line><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="punctuation">  &quot;language&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">: </span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;" data-token-type="string">&quot;ko&quot;</span></span>
+<span data-line><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">}</span></span></code></pre></figure>
+<p>초기 구현에서의 단일 <code>confidence</code> 점수는 비보정 상태로 의미가 없었습니다 (잘못 분류해도 0.95 반환). 이를 <strong>다기준 평가 체계</strong>로 대체했습니다:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="table-container"><table><thead><tr><th>기준</th><th>설명</th></tr></thead><tbody><tr><td><code>folder_match</code></td><td>선택한 폴더가 파일 내용에 적합한지 (1-10)</td></tr><tr><td><code>filename_quality</code></td><td>생성된 파일명이 내용을 잘 설명하는지 (1-10)</td></tr><tr><td><code>content_understanding</code></td><td>파일 내용을 얼마나 정확히 이해했는지 (1-10)</td></tr></tbody></table></div>
+<p>종합 <code>rating</code> 점수에 따라 파이프라인이 분기합니다:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="table-container"><table><thead><tr><th>rating</th><th>처리</th></tr></thead><tbody><tr><td>9-10</td><td>정상 import + 고신뢰 알림</td></tr><tr><td>6-8</td><td>정상 import</td></tr><tr><td>1-5</td><td>Inbox fallback (수동 확인 필요)</td></tr></tbody></table></div>
+<p><code>reasoning_effort</code> 파라미터를 파일 유형별로 차등 적용합니다. PDF 와 이미지는 <code>high</code> (깊은 추론 필요), 동영상과 기타 파일은 <code>medium</code> (파일명 기반 단순 분류) 으로 설정합니다.</p>
+<p>Solar 의 JSON 응답은 <code>Parse Solar Response</code> 노드 내부에서 <strong>양방향 lookup map</strong> 으로 검증됩니다. key 또는 name 어느 쪽으로 응답해도 정규화하며, 일치하지 않으면 Fallback 폴더로 대체합니다.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="table-container"><table><thead><tr><th>앱</th><th>Fallback 위치</th><th>포맷</th></tr></thead><tbody><tr><td>Zotero</td><td><code>00. Inbox</code></td><td>key: <code>8UZJ5THD</code></td></tr><tr><td>Eagle</td><td>root</td><td>folderId 생략</td></tr><tr><td>DEVONthink</td><td><code>/00. Inbox</code></td><td>group path</td></tr></tbody></table></div>
+<blockquote class="callout tip" data-callout="tip">
+<div class="callout-title">
+                  <div class="callout-icon"></div>
+                  <div class="callout-title-inner"><p>다기준 평가로 검증 </p></div>
+                  
+                </div>
+<div class="callout-content">
+<p>단일 confidence 대신 folder_match, filename_quality, content_understanding 3 개 축으로 평가합니다. 종합 rating 6 점 미만은 자동으로 Inbox fallback 되며, 세부 점수와 한국어 피드백이 로그에 기록됩니다.</p>
+</div>
+</blockquote>
+<h3 id="4-단계-임포트-import">4 단계: 임포트 (Import)<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#4-단계-임포트-import" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h3>
+<p>Import Router 가 <code>targetApp</code> 값에 따라 세 갈래로 분기합니다. 세 경로 모두 <code>pgrep</code> 으로 앱 실행 여부를 확인하고, 꺼져 있으면 <code>open -a</code> 로 자동 실행한 뒤 임포트를 수행합니다.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="table-container"><table><thead><tr><th>앱</th><th>CLI 명령</th><th>파라미터 설명</th><th>특이사항</th></tr></thead><tbody><tr><td>Zotero</td><td><code>zt import FILE --collection COL</code></td><td><code>FILE</code>: 임포트할 파일 경로, <code>--collection</code>: 대상 컬렉션 key</td><td>실패 시 <code>zt create:item --type document --title TITLE --collection COL</code> + <code>zt attach FILE --key KEY</code> 2 단계 fallback</td></tr><tr><td>Eagle</td><td><code>eg import:path --path FILE --name NAME --folderId FID</code></td><td><code>--path</code>: 파일 경로, <code>--name</code>: 표시 이름, <code>--folderId</code>: 대상 폴더 ID</td><td>파일명에서 따옴표 제거 후 <code>--name</code> 에 전달</td></tr><tr><td>DEVONthink</td><td><code>dt add FILE --db &quot;01. Personal&quot; --at PATH --name NAME</code></td><td><code>FILE</code>: 파일 경로, <code>--db</code>: 대상 DB, <code>--at</code>: 그룹 경로, <code>--name</code>: 표시 이름</td><td>고정 DB <code>01. Personal</code> 사용</td></tr></tbody></table></div>
+<h3 id="5-단계-후처리-cleanup--logging">5 단계: 후처리 (Cleanup &amp; Logging)<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#5-단계-후처리-cleanup--logging" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h3>
+<p>임포트 성공 여부에 따라 분기합니다.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="table-container"><table><thead><tr><th>결과</th><th>동작</th></tr></thead><tbody><tr><td>성공</td><td>원본 파일 삭제</td></tr><tr><td>실패</td><td>원본을 <code>~/Downloads/_Inbox/</code> 로 이동</td></tr></tbody></table></div>
+<p>두 경우 모두 <code>~/.n8n-organizer/log.jsonl</code> 에 JSON 로그를 추가하고, macOS 알림 (<code>osascript</code>) 을 표시합니다.</p>
+<h2 id="upstage-api-활용">Upstage API 활용<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#upstage-api-활용" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h2>
+<h3 id="document-parse-endpoint-document-digitization-model-document-parse">Document Parse (endpoint: <code>document-digitization</code>, model: <code>document-parse</code>)<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#document-parse-endpoint-document-digitization-model-document-parse" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="table-container"><table><thead><tr><th>대상</th><th>모드</th><th>용도</th></tr></thead><tbody><tr><td>PDF (mdls 300 자 미만 시)</td><td><code>document-parse</code>, <code>ocr=auto</code></td><td>스캔 PDF 텍스트 추출</td></tr><tr><td>이미지 (스크린샷/차트)</td><td><code>document-parse</code>, <code>ocr=auto</code></td><td>화면 내 텍스트/다이어그램 설명</td></tr><tr><td>일반 사진</td><td><code>document-parse</code>, <code>ocr=auto</code></td><td><strong>한계</strong>: 풍경/인물/음식 분석 불가</td></tr></tbody></table></div>
+<h3 id="solar-pro-3-chatcompletions">Solar Pro 3 (<code>chat/completions</code>)<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#solar-pro-3-chatcompletions" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h3>
+<ul>
+<li>Text-only 모델 (102B MoE)</li>
+<li>Document Parse 가 추출한 텍스트를 기반으로 파일명 + 폴더 결정</li>
+<li>이미지 직접 분석 불가 → Document Parse 의 텍스트 출력에 의존</li>
+<li><code>reasoning_effort</code> 파라미터: PDF/이미지 → <code>high</code>, 동영상/기타 → <code>medium</code></li>
+<li>다기준 평가 JSON 스키마 반환: <code>rating</code> (종합 점수) + <code>criteria</code> (folder_match, filename_quality, content_understanding) + <code>feedback</code> (한국어 피드백)</li>
+</ul>
+<h2 id="노드-구성-v5-33-nodes">노드 구성 (v5, 33 nodes)<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#노드-구성-v5-33-nodes" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="table-container"><table><thead><tr><th>유형</th><th>개수</th><th>역할</th></tr></thead><tbody><tr><td>Schedule/Manual Trigger</td><td>2</td><td>10 분 스케줄, 수동 테스트</td></tr><tr><td>Code</td><td>6</td><td>Stage &amp; Categorize, ZT Folders, EG Folders, EG Folders Video, DT Folders, Parse Solar Response</td></tr><tr><td>Execute Command</td><td>7</td><td>CLI 임포트 (Zotero/Eagle/DEVONthink), 파일 정리, 알림, 로그 기록</td></tr><tr><td>Set</td><td>8</td><td>프롬프트 조립, Fallback 데이터, 임포트 결과 매핑 (3), 로그 준비, PDF/이미지 텍스트 설정 (2)</td></tr><tr><td>HTTP Request</td><td>3</td><td>Solar Pro 3 API 호출, Document Parse PDF, Document Parse Image</td></tr><tr><td>ReadWriteFile</td><td>2</td><td>Read PDF, Read Image</td></tr><tr><td>Switch</td><td>2</td><td>확장자 라우팅, 앱별 라우팅</td></tr><tr><td>If</td><td>3</td><td>Solar Response Success?, Import Success?, PDF Text OK?</td></tr></tbody></table></div>
+<h3 id="장애-내성-fault-tolerance">장애 내성 (Fault Tolerance)<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#장애-내성-fault-tolerance" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h3>
+<p>대부분의 IO 노드에 <code>continueOnFail</code> 이 설정되어 있어, 개별 파일 처리 실패가 전체 파이프라인을 중단시키지 않습니다. Import 노드는 실행 전 <code>[ ! -f &quot;$FP&quot; ]</code> 로 파일 존재를 확인하며, Solar 응답 파싱 실패 시 마크다운 코드블록 제거 후 재시도합니다. 콘텐츠 텍스트는 4,000 자로 truncation 하여 Solar 의 컨텍스트 윈도우 초과를 방지합니다.</p>
+<h2 id="마이그레이션-code-노드-최소화">마이그레이션: Code 노드 최소화<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#마이그레이션-code-노드-최소화" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h2>
+<p>초기 워크플로우는 Code 노드 10 개에 400 줄 이상의 JavaScript 가 있었습니다. Code 노드는 n8n UI 에서 데이터 흐름을 추적하기 어렵습니다. ” 확실한 것만 ” 원칙으로 4 개 Code 노드를 네이티브 노드로 전환했습니다.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="table-container"><table><thead><tr><th>대상</th><th>Before</th><th>After</th></tr></thead><tbody><tr><td>Fallback Solar Response</td><td>Code (40 줄)</td><td><strong>Set 노드</strong></td></tr><tr><td>Import to Zotero</td><td>Code (65 줄)</td><td><strong>Execute Command + Set</strong></td></tr><tr><td>Import to Eagle</td><td>Code (40 줄)</td><td><strong>Execute Command + Set</strong></td></tr><tr><td>Import to DEVONthink</td><td>Code (40 줄)</td><td><strong>Execute Command + Set</strong></td></tr></tbody></table></div>
+<p><strong>겪은 문제:</strong></p>
+<ol>
+<li><strong>CLI stdout 이 “OK” 마커를 가림</strong> — <code>dt add</code> 등 CLI 도구가 JSON 을 stdout 에 출력 → <code>>/dev/null</code> 추가로 해결</li>
+<li><strong>ReadWriteFile binary 오류</strong> — Append Log 노드를 Execute Command heredoc 으로 교체</li>
+<li><strong>중복 처리 우려</strong> — 처리 완료 시 원본 삭제/이동으로 구조적으로 회피. 해시 관리 불필요</li>
+</ol>
+<h2 id="operational-tips">Operational Tips<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#operational-tips" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h2>
+<p>PM2 를 사용하여 n8n 프로세스를 상시 운영합니다. <code>ecosystem.config.js</code> 에서 <code>autorestart: true</code> 로 크래시 시 자동 재시작하고, <code>max_memory_restart: '512M'</code> 으로 메모리 초과 시에도 자동 복구합니다. 실행 명령은 아래와 같습니다.</p>
+<figure data-rehype-pretty-code-figure><pre tabindex="0" data-language="bash" data-theme="github-light github-dark"><code data-language="bash" data-theme="github-light github-dark" style="display:grid;"><span data-line><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;" data-token-type="comment"># 시작</span></span>
+<span data-line><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;" data-token-type="function">pm2</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;" data-token-type="string"> start</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;" data-token-type="string"> ecosystem.config.js</span></span>
+<span data-line> </span>
+<span data-line><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;" data-token-type="comment"># 상태 확인</span></span>
+<span data-line><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;" data-token-type="function">pm2</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;" data-token-type="string"> status</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;" data-token-type="string"> n8n-organizer</span></span>
+<span data-line> </span>
+<span data-line><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;" data-token-type="comment"># 로그 확인</span></span>
+<span data-line><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;" data-token-type="function">pm2</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;" data-token-type="string"> logs</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;" data-token-type="string"> n8n-organizer</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="value"> --lines</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="value"> 50</span></span></code></pre></figure>
+<h3 id="설정-파일">설정 파일<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#설정-파일" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="table-container"><table><thead><tr><th>경로</th><th>용도</th></tr></thead><tbody><tr><td><code>~/.n8n-organizer/zt-token</code></td><td>Zotero CLI 토큰</td></tr><tr><td><code>~/.n8n-organizer/folder-choices-cache.json</code></td><td>폴더 목록 캐시 (30 분 TTL)</td></tr><tr><td><code>~/.n8n-organizer/log.jsonl</code></td><td>처리 로그 (JSONL)</td></tr><tr><td><code>~/.n8n-organizer/staging/</code></td><td>처리 중 파일 임시 저장 (atomic move)</td></tr></tbody></table></div>
+<h3 id="한계-및-향후-개선">한계 및 향후 개선<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#한계-및-향후-개선" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h3>
+<ul>
+<li>일반 사진 naming — vision API 없이는 파일명 기반이 한계입니다. 향후 Claude Haiku Vision 등을 검토할 예정입니다</li>
+<li>rating 임계값 조정 — 현재 6점 기준은 초기값이며, 로그 분석을 통해 조정이 필요합니다</li>
+<li>CLI 도구 문서화 — <code>zt</code> (zotero-cli), <code>eg</code> (eagle-cli), <code>dt</code> (devonthink-cli) 는 직접 개발한 도구입니다. 파라미터 설명과 사용 예시가 부족하여 <code>--help</code> 출력 개선 및 README 작성이 필요합니다</li>
+</ul></div></article><hr/><div class="page-footer"><ul class="tags"><li><a href="../tags/automation" class="internal tag-link">automation</a></li><li><a href="../tags/n8n" class="internal tag-link">n8n</a></li><li><a href="../tags/upstage" class="internal tag-link">upstage</a></li></ul><div class="giscus" data-repo="GoBeromsu/Quartaz" data-repo-id="R_kgDOMzvCAQ" data-category="Announcements" data-category-id="DIC_kwDOMzvCAc4Civ7w" data-mapping="url" data-strict="1" data-reactions-enabled="0" data-input-position="bottom" data-light-theme="light" data-dark-theme="dark" data-theme-url="https://beomsukoh.com/static/giscus" data-lang="en"></div></div></div></div></div></body><script src="../static/resource-after-e13fffa1.js" type="application/javascript" data-persist="true"></script><script src="../static/resource-after-8b336f9a.js" type="application/javascript" data-persist="true"></script><script src="../static/resource-after-baba652b.js" type="application/javascript" data-persist="true"></script><script src="../static/resource-after-5eb75950.js" type="module" data-persist="true"></script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/copy-tex.min.js" type="application/javascript" data-persist="true"></script><script src="../postscript-15935c38.js" type="module" data-persist="true"></script></html>

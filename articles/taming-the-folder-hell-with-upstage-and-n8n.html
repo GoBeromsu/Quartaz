@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="ko-KR" dir="ltr"><head><title>Taming the Folder Hell with Upstage and N8N</title><meta charset="utf-8"/><link rel="preload" href="../index-69b0f35b.css" as="style"/><link rel="preload" href="../prescript-ee7931aa.js" as="script"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com"/><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&amp;family=Inter:ital,wght@0,400;0,600;1,400;1,600&amp;family=IBM Plex Mono:wght@400;600&amp;display=swap"/><link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin="anonymous"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="og:site_name" content="Beomsu Koh"/><meta property="og:title" content="Taming the Folder Hell with Upstage and N8N"/><meta property="og:type" content="website"/><meta name="twitter:card" content="summary_large_image"/><meta name="twitter:title" content="Taming the Folder Hell with Upstage and N8N"/><meta name="twitter:description" content="Tldr A no-code workflow that automatically classifies files piling up in Downloads, Documents, and Desktop using n8n + Upstage API, then imports them into Zotero (PDFs), Eagle (images/videos), or DEVONthink (everything else)."/><meta property="og:description" content="Tldr A no-code workflow that automatically classifies files piling up in Downloads, Documents, and Desktop using n8n + Upstage API, then imports them into Zotero (PDFs), Eagle (images/videos), or DEVONthink (everything else)."/><meta property="og:image:alt" content="Tldr A no-code workflow that automatically classifies files piling up in Downloads, Documents, and Desktop using n8n + Upstage API, then imports them into Zotero (PDFs), Eagle (images/videos), or DEVONthink (everything else)."/><meta property="twitter:domain" content="beomsukoh.com"/><meta property="og:url" content="https://beomsukoh.com/articles/taming-the-folder-hell-with-upstage-and-n8n"/><meta property="twitter:url" content="https://beomsukoh.com/articles/taming-the-folder-hell-with-upstage-and-n8n"/><link rel="icon" href="../static/icon.png"/><meta name="description" content="Tldr A no-code workflow that automatically classifies files piling up in Downloads, Documents, and Desktop using n8n + Upstage API, then imports them into Zotero (PDFs), Eagle (images/videos), or DEVONthink (everything else)."/><meta name="generator" content="Quartz"/><link href="../index-69b0f35b.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-53b25b2b.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-2b69177d.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-bcc4f7d3.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-8a06014f.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-77d6a441.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-735924e0.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-589c1cea.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-2911f5d1.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-51caa3ed.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-34413bc1.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-43b970c8.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-963ab258.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-7f220492.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-274a3dfe.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-94cb6c84.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-8f4e49d0.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-bbc3f7c0.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../component-788c9ca3.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../static/resource-style-a5c806d2.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="../static/resource-style-6bd36952.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" rel="stylesheet" type="text/css" data-persist="true"/><script src="../prescript-ee7931aa.js" type="application/javascript" data-persist="true"></script><script type="application/javascript" data-persist="true">const fetchData = fetch("../static/contentIndex.json").then(data => data.json())</script><meta property="og:image:width" content="1200"/><meta property="og:image:height" content="630"/><meta property="og:image" content="https://beomsukoh.com/articles/taming-the-folder-hell-with-upstage-and-n8n-og-image.webp"/><meta property="og:image:url" content="https://beomsukoh.com/articles/taming-the-folder-hell-with-upstage-and-n8n-og-image.webp"/><meta name="twitter:image" content="https://beomsukoh.com/articles/taming-the-folder-hell-with-upstage-and-n8n-og-image.webp"/><meta property="og:image:type" content="image/webp"/></head><body data-slug="articles/taming-the-folder-hell-with-upstage-and-n8n" data-basepath><div id="quartz-root" class="page" data-frame="full-width"><div id="quartz-body"><div class="center full-width"><div class="page-header"><header><div class="flex-component" style="flex-direction: row; flex-wrap: wrap; gap: 1.5rem;"><div style="flex-grow: 0; flex-shrink: 1; flex-basis: auto; order: 0; align-self: center; justify-self: center;"><h2 class="page-title"><a href="..">Beomsu Koh</a></h2></div><div style="flex-grow: 0; flex-shrink: 1; flex-basis: auto; order: 0; align-self: center; justify-self: center;"><div class="spacer"></div></div><div style="flex-grow: 0; flex-shrink: 1; flex-basis: auto; order: 0; align-self: center; justify-self: center;"><nav class="blog-links-header"><a href="/graph">Graph</a><a href="/about">About</a></nav></div><div style="flex-grow: 0; flex-shrink: 1; flex-basis: auto; order: 0; align-self: center; justify-self: center;"><nav class="blog-language-switcher" data-locale-entry="{&quot;locales&quot;:[{&quot;id&quot;:&quot;ko&quot;,&quot;prefix&quot;:&quot;/ko/&quot;,&quot;tags&quot;:[&quot;ko&quot;,&quot;ko-KR&quot;]},{&quot;id&quot;:&quot;en&quot;,&quot;prefix&quot;:&quot;/en/&quot;,&quot;tags&quot;:[&quot;en&quot;,&quot;en-US&quot;]}],&quot;sourceLocale&quot;:&quot;ko&quot;,&quot;storageKey&quot;:&quot;preferred-locale&quot;}"><a class="blog-language-switcher-toggle" href="/en/" lang="en-US" hreflang="en-US" data-preferred-locale="en" aria-label="Switch to English">English</a></nav></div><div style="flex-grow: 0; flex-shrink: 1; flex-basis: auto; order: 0; align-self: center; justify-self: center;"><div class="search"><button class="search-button" aria-label="검색" aria-expanded="false"><svg role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.9 19.7"><title>Search</title><g class="search-path" fill="none"><path stroke-linecap="square" d="M18.5 18.3l-5.4-5.4"></path><circle cx="8" cy="8" r="7"></circle></g></svg><p>검색</p></button><div class="search-container"><div class="search-space"><input autocomplete="off" class="search-bar" name="search" type="text" aria-label="검색어를 입력하세요" placeholder="검색어를 입력하세요"/><div class="search-layout" data-preview="true" data-field-priority="[&quot;title&quot;,&quot;content&quot;,&quot;tags&quot;]"></div></div></div></div></div><div style="flex-grow: 0; flex-shrink: 1; flex-basis: auto; order: 0; align-self: center; justify-self: center;"><button class="darkmode" aria-label="다크 모드"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="dayIcon" x="0px" y="0px" viewBox="0 0 35 35" style="enable-background:new 0 0 35 35" xml:space="preserve" aria-label="다크 모드"><title>다크 모드</title><path d="M6,17.5C6,16.672,5.328,16,4.5,16h-3C0.672,16,0,16.672,0,17.5    S0.672,19,1.5,19h3C5.328,19,6,18.328,6,17.5z M7.5,26c-0.414,0-0.789,0.168-1.061,0.439l-2,2C4.168,28.711,4,29.086,4,29.5    C4,30.328,4.671,31,5.5,31c0.414,0,0.789-0.168,1.06-0.44l2-2C8.832,28.289,9,27.914,9,27.5C9,26.672,8.329,26,7.5,26z M17.5,6    C18.329,6,19,5.328,19,4.5v-3C19,0.672,18.329,0,17.5,0S16,0.672,16,1.5v3C16,5.328,16.671,6,17.5,6z M27.5,9    c0.414,0,0.789-0.168,1.06-0.439l2-2C30.832,6.289,31,5.914,31,5.5C31,4.672,30.329,4,29.5,4c-0.414,0-0.789,0.168-1.061,0.44    l-2,2C26.168,6.711,26,7.086,26,7.5C26,8.328,26.671,9,27.5,9z M6.439,8.561C6.711,8.832,7.086,9,7.5,9C8.328,9,9,8.328,9,7.5    c0-0.414-0.168-0.789-0.439-1.061l-2-2C6.289,4.168,5.914,4,5.5,4C4.672,4,4,4.672,4,5.5c0,0.414,0.168,0.789,0.439,1.06    L6.439,8.561z M33.5,16h-3c-0.828,0-1.5,0.672-1.5,1.5s0.672,1.5,1.5,1.5h3c0.828,0,1.5-0.672,1.5-1.5S34.328,16,33.5,16z     M28.561,26.439C28.289,26.168,27.914,26,27.5,26c-0.828,0-1.5,0.672-1.5,1.5c0,0.414,0.168,0.789,0.439,1.06l2,2    C28.711,30.832,29.086,31,29.5,31c0.828,0,1.5-0.672,1.5-1.5c0-0.414-0.168-0.789-0.439-1.061L28.561,26.439z M17.5,29    c-0.829,0-1.5,0.672-1.5,1.5v3c0,0.828,0.671,1.5,1.5,1.5s1.5-0.672,1.5-1.5v-3C19,29.672,18.329,29,17.5,29z M17.5,7    C11.71,7,7,11.71,7,17.5S11.71,28,17.5,28S28,23.29,28,17.5S23.29,7,17.5,7z M17.5,25c-4.136,0-7.5-3.364-7.5-7.5    c0-4.136,3.364-7.5,7.5-7.5c4.136,0,7.5,3.364,7.5,7.5C25,21.636,21.636,25,17.5,25z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="nightIcon" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background:new 0 0 100 100" xml:space="preserve" aria-label="라이트 모드"><title>라이트 모드</title><path d="M96.76,66.458c-0.853-0.852-2.15-1.064-3.23-0.534c-6.063,2.991-12.858,4.571-19.655,4.571  C62.022,70.495,50.88,65.88,42.5,57.5C29.043,44.043,25.658,23.536,34.076,6.47c0.532-1.08,0.318-2.379-0.534-3.23  c-0.851-0.852-2.15-1.064-3.23-0.534c-4.918,2.427-9.375,5.619-13.246,9.491c-9.447,9.447-14.65,22.008-14.65,35.369  c0,13.36,5.203,25.921,14.65,35.368s22.008,14.65,35.368,14.65c13.361,0,25.921-5.203,35.369-14.65  c3.872-3.871,7.064-8.328,9.491-13.246C97.826,68.608,97.611,67.309,96.76,66.458z"></path></svg></button></div></div></header><div class="popover-hint"><nav class="breadcrumb-container" aria-label="breadcrumbs"><div class="breadcrumb-element"><a href="../">Home</a><p> ❯ </p></div><div class="breadcrumb-element"><a href="../articles/">Articles</a><p> ❯ </p></div><div class="breadcrumb-element"><a href>Taming the Folder Hell with Upstage and N8N</a></div></nav><h1 class="article-title">Taming the Folder Hell with Upstage and N8N</h1><p show-comma="true" class="content-meta"><time datetime="2026-03-25T15:00:00.000Z">2026년 3월 26일</time><span>10 min read</span></p></div></div><article class="popover-hint"><div class="markdown-preview-view markdown-rendered"><blockquote class="callout abstract" data-callout="abstract">
+<div class="callout-title">
+                  <div class="callout-icon"></div>
+                  <div class="callout-title-inner"><p>Tldr</p></div>
+                  
+                </div>
+<div class="callout-content">
+<p>A no-code workflow that automatically classifies files piling up in Downloads, Documents, and Desktop using n8n + Upstage API, then imports them into Zotero (PDFs), Eagle (images/videos), or DEVONthink (everything else).</p>
+</div>
+</blockquote>
+<h2 id="the-problem">The Problem<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#the-problem" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h2>
+<p>Every file you download on macOS lands in the Downloads folder. PDFs need to go into Zotero, screenshots into Eagle, and the rest into DEVONthink — but doing this manually every single time creates two recurring headaches:</p>
+<ol>
+<li><strong>Filenames are meaningless</strong> — names like <code>CleanShot 2026-03-26 at 17.57.45@2x.png</code> or <code>document(3).pdf</code> are impossible to find later</li>
+<li><strong>App routing is tedious</strong> — for every file, you have to decide which app gets it, open that app, and trigger the import</li>
+</ol>
+<p>This workflow solves both problems automatically: Upstage Document Parse extracts the file’s content, and Solar Pro 3 decides the destination folder and a clean filename. It runs every 10 minutes with zero user interaction.</p>
+<h2 id="motivation">Motivation<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#motivation" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h2>
+<p>With powerful automation tools like Claude Code and OpenClaw already available, what makes the n8n + Solar combination worth using? The answer is <strong>always-on, event-triggered automation</strong>. Claude Code’s collaborative mode runs in a sandbox and can’t directly access local folders. OpenClaw is resource-heavy to run as a persistent daemon. The simplest path to always-on automation is n8n.</p>
+<p>My specific problem: files accumulate in Downloads, Documents, and Desktop. Without periodic cleanup, they pile up and get forgotten. I wanted an automated system that handles this without intervention. The solution: a <strong>local file auto-classification system</strong> built on the Upstage API (Document Parse + Solar Pro 3). When a file appears, it analyzes the content and imports it into the right app.</p>
+<p>I use three apps for different file types: Zotero for PDFs, Eagle for images and videos, and DEVONthink as a general-purpose database for everything else (webarchives, documents, etc.).</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="table-container"><table><thead><tr><th>App</th><th>Target Files</th><th>Import Method</th></tr></thead><tbody><tr><td>Zotero</td><td>PDFs</td><td><code>zt import</code> / <code>zt create:item</code> + <code>zt attach</code></td></tr><tr><td>Eagle</td><td>Images, videos</td><td><code>eg import:path</code></td></tr><tr><td>DEVONthink</td><td>Everything else</td><td><code>dt add</code></td></tr></tbody></table></div>
+<p><img src="../_attachments/n8n-file-organizer-workflow.png" alt="n8n File Organizer full workflow"/></p>
+<p>The overall flow is Scan → Extract → Classify. Files accumulated in Downloads, Documents, and Desktop are scanned, their content is extracted via Upstage Document Parse, and then Solar Pro 3 decides the target folder and filename. The final import happens through each app’s CLI.</p>
+<h2 id="file-classification-pipeline">File Classification Pipeline<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#file-classification-pipeline" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h2>
+<h3 id="stage-1-pre-filtering--app-routing-stage--categorize">Stage 1: Pre-filtering + App Routing (Stage &amp; Categorize)<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#stage-1-pre-filtering--app-routing-stage--categorize" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h3>
+<p>This is the pipeline’s gatekeeper. It filters out unnecessary files before any Solar API calls. Hidden files, empty files, and installers are skipped or moved to <code>_Inbox</code>. PDFs are validated against the <code>%PDF-</code> header to catch corrupt files.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="table-container"><table><thead><tr><th>Condition</th><th>Action</th></tr></thead><tbody><tr><td>Hidden / empty / temporary files</td><td>skip</td></tr><tr><td>Installers (<code>.dmg</code>, <code>.pkg</code>, <code>.app</code>, <code>.iso</code>)</td><td>move to <code>_Inbox</code> + skip</td></tr><tr><td>Invalid PDF (missing <code>%PDF-</code> header)</td><td>move to <code>_Inbox</code> + skip</td></tr></tbody></table></div>
+<p>Files that pass the filter proceed as follows:</p>
+<pre><button class="expand-button" aria-label="Expand mermaid diagram" data-view-component="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M3.72 3.72a.75.75 0 011.06 1.06L2.56 7h10.88l-2.22-2.22a.75.75 0 011.06-1.06l3.5 3.5a.75.75 0 010 1.06l-3.5 3.5a.75.75 0 11-1.06-1.06l2.22-2.22H2.56l2.22 2.22a.75.75 0 11-1.06 1.06l-3.5-3.5a.75.75 0 010-1.06l3.5-3.5z"></path></svg></button><code class="mermaid" data-clipboard="&quot;flowchart LR\n    Scan[\&quot;Scan\&quot;] --> Filter{\&quot;Pre-filter\&quot;}\n    Filter -->|installer/bad PDF| Out[\&quot;Move to _Inbox\&quot;]\n    Filter -->|pass| Route{\&quot;Extension routing\&quot;}\n    Route -->|pdf| ZT[\&quot;Zotero\&quot;]\n    Route -->|img/vid| EG[\&quot;Eagle\&quot;]\n    Route -->|other| DT[\&quot;DEVONthink\&quot;]&quot;">flowchart LR
+    Scan[&quot;Scan&quot;] --> Filter{&quot;Pre-filter&quot;}
+    Filter -->|installer/bad PDF| Out[&quot;Move to _Inbox&quot;]
+    Filter -->|pass| Route{&quot;Extension routing&quot;}
+    Route -->|pdf| ZT[&quot;Zotero&quot;]
+    Route -->|img/vid| EG[&quot;Eagle&quot;]
+    Route -->|other| DT[&quot;DEVONthink&quot;]
+</code><div id="mermaid-container" role="dialog"><div id="mermaid-space"><div class="mermaid-content"></div></div></div></pre>
+<p>Each run processes at most 12 files, with PDFs capped at 4. The PDF cap exists because Document Parse API calls are expensive and slow — OCR has a 60-second timeout per file, so too many PDFs blow out the total processing time.</p>
+<p>Deduplication is handled structurally rather than tracked explicitly. Once a file completes the pipeline, the original is either deleted or moved to <code>_Inbox</code>, so it won’t be picked up again on the next run. With a 10-minute schedule and sub-1-minute processing time, runs don’t overlap.</p>
+<p>The n8n Switch node splits by file extension into separate branches, and each branch processes files sequentially — so the same app never receives concurrent imports. <strong>The branch structure itself acts as a per-app queue.</strong></p>
+<p>App selection is locked to extension at this stage; Solar never overrides it. Each app has a fixed domain: Eagle handles media, Zotero handles PDFs, DEVONthink handles everything else.</p>
+<h4 id="file-safety-staging-move">File Safety: Staging Move<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#file-safety-staging-move" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h4>
+<p>Between when Stage &amp; Categorize records a file path and when processing completes, up to 30–100 seconds can pass. During that window, an external app (like CleanShot) might rename or move the file, causing an <code>ENOENT</code> error downstream. To prevent this, files are immediately moved to <code>~/.n8n-organizer/staging/</code> via <code>fs.renameSync</code> (an atomic move) as soon as they’re discovered.</p>
+<ul>
+<li>All downstream nodes work off the staging path (<code>filePath</code>)</li>
+<li>The original path is preserved in <code>originalPath</code> for logging</li>
+<li>Crash recovery: at the start of each run, any file that has been sitting in staging for over 30 minutes is restored to <code>_Inbox</code></li>
+</ul>
+<h3 id="stage-2-app-extract">Stage 2: App Extract<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#stage-2-app-extract" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h3>
+<p>Stage 2 has two sub-steps: <strong>fetching folder lists</strong> and <strong>extracting content</strong>.</p>
+<h4 id="2-1-folder-list-fetch">2-1. Folder List Fetch<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#2-1-folder-list-fetch" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h4>
+<p>The actual folder/collection lists from each app are fetched via CLI, with a 30-minute TTL cache. Fetching the full folder tree for every file would create a bottleneck, so caching is applied. A 30-minute TTL fits well with the 10-minute schedule.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="table-container"><table><thead><tr><th>App</th><th>CLI Command</th><th>Description</th><th>Output Format</th></tr></thead><tbody><tr><td>Zotero</td><td><code>zt collections</code></td><td>Returns full collection list as JSON</td><td><code>ZK3ATEUT | 00. Inbox</code> (key | name)</td></tr><tr><td>Eagle</td><td><code>eg folder:list</code></td><td>Returns folder tree recursively as JSON</td><td><code>M8RRO78FRS1VZ | Resources/Meme</code> (id | path)</td></tr><tr><td>DEVONthink</td><td><code>dt databases --property name</code></td><td>Returns database list, name field only</td><td><code>[{&quot;name&quot;: &quot;01. Personal&quot;}]</code></td></tr><tr><td></td><td><code>dt groups --db &quot;DB_NAME&quot; --property name</code></td><td>Returns top-level groups for a DB</td><td><code>[{&quot;name&quot;: &quot;00. Inbox&quot;}, ...]</code></td></tr><tr><td></td><td><code>dt groups --db &quot;DB_NAME&quot; &quot;/group_name&quot; --property name</code></td><td>Returns sub-groups</td><td><code>[{&quot;name&quot;: &quot;startup&quot;}, ...]</code></td></tr></tbody></table></div>
+<h4 id="2-2-content-extraction">2-2. Content Extraction<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#2-2-content-extraction" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h4>
+<p>Content extraction branches by file extension. PDFs and images call the Upstage Document Parse API explicitly via n8n’s <strong>HTTP Request node</strong>, making the data flow visible directly in the workflow UI. This replaced the previous approach of hiding <code>curl</code> calls inside Code nodes.</p>
+<ul>
+<li><strong>PDF</strong>: extract text via <code>mdls</code> (Spotlight) → if under 300 characters, run OCR via Upstage Document Parse API (<code>HTTP Request</code> node)</li>
+<li><strong>Image</strong>: extract text via Upstage Document Parse API (<code>HTTP Request</code> node)</li>
+<li><strong>Video</strong>: no content extraction — goes straight to Solar classification based on filename</li>
+<li><strong>Other</strong>: filename-based classification</li>
+</ul>
+<p>Videos can’t be analyzed by Document Parse, so they pass only the folder list and filename to Solar.</p>
+<pre><button class="expand-button" aria-label="Expand mermaid diagram" data-view-component="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M3.72 3.72a.75.75 0 011.06 1.06L2.56 7h10.88l-2.22-2.22a.75.75 0 011.06-1.06l3.5 3.5a.75.75 0 010 1.06l-3.5 3.5a.75.75 0 11-1.06-1.06l2.22-2.22H2.56l2.22 2.22a.75.75 0 11-1.06 1.06l-3.5-3.5a.75.75 0 010-1.06l3.5-3.5z"></path></svg></button><code class="mermaid" data-clipboard="&quot;flowchart LR\n    Route{\&quot;Extension routing\&quot;} -->|pdf| ZT[\&quot;ZT Folders\&quot;]\n    Route -->|image| EG[\&quot;EG Folders\&quot;]\n    Route -->|video| EGV[\&quot;EG Folders Video\&quot;]\n    Route -->|other| DT[\&quot;DT Folders\&quot;]\n    ZT --> Check{\&quot;Enough text?\&quot;}\n    Check -->|yes| Prompt[\&quot;Build Solar Prompt\&quot;]\n    Check -->|no| ReadPDF[\&quot;Read PDF\&quot;] --> DPPDF[\&quot;Document Parse PDF\&quot;]\n    DPPDF --> SetPDF[\&quot;Set PDF Text\&quot;] --> Prompt\n    EG --> ReadImg[\&quot;Read Image\&quot;] --> DPImg[\&quot;Document Parse Image\&quot;]\n    DPImg --> SetImg[\&quot;Set Image Text\&quot;] --> Prompt\n    EGV --> Prompt\n    DT --> Prompt&quot;">flowchart LR
+    Route{&quot;Extension routing&quot;} -->|pdf| ZT[&quot;ZT Folders&quot;]
+    Route -->|image| EG[&quot;EG Folders&quot;]
+    Route -->|video| EGV[&quot;EG Folders Video&quot;]
+    Route -->|other| DT[&quot;DT Folders&quot;]
+    ZT --> Check{&quot;Enough text?&quot;}
+    Check -->|yes| Prompt[&quot;Build Solar Prompt&quot;]
+    Check -->|no| ReadPDF[&quot;Read PDF&quot;] --> DPPDF[&quot;Document Parse PDF&quot;]
+    DPPDF --> SetPDF[&quot;Set PDF Text&quot;] --> Prompt
+    EG --> ReadImg[&quot;Read Image&quot;] --> DPImg[&quot;Document Parse Image&quot;]
+    DPImg --> SetImg[&quot;Set Image Text&quot;] --> Prompt
+    EGV --> Prompt
+    DT --> Prompt
+</code><div id="mermaid-container" role="dialog"><div id="mermaid-space"><div class="mermaid-content"></div></div></div></pre>
+<h3 id="stage-3-solar-pro-3--folder-classification--filename-generation">Stage 3: Solar Pro 3 — Folder Classification + Filename Generation<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#stage-3-solar-pro-3--folder-classification--filename-generation" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h3>
+<p>The extracted text, original filename, and the target app’s folder list are passed to Solar Pro 3. Solar never changes the app assignment from Stage 1 — it only handles folder selection and filename generation:</p>
+<figure data-rehype-pretty-code-figure><pre tabindex="0" data-language="json" data-theme="github-light github-dark"><code data-language="json" data-theme="github-light github-dark" style="display:grid;"><span data-line><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">{</span></span>
+<span data-line><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="punctuation">  &quot;document_type&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">: </span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;" data-token-type="string">&quot;academic_paper&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">,</span></span>
+<span data-line><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="punctuation">  &quot;target_folder&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">: </span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;" data-token-type="string">&quot;ZK3ATEUT&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">,</span></span>
+<span data-line><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="punctuation">  &quot;new_filename&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">: </span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;" data-token-type="string">&quot;2026-03-25_AI_기반_정보_자동_분류.pdf&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">,</span></span>
+<span data-line><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="punctuation">  &quot;rating&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">: </span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="value">8</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">,</span></span>
+<span data-line><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="punctuation">  &quot;criteria&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">: {</span></span>
+<span data-line><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="punctuation">    &quot;folder_match&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">: </span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="value">9</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">,</span></span>
+<span data-line><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="punctuation">    &quot;filename_quality&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">: </span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="value">7</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">,</span></span>
+<span data-line><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="punctuation">    &quot;content_understanding&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">: </span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="value">8</span></span>
+<span data-line><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">  },</span></span>
+<span data-line><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="punctuation">  &quot;feedback&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">: </span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;" data-token-type="string">&quot;AI 관련 학술 자료로 Zotero 컬렉션에 적합&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">,</span></span>
+<span data-line><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="punctuation">  &quot;language&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">: </span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;" data-token-type="string">&quot;ko&quot;</span></span>
+<span data-line><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;" data-token-type="punctuation">}</span></span></code></pre></figure>
+<p>The initial implementation used a single <code>confidence</code> score, which turned out to be meaningless without calibration (Solar would return 0.95 even for wrong classifications). This was replaced with a <strong>multi-criteria evaluation system</strong>:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="table-container"><table><thead><tr><th>Criterion</th><th>Description</th></tr></thead><tbody><tr><td><code>folder_match</code></td><td>How well the selected folder fits the file content (1–10)</td></tr><tr><td><code>filename_quality</code></td><td>How accurately the generated filename describes the content (1–10)</td></tr><tr><td><code>content_understanding</code></td><td>How precisely Solar understood the file content (1–10)</td></tr></tbody></table></div>
+<p>The pipeline branches based on the overall <code>rating</code>:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="table-container"><table><thead><tr><th>Rating</th><th>Action</th></tr></thead><tbody><tr><td>9–10</td><td>Normal import + high-confidence notification</td></tr><tr><td>6–8</td><td>Normal import</td></tr><tr><td>1–5</td><td>Inbox fallback (requires manual review)</td></tr></tbody></table></div>
+<p>The <code>reasoning_effort</code> parameter is set differently per file type. PDFs and images use <code>high</code> (deeper reasoning needed); videos and other files use <code>medium</code> (simple filename-based classification).</p>
+<p>Solar’s JSON response is validated in the <code>Parse Solar Response</code> node using a <strong>bidirectional lookup map</strong>. Whether Solar responds with a key or a name, both are normalized. If neither matches, the file falls back to the default inbox folder.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="table-container"><table><thead><tr><th>App</th><th>Fallback Location</th><th>Format</th></tr></thead><tbody><tr><td>Zotero</td><td><code>00. Inbox</code></td><td>key: <code>8UZJ5THD</code></td></tr><tr><td>Eagle</td><td>root</td><td>folderId omitted</td></tr><tr><td>DEVONthink</td><td><code>/00. Inbox</code></td><td>group path</td></tr></tbody></table></div>
+<blockquote class="callout tip" data-callout="tip">
+<div class="callout-title">
+                  <div class="callout-icon"></div>
+                  <div class="callout-title-inner"><p>Validated with Multi-Criteria Evaluation </p></div>
+                  
+                </div>
+<div class="callout-content">
+<p>Instead of a single confidence score, classification is evaluated across three axes: folder_match, filename_quality, and content_understanding. Any combined rating below 6 automatically falls back to Inbox, and the individual scores along with feedback are written to the log.</p>
+</div>
+</blockquote>
+<h3 id="stage-4-import">Stage 4: Import<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#stage-4-import" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h3>
+<p>The Import Router branches into three paths based on the <code>targetApp</code> value. All three paths check whether the app is running via <code>pgrep</code>, launch it with <code>open -a</code> if it isn’t, and then perform the import.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="table-container"><table><thead><tr><th>App</th><th>CLI Command</th><th>Parameters</th><th>Notes</th></tr></thead><tbody><tr><td>Zotero</td><td><code>zt import FILE --collection COL</code></td><td><code>FILE</code>: file path to import, <code>--collection</code>: target collection key</td><td>On failure: two-step fallback via <code>zt create:item --type document --title TITLE --collection COL</code> + <code>zt attach FILE --key KEY</code></td></tr><tr><td>Eagle</td><td><code>eg import:path --path FILE --name NAME --folderId FID</code></td><td><code>--path</code>: file path, <code>--name</code>: display name, <code>--folderId</code>: target folder ID</td><td>Quotes stripped from filename before passing to <code>--name</code></td></tr><tr><td>DEVONthink</td><td><code>dt add FILE --db &quot;01. Personal&quot; --at PATH --name NAME</code></td><td><code>FILE</code>: file path, <code>--db</code>: target database, <code>--at</code>: group path, <code>--name</code>: display name</td><td>Fixed database: <code>01. Personal</code></td></tr></tbody></table></div>
+<h3 id="stage-5-cleanup--logging">Stage 5: Cleanup &amp; Logging<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#stage-5-cleanup--logging" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h3>
+<p>The pipeline branches based on import success.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="table-container"><table><thead><tr><th>Result</th><th>Action</th></tr></thead><tbody><tr><td>Success</td><td>Delete the original file</td></tr><tr><td>Failure</td><td>Move the original to <code>~/Downloads/_Inbox/</code></td></tr></tbody></table></div>
+<p>In both cases, a JSON log entry is appended to <code>~/.n8n-organizer/log.jsonl</code> and a macOS notification is displayed via <code>osascript</code>.</p>
+<h2 id="upstage-api-usage">Upstage API Usage<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#upstage-api-usage" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h2>
+<h3 id="document-parse-endpoint-document-digitization-model-document-parse">Document Parse (endpoint: <code>document-digitization</code>, model: <code>document-parse</code>)<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#document-parse-endpoint-document-digitization-model-document-parse" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="table-container"><table><thead><tr><th>Target</th><th>Mode</th><th>Purpose</th></tr></thead><tbody><tr><td>PDF (when mdls returns &lt; 300 chars)</td><td><code>document-parse</code>, <code>ocr=auto</code></td><td>Text extraction from scanned PDFs</td></tr><tr><td>Images (screenshots, charts)</td><td><code>document-parse</code>, <code>ocr=auto</code></td><td>Text and diagram description from screen content</td></tr><tr><td>General photos</td><td><code>document-parse</code>, <code>ocr=auto</code></td><td><strong>Limitation</strong>: cannot analyze landscapes, people, or food</td></tr></tbody></table></div>
+<h3 id="solar-pro-3-chatcompletions">Solar Pro 3 (<code>chat/completions</code>)<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#solar-pro-3-chatcompletions" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h3>
+<ul>
+<li>Text-only model (102B MoE)</li>
+<li>Determines filename and folder based on text extracted by Document Parse</li>
+<li>Cannot analyze images directly — depends on Document Parse’s text output</li>
+<li><code>reasoning_effort</code>: PDF/image → <code>high</code>, video/other → <code>medium</code></li>
+<li>Returns multi-criteria evaluation JSON schema: <code>rating</code> (overall score) + <code>criteria</code> (folder_match, filename_quality, content_understanding) + <code>feedback</code></li>
+</ul>
+<h2 id="node-breakdown-v5-33-nodes">Node Breakdown (v5, 33 nodes)<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#node-breakdown-v5-33-nodes" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="table-container"><table><thead><tr><th>Type</th><th>Count</th><th>Role</th></tr></thead><tbody><tr><td>Schedule/Manual Trigger</td><td>2</td><td>10-minute schedule, manual testing</td></tr><tr><td>Code</td><td>6</td><td>Stage &amp; Categorize, ZT Folders, EG Folders, EG Folders Video, DT Folders, Parse Solar Response</td></tr><tr><td>Execute Command</td><td>7</td><td>CLI imports (Zotero/Eagle/DEVONthink), file cleanup, notifications, log writing</td></tr><tr><td>Set</td><td>8</td><td>Prompt assembly, fallback data, import result mapping (3), log preparation, PDF/image text setting (2)</td></tr><tr><td>HTTP Request</td><td>3</td><td>Solar Pro 3 API call, Document Parse PDF, Document Parse Image</td></tr><tr><td>ReadWriteFile</td><td>2</td><td>Read PDF, Read Image</td></tr><tr><td>Switch</td><td>2</td><td>Extension routing, app routing</td></tr><tr><td>If</td><td>3</td><td>Solar Response Success?, Import Success?, PDF Text OK?</td></tr></tbody></table></div>
+<h3 id="fault-tolerance">Fault Tolerance<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#fault-tolerance" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h3>
+<p>Most IO nodes have <code>continueOnFail</code> set, so a single file failure doesn’t halt the entire pipeline. Import nodes verify file existence with <code>[ ! -f &quot;$FP&quot; ]</code> before running. If Solar response parsing fails, the node strips markdown code fences and retries. Content text is truncated to 4,000 characters to prevent Solar’s context window from overflowing.</p>
+<h2 id="migration-minimizing-code-nodes">Migration: Minimizing Code Nodes<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#migration-minimizing-code-nodes" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h2>
+<p>The initial workflow had 10 Code nodes with over 400 lines of JavaScript. Code nodes make it hard to trace data flow in the n8n UI. Following a “only convert what’s a sure bet” principle, 4 Code nodes were replaced with native nodes.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="table-container"><table><thead><tr><th>Target</th><th>Before</th><th>After</th></tr></thead><tbody><tr><td>Fallback Solar Response</td><td>Code (40 lines)</td><td><strong>Set node</strong></td></tr><tr><td>Import to Zotero</td><td>Code (65 lines)</td><td><strong>Execute Command + Set</strong></td></tr><tr><td>Import to Eagle</td><td>Code (40 lines)</td><td><strong>Execute Command + Set</strong></td></tr><tr><td>Import to DEVONthink</td><td>Code (40 lines)</td><td><strong>Execute Command + Set</strong></td></tr></tbody></table></div>
+<p><strong>Issues encountered during migration:</strong></p>
+<ol>
+<li><strong>CLI stdout swallowing the “OK” marker</strong> — tools like <code>dt add</code> print JSON to stdout, which interfered with success detection → fixed by adding <code>>/dev/null</code></li>
+<li><strong>ReadWriteFile binary errors</strong> — the Append Log node was replaced with an Execute Command heredoc</li>
+<li><strong>Deduplication concerns</strong> — handled structurally by deleting or moving files after processing; no hash tracking needed</li>
+</ol>
+<h2 id="operational-tips">Operational Tips<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#operational-tips" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h2>
+<p>PM2 keeps the n8n process running persistently. <code>ecosystem.config.js</code> sets <code>autorestart: true</code> for crash recovery and <code>max_memory_restart: '512M'</code> for memory leak recovery.</p>
+<figure data-rehype-pretty-code-figure><pre tabindex="0" data-language="bash" data-theme="github-light github-dark"><code data-language="bash" data-theme="github-light github-dark" style="display:grid;"><span data-line><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;" data-token-type="comment"># Start</span></span>
+<span data-line><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;" data-token-type="function">pm2</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;" data-token-type="string"> start</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;" data-token-type="string"> ecosystem.config.js</span></span>
+<span data-line> </span>
+<span data-line><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;" data-token-type="comment"># Check status</span></span>
+<span data-line><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;" data-token-type="function">pm2</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;" data-token-type="string"> status</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;" data-token-type="string"> n8n-organizer</span></span>
+<span data-line> </span>
+<span data-line><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;" data-token-type="comment"># View logs</span></span>
+<span data-line><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;" data-token-type="function">pm2</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;" data-token-type="string"> logs</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;" data-token-type="string"> n8n-organizer</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="value"> --lines</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;" data-token-type="value"> 50</span></span></code></pre></figure>
+<h3 id="config-files">Config Files<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#config-files" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="table-container"><table><thead><tr><th>Path</th><th>Purpose</th></tr></thead><tbody><tr><td><code>~/.n8n-organizer/zt-token</code></td><td>Zotero CLI token</td></tr><tr><td><code>~/.n8n-organizer/folder-choices-cache.json</code></td><td>Folder list cache (30-minute TTL)</td></tr><tr><td><code>~/.n8n-organizer/log.jsonl</code></td><td>Processing log (JSONL)</td></tr><tr><td><code>~/.n8n-organizer/staging/</code></td><td>Temporary staging directory for in-flight files (atomic move)</td></tr></tbody></table></div>
+<h3 id="limitations-and-future-work">Limitations and Future Work<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#limitations-and-future-work" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h3>
+<ul>
+<li><strong>Photo naming</strong> — without a vision API, filename-based classification is the ceiling for general photos. Claude Haiku Vision is a candidate for future exploration.</li>
+<li><strong>Rating threshold tuning</strong> — the current threshold of 6 is an initial value; log analysis will be needed to calibrate it properly.</li>
+<li><strong>CLI tool documentation</strong> — <code>zt</code> (zotero-cli), <code>eg</code> (eagle-cli), and <code>dt</code> (devonthink-cli) are custom-built tools. The <code>--help</code> output and README need improvement.</li>
+</ul></div></article><hr/><div class="page-footer"><ul class="tags"><li><a href="../tags/automation" class="internal tag-link">automation</a></li><li><a href="../tags/n8n" class="internal tag-link">n8n</a></li><li><a href="../tags/upstage" class="internal tag-link">upstage</a></li></ul><div class="giscus" data-repo="GoBeromsu/Quartaz" data-repo-id="R_kgDOMzvCAQ" data-category="Announcements" data-category-id="DIC_kwDOMzvCAc4Civ7w" data-mapping="url" data-strict="1" data-reactions-enabled="0" data-input-position="bottom" data-light-theme="light" data-dark-theme="dark" data-theme-url="https://beomsukoh.com/static/giscus" data-lang="en"></div></div></div></div></div></body><script src="../static/resource-after-e13fffa1.js" type="application/javascript" data-persist="true"></script><script src="../static/resource-after-8b336f9a.js" type="application/javascript" data-persist="true"></script><script src="../static/resource-after-baba652b.js" type="application/javascript" data-persist="true"></script><script src="../static/resource-after-5eb75950.js" type="module" data-persist="true"></script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/copy-tex.min.js" type="application/javascript" data-persist="true"></script><script src="../postscript-15935c38.js" type="module" data-persist="true"></script></html>
