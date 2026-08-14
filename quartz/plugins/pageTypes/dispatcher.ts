@@ -10,7 +10,11 @@ import { StaticResources } from "../../util/resources"
 import { render } from "preact-render-to-string"
 import { fromHtml } from "hast-util-from-html"
 import { Root as HtmlRoot } from "hast"
-import { isTranslationMetadata } from "../../util/multilingual"
+import {
+  buildLocaleEntryRedirectScript,
+  isTranslationMetadata,
+  localeEntryRedirectPayload,
+} from "../../util/multilingual"
 
 function escapeHtmlAttribute(value: string): string {
   return value
@@ -45,9 +49,13 @@ async function* emitMultilingualXDefaultPage(ctx: BuildCtx) {
     .join("\n")
   const languageLinks = multilingual.locales
     .map((locale) => {
-      return `<li><a href="${escapeHtmlAttribute(locale.routePrefix)}" lang="${escapeHtmlAttribute(locale.locale)}">${escapeHtmlAttribute(locale.id)}</a></li>`
+      const label = escapeHtmlAttribute(locale.nativeName)
+      const href = escapeHtmlAttribute(locale.routePrefix)
+      const lang = escapeHtmlAttribute(locale.locale)
+      return `<li><a href="${href}" lang="${lang}" hreflang="${lang}">${label}</a></li>`
     })
     .join("\n")
+  const redirectScript = buildLocaleEntryRedirectScript(localeEntryRedirectPayload(multilingual))
 
   yield write({
     ctx,
@@ -62,6 +70,7 @@ async function* emitMultilingualXDefaultPage(ctx: BuildCtx) {
 ${alternateLinks}
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>${redirectScript}</script>
 </head>
 <body>
 <main>
@@ -79,7 +88,8 @@ function getPageTypes(ctx: BuildCtx): QuartzPageTypePluginInstance[] {
   return (ctx.cfg.plugins.pageTypes ?? []) as unknown as QuartzPageTypePluginInstance[]
 }
 
-function resolveLayout(
+/** @internal Exported for testing only. */
+export function resolveLayout(
   pageType: QuartzPageTypePluginInstance,
   sharedDefaults: Partial<FullPageLayout>,
   byPageType: Record<string, Partial<FullPageLayout>>,
@@ -95,12 +105,13 @@ function resolveLayout(
     afterBody: overrides.afterBody ?? sharedDefaults.afterBody ?? [],
     left: overrides.left ?? sharedDefaults.left ?? [],
     right: overrides.right ?? sharedDefaults.right ?? [],
-    footer: overrides.footer ?? sharedDefaults.footer!,
+    footer: overrides.footer ?? sharedDefaults.footer ?? [],
     frame,
   }
 }
 
-function collectComponents(
+/** @internal Exported for testing only. */
+export function collectComponents(
   pageTypes: QuartzPageTypePluginInstance[],
   sharedDefaults: Partial<FullPageLayout>,
   byPageType: Record<string, Partial<FullPageLayout>>,
@@ -116,7 +127,7 @@ function collectComponents(
       ...layout.afterBody,
       ...layout.left,
       ...layout.right,
-      layout.footer,
+      ...layout.footer,
     ]
     for (const c of all) {
       if (c) seen.add(c)
@@ -343,6 +354,7 @@ export const PageTypeDispatcher: QuartzEmitterPlugin<Partial<DispatcherOptions>>
       yield* emitMultilingualXDefaultPage(ctx)
       yield* emitMultilingualLegacyRedirects(ctx, allFilesWithVirtual, emittedLegacyRedirects)
 
+      // Phase 3: Emit virtual pages
       for (const ve of virtualEntries) {
         if (contentSlugs.has(ve.vpSlug)) continue
         yield emitPage(
@@ -439,6 +451,7 @@ export const PageTypeDispatcher: QuartzEmitterPlugin<Partial<DispatcherOptions>>
       yield* emitMultilingualXDefaultPage(ctx)
       yield* emitMultilingualLegacyRedirects(ctx, allFilesWithVirtual, emittedLegacyRedirects)
 
+      // Phase 3: Emit virtual pages
       for (const ve of virtualEntries) {
         if (contentSlugs.has(ve.vpSlug)) continue
         yield emitPage(

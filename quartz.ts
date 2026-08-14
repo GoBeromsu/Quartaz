@@ -73,7 +73,7 @@ const sharedAfterBody = [
   }),
 ]
 
-const sharedFooter = BlogFooter({ links: footerLinks })
+const sharedFooter = [BlogFooter({ links: footerLinks })]
 
 const layout = await loadQuartzLayout({
   defaults: {

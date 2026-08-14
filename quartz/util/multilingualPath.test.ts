@@ -49,7 +49,6 @@ describe("locale path helpers", () => {
 
     assert.equal(buildLocalizedPath(config, "ko", "beauty-of-youth"), "/ko/beauty-of-youth")
     assert.equal(buildLocalizedPath(config, "en", "beauty-of-youth"), "/en/beauty-of-youth")
-    assert.equal(buildLocalizedPath(config, "ar", "beauty-of-youth"), "/ar/beauty-of-youth")
     assert.equal(buildLocalizedPath(config, "ko", "index"), "/ko/")
     assert.equal(
       buildCanonicalLocaleUrl(config, "berom.net", "ko", "beauty-of-youth"),
@@ -62,17 +61,11 @@ describe("locale path helpers", () => {
     assert.equal(cluster.xDefault.url, "https://berom.net/")
     assert.deepEqual(
       cluster.alternates.map((alternate) => alternate.url),
-      [
-        "https://berom.net/ko/beauty-of-youth",
-        "https://berom.net/en/beauty-of-youth",
-        "https://berom.net/zh-Hans/beauty-of-youth",
-        "https://berom.net/hi/beauty-of-youth",
-        "https://berom.net/es/beauty-of-youth",
-        "https://berom.net/fr/beauty-of-youth",
-        "https://berom.net/ar/beauty-of-youth",
-        "https://berom.net/bn/beauty-of-youth",
-        "https://berom.net/pt-BR/beauty-of-youth",
-      ],
+      ["https://berom.net/ko/beauty-of-youth", "https://berom.net/en/beauty-of-youth"],
+    )
+    assert.throws(
+      () => buildLocalizedPath(config, "ar", "beauty-of-youth"),
+      /unsupported locale: ar/,
     )
   })
 
@@ -111,13 +104,12 @@ describe("locale path helpers", () => {
     )
   })
 
-  test("return configured text direction for every planned locale", () => {
+  test("return configured text direction for every published locale", () => {
     const config = readConfigMultilingual()
 
     for (const locale of config.locales) {
-      const expectedDirection = locale.id === "ar" ? "rtl" : "ltr"
-
-      assert.equal(getLocaleDirection(config, locale.id), expectedDirection)
+      assert.equal(getLocaleDirection(config, locale.id), locale.direction)
+      assert.equal(locale.direction, "ltr")
     }
   })
 })

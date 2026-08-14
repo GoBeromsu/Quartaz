@@ -108,13 +108,6 @@ function componentProps(cfg: GlobalConfiguration, slug: FullSlug): QuartzCompone
   const allFiles = [
     article(multilingual, "ko", "젊음이 아름답다", ["essay", "korean-only"]),
     article(multilingual, "en", "Youth Is Beautiful", ["essay", "english-only"]),
-    article(multilingual, "zh-Hans", "青春是美丽的", ["essay"]),
-    article(multilingual, "hi", "यौवन सुंदर है", ["essay"]),
-    article(multilingual, "es", "La juventud es bella", ["essay"]),
-    article(multilingual, "fr", "La jeunesse est belle", ["essay"]),
-    article(multilingual, "ar", "الشباب جميل", ["essay"]),
-    article(multilingual, "bn", "যৌবন সুন্দর", ["essay"]),
-    article(multilingual, "pt-BR", "A juventude e bela", ["essay"]),
   ]
 
   return {
@@ -178,27 +171,38 @@ describe("Blog locale-aware UI", () => {
     assert.doesNotMatch(header, /href="\/about"/)
   })
 
-  test("lists complete sibling translation links in locale order", () => {
+  test("lists sibling translation links as endonyms and preserves page context", () => {
     const cfg = readBlogConfiguration()
     const props = componentProps(cfg, "en/beauty-of-youth" as FullSlug)
     props.fileData =
       props.allFiles.find((file) => file.slug === "en/beauty-of-youth") ?? props.fileData
     const switcher = renderToString(BlogLanguageSwitcher()(props))
-    const expectedHrefs = [
-      "../ko/beauty-of-youth",
-      "../en/beauty-of-youth",
-      "../zh-Hans/beauty-of-youth",
-      "../hi/beauty-of-youth",
-      "../es/beauty-of-youth",
-      "../fr/beauty-of-youth",
-      "../ar/beauty-of-youth",
-      "../bn/beauty-of-youth",
-      "../pt-BR/beauty-of-youth",
-    ] as const
 
-    for (const href of expectedHrefs) {
-      assert.match(switcher, new RegExp(`href="${href}"`))
-    }
+    assert.match(switcher, /aria-label="Language"/)
+    assert.match(switcher, /<span class="blog-language-switcher-current">English<\/span>/)
+    assert.match(switcher, /href="\.\.\/ko\/beauty-of-youth"/)
+    assert.match(switcher, /href="\.\.\/en\/beauty-of-youth"/)
+    assert.match(switcher, /data-preferred-locale="ko"/)
+    assert.match(switcher, /data-preferred-locale="en"/)
+    assert.match(switcher, />한국어</)
+    assert.match(switcher, />English</)
+    assert.doesNotMatch(switcher, /zh-Hans/)
     assert.doesNotMatch(switcher, /aria-disabled="true"/)
+  })
+
+  test("falls back to the locale home when a sibling translation is missing", () => {
+    const cfg = readBlogConfiguration()
+    const props = componentProps(cfg, "ko/index" as FullSlug)
+    props.fileData = {
+      slug: "ko/about" as FullSlug,
+      frontmatter: { title: "About" },
+    }
+    const switcher = renderToString(BlogLanguageSwitcher()(props))
+
+    assert.match(switcher, /aria-label="언어 선택"/)
+    assert.match(switcher, /href="\/ko\/"/)
+    assert.match(switcher, /href="\/en\/"/)
+    assert.match(switcher, />한국어</)
+    assert.match(switcher, />English</)
   })
 })

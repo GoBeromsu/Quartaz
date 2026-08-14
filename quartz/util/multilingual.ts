@@ -365,7 +365,11 @@ function validateLocaleProfile(locales: readonly MultilingualLocaleConfiguration
   }
 }
 
-function validateLocaleSet(locales: readonly MultilingualLocaleConfiguration[]): void {
+function validateLocaleSet(
+  sourceLocale: MultilingualLocale,
+  targetLocales: readonly string[],
+  locales: readonly MultilingualLocaleConfiguration[],
+): void {
   const ids = new Set<string>()
   const routePrefixes = new Set<string>()
 
@@ -384,9 +388,16 @@ function validateLocaleSet(locales: readonly MultilingualLocaleConfiguration[]):
     routePrefixes.add(locale.routePrefix)
   }
 
-  for (const expectedLocale of SUPPORTED_MULTILINGUAL_LOCALES) {
+  const expectedIds = [sourceLocale, ...targetLocales]
+  for (const expectedLocale of expectedIds) {
     if (!ids.has(expectedLocale)) {
       throw new MultilingualContractError("missing-locale", `missing locale: ${expectedLocale}`)
+    }
+  }
+
+  for (const localeId of ids) {
+    if (!expectedIds.includes(localeId)) {
+      throw new MultilingualContractError("unexpected-locale", `unexpected locale: ${localeId}`)
     }
   }
 }
@@ -437,7 +448,7 @@ export function validateMultilingualConfig(value: unknown): MultilingualConfigur
   const xDefaultRoute = requiredString(value, "xDefaultRoute", "multilingual")
   const sourceLocaleConfig = locales.find((locale) => locale.id === sourceLocale)
 
-  validateLocaleSet(locales)
+  validateLocaleSet(sourceLocale, targetLocales, locales)
   validateLocaleProfile(locales)
 
   if (!sourceLocaleConfig) {
@@ -808,6 +819,105 @@ function frontmatterRecordToEntry(
   }
 }
 
+export const PREFERRED_LOCALE_STORAGE_KEY = "preferred-locale"
+
+export interface LocaleEntryChoice {
+  readonly id: string
+  readonly prefix: string
+  readonly tags: readonly string[]
+}
+
+export interface LocaleEntryRedirectPayload {
+  readonly locales: readonly LocaleEntryChoice[]
+  readonly sourceLocale: string
+  readonly storageKey: string
+}
+
+export function localeEntryRedirectPayload(
+  config: MultilingualConfiguration,
+): LocaleEntryRedirectPayload {
+  return {
+    locales: config.locales.map((locale) => ({
+      id: locale.id,
+      prefix: locale.routePrefix,
+      tags: [locale.id, locale.locale],
+    })),
+    sourceLocale: config.sourceLocale,
+    storageKey: PREFERRED_LOCALE_STORAGE_KEY,
+  }
+}
+
+export function buildLocaleEntryRedirectScript(payload: LocaleEntryRedirectPayload): string {
+  return `(function () {
+  var locales = ${JSON.stringify(payload.locales)};
+  var sourceLocale = ${JSON.stringify(payload.sourceLocale)};
+  var storageKey = ${JSON.stringify(payload.storageKey)};
+  function normalize(value) {
+    return String(value || "").toLowerCase();
+  }
+  function findById(id) {
+    for (var i = 0; i < locales.length; i++) {
+      if (locales[i].id === id) return locales[i];
+    }
+  }
+  function matchLanguage(language) {
+    var lang = normalize(language);
+    if (!lang) return;
+    for (var i = 0; i < locales.length; i++) {
+      var locale = locales[i];
+      var id = normalize(locale.id);
+      if (lang === id || lang.indexOf(id + "-") === 0) return locale;
+      for (var j = 0; j < locale.tags.length; j++) {
+        var tag = normalize(locale.tags[j]);
+        if (lang === tag || lang.indexOf(tag + "-") === 0) return locale;
+        var primary = tag.split("-")[0];
+        if (primary && (lang === primary || lang.indexOf(primary + "-") === 0)) return locale;
+      }
+    }
+  }
+  var chosen;
+  try {
+    chosen = findById(localStorage.getItem(storageKey));
+  } catch (error) {}
+  if (!chosen) {
+    var languages = [];
+    try {
+      languages = navigator.languages ? Array.prototype.slice.call(navigator.languages) : [];
+    } catch (error) {}
+    if (!languages.length) {
+      try {
+        if (navigator.language) languages = [navigator.language];
+      } catch (error) {}
+    }
+    for (var i = 0; i < languages.length && !chosen; i++) {
+      chosen = matchLanguage(languages[i]);
+    }
+  }
+  if (!chosen) chosen = findById(sourceLocale);
+  if (chosen) location.replace(chosen.prefix);
+})();`
+}
+
+export function isUndeclaredLocaleContent(
+  config: MultilingualConfiguration | undefined,
+  fileData: Record<string, unknown>,
+): boolean {
+  if (!config?.enabled || !isRecord(fileData.frontmatter)) {
+    return false
+  }
+
+  const locale = fileData.frontmatter.locale
+  if (typeof locale !== "string" || locale.trim() === "") {
+    return false
+  }
+
+  if (!supportedLocaleSet.has(locale)) {
+    return false
+  }
+
+  return !config.locales.some((entry) => entry.id === locale)
+}
+
 export function applyMultilingualPageData(
   config: MultilingualConfiguration | undefined,
   fileData: Record<string, unknown>,
@@ -818,6 +928,10 @@ export function applyMultilingualPageData(
   }
 
   if (fileData.frontmatter.translationKey === undefined) {
+    return undefined
+  }
+
+  if (isUndeclaredLocaleContent(config, fileData)) {
     return undefined
   }
 
