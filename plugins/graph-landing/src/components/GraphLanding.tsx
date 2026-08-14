@@ -36,9 +36,7 @@ interface OverlayCopy {
   lensFolder: string
   lensHub: string
   spacing: string
-  spacingTight: string
-  spacingNormal: string
-  spacingWide: string
+  zoom: string
   articles: string
   about: string
   themeToggle: string
@@ -79,9 +77,7 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
       lensFolder: "폴더별",
       lensHub: "허브",
       spacing: "노드 간격",
-      spacingTight: "좁게",
-      spacingNormal: "보통",
-      spacingWide: "넓게",
+      zoom: "줌",
       articles: "Writing",
       about: "About",
       themeToggle: "라이트/다크 모드 전환",
@@ -114,9 +110,7 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
     lensFolder: "Folders",
     lensHub: "Hubs",
     spacing: "Spacing",
-    spacingTight: "Tight",
-    spacingNormal: "Mid",
-    spacingWide: "Wide",
+    zoom: "Zoom",
     articles: "Writing",
     about: "About",
     themeToggle: "Toggle light / dark mode",
@@ -269,7 +263,49 @@ export default (() => {
               </div>
               <div class="graph-landing__utils">
                 <div class="graph-landing__tune">
-                  <p class="graph-landing__section-label">{copy.tune}</p>
+                  <div class="graph-landing__tune-head">
+                    <p class="graph-landing__section-label">{copy.tune}</p>
+                    <div class="graph-landing__tools">
+                      <button
+                        type="button"
+                        class="graph-landing__tool"
+                        data-graph-relayout
+                        aria-label={copy.relayout}
+                        title={copy.relayout}
+                      >
+                        <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                          <path
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.4"
+                            stroke-linecap="round"
+                            d="M13 8A5 5 0 1 1 11.6 4.4"
+                          />
+                          <path fill="currentColor" d="M13.2 2.2v3.1h-3.1z" />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        class="graph-landing__tool"
+                        data-graph-labels
+                        data-label-show={copy.labelsShow}
+                        data-label-hide={copy.labelsHide}
+                        aria-label={copy.labelsShow}
+                        title={copy.labelsShow}
+                        aria-pressed="false"
+                      >
+                        <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                          <path
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.4"
+                            stroke-linecap="round"
+                            d="M3 12.5 6.6 3.5h2.8L13 12.5M4.6 9.2h6.8"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
                   <label class="graph-landing__slider">
                     <span>{copy.nodeSize}</span>
                     <input
@@ -292,74 +328,33 @@ export default (() => {
                       aria-label={copy.edgeWidth}
                     />
                   </label>
-                </div>
-                <div class="graph-landing__spacing" data-graph-spacing-group>
-                  <p class="graph-landing__section-label">{copy.spacing}</p>
-                  <div class="graph-landing__pills">
-                    <button
-                      type="button"
-                      class="graph-landing__pill"
-                      data-graph-spacing="tight"
-                      aria-pressed="false"
-                    >
-                      {copy.spacingTight}
-                    </button>
-                    <button
-                      type="button"
-                      class="graph-landing__pill"
-                      data-graph-spacing="normal"
-                      aria-pressed="true"
-                    >
-                      {copy.spacingNormal}
-                    </button>
-                    <button
-                      type="button"
-                      class="graph-landing__pill"
-                      data-graph-spacing="wide"
-                      aria-pressed="false"
-                    >
-                      {copy.spacingWide}
-                    </button>
-                  </div>
+                  <label class="graph-landing__slider">
+                    <span>{copy.zoom}</span>
+                    <input
+                      type="range"
+                      min="60"
+                      max="170"
+                      value="100"
+                      data-graph-zoom
+                      aria-label={copy.zoom}
+                    />
+                  </label>
+                  <label class="graph-landing__slider">
+                    <span>{copy.spacing}</span>
+                    <input
+                      type="range"
+                      min="50"
+                      max="150"
+                      value="100"
+                      data-graph-spread
+                      aria-label={copy.spacing}
+                    />
+                  </label>
                 </div>
                 <label class="graph-landing__check">
                   <input type="checkbox" data-graph-cores />
                   <span>{copy.coresOnly}</span>
                 </label>
-                <div class="graph-landing__ghosts">
-                  <button type="button" class="graph-landing__ghost" data-graph-relayout>
-                    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-                      <path
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.4"
-                        stroke-linecap="round"
-                        d="M13 8A5 5 0 1 1 11.6 4.4"
-                      />
-                      <path fill="currentColor" d="M13.2 2.2v3.1h-3.1z" />
-                    </svg>
-                    <span>{copy.relayout}</span>
-                  </button>
-                  <button
-                    type="button"
-                    class="graph-landing__ghost"
-                    data-graph-labels
-                    data-label-show={copy.labelsShow}
-                    data-label-hide={copy.labelsHide}
-                    aria-pressed="false"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-                      <path
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.4"
-                        stroke-linecap="round"
-                        d="M3 12.5 6.6 3.5h2.8L13 12.5M4.6 9.2h6.8"
-                      />
-                    </svg>
-                    <span data-graph-labels-text>{copy.labelsShow}</span>
-                  </button>
-                </div>
                 <div class="graph-landing__legend" data-graph-legend>
                   <span class="graph-landing__legend-item">
                     <span class="graph-landing__dot graph-landing__dot--note" aria-hidden="true"></span>

@@ -61,11 +61,9 @@ interface LocaleContext {
 }
 
 type Lens = "all" | "tag" | "folder" | "hub"
-type Spacing = "tight" | "normal" | "wide"
 
 interface ViewState {
   lens: Lens
-  spacing: Spacing
   allLabels: boolean
   focusTag: string | null
 }
@@ -123,7 +121,7 @@ interface ForceGraphInstance {
   nodeThreeObject?: (fn: (node: GraphNode) => unknown) => unknown
   cooldownTicks: (ticks: number) => unknown
   warmupTicks: (ticks: number) => unknown
-  cameraPosition?: (pos: Vec3, lookAt?: Vec3, ms?: number) => unknown
+  cameraPosition?: (pos?: Vec3, lookAt?: Vec3, ms?: number) => unknown
   centerAt?: (x: number, y: number, ms?: number) => unknown
   zoom?: (k: number, ms?: number) => unknown
   graph2ScreenCoords?: (x: number, y: number, z?: number) => { x: number; y: number }
@@ -182,6 +180,7 @@ interface ThreeApi {
     color: string
     transparent?: boolean
     opacity?: number
+    depthWrite?: boolean
   }) => unknown
   MeshLambertMaterial: new (params: {
     color: string
@@ -221,7 +220,7 @@ const HUB_VAL_SCALE = 1.4
 const TAG_LENS_VAL_SCALE = 1.25
 const FOCUS_TAG_VAL_SCALE = 1.15
 const MENTION_VAL_SCALE = 0.55
-const INITIAL_CAMERA: Vec3 = { x: 420, y: 300, z: 720 }
+const INITIAL_CAMERA: Vec3 = { x: 330, y: 235, z: 565 }
 const INITIAL_LOOK_AT: Vec3 = { x: 0, y: 0, z: 0 }
 // Alex grammar: small bright cores with tight bloom halos, hairline edges.
 // Bloom stays tight (low radius, mid threshold) so the night-sky background
@@ -253,10 +252,14 @@ const TWINKLE_AMPLITUDE = 0.15
 const TWINKLE_SPEED = 0.8
 const PREVIEW_HIDE_DELAY_MS = 350
 
-const SPACING_PRESETS: Record<Spacing, { charge: number; distance: number }> = {
-  tight: { charge: -100, distance: 72 },
-  normal: { charge: -150, distance: 96 },
-  wide: { charge: -190, distance: 116 },
+// Continuous spread: tune.spread 0.5..1.5 interpolates from the old
+// tight preset to the old wide preset.
+const SPREAD_CHARGE = { min: -100, max: -190 }
+const SPREAD_DISTANCE = { min: 72, max: 116 }
+const SPREAD_CLUSTER_RADIUS = { min: 130, max: 260 }
+
+function spreadT(spread: number): number {
+  return clamp(spread - 0.5, 0, 1)
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -880,6 +883,8 @@ async function loadRenderer(use3d: boolean): Promise<(el: HTMLElement) => ForceG
 interface TuneState {
   nodeScale: number
   edgeScale: number
+  zoom: number
+  spread: number
   coresOnly: boolean
 }
 
@@ -899,7 +904,7 @@ function readStoredLens(): Lens {
 }
 
 function readStoredTune(): TuneState {
-  const fallback: TuneState = { nodeScale: 0.7, edgeScale: 1, coresOnly: false }
+  const fallback: TuneState = { nodeScale: 0.7, edgeScale: 1, zoom: 1, spread: 1, coresOnly: false }
   try {
     if (sessionStorage.getItem(LENS_STORAGE_KEY) === "hub") {
       fallback.coresOnly = true
@@ -911,8 +916,10 @@ function readStoredTune(): TuneState {
     const parsed = asRecord(JSON.parse(raw))
     const nodeScale = typeof parsed.nodeScale === "number" ? parsed.nodeScale : fallback.nodeScale
     const edgeScale = typeof parsed.edgeScale === "number" ? parsed.edgeScale : fallback.edgeScale
+    const zoom = typeof parsed.zoom === "number" ? parsed.zoom : fallback.zoom
+    const spread = typeof parsed.spread === "number" ? parsed.spread : fallback.spread
     const coresOnly = typeof parsed.coresOnly === "boolean" ? parsed.coresOnly : fallback.coresOnly
-    return { nodeScale, edgeScale, coresOnly }
+    return { nodeScale, edgeScale, zoom, spread, coresOnly }
   } catch (error) {
     console.error("[graph-landing] sessionStorage unavailable for tune persistence", error)
     return fallback
@@ -937,10 +944,6 @@ function persistLens(lens: Lens): void {
 
 function isLens(value: string): value is Lens {
   return value === "all" || value === "tag" || value === "folder" || value === "hub"
-}
-
-function isSpacing(value: string): value is Spacing {
-  return value === "tight" || value === "normal" || value === "wide"
 }
 
 function hubVisibleIds(data: GraphData, neighbors: Map<string, Set<string>>): Set<string> {
@@ -1074,7 +1077,6 @@ function bindGraph(
   const neighbors = neighborMap(data.links)
   const state: ViewState = {
     lens: readStoredLens(),
-    spacing: "normal",
     allLabels: false,
     focusTag: null,
   }
@@ -1238,19 +1240,54 @@ function bindGraph(
     return filterGraph(data, hubVisibleIds(data, neighbors))
   }
 
+  // Zoom keeps the current orbit direction and only changes the camera's
+  // distance to the origin, so slider moves never snap the rotation back.
+  const applyZoom = (ms: number): void => {
+    if (options.use3d) {
+      if (typeof graph.cameraPosition !== "function") {
+        return
+      }
+      const base = Math.hypot(INITIAL_CAMERA.x, INITIAL_CAMERA.y, INITIAL_CAMERA.z)
+      const targetLen = base / clamp(tune.zoom, 0.4, 2.5)
+      const current = graph.cameraPosition() as Partial<Vec3> | undefined
+      let dir: Vec3 = INITIAL_CAMERA
+      let dirLen = base
+      if (
+        current &&
+        typeof current.x === "number" &&
+        typeof current.y === "number" &&
+        typeof current.z === "number"
+      ) {
+        const len = Math.hypot(current.x, current.y, current.z)
+        if (len > 1) {
+          dir = { x: current.x, y: current.y, z: current.z }
+          dirLen = len
+        }
+      }
+      const k = targetLen / dirLen
+      graph.cameraPosition({ x: dir.x * k, y: dir.y * k, z: dir.z * k }, INITIAL_LOOK_AT, ms)
+      return
+    }
+    if (typeof graph.zoom === "function") {
+      graph.zoom(tune.zoom, ms)
+    }
+  }
+
   const applyForces = (): void => {
-    const preset = SPACING_PRESETS[state.spacing]
+    const t = spreadT(tune.spread)
+    const chargeStrength = SPREAD_CHARGE.min + t * (SPREAD_CHARGE.max - SPREAD_CHARGE.min)
+    const linkDistance = SPREAD_DISTANCE.min + t * (SPREAD_DISTANCE.max - SPREAD_DISTANCE.min)
     const charge = graph.d3Force("charge")
     if (charge?.strength) {
-      charge.strength(preset.charge)
+      charge.strength(chargeStrength)
     }
     const link = graph.d3Force("link")
     if (link?.distance) {
       link.distance((edge) => {
         if (state.lens === "tag" && edge.kind === "tag") {
-          return preset.distance * 0.72
+          return linkDistance * 0.72
         }
-        return preset.distance
+        return linkDistance
       })
     }
     if (link?.strength) {
@@ -1280,7 +1317,8 @@ function bindGraph(
     if (center?.strength) {
       center.strength(CENTER_STRENGTH)
     }
-    const radius = state.spacing === "wide" ? 260 : state.spacing === "tight" ? 130 : 190
+    const radius =
+      SPREAD_CLUSTER_RADIUS.min + t * (SPREAD_CLUSTER_RADIUS.max - SPREAD_CLUSTER_RADIUS.min)
     const targets = clusterTargets(data, state.lens, radius)
     const clusterStrength = state.lens === "folder" || state.lens === "tag" ? 0.08 : 0
     graph.d3Force(
@@ -1503,7 +1541,6 @@ function bindGraph(
     paintLabels3d()
     renderLegend()
     setPressed(options.root, "[data-graph-lens]", state.lens, "data-graph-lens")
-    setPressed(options.root, "[data-graph-spacing]", state.spacing, "data-graph-spacing")
     for (const el of options.root.querySelectorAll("[data-graph-tag]")) {
       if (el instanceof HTMLElement) {
         el.setAttribute("aria-pressed", el.dataset.graphTag === state.focusTag ? "true" : "false")
@@ -1649,6 +1686,9 @@ function bindGraph(
     }
     if (typeof graph.cameraPosition === "function") {
       graph.cameraPosition(INITIAL_CAMERA, INITIAL_LOOK_AT)
+      if (tune.zoom !== 1) {
+        applyZoom(0)
+      }
     }
     paintLabels3d()
     // Subtle emissive twinkle: rAF-driven sine per node, +-15%, dark only.
@@ -1970,18 +2010,6 @@ function bindGraph(
       setLens(lensBtn.dataset.graphLens)
       return
     }
-    const spacingBtn = target.closest("[data-graph-spacing]")
-    if (
-      spacingBtn instanceof HTMLElement &&
-      spacingBtn.dataset.graphSpacing &&
-      isSpacing(spacingBtn.dataset.graphSpacing)
-    ) {
-      state.spacing = spacingBtn.dataset.graphSpacing
-      applyForces()
-      graph.d3ReheatSimulation()
-      setPressed(options.root, "[data-graph-spacing]", state.spacing, "data-graph-spacing")
-      return
-    }
     const tagBtn = target.closest("[data-graph-tag]")
     if (tagBtn instanceof HTMLElement && tagBtn.dataset.graphTag) {
       setFocusTag(tagBtn.dataset.graphTag)
@@ -1997,10 +2025,9 @@ function bindGraph(
       labelsBtn.setAttribute("aria-pressed", state.allLabels ? "true" : "false")
       const show = labelsBtn.dataset.labelShow ?? "Labels"
       const hide = labelsBtn.dataset.labelHide ?? "Labels"
-      const labelText = labelsBtn.querySelector("[data-graph-labels-text]")
-      if (labelText) {
-        labelText.textContent = state.allLabels ? hide : show
-      }
+      const tooltip = state.allLabels ? hide : show
+      labelsBtn.title = tooltip
+      labelsBtn.setAttribute("aria-label", tooltip)
       paintLabels3d()
       return
     }
@@ -2058,6 +2085,29 @@ function bindGraph(
     }
     coresInput.addEventListener("change", onCores)
     window.addCleanup(() => coresInput.removeEventListener("change", onCores))
+  }
+  const zoomInput = options.root.querySelector("[data-graph-zoom]")
+  if (zoomInput instanceof HTMLInputElement) {
+    zoomInput.value = String(Math.round(tune.zoom * 100))
+    const onZoom = (): void => {
+      tune.zoom = Number(zoomInput.value) / 100
+      persistTune(tune)
+      applyZoom(200)
+    }
+    zoomInput.addEventListener("input", onZoom)
+    window.addCleanup(() => zoomInput.removeEventListener("input", onZoom))
+  }
+  const spreadInput = options.root.querySelector("[data-graph-spread]")
+  if (spreadInput instanceof HTMLInputElement) {
+    spreadInput.value = String(Math.round(tune.spread * 100))
+    const onSpread = (): void => {
+      tune.spread = Number(spreadInput.value) / 100
+      persistTune(tune)
+      applyForces()
+      graph.d3ReheatSimulation()
+    }
+    spreadInput.addEventListener("input", onSpread)
+    window.addCleanup(() => spreadInput.removeEventListener("input", onSpread))
   }
 
   options.root.addEventListener("click", onRootClick)
