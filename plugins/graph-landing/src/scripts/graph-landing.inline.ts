@@ -66,6 +66,7 @@ interface ViewState {
   lens: Lens
   allLabels: boolean
   focusTag: string | null
+  focusFolder: string | null
 }
 
 interface Vec3 {
@@ -885,7 +886,6 @@ interface TuneState {
   edgeScale: number
   zoom: number
   spread: number
-  coresOnly: boolean
 }
 
 function readStoredLens(): Lens {
@@ -904,11 +904,8 @@ function readStoredLens(): Lens {
 }
 
 function readStoredTune(): TuneState {
-  const fallback: TuneState = { nodeScale: 0.7, edgeScale: 1, zoom: 1, spread: 1, coresOnly: false }
+  const fallback: TuneState = { nodeScale: 0.7, edgeScale: 1, zoom: 1, spread: 1 }
   try {
-    if (sessionStorage.getItem(LENS_STORAGE_KEY) === "hub") {
-      fallback.coresOnly = true
-    }
     const raw = sessionStorage.getItem(TUNE_STORAGE_KEY)
     if (!raw) {
       return fallback
@@ -918,8 +915,7 @@ function readStoredTune(): TuneState {
     const edgeScale = typeof parsed.edgeScale === "number" ? parsed.edgeScale : fallback.edgeScale
     const zoom = typeof parsed.zoom === "number" ? parsed.zoom : fallback.zoom
     const spread = typeof parsed.spread === "number" ? parsed.spread : fallback.spread
-    const coresOnly = typeof parsed.coresOnly === "boolean" ? parsed.coresOnly : fallback.coresOnly
-    return { nodeScale, edgeScale, zoom, spread, coresOnly }
+    return { nodeScale, edgeScale, zoom, spread }
   } catch (error) {
     console.error("[graph-landing] sessionStorage unavailable for tune persistence", error)
     return fallback
@@ -946,35 +942,15 @@ function isLens(value: string): value is Lens {
   return value === "all" || value === "tag" || value === "folder" || value === "hub"
 }
 
-function hubVisibleIds(data: GraphData, neighbors: Map<string, Set<string>>): Set<string> {
-  const notes = data.nodes
-    .filter((node) => node.type === "note")
-    .sort((a, b) => b.degree - a.degree)
-    .slice(0, HUB_EGO_N)
-  const ids = new Set<string>()
-  for (const hub of notes) {
-    ids.add(hub.id)
-    for (const neighbor of neighbors.get(hub.id) ?? []) {
-      ids.add(neighbor)
-    }
-  }
-  return ids
-}
-
-function filterGraph(data: GraphData, visibleIds: Set<string>): GraphData {
-  return {
-    nodes: data.nodes.filter((node) => visibleIds.has(node.id)),
-    links: data.links.filter((link) => {
-      return visibleIds.has(linkEndpointId(link.source)) && visibleIds.has(linkEndpointId(link.target))
-    }),
-  }
-}
-
 function inTagCluster(node: GraphNode, tag: string): boolean {
   if (node.type === "tag") {
     return node.tag === tag
   }
   return node.tags.includes(tag)
+}
+
+function inFolderCluster(node: GraphNode, folder: string): boolean {
+  return node.type === "note" && node.folder === folder
 }
 
 function noteFolderById(nodes: GraphNode[], endpoint: string | GraphNode): string | null {
@@ -1079,6 +1055,7 @@ function bindGraph(
     lens: readStoredLens(),
     allLabels: false,
     focusTag: null,
+    focusFolder: null,
   }
   let hoveredId: string | null = null
   let selectedId: string | null = null
@@ -1129,14 +1106,17 @@ function bindGraph(
     if (focus !== null) {
       return focus === nodeId || (neighbors.get(focus)?.has(nodeId) ?? false)
     }
-    if (state.focusTag === null) {
+    if (state.focusTag === null && state.focusFolder === null) {
       return true
     }
     const node = data.nodes.find((entry) => entry.id === nodeId)
     if (!node) {
       return false
     }
-    return inTagCluster(node, state.focusTag)
+    if (state.focusFolder !== null) {
+      return inFolderCluster(node, state.focusFolder)
+    }
+    return state.focusTag !== null && inTagCluster(node, state.focusTag)
   }
 
   const baseNodeColor = (node: GraphNode): string => {
@@ -1208,7 +1188,7 @@ function bindGraph(
     if (focus !== null && (source === focus || target === focus)) {
       return isDarkTheme() ? 0.72 : 0.62
     }
-    if (focus !== null || state.focusTag !== null) {
+    if (focus !== null || state.focusTag !== null || state.focusFolder !== null) {
       if (!isActive(source) || !isActive(target)) {
         return edgeBaseOpacity(link.kind) * DIM_ALPHA
       }
@@ -1233,12 +1213,7 @@ function bindGraph(
     return withAlpha(edgeColor(link), edgeOpacity(link))
   }
 
-  const currentData = (): GraphData => {
-    if (!tune.coresOnly) {
-      return data
-    }
-    return filterGraph(data, hubVisibleIds(data, neighbors))
-  }
+  const currentData = (): GraphData => data
 
   // Zoom keeps the current orbit direction and only changes the camera's
   // distance to the origin, so slider moves never snap the rotation back.
@@ -1482,16 +1457,6 @@ function bindGraph(
       item.append(dot, text)
       return item
     }
-    if (state.lens === "folder") {
-      const folders = [...new Set(data.nodes.filter((node) => node.type === "note").map((node) => node.folder))]
-      const rootLabel = options.root.dataset.folderRootLabel ?? "root"
-      legend.replaceChildren(
-        ...folders.map((folder) =>
-          makeItem(folderColor(folder, theme.current), folder === "root" ? rootLabel : folder),
-        ),
-      )
-      return
-    }
     const notesLabel = options.root.dataset.legendNotes ?? "Notes"
     const tagsLabel = options.root.dataset.legendTags ?? "Tags"
     const mentionsLabel = options.root.dataset.legendMentions ?? "Mentions"
@@ -1502,36 +1467,94 @@ function bindGraph(
     )
   }
 
-  const renderTags = (): void => {
+  const facetRow = (options2: {
+    dataset: { key: "graphTag" | "graphFolder"; value: string }
+    pressed: boolean
+    dotColor: string | null
+    label: string
+    count: number
+  }): HTMLLIElement => {
+    const item = document.createElement("li")
+    const button = document.createElement("button")
+    button.type = "button"
+    button.className = "graph-landing__tag-item"
+    button.dataset[options2.dataset.key] = options2.dataset.value
+    button.setAttribute("aria-pressed", options2.pressed ? "true" : "false")
+    const name = document.createElement("span")
+    name.className = "graph-landing__facet-name"
+    if (options2.dotColor !== null) {
+      const dot = document.createElement("span")
+      dot.className = "graph-landing__dot"
+      dot.style.background = options2.dotColor
+      name.append(dot)
+    }
+    name.append(document.createTextNode(options2.label))
+    const count = document.createElement("span")
+    count.className = "graph-landing__tag-count"
+    count.textContent = String(options2.count)
+    button.append(name, count)
+    item.append(button)
+    return item
+  }
+
+  // The facet list mirrors the active lens: the tag axis lists tags, the
+  // folder axis lists folders. Both focus their cluster on click.
+  const renderFacets = (): void => {
     const list = options.root.querySelector("[data-graph-tags]")
     if (!(list instanceof HTMLElement)) {
+      return
+    }
+    const label = options.root.querySelector("[data-graph-facet-label]")
+    const wrap = options.root.querySelector(".graph-landing__tags")
+    if (state.lens === "folder") {
+      const rootLabel = options.root.dataset.folderRootLabel ?? "root"
+      const counts = new Map<string, number>()
+      for (const node of data.nodes) {
+        if (node.type === "note") {
+          counts.set(node.folder, (counts.get(node.folder) ?? 0) + 1)
+        }
+      }
+      const folders = [...counts.entries()].sort((a, b) => b[1] - a[1])
+      if (label instanceof HTMLElement) {
+        label.textContent = options.root.dataset.legendFolders ?? "Folders"
+      }
+      if (wrap instanceof HTMLElement) {
+        wrap.hidden = folders.length === 0
+      }
+      list.replaceChildren(
+        ...folders.map(([folder, count]) =>
+          facetRow({
+            dataset: { key: "graphFolder", value: folder },
+            pressed: state.focusFolder === folder,
+            dotColor: folderColor(folder, theme.current),
+            label: folder === "root" ? rootLabel : folder,
+            count,
+          }),
+        ),
+      )
       return
     }
     const ranked = data.nodes
       .filter((node) => node.type === "tag")
       .sort((a, b) => b.degree - a.degree)
       .slice(0, 16)
-    const wrap = options.root.querySelector(".graph-landing__tags")
+    if (label instanceof HTMLElement) {
+      label.textContent = options.root.dataset.legendTags ?? "Tags"
+    }
     if (wrap instanceof HTMLElement) {
       wrap.hidden = ranked.length === 0
     }
-    const items = ranked.map((tagNode) => {
-      const item = document.createElement("li")
-      const button = document.createElement("button")
-      button.type = "button"
-      button.className = "graph-landing__tag-item"
-      button.dataset.graphTag = tagNode.tag
-      button.setAttribute("aria-pressed", state.focusTag === tagNode.tag ? "true" : "false")
-      const name = document.createElement("span")
-      name.textContent = tagNode.tag
-      const count = document.createElement("span")
-      count.className = "graph-landing__tag-count"
-      count.textContent = String(tagNode.degree)
-      button.append(name, count)
-      item.append(button)
-      return item
-    })
-    list.replaceChildren(...items)
+    list.replaceChildren(
+      ...ranked.map((tagNode) =>
+        facetRow({
+          dataset: { key: "graphTag", value: tagNode.tag },
+          pressed: state.focusTag === tagNode.tag,
+          dotColor: null,
+          label: tagNode.tag,
+          count: tagNode.degree,
+        }),
+      ),
+    )
   }
 
   const applyView = (): void => {
@@ -1540,12 +1563,8 @@ function bindGraph(
     refreshAccessors()
     paintLabels3d()
     renderLegend()
+    renderFacets()
     setPressed(options.root, "[data-graph-lens]", state.lens, "data-graph-lens")
-    for (const el of options.root.querySelectorAll("[data-graph-tag]")) {
-      if (el instanceof HTMLElement) {
-        el.setAttribute("aria-pressed", el.dataset.graphTag === state.focusTag ? "true" : "false")
-      }
-    }
     graph.d3ReheatSimulation()
   }
 
@@ -1554,15 +1573,29 @@ function bindGraph(
     if (lens !== "tag") {
       state.focusTag = null
     }
+    if (lens !== "folder") {
+      state.focusFolder = null
+    }
     persistLens(lens)
     applyView()
   }
 
   const setFocusTag = (tag: string): void => {
     state.focusTag = state.focusTag === tag ? null : tag
+    state.focusFolder = null
     if (state.focusTag) {
       state.lens = "tag"
       persistLens("tag")
+    }
+    applyView()
+  }
+
+  const setFocusFolder = (folder: string): void => {
+    state.focusFolder = state.focusFolder === folder ? null : folder
+    state.focusTag = null
+    if (state.focusFolder) {
+      state.lens = "folder"
+      persistLens("folder")
     }
     applyView()
   }
@@ -1960,7 +1993,7 @@ function bindGraph(
 
   setPressed(options.root, "[data-graph-lens]", state.lens, "data-graph-lens")
   renderLegend()
-  renderTags()
+  renderFacets()
   if (state.lens !== "all") {
     applyView()
   }
@@ -2015,6 +2048,11 @@ function bindGraph(
       setFocusTag(tagBtn.dataset.graphTag)
       return
     }
+    const folderBtn = target.closest("[data-graph-folder]")
+    if (folderBtn instanceof HTMLElement && folderBtn.dataset.graphFolder) {
+      setFocusFolder(folderBtn.dataset.graphFolder)
+      return
+    }
     if (target.closest("[data-graph-relayout]")) {
       graph.d3ReheatSimulation()
       return
@@ -2052,7 +2090,6 @@ function bindGraph(
   }
   const nodeScaleInput = options.root.querySelector("[data-graph-node-scale]")
   const edgeScaleInput = options.root.querySelector("[data-graph-edge-scale]")
-  const coresInput = options.root.querySelector("[data-graph-cores]")
   if (nodeScaleInput instanceof HTMLInputElement) {
     nodeScaleInput.value = String(Math.round(tune.nodeScale * 100))
     const onNodeScale = (): void => {
@@ -2075,16 +2112,6 @@ function bindGraph(
     }
     edgeScaleInput.addEventListener("input", onEdgeScale)
     window.addCleanup(() => edgeScaleInput.removeEventListener("input", onEdgeScale))
-  }
-  if (coresInput instanceof HTMLInputElement) {
-    coresInput.checked = tune.coresOnly
-    const onCores = (): void => {
-      tune.coresOnly = coresInput.checked
-      persistTune(tune)
-      applyView()
-    }
-    coresInput.addEventListener("change", onCores)
-    window.addCleanup(() => coresInput.removeEventListener("change", onCores))
   }
   const zoomInput = options.root.querySelector("[data-graph-zoom]")
   if (zoomInput instanceof HTMLInputElement) {
@@ -2160,6 +2187,36 @@ async function initGraphLanding(): Promise<void> {
   }
   window.addCleanup(cleanup)
 
+  // Kick off every network dependency at once: content index, renderer,
+  // and the three.js extras all race in parallel instead of a CDN waterfall.
+  const use3d = shouldUse3D()
+  const rendererPromise = loadRenderer(use3d)
+  const spritePromise: Promise<SpriteTextCtor | null> = use3d
+    ? (import(SPRITE_TEXT) as Promise<{ default?: SpriteTextCtor }>)
+        .then((mod) => mod.default ?? null)
+        .catch((error: unknown) => {
+          console.error("[graph-landing] SpriteText unavailable; 3D hub labels disabled", error)
+          return null
+        })
+    : Promise.resolve(null)
+  const threePromise: Promise<ThreeApi | null> = use3d
+    ? (import(THREE_CDN) as Promise<ThreeApi>).catch((error: unknown) => {
+        console.error("[graph-landing] three unavailable; using default node spheres", error)
+        return null
+      })
+    : Promise.resolve(null)
+  const bloomPromise: Promise<BloomPass | null> = use3d
+    ? (import(UNREAL_BLOOM) as Promise<{ UnrealBloomPass?: new () => BloomPass }>)
+        .then((mod) => (mod.UnrealBloomPass ? new mod.UnrealBloomPass() : null))
+        .catch((error: unknown) => {
+          console.error("[graph-landing] UnrealBloomPass unavailable; dark-mode bloom disabled", error)
+          return null
+        })
+    : Promise.resolve(null)
+  // Surface renderer failures via the canvas message; avoid unhandled
+  // rejections while the index is still loading.
+  rendererPromise.catch(() => undefined)
+
   let indexRaw: Record<string, unknown>
   try {
     indexRaw = asRecord(await fetchData)
@@ -2184,44 +2241,19 @@ async function initGraphLanding(): Promise<void> {
       .replace("{m}", String(data.links.length))
   }
 
-  const use3d = shouldUse3D()
   let createGraph: (el: HTMLElement) => ForceGraphInstance
   try {
-    createGraph = await loadRenderer(use3d)
+    createGraph = await rendererPromise
   } catch (error) {
     showLoadError(canvas, "Graph could not load. Check your network connection.")
     throw error
   }
 
-  if (cancelled) {
-    return
-  }
-
-  let spriteText: SpriteTextCtor | null = null
-  let bloomPass: BloomPass | null = null
-  let three: ThreeApi | null = null
-  if (use3d) {
-    try {
-      const spriteMod = (await import(SPRITE_TEXT)) as { default?: SpriteTextCtor }
-      spriteText = spriteMod.default ?? null
-    } catch (error) {
-      console.error("[graph-landing] SpriteText unavailable; 3D hub labels disabled", error)
-      spriteText = null
-    }
-    try {
-      three = (await import(THREE_CDN)) as ThreeApi
-    } catch (error) {
-      console.error("[graph-landing] three unavailable; using default node spheres", error)
-      three = null
-    }
-    try {
-      const bloomMod = (await import(UNREAL_BLOOM)) as { UnrealBloomPass?: new () => BloomPass }
-      bloomPass = bloomMod.UnrealBloomPass ? new bloomMod.UnrealBloomPass() : null
-    } catch (error) {
-      console.error("[graph-landing] UnrealBloomPass unavailable; dark-mode bloom disabled", error)
-      bloomPass = null
-    }
-  }
+  const [spriteText, three, bloomPass] = await Promise.all([
+    spritePromise,
+    threePromise,
+    bloomPromise,
+  ])
 
   if (cancelled) {
     return

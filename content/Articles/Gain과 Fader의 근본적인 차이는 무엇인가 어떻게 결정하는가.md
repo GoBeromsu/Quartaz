@@ -10,6 +10,12 @@ tags:
   - soundengineering
 type:
   - articles
+translationKey: gain-vs-fader
+locale: ko
+sourceLocale: ko
+sourcePath: content/Articles/Gain과 Fader의 근본적인 차이는 무엇인가 어떻게 결정하는가.md
+sourceHash: sha256:a9d60f5fdb475984968eae1aaa6b210aff75a7754f90570d2e7b477d06a76c1a
+translationStatus: source
 permalink: gain-vs-fader
 ---
 

@@ -4,6 +4,12 @@ date_created: 2026-01-11
 date_modified: 2026-01-28
 tags: []
 title: "Think-on-Graph 2.0 Review"
+translationKey: think-on-graph-2-review
+locale: en
+sourceLocale: ko
+sourcePath: content/Articles/Think-on-Graph 2.0 review.md
+sourceHash: sha256:3e6bddd5da134d464698faca1062d0b606f54cd823273f2677738057b24b078c
+translationStatus: translated
 permalink: think-on-graph-2-review
 ---
 

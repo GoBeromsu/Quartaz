@@ -10,6 +10,12 @@ tags:
 title: "[en] Review: Scaling Large Language Model-based Multi-Agent Collaboration"
 type:
   - articles
+translationKey: scaling-llm-multi-agent-collaboration-review
+locale: en
+sourceLocale: ko
+sourcePath: content/Articles/Review Scaling Large Language Model-based Multi-Agent Collaboration.md
+sourceHash: sha256:7991035dc6af7a9a3ab032e77e3bde8e51d0a5e1b0549691504a1bdd10188d7f
+translationStatus: translated
 permalink: scaling-llm-multi-agent-collaboration-review
 ---
 

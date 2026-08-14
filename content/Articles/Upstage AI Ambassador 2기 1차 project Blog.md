@@ -3,6 +3,13 @@ aliases: []
 date_created: 2026-02-01
 date_modified: 2026-02-01
 tags: []
+translationKey: upstage-ai-ambassador-project-blog
+locale: ko
+sourceLocale: ko
+sourcePath: content/Articles/Upstage AI Ambassador 2기 1차 project Blog.md
+sourceHash: sha256:063d52cef6ff1e857b4ccbbaa9b951296c72b12ce48176c817d2d796da520c5b
+translationStatus: source
+permalink: upstage-ai-ambassador-project-blog
 ---
 
 # My Awesome RA: AI-Powered Research Assistant for Evidence-Based Academic Writing
