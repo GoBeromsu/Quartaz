@@ -1565,6 +1565,31 @@ async function initGraphLanding(): Promise<void> {
   }
 }
 
+const PREFERRED_LOCALE_STORAGE_KEY = "preferred-locale"
+
+document.addEventListener("click", (event) => {
+  const target = event.target
+  if (!(target instanceof Element)) {
+    return
+  }
+
+  const link = target.closest("a[data-preferred-locale]")
+  if (!(link instanceof HTMLAnchorElement)) {
+    return
+  }
+
+  const locale = link.dataset.preferredLocale
+  if (!locale) {
+    return
+  }
+
+  try {
+    localStorage.setItem(PREFERRED_LOCALE_STORAGE_KEY, locale)
+  } catch (error) {
+    console.error("[graph-landing] failed to persist preferred-locale", error)
+  }
+})
+
 document.addEventListener("nav", () => {
   void initGraphLanding()
 })

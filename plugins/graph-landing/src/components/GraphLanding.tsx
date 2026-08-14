@@ -158,7 +158,7 @@ function homeLocaleLinks(
     links.push({
       id: locale.id,
       href: slugToAbsHref(home.slug),
-      label: locale.id,
+      label: locale.nativeName ?? locale.id,
       current: locale.id === currentLocale,
     })
   }
@@ -313,11 +313,22 @@ export default (() => {
               <span class="graph-landing__locales">
                 {localeLinks.map((link) =>
                   link.current ? (
-                    <span class="graph-landing__locale graph-landing__locale--current" aria-current="page">
+                    <span
+                      class="graph-landing__locale graph-landing__locale--current"
+                      aria-current="page"
+                      aria-label={link.label}
+                      lang={link.id}
+                    >
                       {link.label}
                     </span>
                   ) : (
-                    <a class="graph-landing__locale" href={link.href} lang={link.id}>
+                    <a
+                      class="graph-landing__locale"
+                      href={link.href}
+                      lang={link.id}
+                      aria-label={link.label}
+                      data-preferred-locale={link.id}
+                    >
                       {link.label}
                     </a>
                   ),
