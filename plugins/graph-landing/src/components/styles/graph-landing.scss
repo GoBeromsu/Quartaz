@@ -1,0 +1,402 @@
+.center.minimal:has(.graph-landing) {
+  max-width: 100%;
+  min-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.graph-landing {
+  background: var(--light);
+  color: var(--dark);
+  font-family: var(--bodyFont);
+  max-width: 100%;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+.graph-landing__hero {
+  background: var(--light);
+  height: 100dvh;
+  max-width: 100%;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+.graph-landing__canvas {
+  height: 100%;
+  inset: 0;
+  position: absolute;
+  width: 100%;
+}
+
+.graph-landing__canvas canvas {
+  display: block;
+  height: 100% !important;
+  width: 100% !important;
+}
+
+.graph-landing__overlay {
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
+
+.graph-landing__top-left,
+.graph-landing__top-right,
+.graph-landing__bottom-left {
+  padding: 1.25rem 1.5rem;
+  position: absolute;
+}
+
+.graph-landing__top-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  left: 0;
+  max-width: min(18rem, calc(100% - 10rem));
+  pointer-events: none;
+  top: 0;
+}
+
+.graph-landing__top-left > * {
+  pointer-events: auto;
+}
+
+.graph-landing__top-right {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  justify-content: flex-end;
+  max-width: min(28rem, calc(100% - 2rem));
+  pointer-events: auto;
+  right: 0;
+  top: 0;
+}
+
+.graph-landing__bottom-left {
+  bottom: 0;
+  left: 0;
+}
+
+.graph-landing__title-block {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  align-items: baseline;
+}
+
+.graph-landing__title {
+  color: var(--dark);
+  font-family: var(--bodyFont);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.graph-landing__counts {
+  color: var(--gray);
+  font-family: var(--bodyFont);
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.graph-landing__lenses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.85rem;
+}
+
+.graph-landing__chip {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  color: var(--gray);
+  cursor: pointer;
+  font-family: var(--bodyFont);
+  font-size: 13px;
+  line-height: 1.3;
+  min-height: 32px;
+  padding: 0.2rem 0;
+}
+
+.graph-landing__chip:hover,
+.graph-landing__chip:focus-visible {
+  color: var(--secondary);
+  outline: none;
+}
+
+.graph-landing__chip:focus-visible {
+  box-shadow: 0 2px 0 0 var(--secondary);
+}
+
+.graph-landing__chip[aria-pressed="true"] {
+  color: var(--secondary);
+  box-shadow: 0 1px 0 0 var(--secondary);
+  font-weight: 500;
+}
+
+.graph-landing__controls {
+  align-items: center;
+  color: var(--gray);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+}
+
+.graph-landing__seg {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.55rem;
+}
+
+.graph-landing__seg-label {
+  color: var(--gray);
+  font-size: 12px;
+}
+
+.graph-landing__text-btn,
+.graph-landing__nav-link,
+.graph-landing__locale,
+.graph-landing__tags-toggle {
+  background: transparent;
+  border: 0;
+  color: var(--gray);
+  cursor: pointer;
+  font-family: var(--bodyFont);
+  font-size: 13px;
+  line-height: 1.3;
+  min-height: 32px;
+  padding: 0.2rem 0;
+  text-decoration: none;
+}
+
+.graph-landing__text-btn:hover,
+.graph-landing__text-btn:focus-visible,
+.graph-landing__nav-link:hover,
+.graph-landing__nav-link:focus-visible,
+.graph-landing__locale:hover,
+.graph-landing__locale:focus-visible,
+.graph-landing__tags-toggle:hover,
+.graph-landing__tags-toggle:focus-visible {
+  color: var(--secondary);
+  outline: none;
+}
+
+.graph-landing__text-btn:focus-visible,
+.graph-landing__nav-link:focus-visible,
+.graph-landing__locale:focus-visible,
+.graph-landing__tags-toggle:focus-visible {
+  box-shadow: 0 2px 0 0 var(--secondary);
+}
+
+.graph-landing__text-btn[aria-pressed="true"] {
+  color: var(--dark);
+}
+
+.graph-landing__nav-link {
+  color: var(--dark);
+}
+
+.graph-landing__locales {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.55rem;
+}
+
+.graph-landing__locale--current {
+  color: var(--dark);
+  cursor: default;
+  font-weight: 600;
+}
+
+.graph-landing__tags {
+  max-width: 16rem;
+}
+
+.graph-landing__tags-toggle {
+  display: none;
+}
+
+.graph-landing__tag-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  list-style: none;
+  margin: 0;
+  max-height: 28vh;
+  overflow: auto;
+  padding: 0;
+}
+
+.graph-landing__tag-item {
+  background: transparent;
+  border: 0;
+  color: var(--gray);
+  cursor: pointer;
+  display: flex;
+  font-family: var(--bodyFont);
+  font-size: 13px;
+  gap: 0.45rem;
+  justify-content: space-between;
+  line-height: 1.4;
+  min-height: 28px;
+  padding: 0.15rem 0;
+  text-align: left;
+  width: 100%;
+}
+
+.graph-landing__tag-item:hover,
+.graph-landing__tag-item:focus-visible {
+  color: var(--secondary);
+  outline: none;
+}
+
+.graph-landing__tag-item[aria-pressed="true"] {
+  color: var(--secondary);
+}
+
+.graph-landing__tag-count {
+  color: var(--gray);
+  font-variant-numeric: tabular-nums;
+}
+
+.graph-landing__legend {
+  align-items: center;
+  color: var(--gray);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 13px;
+  gap: 0.85rem;
+  line-height: 1.3;
+}
+
+.graph-landing__legend-item {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.4rem;
+}
+
+.graph-landing__dot {
+  border-radius: 50%;
+  display: inline-block;
+  height: 7px;
+  width: 7px;
+}
+
+.graph-landing__dot--note {
+  background: var(--darkgray);
+}
+
+.graph-landing__dot--tag {
+  background: var(--tertiary);
+}
+
+.graph-landing__scroll {
+  align-items: center;
+  bottom: 1.25rem;
+  color: var(--gray);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  left: 50%;
+  pointer-events: auto;
+  position: absolute;
+  text-decoration: none;
+  transform: translateX(-50%);
+}
+
+.graph-landing__scroll:hover,
+.graph-landing__scroll:focus-visible {
+  color: var(--secondary);
+  outline: none;
+}
+
+.graph-landing__scroll-label {
+  font-size: 12px;
+}
+
+.graph-landing__chevron {
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  display: block;
+  height: 7px;
+  transform: rotate(45deg);
+  width: 7px;
+}
+
+.graph-landing__body {
+  color: var(--dark);
+  font-family: var(--bodyFont);
+  font-size: 16px;
+  line-height: 1.5;
+  margin: 0 auto;
+  max-width: 40rem;
+  padding: 2rem 2rem 4rem;
+  width: min(40rem, calc(100% - 2.5rem));
+}
+
+.graph-landing__error {
+  align-items: center;
+  color: var(--gray);
+  display: flex;
+  font-size: 0.9rem;
+  height: 100%;
+  justify-content: center;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+:root[saved-theme="dark"] .graph-landing,
+:root[saved-theme="dark"] .graph-landing__hero {
+  background: var(--light);
+}
+
+@media (max-width: 700px) {
+  .graph-landing__top-left,
+  .graph-landing__top-right,
+  .graph-landing__bottom-left {
+    padding: 1rem 1.15rem;
+  }
+
+  .graph-landing__top-left {
+    max-width: calc(100% - 1.5rem);
+  }
+
+  .graph-landing__top-right {
+    max-width: calc(100% - 1.5rem);
+  }
+
+  .graph-landing__tags-toggle {
+    display: inline-flex;
+  }
+
+  .graph-landing__tag-list {
+    display: none;
+    max-height: 28vh;
+  }
+
+  .graph-landing__tags[data-open="true"] .graph-landing__tag-list {
+    display: flex;
+  }
+
+  .graph-landing__bottom-left {
+    bottom: 2.75rem;
+  }
+
+  .graph-landing__scroll {
+    bottom: 0.85rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .graph-landing__chevron {
+    animation: none;
+  }
+}
