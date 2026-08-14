@@ -44,8 +44,14 @@ function localeHref(
   return locale.routePrefix
 }
 
-function switcherAriaLabel(localeId: string): string {
-  return localeId === "en" ? "Language" : "언어 선택"
+export function switchAriaLabel(targetLocaleId: string, targetName: string): string {
+  if (targetLocaleId === "en") {
+    return "Switch to English"
+  }
+  if (targetLocaleId === "ko") {
+    return "한국어로 전환"
+  }
+  return `Switch to ${targetName}`
 }
 
 export default (() => {
@@ -61,123 +67,60 @@ export default (() => {
     }
 
     const currentLocale = currentLocaleId(cfg, fileData) ?? multilingual.sourceLocale
-    const currentLocaleConfig =
-      multilingual.locales.find((locale) => locale.id === currentLocale) ?? multilingual.locales[0]
+    // Only ko+en are published: a single toggle to the other language
+    // replaces the dropdown. Auto-detect on / stays untouched below.
+    const otherLocale = multilingual.locales.find((locale) => locale.id !== currentLocale)
+    if (!otherLocale) {
+      return null
+    }
     const siblings = isTranslationMetadata(fileData.multilingual)
       ? siblingTranslations(allFiles, fileData.multilingual)
       : new Map<string, QuartzComponentProps["fileData"]>()
+    const href = localeHref(fileData, otherLocale, siblings.get(otherLocale.id))
     const entryPayload = JSON.stringify(localeEntryRedirectPayload(multilingual))
 
     return (
       <nav
         class={classNames(displayClass, "blog-language-switcher")}
-        aria-label={switcherAriaLabel(currentLocale)}
         data-locale-entry={entryPayload}
       >
-        <details>
-          <summary>
-            <span class="blog-language-switcher-current">{currentLocaleConfig.nativeName}</span>
-          </summary>
-          <ul>
-            {multilingual.locales.map((locale) => {
-              const sibling = siblings.get(locale.id)
-              const href = localeHref(fileData, locale, sibling)
-
-              return (
-                <li>
-                  <a
-                    href={href}
-                    lang={locale.locale}
-                    hreflang={locale.locale}
-                    data-preferred-locale={locale.id}
-                    aria-current={locale.id === currentLocale ? "page" : undefined}
-                  >
-                    {locale.nativeName}
-                  </a>
-                </li>
-              )
-            })}
-          </ul>
-        </details>
+        <a
+          class="blog-language-switcher-toggle"
+          href={href}
+          lang={otherLocale.locale}
+          hreflang={otherLocale.locale}
+          data-preferred-locale={otherLocale.id}
+          aria-label={switchAriaLabel(otherLocale.id, otherLocale.nativeName)}
+        >
+          {otherLocale.id === "en" ? "English" : otherLocale.id === "ko" ? "Korean" : otherLocale.nativeName}
+        </a>
       </nav>
     )
   }
 
   BlogLanguageSwitcher.css = `
-.blog-language-switcher {
-  position: relative;
-}
-
-.blog-language-switcher details {
-  position: relative;
-}
-
-.blog-language-switcher summary {
+.blog-language-switcher-toggle {
   align-items: center;
   color: var(--blog-ink);
-  cursor: pointer;
   display: inline-flex;
-  font-size: 0.9rem;
-  list-style: none;
+  font-size: inherit;
+  font-weight: 400;
+  height: 44px;
+  justify-content: center;
+  line-height: 1;
   min-height: 44px;
-  min-width: 44px;
-  padding: 0 0.35rem;
-}
-
-.blog-language-switcher summary::-webkit-details-marker {
-  display: none;
-}
-
-.blog-language-switcher-current {
-  line-height: 1.2;
-}
-
-.blog-language-switcher ul {
-  background: var(--light);
-  border: 1px solid var(--blog-border);
-  display: flex;
-  flex-direction: column;
-  list-style: none;
-  margin: 0;
-  min-width: 100%;
-  padding: 0.25rem 0;
-  position: absolute;
-  right: 0;
-  z-index: 5;
-}
-
-.blog-language-switcher a {
-  align-items: center;
-  color: var(--blog-muted);
-  display: inline-flex;
-  font-size: 0.9rem;
-  min-height: 44px;
-  min-width: 44px;
-  padding: 0 0.85rem;
+  padding: 0;
   text-decoration: none;
   white-space: nowrap;
 }
 
-.blog-language-switcher a[aria-current="page"] {
-  color: var(--blog-ink);
-  font-weight: 600;
-}
-
-.blog-language-switcher a:hover {
+.blog-language-switcher-toggle:hover {
   color: var(--blog-accent);
 }
 
-.blog-language-switcher summary:focus-visible,
-.blog-language-switcher a:focus-visible {
+.blog-language-switcher-toggle:focus-visible {
   outline: 2px solid var(--blog-accent);
   outline-offset: 2px;
-}
-
-@media (max-width: 640px) {
-  .blog-language-switcher {
-    flex-basis: 100%;
-    order: 5;
-  }
 }
 `
 

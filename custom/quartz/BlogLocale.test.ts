@@ -171,23 +171,23 @@ describe("Blog locale-aware UI", () => {
     assert.doesNotMatch(header, /href="\/about"/)
   })
 
-  test("lists sibling translation links as endonyms and preserves page context", () => {
+  test("renders a single toggle to the other language's translation", () => {
     const cfg = readBlogConfiguration()
     const props = componentProps(cfg, "en/beauty-of-youth" as FullSlug)
     props.fileData =
       props.allFiles.find((file) => file.slug === "en/beauty-of-youth") ?? props.fileData
     const switcher = renderToString(BlogLanguageSwitcher()(props))
 
-    assert.match(switcher, /aria-label="Language"/)
-    assert.match(switcher, /<span class="blog-language-switcher-current">English<\/span>/)
+    assert.match(switcher, /class="blog-language-switcher-toggle"/)
+    assert.match(switcher, /aria-label="한국어로 전환"/)
     assert.match(switcher, /href="\.\.\/ko\/beauty-of-youth"/)
-    assert.match(switcher, /href="\.\.\/en\/beauty-of-youth"/)
     assert.match(switcher, /data-preferred-locale="ko"/)
-    assert.match(switcher, /data-preferred-locale="en"/)
-    assert.match(switcher, />한국어</)
-    assert.match(switcher, />English</)
+    // The toggle label is the target locale's nativeName from the config.
+    assert.match(switcher, />(한국어|Korean)</)
+    // The current language never appears as a toggle target.
+    assert.doesNotMatch(switcher, /data-preferred-locale="en"/)
+    assert.doesNotMatch(switcher, />English</)
     assert.doesNotMatch(switcher, /zh-Hans/)
-    assert.doesNotMatch(switcher, /aria-disabled="true"/)
   })
 
   test("falls back to the locale home when a sibling translation is missing", () => {
@@ -199,10 +199,9 @@ describe("Blog locale-aware UI", () => {
     }
     const switcher = renderToString(BlogLanguageSwitcher()(props))
 
-    assert.match(switcher, /aria-label="언어 선택"/)
-    assert.match(switcher, /href="\/ko\/"/)
+    assert.match(switcher, /aria-label="Switch to English"/)
     assert.match(switcher, /href="\/en\/"/)
-    assert.match(switcher, />한국어</)
     assert.match(switcher, />English</)
+    assert.doesNotMatch(switcher, /href="\/ko\/"/)
   })
 })
