@@ -2,14 +2,6 @@ import * as Component from "./quartz/components"
 import { loadQuartzConfig, loadQuartzLayout } from "./quartz/plugins/loader/config-loader"
 import { PageTypeDispatcher } from "./quartz/plugins/pageTypes"
 
-import BlogAllTags from "./custom/quartz/BlogAllTags"
-import BlogArticleList from "./custom/quartz/BlogArticleList"
-import BlogFooter from "./custom/quartz/BlogFooter"
-import BlogLanguageSwitcher from "./custom/quartz/BlogLanguageSwitcher"
-import BlogLatest from "./custom/quartz/BlogLatest"
-import BlogLinksHeader from "./custom/quartz/BlogLinksHeader"
-import BlogStyles from "./custom/quartz/BlogStyles"
-
 const config = await loadQuartzConfig()
 
 const footerLinks = {
@@ -47,14 +39,14 @@ const sharedHeader = [
       { Component: Component.External("page-title") },
       { Component: Component.Spacer() },
       {
-        Component: BlogLinksHeader({
+        Component: Component.External("BlogLinksHeader", {
           links: {
             Graph: "/graph",
             About: "/about",
           },
         }),
       },
-      { Component: BlogLanguageSwitcher() },
+      { Component: Component.External("BlogLanguageSwitcher") },
       { Component: Component.External("search") },
       { Component: Component.External("darkmode") },
     ],
@@ -64,20 +56,24 @@ const sharedHeader = [
 ]
 
 const sharedAfterBody = [
-  BlogStyles(),
+  Component.External("BlogStyles"),
   Component.ConditionalRender({
-    component: BlogLatest({ title: "Latest", limit: 3, filter: (file) => !isUtilityPage(file) }),
+    component: Component.External("BlogLatest", {
+      title: "Latest",
+      limit: 3,
+      filter: (file: FileLike) => !isUtilityPage(file),
+    }),
     condition: (props) => isHomePage(props.fileData),
   }),
   Component.ConditionalRender({
-    component: BlogAllTags({ title: "Topics" }),
+    component: Component.External("BlogAllTags", { title: "Topics" }),
     condition: (props) => isHomePage(props.fileData),
   }),
   Component.ConditionalRender({
-    component: BlogArticleList({
+    component: Component.External("BlogArticleList", {
       title: "Writing",
       limit: 0,
-      filter: (file) => !isUtilityPage(file),
+      filter: (file: FileLike) => !isUtilityPage(file),
     }),
     condition: (props) => isHomePage(props.fileData),
   }),
@@ -97,7 +93,7 @@ const sharedAfterBody = [
   }),
 ]
 
-const sharedFooter = [BlogFooter({ links: footerLinks })]
+const sharedFooter = [Component.External("BlogFooter", { links: footerLinks })]
 
 const layout = await loadQuartzLayout({
   defaults: {

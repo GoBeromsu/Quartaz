@@ -1,0 +1,79 @@
+{
+  "name": "blog-chrome",
+  "version": "0.1.0",
+  "description": "Header links, language toggle, and footer chrome for Beomsu's Quartz blog.",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./components": {
+      "types": "./dist/components/index.d.ts",
+      "import": "./dist/components/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit -p tsconfig.build.json"
+  },
+  "peerDependencies": {
+    "preact": "^10.0.0"
+  },
+  "peerDependenciesMeta": {
+    "preact": {
+      "optional": false
+    }
+  },
+  "dependencies": {
+    "@quartz-community/types": "^0.3.0",
+    "@quartz-community/utils": "^0.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "preact": "^10.28.2",
+    "sass": "^1.97.3",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3"
+  },
+  "quartz": {
+    "name": "blog-chrome",
+    "displayName": "Blog Chrome",
+    "description": "Header links, language toggle, and footer for locale-aware blog chrome.",
+    "category": ["component"],
+    "version": "0.1.0",
+    "quartzVersion": ">=5.0.0",
+    "dependencies": [],
+    "defaultOrder": 50,
+    "defaultEnabled": true,
+    "defaultOptions": {},
+    "components": {
+      "BlogLinksHeader": {
+        "displayName": "Blog Links Header",
+        "description": "Locale-aware header navigation links."
+      },
+      "BlogLanguageSwitcher": {
+        "displayName": "Blog Language Switcher",
+        "description": "Toggle between published Korean and English locales."
+      },
+      "BlogFooter": {
+        "displayName": "Blog Footer",
+        "description": "Site footer with copyright and social links."
+      }
+    }
+  },
+  "engines": {
+    "node": ">=22",
+    "npm": ">=10.9.2"
+  }
+}

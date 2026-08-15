@@ -1,0 +1,85 @@
+{
+  "name": "blog-home",
+  "version": "0.1.0",
+  "description": "Locale home listings and Ataraxia Minimal styles for Beomsu's Quartz blog.",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./components": {
+      "types": "./dist/components/index.d.ts",
+      "import": "./dist/components/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit -p tsconfig.build.json"
+  },
+  "peerDependencies": {
+    "preact": "^10.0.0"
+  },
+  "peerDependenciesMeta": {
+    "preact": {
+      "optional": false
+    }
+  },
+  "dependencies": {
+    "@quartz-community/types": "^0.3.0",
+    "@quartz-community/utils": "^0.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "preact": "^10.28.2",
+    "sass": "^1.97.3",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3"
+  },
+  "quartz": {
+    "name": "blog-home",
+    "displayName": "Blog Home",
+    "description": "Latest posts, article list, tags, and Ataraxia Minimal styles for locale homes.",
+    "category": [
+      "component"
+    ],
+    "version": "0.1.0",
+    "quartzVersion": ">=5.0.0",
+    "dependencies": [],
+    "defaultOrder": 50,
+    "defaultEnabled": true,
+    "defaultOptions": {},
+    "components": {
+      "BlogLatest": {
+        "displayName": "Blog Latest",
+        "description": "Latest posts on locale home pages."
+      },
+      "BlogArticleList": {
+        "displayName": "Blog Article List",
+        "description": "Full writing list on locale home pages."
+      },
+      "BlogAllTags": {
+        "displayName": "Blog All Tags",
+        "description": "Locale-scoped topic tags on home pages."
+      },
+      "BlogStyles": {
+        "displayName": "Blog Styles",
+        "description": "Ataraxia Minimal tokens and reading styles."
+      }
+    }
+  },
+  "engines": {
+    "node": ">=22",
+    "npm": ">=10.9.2"
+  }
+}

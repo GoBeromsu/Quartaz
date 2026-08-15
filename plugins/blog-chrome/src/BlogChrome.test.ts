@@ -6,19 +6,15 @@ import { h } from "preact"
 import renderToString from "preact-render-to-string"
 import { parse } from "yaml"
 
-import type { GlobalConfiguration, MultilingualConfiguration } from "../../quartz/cfg"
-import type { QuartzComponentProps } from "../../quartz/components/types"
-import type { BuildCtx } from "../../quartz/util/ctx"
-import type { FullSlug } from "../../quartz/util/path"
-import {
-  validateMultilingualConfig,
-  type TranslationMetadata,
-} from "../../quartz/util/multilingual"
-import BlogAllTags from "./BlogAllTags"
-import BlogArticleList from "./BlogArticleList"
-import BlogLanguageSwitcher from "./BlogLanguageSwitcher"
-import BlogLatest from "./BlogLatest"
-import BlogLinksHeader from "./BlogLinksHeader"
+import type { QuartzComponentProps } from "@quartz-community/types"
+
+import { validateMultilingualConfig } from "../../../quartz/util/multilingual"
+import type { GlobalConfiguration, MultilingualConfiguration } from "../../../quartz/cfg"
+import type { BuildCtx } from "../../../quartz/util/ctx"
+import type { FullSlug } from "../../../quartz/util/path"
+import BlogFooter from "./components/BlogFooter"
+import BlogLanguageSwitcher from "./components/BlogLanguageSwitcher"
+import BlogLinksHeader from "./components/BlogLinksHeader"
 
 type TestGlobal = typeof globalThis & {
   React?: {
@@ -31,6 +27,11 @@ type Frontmatter = {
   readonly tags?: readonly string[]
 }
 ;(globalThis as TestGlobal).React = { createElement: h }
+
+type CssCarrier = {
+  readonly css?: string
+  readonly afterDOMLoaded?: string
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value)
@@ -46,7 +47,7 @@ function requiredRecord(value: unknown, label: string): Record<string, unknown> 
 
 function readBlogConfiguration(): GlobalConfiguration {
   const parsed = requiredRecord(
-    parse(readFileSync(new URL("../../quartz.config.yaml", import.meta.url), "utf8")),
+    parse(readFileSync(new URL("../../../quartz.config.yaml", import.meta.url), "utf8")),
     "quartz.config.yaml",
   )
   const configuration = requiredRecord(parsed.configuration, "configuration")
@@ -61,7 +62,7 @@ function metadata(
   config: MultilingualConfiguration,
   locale: string,
   permalink: string,
-): TranslationMetadata {
+) {
   const localeConfig = config.locales.find((entry) => entry.id === locale)
   if (!localeConfig) {
     assert.fail(`missing locale config for ${locale}`)
@@ -76,9 +77,9 @@ function metadata(
     translationStatus: locale === "ko" ? "source" : "translated",
     permalink,
     localizedPath: `${localeConfig.routePrefix}${permalink}`,
-    canonicalUrl: `https://berom.net${localeConfig.routePrefix}${permalink}`,
+    canonicalUrl: `https://beomsukoh.com${localeConfig.routePrefix}${permalink}`,
     direction: localeConfig.direction,
-  } as TranslationMetadata
+  }
 }
 
 function article(
@@ -112,7 +113,7 @@ function componentProps(cfg: GlobalConfiguration, slug: FullSlug): QuartzCompone
 
   return {
     ctx: {
-      buildId: "blog-locale-test",
+      buildId: "blog-chrome-test",
       argv: {
         directory: "quartz/test/fixtures/multilingual-build-content",
         verbose: false,
@@ -137,65 +138,16 @@ function componentProps(cfg: GlobalConfiguration, slug: FullSlug): QuartzCompone
   }
 }
 
-describe("Blog locale-aware UI", () => {
-  test("scopes article lists and tags to the current Korean locale", () => {
-    const cfg = readBlogConfiguration()
-    const props = componentProps(cfg, "ko/index" as FullSlug)
-    const articleList = renderToString(BlogArticleList({ title: "Writing", limit: 0 })(props))
-    const latest = renderToString(BlogLatest({ title: "Latest", limit: 5 })(props))
-    const tags = renderToString(BlogAllTags({ title: "Topics" })(props))
+function componentCss(component: CssCarrier): string {
+  const css = component.css
+  if (typeof css !== "string") {
+    assert.fail("component should expose a CSS string")
+  }
 
-    assert.match(articleList, /젊음이 아름답다/)
-    assert.doesNotMatch(articleList, /Youth Is Beautiful/)
-    assert.match(latest, /젊음이 아름답다/)
-    assert.doesNotMatch(latest, /Youth Is Beautiful/)
-    assert.match(tags, /korean-only/)
-    assert.doesNotMatch(tags, /english-only/)
-  })
+  return css
+}
 
-  test("scopes article lists to the current English locale", () => {
-    const cfg = readBlogConfiguration()
-    const props = componentProps(cfg, "en/index" as FullSlug)
-    const articleList = renderToString(BlogArticleList({ title: "Writing", limit: 0 })(props))
-
-    assert.match(articleList, /Youth Is Beautiful/)
-    assert.doesNotMatch(articleList, /젊음이 아름답다/)
-  })
-
-  test("falls back to the Obsidian source post when the other locale has no translation", () => {
-    const cfg = readBlogConfiguration()
-    const multilingual = cfg.multilingual
-    if (!multilingual) {
-      assert.fail("test config should include multilingual settings")
-    }
-    const sourceOnly = metadata(multilingual, "ko", "after-korea")
-    const props = componentProps(cfg, "en/index" as FullSlug)
-    props.allFiles = [
-      ...props.allFiles,
-      {
-        slug: "articles/after-returning-to-korea" as FullSlug,
-        filePath: "Articles/한국에 돌아온 후 근황.md",
-        frontmatter: { title: "한국에 돌아온 후 근황", tags: ["life"] },
-        dates: { created: new Date("2026-03-01T00:00:00.000Z") },
-        defaultDateType: "created",
-      },
-      {
-        slug: sourceOnly.localizedPath.replace(/^\//, "") as FullSlug,
-        filePath: "ko-after-korea.md",
-        frontmatter: { title: "번역 없는 원문", tags: ["life"] },
-        dates: { created: new Date("2026-04-01T00:00:00.000Z") },
-        defaultDateType: "created",
-        multilingual: sourceOnly,
-      },
-    ]
-    const articleList = renderToString(BlogArticleList({ title: "Writing", limit: 0 })(props))
-
-    assert.match(articleList, /Youth Is Beautiful/)
-    assert.match(articleList, /한국에 돌아온 후 근황/)
-    assert.match(articleList, /번역 없는 원문/)
-    assert.doesNotMatch(articleList, /젊음이 아름답다/)
-  })
-
+describe("Blog chrome locale-aware UI", () => {
   test("localizes header links for locale-prefixed pages", () => {
     const cfg = readBlogConfiguration()
     const props = componentProps(cfg, "ko/index" as FullSlug)
@@ -205,26 +157,23 @@ describe("Blog locale-aware UI", () => {
     assert.doesNotMatch(header, /href="\/about"/)
   })
 
-  test("renders a single toggle to the other language's translation", () => {
+  test("toggles to the Korean endonym and sibling page from English", () => {
     const cfg = readBlogConfiguration()
     const props = componentProps(cfg, "en/beauty-of-youth" as FullSlug)
     props.fileData =
       props.allFiles.find((file) => file.slug === "en/beauty-of-youth") ?? props.fileData
     const switcher = renderToString(BlogLanguageSwitcher()(props))
 
-    assert.match(switcher, /class="blog-language-switcher-toggle"/)
     assert.match(switcher, /aria-label="한국어로 전환"/)
     assert.match(switcher, /href="\.\.\/ko\/beauty-of-youth"/)
     assert.match(switcher, /data-preferred-locale="ko"/)
-    // The toggle label is the target locale's nativeName from the config.
     assert.match(switcher, />(한국어|Korean)</)
-    // The current language never appears as a toggle target.
     assert.doesNotMatch(switcher, /data-preferred-locale="en"/)
-    assert.doesNotMatch(switcher, />English</)
+    assert.doesNotMatch(switcher, /<details/)
     assert.doesNotMatch(switcher, /zh-Hans/)
   })
 
-  test("falls back to the locale home when a sibling translation is missing", () => {
+  test("falls back to the English locale home when a sibling translation is missing", () => {
     const cfg = readBlogConfiguration()
     const props = componentProps(cfg, "ko/index" as FullSlug)
     props.fileData = {
@@ -235,7 +184,38 @@ describe("Blog locale-aware UI", () => {
 
     assert.match(switcher, /aria-label="Switch to English"/)
     assert.match(switcher, /href="\/en\/"/)
+    assert.match(switcher, /data-preferred-locale="en"/)
     assert.match(switcher, />English</)
     assert.doesNotMatch(switcher, /href="\/ko\/"/)
+  })
+
+  test("persists preferred-locale in the client script", () => {
+    const script = BlogLanguageSwitcher().afterDOMLoaded
+    if (typeof script !== "string") {
+      assert.fail("language switcher should expose afterDOMLoaded")
+    }
+
+    assert.match(script, /preferred-locale/)
+    assert.match(script, /localStorage\.setItem/)
+  })
+})
+
+describe("Blog chrome Ataraxia contract", () => {
+  test("keeps header and footer chrome observable", () => {
+    const css = [BlogLinksHeader({ links: {} }), BlogFooter({ links: {} })]
+      .map(componentCss)
+      .join("\n")
+
+    assert.ok(css.includes(".blog-links-header"))
+    assert.ok(css.includes("#quartz-body > footer"))
+    assert.ok(css.includes("border-radius: 0;"))
+    assert.ok(css.includes("box-shadow: none;"))
+    assert.ok(css.includes("@media (max-width: 430px)"))
+  })
+
+  test("keeps the language toggle at least 44px", () => {
+    const css = componentCss(BlogLanguageSwitcher())
+    assert.ok(css.includes("min-height: 44px;"))
+    assert.ok(css.includes("min-width: 44px;"))
   })
 })

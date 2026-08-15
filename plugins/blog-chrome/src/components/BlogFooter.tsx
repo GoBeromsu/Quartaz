@@ -1,8 +1,8 @@
-import {
+import type {
   QuartzComponent,
   QuartzComponentConstructor,
   QuartzComponentProps,
-} from "../../quartz/components/types"
+} from "@quartz-community/types"
 
 interface Options {
   links: Record<string, string>

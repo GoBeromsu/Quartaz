@@ -1,29 +1,30 @@
-import {
+import type {
   QuartzComponent,
   QuartzComponentConstructor,
   QuartzComponentProps,
-} from "../../quartz/components/types"
-import { classNames } from "../../quartz/util/lang"
-import { FullSlug, resolveRelative } from "../../quartz/util/path"
+} from "@quartz-community/types"
+import { classNames } from "@quartz-community/utils/lang"
+import { resolveRelative, type FullSlug } from "@quartz-community/utils/path"
 import {
+  currentLocaleId,
   isTranslationMetadata,
   localeEntryRedirectPayload,
   PREFERRED_LOCALE_STORAGE_KEY,
-  type TranslationMetadata,
-} from "../../quartz/util/multilingual"
-import type { MultilingualLocaleConfiguration } from "../../quartz/cfg"
-import { currentLocaleId } from "./locale"
+  type GlobalConfig,
+  type LocaleFileData,
+  type MultilingualLocaleConfig,
+} from "../locale"
 
 function siblingTranslations(
-  allFiles: QuartzComponentProps["allFiles"],
-  current: TranslationMetadata,
-): Map<string, QuartzComponentProps["fileData"]> {
-  const siblings = new Map<string, QuartzComponentProps["fileData"]>()
+  allFiles: readonly LocaleFileData[],
+  translationKey: string,
+): Map<string, LocaleFileData> {
+  const siblings = new Map<string, LocaleFileData>()
 
   for (const file of allFiles) {
     if (
       isTranslationMetadata(file.multilingual) &&
-      file.multilingual.translationKey === current.translationKey
+      file.multilingual.translationKey === translationKey
     ) {
       siblings.set(file.multilingual.locale, file)
     }
@@ -33,9 +34,9 @@ function siblingTranslations(
 }
 
 function localeHref(
-  fileData: QuartzComponentProps["fileData"],
-  locale: MultilingualLocaleConfiguration,
-  sibling: QuartzComponentProps["fileData"] | undefined,
+  fileData: LocaleFileData,
+  locale: MultilingualLocaleConfig,
+  sibling: LocaleFileData | undefined,
 ): string {
   if (sibling?.slug && fileData.slug) {
     return resolveRelative(fileData.slug as FullSlug, sibling.slug as FullSlug)
@@ -44,14 +45,16 @@ function localeHref(
   return locale.routePrefix
 }
 
-export function switchAriaLabel(targetLocaleId: string, targetName: string): string {
+function switcherAriaLabel(targetLocaleId: string, nativeName: string): string {
   if (targetLocaleId === "en") {
     return "Switch to English"
   }
+
   if (targetLocaleId === "ko") {
     return "한국어로 전환"
   }
-  return `Switch to ${targetName}`
+
+  return `Switch to ${nativeName}`
 }
 
 export default (() => {
@@ -61,22 +64,25 @@ export default (() => {
     allFiles,
     displayClass,
   }: QuartzComponentProps) => {
-    const multilingual = cfg.multilingual
+    const multilingual = (cfg as GlobalConfig).multilingual
     if (!multilingual?.enabled) {
       return null
     }
 
-    const currentLocale = currentLocaleId(cfg, fileData) ?? multilingual.sourceLocale
-    // Only ko+en are published: a single toggle to the other language
-    // replaces the dropdown. Auto-detect on / stays untouched below.
+    const currentLocale = currentLocaleId(cfg as GlobalConfig, fileData) ?? multilingual.sourceLocale
     const otherLocale = multilingual.locales.find((locale) => locale.id !== currentLocale)
     if (!otherLocale) {
       return null
     }
+
     const siblings = isTranslationMetadata(fileData.multilingual)
-      ? siblingTranslations(allFiles, fileData.multilingual)
-      : new Map<string, QuartzComponentProps["fileData"]>()
-    const href = localeHref(fileData, otherLocale, siblings.get(otherLocale.id))
+      ? siblingTranslations(allFiles, fileData.multilingual.translationKey)
+      : new Map<string, LocaleFileData>()
+    const sibling = siblings.get(otherLocale.id)
+    const href = localeHref(fileData, otherLocale, sibling)
+    const nativeName = otherLocale.nativeName ?? otherLocale.label ?? otherLocale.id
+    const toggleLabel =
+      otherLocale.id === "en" ? "English" : otherLocale.id === "ko" ? "Korean" : nativeName
     const entryPayload = JSON.stringify(localeEntryRedirectPayload(multilingual))
 
     return (
@@ -90,37 +96,46 @@ export default (() => {
           lang={otherLocale.locale}
           hreflang={otherLocale.locale}
           data-preferred-locale={otherLocale.id}
-          aria-label={switchAriaLabel(otherLocale.id, otherLocale.nativeName)}
+          aria-label={switcherAriaLabel(otherLocale.id, nativeName)}
         >
-          {otherLocale.id === "en" ? "English" : otherLocale.id === "ko" ? "Korean" : otherLocale.nativeName}
+          {toggleLabel}
         </a>
       </nav>
     )
   }
 
   BlogLanguageSwitcher.css = `
-.blog-language-switcher-toggle {
+.blog-language-switcher {
+  position: relative;
+}
+
+.blog-language-switcher a {
   align-items: center;
   color: var(--blog-ink);
+  cursor: pointer;
   display: inline-flex;
-  font-size: inherit;
-  font-weight: 400;
-  height: 44px;
-  justify-content: center;
-  line-height: 1;
+  font-size: 0.9rem;
   min-height: 44px;
-  padding: 0;
+  min-width: 44px;
+  padding: 0 0.35rem;
   text-decoration: none;
   white-space: nowrap;
 }
 
-.blog-language-switcher-toggle:hover {
+.blog-language-switcher a:hover {
   color: var(--blog-accent);
 }
 
-.blog-language-switcher-toggle:focus-visible {
+.blog-language-switcher a:focus-visible {
   outline: 2px solid var(--blog-accent);
   outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .blog-language-switcher {
+    flex-basis: 100%;
+    order: 5;
+  }
 }
 `
 
