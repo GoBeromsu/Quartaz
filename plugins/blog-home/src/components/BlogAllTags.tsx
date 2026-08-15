@@ -1,11 +1,11 @@
-import {
+import type {
   QuartzComponent,
   QuartzComponentConstructor,
   QuartzComponentProps,
-} from "../../quartz/components/types"
-import { classNames } from "../../quartz/util/lang"
-import { FullSlug, resolveRelative } from "../../quartz/util/path"
-import { localeScopedFiles } from "./locale"
+} from "@quartz-community/types"
+import { classNames } from "@quartz-community/utils/lang"
+import { resolveRelative, type FullSlug } from "@quartz-community/utils/path"
+import { localeScopedFiles, type GlobalConfig } from "../locale"
 
 interface Options {
   title: string
@@ -26,7 +26,7 @@ export default ((userOpts?: Partial<Options>) => {
   }: QuartzComponentProps) => {
     const allTags = [
       ...new Set(
-        localeScopedFiles(cfg, fileData, allFiles).flatMap((file) => {
+        localeScopedFiles(cfg as GlobalConfig, fileData, allFiles).flatMap((file) => {
           const tags = file.frontmatter?.tags
           return Array.isArray(tags) ? tags.map((tag) => String(tag)) : []
         }),
@@ -43,7 +43,7 @@ export default ((userOpts?: Partial<Options>) => {
         <div class="blog-all-tags-list">
           {allTags.map((tag) => (
             <a
-              href={resolveRelative(fileData.slug!, `tags/${tag}` as FullSlug)}
+              href={resolveRelative(fileData.slug as FullSlug, `tags/${tag}` as FullSlug)}
               class="internal tag-link"
             >
               #{tag}

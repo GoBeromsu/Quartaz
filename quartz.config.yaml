@@ -155,6 +155,10 @@ plugins:
       enableRSS: true
   - source: ./plugins/graph-landing
     enabled: true
+  - source: ./plugins/blog-chrome
+    enabled: true
+  - source: ./plugins/blog-home
+    enabled: true
   - source: github:quartz-community/favicon
     enabled: true
   - source: github:quartz-community/og-image

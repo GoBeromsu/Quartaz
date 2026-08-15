@@ -85,6 +85,18 @@
       "commit": "287c709c12806dca76882ab8ab79567d57ede5b4",
       "installedAt": "2026-08-14T11:23:51.171Z"
     },
+    "blog-chrome": {
+      "source": "./plugins/blog-chrome",
+      "resolved": "/Users/beomsu/Documents/02_Area/Quartaz/plugins/blog-chrome",
+      "commit": "local",
+      "installedAt": "2026-08-15T03:58:00.000Z"
+    },
+    "blog-home": {
+      "source": "./plugins/blog-home",
+      "resolved": "/Users/beomsu/Documents/02_Area/Quartaz/plugins/blog-home",
+      "commit": "local",
+      "installedAt": "2026-08-15T03:58:00.000Z"
+    },
     "graph-landing": {
       "source": "./plugins/graph-landing",
       "resolved": "/Users/beomsu/Documents/02_Area/Quartaz/plugins/graph-landing",

@@ -1,24 +1,35 @@
-import { GlobalConfiguration } from "../../quartz/cfg"
-import {
+import type {
   QuartzComponent,
   QuartzComponentConstructor,
   QuartzComponentProps,
-} from "../../quartz/components/types"
-import { getDate, formatDate } from "../../quartz/components/Date"
-import { byDateAndAlphabetical } from "../../quartz/components/PageList"
-import { QuartzPluginData } from "../../quartz/plugins/vfile"
-import { classNames } from "../../quartz/util/lang"
-import { resolveRelative } from "../../quartz/util/path"
-import { currentLocaleTag, localeScopedFiles } from "./locale"
+} from "@quartz-community/types"
+import { classNames } from "@quartz-community/utils/lang"
+import { resolveRelative, type FullSlug } from "@quartz-community/utils/path"
+import { byDateAndAlphabetical, formatDate, getDate, type DatedFile } from "../dates"
+import {
+  currentLocaleTag,
+  isLocaleHomeFile,
+  localeScopedFiles,
+  type GlobalConfig,
+  type LocaleFileData,
+} from "../locale"
+
+interface ListFile extends DatedFile, LocaleFileData {
+  readonly filePath?: string
+  readonly slug?: string
+  readonly frontmatter?: {
+    readonly title?: string
+  }
+}
 
 interface Options {
   title?: string
   limit: number
-  filter: (file: QuartzPluginData) => boolean
-  sort: (left: QuartzPluginData, right: QuartzPluginData) => number
+  filter: (file: ListFile) => boolean
+  sort: (left: ListFile, right: ListFile) => number
 }
 
-const defaultOptions = (_cfg: GlobalConfiguration): Options => ({
+const defaultOptions = (): Options => ({
   limit: 10,
   filter: () => true,
   sort: byDateAndAlphabetical(),
@@ -31,9 +42,9 @@ export default ((userOpts?: Partial<Options>) => {
     displayClass,
     cfg,
   }: QuartzComponentProps) => {
-    const opts = { ...defaultOptions(cfg), ...userOpts }
-    const pages = localeScopedFiles(cfg, fileData, allFiles)
-      .filter((file) => Boolean(file.filePath) && opts.filter(file))
+    const opts = { ...defaultOptions(), ...userOpts }
+    const pages = localeScopedFiles(cfg as GlobalConfig, fileData, allFiles as ListFile[])
+      .filter((file) => Boolean(file.filePath) && !isLocaleHomeFile(file) && opts.filter(file))
       .sort(opts.sort)
     const limitedPages = opts.limit > 0 ? pages.slice(0, opts.limit) : pages
 
@@ -47,12 +58,12 @@ export default ((userOpts?: Partial<Options>) => {
         <ul class="blog-article-list">
           {limitedPages.map((page) => {
             const date = page.dates ? getDate(page) : undefined
-            const dateText = date ? formatDate(date, currentLocaleTag(cfg, fileData)) : ""
+            const dateText = date ? formatDate(date, currentLocaleTag(cfg as GlobalConfig, fileData)) : ""
 
             return (
               <li>
                 <span class="date">{dateText}</span>
-                <a href={resolveRelative(fileData.slug!, page.slug!)} class="internal">
+                <a href={resolveRelative(fileData.slug as FullSlug, page.slug as FullSlug)} class="internal">
                   {page.frontmatter?.title ?? "Untitled"}
                 </a>
               </li>
