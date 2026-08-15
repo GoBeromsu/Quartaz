@@ -107,7 +107,8 @@ const layout = await loadQuartzLayout({
       header: sharedHeader,
       afterBody: sharedAfterBody,
       left: [],
-      right: [],
+      // Floating TOC on wide viewports; BlogStyles positions and hides it.
+      right: [Component.External("TableOfContents")],
       beforeBody: [
         Component.ConditionalRender({
           component: Component.External("breadcrumbs"),
