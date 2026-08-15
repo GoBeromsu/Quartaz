@@ -209,16 +209,18 @@ html:not([saved-theme="dark"]) body:has(.graph-landing) {
 
 .graph-landing__audio,
 .graph-landing__audio iframe {
-  height: 1px;
-  width: 1px;
+  height: 113px;
+  width: 200px;
 }
 
 .graph-landing__audio {
+  bottom: 0;
   left: 0;
+  opacity: 0.02;
   overflow: hidden;
   pointer-events: none;
   position: absolute;
-  bottom: 0;
+  z-index: 0;
 }
 
 .graph-landing__top-right {

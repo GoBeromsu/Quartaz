@@ -408,7 +408,7 @@ export default (() => {
                 />
               </svg>
             </button>
-            <div class="graph-landing__audio" data-graph-audio-host></div>
+            <div class="graph-landing__audio" data-graph-audio-host aria-hidden="true"></div>
             <div
               class="graph-landing__rail"
               id="graph-landing-rail"

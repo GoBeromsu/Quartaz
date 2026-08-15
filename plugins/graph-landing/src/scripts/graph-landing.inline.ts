@@ -2336,6 +2336,8 @@ function bindGraph(
 interface YoutubePlayer {
   playVideo: () => void
   pauseVideo: () => void
+  mute: () => void
+  unMute: () => void
   setVolume: (volume: number) => void
   getPlayerState: () => number
   destroy: () => void
@@ -2453,8 +2455,8 @@ function createYoutubePlayer(args: {
 }): YoutubePlayer {
   return new args.api.Player(args.host, {
     videoId: AMBIENT_VIDEO_ID,
-    width: "1",
-    height: "1",
+    width: "200",
+    height: "113",
     playerVars: {
       autoplay: 0,
       controls: 0,
@@ -2463,6 +2465,7 @@ function createYoutubePlayer(args: {
       iv_load_policy: 3,
       loop: 1,
       modestbranding: 1,
+      mute: 1,
       origin: window.location.origin,
       playsinline: 1,
       playlist: AMBIENT_VIDEO_ID,
@@ -2494,6 +2497,7 @@ function bindAmbientAudio(root: HTMLElement): void {
   const stopLabel = root.dataset.audioStop ?? "Stop music"
   const playLabel = root.dataset.audioPlay ?? "Play music"
   let player: YoutubePlayer | null = null
+  let playerReady = false
   let cancelFade: (() => void) | null = null
   let wanted = !readAmbientStopped()
   let started = false
@@ -2519,86 +2523,82 @@ function bindAmbientAudio(root: HTMLElement): void {
     player.setVolume(Math.max(0, Math.min(AMBIENT_MAX_VOLUME, volume)))
   }
 
+  const beginPlayback = (readyPlayer: YoutubePlayer): void => {
+    if (!wanted || started) {
+      return
+    }
+    started = true
+    setButton(true)
+    readyPlayer.unMute()
+    applyVolume(0)
+    readyPlayer.playVideo()
+    stopFade()
+    cancelFade = fadeVolume({
+      from: 0,
+      to: AMBIENT_MAX_VOLUME,
+      durationMs: AMBIENT_FADE_MS,
+      apply: applyVolume,
+    })
+  }
+
   const pauseAmbient = (): void => {
     wanted = false
     started = false
     stopFade()
     writeAmbientStopped(true)
     if (player) {
+      player.mute()
       player.pauseVideo()
       applyVolume(0)
     }
     setButton(false)
   }
 
-  const startAmbient = async (): Promise<void> => {
-    if (!wanted || started) {
+  const primePlayer = async (): Promise<void> => {
+    if (player) {
       return
     }
-    started = true
-    setButton(true)
     try {
       const api = await loadYoutubeApi()
-      if (!wanted) {
-        started = false
-        setButton(false)
+      if (player) {
         return
       }
-      if (!player) {
-        player = createYoutubePlayer({
-          api,
-          host,
-          onReady: (readyPlayer) => {
-            if (!wanted) {
-              readyPlayer.pauseVideo()
-              return
-            }
-            readyPlayer.setVolume(0)
-            readyPlayer.playVideo()
-            stopFade()
-            cancelFade = fadeVolume({
-              from: 0,
-              to: AMBIENT_MAX_VOLUME,
-              durationMs: AMBIENT_FADE_MS,
-              apply: applyVolume,
-            })
-          },
-          onEnded: (endedPlayer) => {
-            if (!wanted) {
-              return
-            }
-            endedPlayer.playVideo()
-            applyVolume(AMBIENT_MAX_VOLUME)
-          },
-        })
-        return
-      }
-      player.setVolume(0)
-      player.playVideo()
-      stopFade()
-      cancelFade = fadeVolume({
-        from: 0,
-        to: AMBIENT_MAX_VOLUME,
-        durationMs: AMBIENT_FADE_MS,
-        apply: applyVolume,
+      player = createYoutubePlayer({
+        api,
+        host,
+        onReady: (readyPlayer) => {
+          playerReady = true
+          readyPlayer.mute()
+          applyVolume(0)
+          // Muted start is allowed without a gesture; unmute waits for a tap.
+          readyPlayer.playVideo()
+        },
+        onEnded: (endedPlayer) => {
+          if (!wanted) {
+            return
+          }
+          endedPlayer.playVideo()
+          applyVolume(AMBIENT_MAX_VOLUME)
+        },
       })
     } catch (error) {
-      started = false
-      setButton(false)
       console.error("[graph-landing] ambient audio unavailable", error)
     }
   }
 
-  const onFirstGesture = (event: Event): void => {
+  const unlock = (event: Event): void => {
     const target = event.target
     if (target instanceof Element && target.closest("[data-graph-audio-toggle]")) {
       return
     }
-    root.removeEventListener("pointerdown", onFirstGesture)
-    if (!wanted || prefersReducedMotion() || prefersReducedData()) {
+    if (!wanted || started || prefersReducedData()) {
       return
     }
-    void startAmbient()
+    if (playerReady && player) {
+      beginPlayback(player)
+      return
+    }
+    void primePlayer()
   }
 
   const onToggle = (): void => {
@@ -2608,7 +2608,11 @@ function bindAmbientAudio(root: HTMLElement): void {
     }
     wanted = true
     writeAmbientStopped(false)
-    void startAmbient()
+    if (playerReady && player) {
+      beginPlayback(player)
+      return
+    }
+    void primePlayer()
   }
 
   const onVisibility = (): void => {
@@ -2620,19 +2624,22 @@ function bindAmbientAudio(root: HTMLElement): void {
       player.pauseVideo()
       return
     }
-    if (wanted && player) {
+    if (wanted && started) {
       player.playVideo()
       applyVolume(AMBIENT_MAX_VOLUME)
     }
   }
 
   setButton(wanted)
+  void primePlayer()
   button.addEventListener("click", onToggle)
-  root.addEventListener("pointerdown", onFirstGesture, { once: true })
+  root.addEventListener("pointerdown", unlock, true)
+  root.addEventListener("touchstart", unlock, { capture: true, passive: true })
   document.addEventListener("visibilitychange", onVisibility)
   window.addCleanup(() => {
     button.removeEventListener("click", onToggle)
-    root.removeEventListener("pointerdown", onFirstGesture)
+    root.removeEventListener("pointerdown", unlock, true)
+    root.removeEventListener("touchstart", unlock, true)
     document.removeEventListener("visibilitychange", onVisibility)
     stopFade()
     if (player) {
