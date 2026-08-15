@@ -774,18 +774,16 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches
 }
 
-function hasFinePointer(): boolean {
-  return window.matchMedia("(pointer: fine)").matches
-}
-
 function hasWebGL(): boolean {
   const canvas = document.createElement("canvas")
   const gl = canvas.getContext("webgl") ?? canvas.getContext("experimental-webgl")
   return gl !== null
 }
 
+// Mobile gets the same 3D constellation as desktop (orbit controls handle
+// touch). 2D stays only as the no-WebGL / reduced-motion fallback.
 function shouldUse3D(): boolean {
-  return hasFinePointer() && hasWebGL() && window.innerWidth > 700 && !prefersReducedMotion()
+  return hasWebGL() && !prefersReducedMotion()
 }
 
 function isDarkTheme(): boolean {
