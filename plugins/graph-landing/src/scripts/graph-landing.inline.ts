@@ -1956,7 +1956,7 @@ function bindGraph(
       return
     }
     selectedId = node.id
-    setAutoRotate(false)
+    // Inspect/preview already shows the destination; keep the constellation spinning.
     fillInspect(node)
     refreshAccessors()
     if (options.use3d) {
@@ -2023,6 +2023,8 @@ function bindGraph(
       }
       const moved = (event.clientX - start.x) ** 2 + (event.clientY - start.y) ** 2
       if (moved > 25) {
+        // Orbit drag is intentional camera control; pause idle auto-rotate.
+        setAutoRotate(false)
         return
       }
       window.setTimeout(() => {
@@ -2333,17 +2335,6 @@ async function initGraphLanding(): Promise<void> {
   ;(canvas as HTMLElement & { __graphLanding?: ForceGraphInstance }).__graphLanding = graph
   ;(canvas as HTMLElement & { __graphData?: GraphData }).__graphData = data
   bindGraph(graph, data, theme, { use3d, root, spriteText, bloomPass, three })
-
-  if (use3d && !prefersReducedMotion()) {
-    const stopRotate = (): void => {
-      if (!graph || typeof graph.controls !== "function") {
-        return
-      }
-      graph.controls().autoRotate = false
-    }
-    canvas.addEventListener("pointerdown", stopRotate, { once: true })
-    window.addCleanup(() => canvas.removeEventListener("pointerdown", stopRotate))
-  }
 }
 
 const PREFERRED_LOCALE_STORAGE_KEY = "preferred-locale"
