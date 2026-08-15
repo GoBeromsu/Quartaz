@@ -1,7 +1,9 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml"><url>
-    <loc>https://beomsukoh.com/about</loc>
+    <loc>https://beomsukoh.com/ko/about</loc>
     <lastmod>2026-01-17T15:00:00.000Z</lastmod>
-    
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://beomsukoh.com/ko/about" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://beomsukoh.com/en/about" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://beomsukoh.com/" />
   </url><url>
     <loc>https://beomsukoh.com/ko/2025-retrospective</loc>
     <lastmod>2025-12-31T15:00:00.000Z</lastmod>
@@ -113,6 +115,12 @@
     <xhtml:link rel="alternate" hreflang="en-US" href="https://beomsukoh.com/en/quartz-blog-setup-2025" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://beomsukoh.com/" />
   </url><url>
+    <loc>https://beomsukoh.com/en/about</loc>
+    <lastmod>2026-01-17T15:00:00.000Z</lastmod>
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://beomsukoh.com/ko/about" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://beomsukoh.com/en/about" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://beomsukoh.com/" />
+  </url><url>
     <loc>https://beomsukoh.com/en/agent-driven-development-process</loc>
     <lastmod>2026-04-09T15:00:00.000Z</lastmod>
     <xhtml:link rel="alternate" hreflang="ko-KR" href="https://beomsukoh.com/ko/agent-driven-development-process" />
@@ -180,54 +188,54 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://beomsukoh.com/" />
   </url><url>
     <loc>https://beomsukoh.com/articles/</loc>
-    <lastmod>2026-08-14T20:19:08.666Z</lastmod>
+    <lastmod>2026-08-15T00:48:15.566Z</lastmod>
     
   </url><url>
     <loc>https://beomsukoh.com/inbox/</loc>
-    <lastmod>2026-08-14T20:19:08.666Z</lastmod>
+    <lastmod>2026-08-15T00:48:15.566Z</lastmod>
     
   </url><url>
     <loc>https://beomsukoh.com/tags/artificialintelligence</loc>
-    <lastmod>2026-08-14T20:19:08.666Z</lastmod>
+    <lastmod>2026-08-15T00:48:15.566Z</lastmod>
     
   </url><url>
     <loc>https://beomsukoh.com/tags/softwareengineering</loc>
-    <lastmod>2026-08-14T20:19:08.666Z</lastmod>
+    <lastmod>2026-08-15T00:48:15.566Z</lastmod>
     
   </url><url>
     <loc>https://beomsukoh.com/tags/soundengineering</loc>
-    <lastmod>2026-08-14T20:19:08.666Z</lastmod>
+    <lastmod>2026-08-15T00:48:15.566Z</lastmod>
     
   </url><url>
     <loc>https://beomsukoh.com/tags/writing</loc>
-    <lastmod>2026-08-14T20:19:08.666Z</lastmod>
+    <lastmod>2026-08-15T00:48:15.566Z</lastmod>
     
   </url><url>
     <loc>https://beomsukoh.com/tags/automation</loc>
-    <lastmod>2026-08-14T20:19:08.666Z</lastmod>
+    <lastmod>2026-08-15T00:48:15.566Z</lastmod>
     
   </url><url>
     <loc>https://beomsukoh.com/tags/n8n</loc>
-    <lastmod>2026-08-14T20:19:08.666Z</lastmod>
+    <lastmod>2026-08-15T00:48:15.566Z</lastmod>
     
   </url><url>
     <loc>https://beomsukoh.com/tags/upstage</loc>
-    <lastmod>2026-08-14T20:19:08.666Z</lastmod>
+    <lastmod>2026-08-15T00:48:15.566Z</lastmod>
     
   </url><url>
     <loc>https://beomsukoh.com/tags/agent-skill</loc>
-    <lastmod>2026-08-14T20:19:08.666Z</lastmod>
+    <lastmod>2026-08-15T00:48:15.566Z</lastmod>
     
   </url><url>
     <loc>https://beomsukoh.com/tags/ai</loc>
-    <lastmod>2026-08-14T20:19:08.666Z</lastmod>
+    <lastmod>2026-08-15T00:48:15.566Z</lastmod>
     
   </url><url>
     <loc>https://beomsukoh.com/tags</loc>
-    <lastmod>2026-08-14T20:19:08.666Z</lastmod>
+    <lastmod>2026-08-15T00:48:15.566Z</lastmod>
     
   </url><url>
     <loc>https://beomsukoh.com/tags/</loc>
-    <lastmod>2026-08-14T20:19:08.666Z</lastmod>
+    <lastmod>2026-08-15T00:48:15.566Z</lastmod>
     
   </url></urlset>
