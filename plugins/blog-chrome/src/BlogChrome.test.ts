@@ -58,11 +58,7 @@ function readBlogConfiguration(): GlobalConfiguration {
   } as GlobalConfiguration
 }
 
-function metadata(
-  config: MultilingualConfiguration,
-  locale: string,
-  permalink: string,
-) {
+function metadata(config: MultilingualConfiguration, locale: string, permalink: string) {
   const localeConfig = config.locales.find((entry) => entry.id === locale)
   if (!localeConfig) {
     assert.fail(`missing locale config for ${locale}`)
@@ -217,5 +213,13 @@ describe("Blog chrome Ataraxia contract", () => {
     const css = componentCss(BlogLanguageSwitcher())
     assert.ok(css.includes("min-height: 44px;"))
     assert.ok(css.includes("min-width: 44px;"))
+    assert.doesNotMatch(css, /flex-basis:\s*100%/)
+  })
+
+  test("keeps header links on one row", () => {
+    const css = componentCss(BlogLinksHeader({ links: {} }))
+    assert.ok(css.includes("flex-wrap: nowrap"))
+    assert.ok(css.includes("white-space: nowrap"))
+    assert.ok(css.includes("min-height: 44px"))
   })
 })

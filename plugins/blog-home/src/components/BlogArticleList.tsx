@@ -58,13 +58,18 @@ export default ((userOpts?: Partial<Options>) => {
         <ul class="blog-article-list">
           {limitedPages.map((page) => {
             const date = page.dates ? getDate(page) : undefined
-            const dateText = date ? formatDate(date, currentLocaleTag(cfg as GlobalConfig, fileData)) : ""
+            const dateText = date
+              ? formatDate(date, currentLocaleTag(cfg as GlobalConfig, fileData))
+              : ""
 
             return (
               <li>
-                <span class="date">{dateText}</span>
-                <a href={resolveRelative(fileData.slug as FullSlug, page.slug as FullSlug)} class="internal">
-                  {page.frontmatter?.title ?? "Untitled"}
+                <a
+                  href={resolveRelative(fileData.slug as FullSlug, page.slug as FullSlug)}
+                  class="internal"
+                >
+                  <span class="date">{dateText}</span>
+                  <span class="title">{page.frontmatter?.title ?? "Untitled"}</span>
                 </a>
               </li>
             )
@@ -96,42 +101,74 @@ export default ((userOpts?: Partial<Options>) => {
 }
 
 .blog-article-list li {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5em;
-  padding: 0.25em 0;
-}
-
-.blog-article-list .date {
-  color: var(--blog-faint);
-  font-variant-numeric: tabular-nums;
-  min-width: 11em;
+  padding: 0;
 }
 
 .blog-article-list a.internal {
   background-color: transparent;
   color: var(--blog-ink);
   font-weight: 400;
-  padding: 0;
+  align-items: baseline;
+  display: flex;
+  gap: 0.5em;
+  padding: 0.25em 0;
   text-decoration: none;
+  touch-action: manipulation;
+}
+
+.blog-article-list .date {
+  color: var(--blog-faint);
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+  min-width: 11em;
+}
+
+.blog-article-list .title {
+  min-width: 0;
 }
 
 .blog-article-list a:hover {
+  color: var(--blog-ink);
+  text-decoration: none;
+}
+
+.blog-article-list a:hover .title {
   color: var(--blog-accent);
   text-decoration: underline;
   text-underline-offset: 0.16em;
 }
 
-@media (max-width: 430px) {
-  .blog-article-list li {
-    align-items: start;
-    display: grid;
-    gap: 0.35rem;
-    grid-template-columns: minmax(6.5rem, auto) 1fr;
+.blog-article-list a:focus-visible {
+  outline: 2px solid var(--blog-accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 800px) {
+  .blog-article-list li + li {
+    border-top: 1px solid var(--blog-border);
+  }
+
+  .blog-article-list a.internal {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-height: 44px;
+    padding: 0.85rem 0;
   }
 
   .blog-article-list .date {
+    font-size: 0.8rem;
+    line-height: 1.3;
     min-width: 0;
+    order: 2;
+  }
+
+  .blog-article-list .title {
+    font-size: 1rem;
+    line-height: 1.4;
+    order: 1;
+    overflow-wrap: anywhere;
+    word-break: keep-all;
   }
 }
 `

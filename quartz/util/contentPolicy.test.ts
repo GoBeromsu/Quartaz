@@ -1,5 +1,5 @@
 import assert from "node:assert/strict"
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { spawnSync } from "node:child_process"
@@ -131,6 +131,27 @@ describe("content sync and attachment policy", () => {
 
     assert.equal(result.status, 0, result.stderr)
     assert.match(result.stdout, /Ataraxia\/40\. Digital Garden\/\.deploy-staging/)
+  })
+
+  test("watch-content keeps Writing index pages when sync deletes extras", () => {
+    const sourceRoot = tempContentRoot()
+    const contentRoot = tempContentRoot()
+    mkdirSync(join(contentRoot, "en"), { recursive: true })
+    writeFileSync(join(sourceRoot, "keep.md"), sourceMarkdown())
+    writeFileSync(join(contentRoot, "writing.md"), "---\ntitle: Writing\n---\n")
+    writeFileSync(join(contentRoot, "en", "writing.md"), "---\ntitle: Writing\n---\n")
+    writeFileSync(join(contentRoot, "stale.md"), "gone\n")
+
+    const result = runNode(watchScript, ["--once"], {
+      BLOG_SYNC_SOURCE_DIR: sourceRoot,
+      BLOG_SYNC_DEST_DIR: contentRoot,
+    })
+
+    assert.equal(result.status, 0, result.stderr)
+    assert.equal(existsSync(join(contentRoot, "writing.md")), true)
+    assert.equal(existsSync(join(contentRoot, "en", "writing.md")), true)
+    assert.equal(existsSync(join(contentRoot, "keep.md")), true)
+    assert.equal(existsSync(join(contentRoot, "stale.md")), false)
   })
 
   test("watch-content one-shot mode exits nonzero when sync fails", () => {

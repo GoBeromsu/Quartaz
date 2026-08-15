@@ -39,8 +39,9 @@ function sync() {
   console.log("\n[sync] Syncing content...")
   try {
     checkContentPolicy(SOURCE_DIR, DEST_DIR)
+    // Writing index pages live in this repo; do not let --delete remove them.
     execSync(
-      `rsync -av --delete --exclude='.obsidian' --exclude='.DS_Store' --exclude='_attachments' "${SOURCE_DIR}/" "${DEST_DIR}"`,
+      `rsync -av --delete --exclude='.obsidian' --exclude='.DS_Store' --exclude='_attachments' --exclude='/writing.md' --exclude='/en/writing.md' "${SOURCE_DIR}/" "${DEST_DIR}"`,
       { stdio: "inherit" },
     )
     checkContentPolicy(DEST_DIR)
