@@ -6,12 +6,7 @@ import type {
 import { classNames } from "@quartz-community/utils/lang"
 import { resolveRelative, type FullSlug } from "@quartz-community/utils/path"
 import { byDateAndAlphabetical, formatDate, getDate } from "../dates"
-import {
-  currentLocaleTag,
-  isLocaleHomeFile,
-  localeScopedFiles,
-  type GlobalConfig,
-} from "../locale"
+import { currentLocaleTag, isLocaleHomeFile, localeScopedFiles, type GlobalConfig } from "../locale"
 
 interface Options {
   title: string
@@ -46,13 +41,18 @@ export default ((userOpts?: Partial<Options>) => {
         <ul class="blog-article-list">
           {pages.map((page) => {
             const date = page.dates ? getDate(page) : undefined
-            const dateText = date ? formatDate(date, currentLocaleTag(cfg as GlobalConfig, fileData)) : ""
+            const dateText = date
+              ? formatDate(date, currentLocaleTag(cfg as GlobalConfig, fileData))
+              : ""
 
             return (
               <li>
-                <span class="date">{dateText}</span>
-                <a href={resolveRelative(fileData.slug as FullSlug, page.slug as FullSlug)} class="internal">
-                  {page.frontmatter?.title ?? "Untitled"}
+                <a
+                  href={resolveRelative(fileData.slug as FullSlug, page.slug as FullSlug)}
+                  class="internal"
+                >
+                  <span class="date">{dateText}</span>
+                  <span class="title">{page.frontmatter?.title ?? "Untitled"}</span>
                 </a>
               </li>
             )

@@ -28,25 +28,47 @@ export default ((opts?: Options) => {
 
   BlogLinksHeader.css = `
 .blog-links-header {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem;
   align-items: center;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 1.5rem;
 }
 
 .blog-links-header a {
+  align-items: center;
   color: var(--blog-ink);
+  display: inline-flex;
   font-weight: 400;
+  min-height: 44px;
   text-decoration: none;
+  touch-action: manipulation;
+  white-space: nowrap;
 }
 
 .blog-links-header a:hover {
   color: var(--blog-accent);
 }
 
+.blog-links-header a:focus-visible {
+  outline: 2px solid var(--blog-accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 800px) {
+  .blog-links-header {
+    gap: 0.65rem;
+  }
+
+  .blog-links-header a {
+    font-size: 12px;
+    height: 40px;
+    min-height: 40px;
+  }
+}
+
 @media (max-width: 430px) {
   .blog-links-header {
-    gap: 0.85rem;
+    gap: 0.5rem;
   }
 }
 `

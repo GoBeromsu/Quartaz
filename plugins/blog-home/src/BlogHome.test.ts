@@ -60,11 +60,7 @@ function readBlogConfiguration(): GlobalConfiguration {
   } as GlobalConfiguration
 }
 
-function metadata(
-  config: MultilingualConfiguration,
-  locale: string,
-  permalink: string,
-) {
+function metadata(config: MultilingualConfiguration, locale: string, permalink: string) {
   const localeConfig = config.locales.find((entry) => entry.id === locale)
   if (!localeConfig) {
     assert.fail(`missing locale config for ${locale}`)
@@ -244,6 +240,20 @@ describe("Blog home locale-aware listings", () => {
 })
 
 describe("Blog home Ataraxia contract", () => {
+  test("stacks article rows on mobile instead of clamping titles", () => {
+    const css = componentCss(BlogArticleList())
+    const mobileListMarkers = [
+      "@media (max-width: 800px)",
+      "flex-direction: column",
+      "min-height: 44px",
+      "word-break: keep-all",
+    ] as const
+
+    assertIncludesAll(css, mobileListMarkers)
+    assert.doesNotMatch(css, /line-clamp/)
+    assert.doesNotMatch(css, /grid-template-columns: minmax\(6\.5rem/)
+  })
+
   test("keeps homepage listing components observable", () => {
     const css = [BlogArticleList(), BlogLatest(), BlogAllTags()].map(componentCss).join("\n")
     const existingMarkers = [
@@ -353,6 +363,7 @@ describe("BlogStyles Ataraxia contract", () => {
     assert.ok(css.includes('body[data-slug="index"]'))
     assert.ok(css.includes('body[data-slug$="/index"]'))
     assert.ok(css.includes(".center.full-width > hr"))
+    assert.ok(css.includes(".page-listing"))
     assert.doesNotMatch(
       css,
       /\\.page\\[data-frame="full-width"\\] \\.page-header \\{[^}]*border-bottom/s,

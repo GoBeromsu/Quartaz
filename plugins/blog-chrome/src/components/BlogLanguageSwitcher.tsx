@@ -69,7 +69,8 @@ export default (() => {
       return null
     }
 
-    const currentLocale = currentLocaleId(cfg as GlobalConfig, fileData) ?? multilingual.sourceLocale
+    const currentLocale =
+      currentLocaleId(cfg as GlobalConfig, fileData) ?? multilingual.sourceLocale
     const otherLocale = multilingual.locales.find((locale) => locale.id !== currentLocale)
     if (!otherLocale) {
       return null
@@ -119,6 +120,7 @@ export default (() => {
   min-width: 44px;
   padding: 0 0.35rem;
   text-decoration: none;
+  touch-action: manipulation;
   white-space: nowrap;
 }
 
@@ -131,10 +133,14 @@ export default (() => {
   outline-offset: 2px;
 }
 
-@media (max-width: 640px) {
-  .blog-language-switcher {
-    flex-basis: 100%;
-    order: 5;
+@media (max-width: 800px) {
+  .blog-language-switcher a {
+    font-size: 12px;
+    height: 40px;
+    justify-content: center;
+    min-height: 40px;
+    min-width: 0;
+    padding: 0;
   }
 }
 `
