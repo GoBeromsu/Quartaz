@@ -494,7 +494,8 @@ article,
 .markdown-preview-view {
   color: var(--blog-text);
   font-size: 16px;
-  line-height: 1.5;
+  /* Korean prose needs more leading than the Minimal default. */
+  line-height: 1.7;
 }
 
 article :is(p, ul, ol, blockquote, pre, table, .callout),
@@ -636,6 +637,27 @@ article .block-language-mermaid,
 .page[data-frame="full-width"] .page-header {
   margin-bottom: 2rem;
   padding: 2rem 0;
+}
+
+/* Floating TOC: fixed beside the 40rem column, only when it fits. */
+.page[data-frame="full-width"] > #quartz-body .sidebar.right {
+  display: none;
+}
+
+@media (min-width: 1280px) {
+  .page[data-frame="full-width"] > #quartz-body .sidebar.right {
+    display: block;
+    left: calc(50% + (var(--blog-content-width) / 2) + 2.5rem);
+    max-height: calc(100vh - 12rem);
+    overflow-y: auto;
+    position: fixed;
+    top: 8.5rem;
+    width: 15rem;
+  }
+
+  .page[data-frame="full-width"] .sidebar.right .toc {
+    font-size: 0.85rem;
+  }
 }
 
 .page-header .page-title {

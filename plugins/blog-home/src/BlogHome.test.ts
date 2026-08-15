@@ -290,10 +290,21 @@ describe("BlogStyles Ataraxia contract", () => {
       "--blog-wide-width: min(88vw, 50rem);",
       "--blog-paragraph-spacing: 1.75rem;",
       "font-size: 16px;",
-      "line-height: 1.5;",
+      "line-height: 1.7;",
     ] as const
 
     assertIncludesAll(css, readingMarkers)
+  })
+
+  test("floats the TOC panel beside the article on wide viewports", () => {
+    const css = componentCss(BlogStyles())
+    const tocMarkers = [
+      '.page[data-frame="full-width"] > #quartz-body .sidebar.right',
+      "position: fixed;",
+      "@media (min-width: 1280px)",
+    ] as const
+
+    assertIncludesAll(css, tocMarkers)
   })
 
   test("keeps Ataraxia accent tokens", () => {
