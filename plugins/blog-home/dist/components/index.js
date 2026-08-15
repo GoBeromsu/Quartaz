@@ -1,9 +1,9 @@
-// node_modules/@quartz-community/utils/dist/lang.js
+// ../../../../plugins/blog-home/node_modules/@quartz-community/utils/dist/lang.js
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
-// node_modules/@quartz-community/utils/dist/path.js
+// ../../../../plugins/blog-home/node_modules/@quartz-community/utils/dist/path.js
 function simplifySlug(fp) {
   const res = stripSlashes(trimSuffix(fp, "index"), true);
   return res.length === 0 ? "/" : res;
@@ -105,14 +105,16 @@ function isLocaleHomeSlug(slug2) {
   }
   return slug2 === "index" || slug2.endsWith("/index");
 }
+var UTILITY_TRANSLATION_KEYS = /* @__PURE__ */ new Set(["home", "graph", "writing"]);
 function isLocaleHomeFile(file) {
   if (isLocaleHomeSlug(slugString(file))) {
     return true;
   }
-  if (file.frontmatter?.translationKey === "home") {
+  const frontmatterKey = file.frontmatter?.translationKey;
+  if (typeof frontmatterKey === "string" && UTILITY_TRANSLATION_KEYS.has(frontmatterKey)) {
     return true;
   }
-  return isTranslationMetadata(file.multilingual) && file.multilingual.translationKey === "home";
+  return isTranslationMetadata(file.multilingual) && UTILITY_TRANSLATION_KEYS.has(file.multilingual.translationKey);
 }
 function localeFromSlug(cfg, slug2) {
   const multilingual = cfg.multilingual;
@@ -212,7 +214,7 @@ l = { __e: function(n2, l2, u3, t2) {
   throw n2;
 } }, "function" == typeof Promise ? Promise.prototype.then.bind(Promise.resolve()) : setTimeout, Math.random().toString(8);
 
-// node_modules/preact/jsx-runtime/dist/jsxRuntime.mjs
+// ../../../../plugins/blog-home/node_modules/preact/jsx-runtime/dist/jsxRuntime.mjs
 var f2 = 0;
 function u2(e2, t2, n2, o2, i2, u3) {
   t2 || (t2 = {});

@@ -14,5 +14,3 @@ permalink: index
 tags: []
 title: Beomsu
 ---
-
-여기는 Beomsu의 디지털 가든입니다.

@@ -67,16 +67,22 @@ export function isLocaleHomeSlug(slug?: string): boolean {
   return slug === "index" || slug.endsWith("/index")
 }
 
+const UTILITY_TRANSLATION_KEYS = new Set(["home", "graph", "writing"])
+
 export function isLocaleHomeFile(file: LocaleFileData): boolean {
   if (isLocaleHomeSlug(slugString(file))) {
     return true
   }
 
-  if (file.frontmatter?.translationKey === "home") {
+  const frontmatterKey = file.frontmatter?.translationKey
+  if (typeof frontmatterKey === "string" && UTILITY_TRANSLATION_KEYS.has(frontmatterKey)) {
     return true
   }
 
-  return isTranslationMetadata(file.multilingual) && file.multilingual.translationKey === "home"
+  return (
+    isTranslationMetadata(file.multilingual) &&
+    UTILITY_TRANSLATION_KEYS.has(file.multilingual.translationKey)
+  )
 }
 
 function localeFromSlug(cfg: GlobalConfig, slug: string | undefined): string | undefined {

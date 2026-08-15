@@ -343,7 +343,7 @@ function isTagPage(slug: string): boolean {
 
 function isUtilityNote(entry: ContentEntry): boolean {
   const key = entry.multilingual?.translationKey
-  if (key === "home" || key === "graph" || key === "about") {
+  if (key === "home" || key === "graph" || key === "about" || key === "writing") {
     return true
   }
   const slug = entry.slug
