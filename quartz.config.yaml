@@ -129,6 +129,11 @@ plugins:
   - source: github:quartz-community/table-of-contents
     enabled: true
     order: 50
+    layout:
+      position: right
+      priority: 30
+      condition: has-toc
+      display: desktop-only
   - source: github:quartz-community/crawl-links
     enabled: true
     options:
@@ -198,7 +203,6 @@ layout:
       template: full-width
       positions:
         left: []
-        right: []
     folder:
       template: full-width
       positions:

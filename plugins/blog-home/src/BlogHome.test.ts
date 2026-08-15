@@ -312,15 +312,10 @@ describe("BlogStyles Ataraxia contract", () => {
     assertIncludesAll(css, readingMarkers)
   })
 
-  test("floats the TOC panel beside the article on wide viewports", () => {
+  test("does not float a custom TOC over the article column", () => {
     const css = componentCss(BlogStyles())
-    const tocMarkers = [
-      '.page[data-frame="full-width"] > #quartz-body .sidebar.right',
-      "position: fixed;",
-      "@media (min-width: 1280px)",
-    ] as const
-
-    assertIncludesAll(css, tocMarkers)
+    assert.doesNotMatch(css, /position:\s*fixed/)
+    assert.ok(!css.includes("sidebar.right"))
   })
 
   test("keeps Ataraxia accent tokens", () => {
