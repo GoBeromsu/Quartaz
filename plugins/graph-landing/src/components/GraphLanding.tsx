@@ -28,8 +28,7 @@ interface OverlayCopy {
   relayout: string
   notes: string
   tags: string
-  mentions: string
-  previewMention: string
+  links: string
   countsTemplate: string
   lensAll: string
   lensTag: string
@@ -45,6 +44,7 @@ interface OverlayCopy {
   previewHint: string
   previewTagTemplate: string
   inspectOpen: string
+  inspectOpenExternal: string
   inspectConnected: string
   inspectClose: string
   inspectEmpty: string
@@ -69,8 +69,7 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
       relayout: "다시 정렬",
       notes: "노트",
       tags: "태그",
-      mentions: "언급",
-      previewMention: "아직 공개되지 않은 언급",
+      links: "링크",
       countsTemplate: "{n} 노드 · {m} 엣지",
       lensAll: "전체",
       lensTag: "태그",
@@ -86,6 +85,7 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
       previewHint: "클릭하면 연결이 열립니다",
       previewTagTemplate: "{n}개 노트",
       inspectOpen: "본문 읽기",
+      inspectOpenExternal: "열기",
       inspectConnected: "연결",
       inspectClose: "닫기",
       inspectEmpty: "직접 연결된 별이 없습니다",
@@ -102,8 +102,7 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
     relayout: "Re-layout",
     notes: "Notes",
     tags: "Tags",
-    mentions: "Mentions",
-    previewMention: "Mentioned, not published yet",
+    links: "Links",
     countsTemplate: "{n} nodes · {m} edges",
     lensAll: "All",
     lensTag: "Tags",
@@ -119,6 +118,7 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
     previewHint: "Click to inspect connections",
     previewTagTemplate: "{n} notes",
     inspectOpen: "Read note",
+    inspectOpenExternal: "Open",
     inspectConnected: "Connected",
     inspectClose: "Close",
     inspectEmpty: "No direct connections",
@@ -228,6 +228,7 @@ export default (() => {
     return (
       <div
         class="graph-landing"
+        data-rail-open="false"
         data-locale={localeId}
         data-source-locale={sourceLocale}
         data-locale-prefixes={localePrefixes}
@@ -235,11 +236,11 @@ export default (() => {
         data-folder-root-label={copy.folderRoot}
         data-legend-notes={copy.notes}
         data-legend-tags={copy.tags}
-        data-legend-mentions={copy.mentions}
+        data-legend-links={copy.links}
         data-legend-folders={copy.folders}
         data-preview-tag-template={copy.previewTagTemplate}
-        data-preview-mention={copy.previewMention}
         data-inspect-read={copy.inspectOpen}
+        data-inspect-open-external={copy.inspectOpenExternal}
         data-inspect-connected={copy.inspectConnected}
         data-inspect-empty={copy.inspectEmpty}
       >
@@ -344,6 +345,7 @@ export default (() => {
             <div
               class="graph-landing__rail"
               id="graph-landing-rail"
+              aria-hidden="true"
               {...{ onwheel: "event.stopPropagation()" }}
             >
               <div class="graph-landing__title-block graph-landing__title-block--rail">
@@ -472,8 +474,8 @@ export default (() => {
                     {copy.tags}
                   </span>
                   <span class="graph-landing__legend-item">
-                    <span class="graph-landing__dot graph-landing__dot--mention" aria-hidden="true"></span>
-                    {copy.mentions}
+                    <span class="graph-landing__dot graph-landing__dot--external" aria-hidden="true"></span>
+                    {copy.links}
                   </span>
                 </div>
               </div>

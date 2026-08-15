@@ -3,6 +3,7 @@ interface ContentEntry {
   title: string
   links: string[]
   tags: string[]
+  externalLinks: string[]
   content: string
   multilingual?: {
     translationKey?: string
@@ -13,12 +14,13 @@ interface ContentEntry {
 interface GraphNode {
   id: string
   name: string
-  type: "note" | "tag" | "mention"
+  type: "note" | "tag" | "external"
   val: number
   degree: number
   isHub: boolean
   tag: string
   slug: string
+  url: string
   folder: string
   tags: string[]
   dominantTag: string
@@ -32,7 +34,7 @@ interface GraphNode {
   vz?: number
 }
 
-type LinkKind = "wikilink" | "tag" | "cooc" | "folder"
+type LinkKind = "wikilink" | "tag" | "cooc" | "folder" | "external"
 
 interface GraphLink {
   source: string | GraphNode
@@ -51,6 +53,7 @@ interface ThemeTokens {
   accent: string
   tertiary: string
   gray: string
+  external: string
   font: string
 }
 
@@ -220,7 +223,7 @@ const AUTO_ROTATE_SPEED = 0.18
 const HUB_VAL_SCALE = 1.4
 const TAG_LENS_VAL_SCALE = 1.25
 const FOCUS_TAG_VAL_SCALE = 1.15
-const MENTION_VAL_SCALE = 0.55
+const EXTERNAL_VAL_SCALE = 0.55
 const INITIAL_CAMERA: Vec3 = { x: 330, y: 235, z: 565 }
 const INITIAL_LOOK_AT: Vec3 = { x: 0, y: 0, z: 0 }
 // Alex grammar: small bright cores with tight bloom halos, hairline edges.
@@ -239,13 +242,14 @@ const BLOOM_THRESHOLD = 0.28
 const LINK_RADIUS: Record<LinkKind, number> = {
   wikilink: 0.3,
   tag: 0.22,
+  external: 0.28,
   cooc: 0.16,
   folder: 0.16,
 }
 const EDGE_INK_DARK = "#a8b0c2"
 const CLOUD_NOTE = { min: 80, max: 200 }
 const CLOUD_HUB = { min: 40, max: 110 }
-const CLOUD_MENTION = { min: 160, max: 280 }
+const CLOUD_EXTERNAL = { min: 160, max: 280 }
 const CLOUD_TAG = { min: 90, max: 170 }
 const EXCERPT_LENGTH = 220
 const FOLDER_RING_SKIP = 2
@@ -295,6 +299,7 @@ function parseContentIndex(raw: Record<string, unknown>): ContentEntry[] {
       title: typeof record.title === "string" ? record.title : slug,
       links: asStringArray(record.links),
       tags: asStringArray(record.tags),
+      externalLinks: asStringArray(record.externalLinks),
       content: typeof record.content === "string" ? record.content : "",
       multilingual,
     })
@@ -435,8 +440,49 @@ function shouldSkipLinkTarget(target: string): boolean {
   return normalizeLinkKey(trimmed).length === 0
 }
 
-function mentionDisplayName(target: string): string {
-  return lastPathSegment(target).replace(/-/g, " ")
+function siteHostsFromLocation(): string[] {
+  const host = window.location.hostname.toLowerCase().replace(/^www\./, "")
+  const hosts = [host, `www.${host}`, "beomsukoh.com", "www.beomsukoh.com"]
+  return [...new Set(hosts.filter((item) => item.length > 0))]
+}
+
+function normalizeExternalUrl(href: string): string | null {
+  try {
+    const parsed = new URL(href, window.location.origin)
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return null
+    }
+    parsed.hash = ""
+    parsed.hostname = parsed.hostname.toLowerCase()
+    if (parsed.pathname !== "/" && parsed.pathname.endsWith("/")) {
+      parsed.pathname = parsed.pathname.replace(/\/+$/, "")
+    }
+    return parsed.toString()
+  } catch {
+    return null
+  }
+}
+
+function isOutsideSiteUrl(href: string, siteHosts: readonly string[]): boolean {
+  const normalized = normalizeExternalUrl(href)
+  if (normalized === null) {
+    return false
+  }
+  return !siteHosts.includes(new URL(normalized).hostname)
+}
+
+function externalNodeId(url: string): string {
+  return `external:${url}`
+}
+
+function externalDisplayName(url: string, hostCounts: Map<string, number>): string {
+  const parsed = new URL(url)
+  const host = parsed.hostname.replace(/^www\./, "")
+  const path = parsed.pathname
+  if ((hostCounts.get(host) ?? 0) > 1 && path.length > 1) {
+    return `${host}${path}`
+  }
+  return host
 }
 
 function buildNoteResolvers(notes: ContentEntry[]): {
@@ -508,7 +554,6 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
 
   const noteIds = new Set(notes.map((note) => note.slug))
   const resolvers = buildNoteResolvers(notes)
-  const mentionNames = new Map<string, string>()
   const degree = new Map<string, number>()
   const links: GraphLink[] = []
   const seenEdges = new Set<string>()
@@ -524,7 +569,7 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
 
   // Faint layers (cooc/folder) render as web texture but must not inflate
   // node degrees, hub ranking, or sizes: those stay driven by real
-  // wikilinks and tag membership.
+  // wikilinks, external sites, and tag membership.
   const addEdge = (source: string, target: string, kind: LinkKind, countsDegree: boolean): void => {
     const key = edgeKey(source, target, kind)
     if (seenEdges.has(key)) {
@@ -544,18 +589,28 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
         continue
       }
       const resolved = resolvePublishedNote(target, noteIds, resolvers)
-      if (resolved !== null) {
-        if (resolved !== note.slug) {
-          addEdge(note.slug, resolved, "wikilink", true)
-        }
+      if (resolved !== null && resolved !== note.slug) {
+        addEdge(note.slug, resolved, "wikilink", true)
+      }
+    }
+  }
+
+  const siteHosts = siteHostsFromLocation()
+  const externalUrls = new Set<string>()
+  for (const note of notes) {
+    for (const href of note.externalLinks) {
+      const normalized = normalizeExternalUrl(href)
+      if (normalized === null || !isOutsideSiteUrl(normalized, siteHosts)) {
         continue
       }
-      const mentionId = `mention:${normalizeLinkKey(target)}`
-      if (!mentionNames.has(mentionId)) {
-        mentionNames.set(mentionId, mentionDisplayName(target))
-      }
-      addEdge(note.slug, mentionId, "wikilink", true)
+      externalUrls.add(normalized)
+      addEdge(note.slug, externalNodeId(normalized), "external", true)
     }
+  }
+  const hostCounts = new Map<string, number>()
+  for (const url of externalUrls) {
+    const host = new URL(url).hostname.replace(/^www\./, "")
+    hostCounts.set(host, (hostCounts.get(host) ?? 0) + 1)
   }
 
   const tagIds = new Set<string>()
@@ -660,6 +715,7 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
       isHub,
       tag: "",
       slug: note.slug,
+      url: "",
       folder: folderOf(note.slug),
       tags: note.tags,
       dominantTag: dominantTagOf(note.tags, tagCounts),
@@ -671,22 +727,24 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
     }
   })
 
-  for (const [mentionId, name] of mentionNames) {
-    const cloud = cloudPoint(mentionId, CLOUD_MENTION.min, CLOUD_MENTION.max)
+  for (const url of externalUrls) {
+    const id = externalNodeId(url)
+    const cloud = cloudPoint(id, CLOUD_EXTERNAL.min, CLOUD_EXTERNAL.max)
     nodes.push({
-      id: mentionId,
-      name,
-      type: "mention",
-      val: nodeVal(mentionId) * MENTION_VAL_SCALE,
-      degree: degree.get(mentionId) ?? 0,
+      id,
+      name: externalDisplayName(url, hostCounts),
+      type: "external",
+      val: nodeVal(id) * EXTERNAL_VAL_SCALE,
+      degree: degree.get(id) ?? 0,
       isHub: false,
       tag: "",
       slug: "",
+      url,
       folder: "",
       tags: [],
       dominantTag: "",
-      excerpt: "",
-      phase: hashPhase(mentionId),
+      excerpt: url,
+      phase: hashPhase(id),
       x: cloud.x,
       y: cloud.y,
       z: cloud.z,
@@ -705,6 +763,7 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
       isHub: false,
       tag,
       slug: `tags/${tag}`,
+      url: "",
       folder: "tag",
       tags: [tag],
       dominantTag: tag,
@@ -729,7 +788,7 @@ function neighborMap(links: GraphLink[]): Map<string, Set<string>> {
   for (const link of links) {
     // Hover highlighting follows real relationships only; faint texture
     // layers (cooc/folder) do not make two nodes "neighbors".
-    if (link.kind !== "wikilink" && link.kind !== "tag") {
+    if (link.kind !== "wikilink" && link.kind !== "tag" && link.kind !== "external") {
       continue
     }
     const source = linkEndpointId(link.source)
@@ -766,6 +825,7 @@ function readTheme(): ThemeTokens {
     accent: resolveCssColor("--secondary", "#a52142"),
     tertiary: resolveCssColor("--tertiary", "#c75b75"),
     gray: resolveCssColor("--gray", "#737373"),
+    external: resolveCssColor("--graph-external", "#3f6f8c"),
     font: font.length > 0 ? font : "Inter, sans-serif",
   }
 }
@@ -899,6 +959,13 @@ function navigateToSlug(slug: string): void {
   const url = resolveNoteUrl(slug)
   // Full assign is the reliable path: Quartz SPA only hijacks <a> clicks.
   window.location.assign(url.toString())
+}
+
+function openExternalUrl(url: string): void {
+  if (url.length === 0) {
+    throw new Error("graph-landing: cannot open an empty external url")
+  }
+  window.open(url, "_blank", "noopener,noreferrer")
 }
 
 function factoryFromModule(mod: ForceGraphFactory): (el: HTMLElement) => ForceGraphInstance {
@@ -1162,8 +1229,8 @@ function bindGraph(
   }
 
   const baseNodeColor = (node: GraphNode): string => {
-    if (node.type === "mention") {
-      return theme.current.gray
+    if (node.type === "external") {
+      return theme.current.external
     }
     if (state.lens === "tag") {
       if (node.type === "tag") {
@@ -1196,8 +1263,8 @@ function bindGraph(
       return withAlpha(color, DIM_ALPHA)
     }
     if (isDarkTheme()) {
-      if (node.type === "mention") {
-        return color
+      if (node.type === "external") {
+        return mixRgb(theme.current.external, "#ffffff", 0.18)
       }
       // Alex grammar: near-white star cores, accent-family tags, warmer hubs.
       if (node.type === "tag") {
@@ -1216,6 +1283,9 @@ function bindGraph(
     const dark = isDarkTheme()
     if (kind === "wikilink") {
       return dark ? 0.34 : 0.34
+    }
+    if (kind === "external") {
+      return dark ? 0.3 : 0.3
     }
     if (kind === "tag") {
       return dark ? 0.22 : 0.2
@@ -1467,7 +1537,7 @@ function bindGraph(
       if (focus !== null && (source === focus || target === focus)) {
         return 0.7 * scale
       }
-      if (link.kind === "wikilink") {
+      if (link.kind === "wikilink" || link.kind === "external") {
         return 0.5 * scale
       }
       return (link.kind === "tag" ? 0.35 : 0.25) * scale
@@ -1501,11 +1571,11 @@ function bindGraph(
     }
     const notesLabel = options.root.dataset.legendNotes ?? "Notes"
     const tagsLabel = options.root.dataset.legendTags ?? "Tags"
-    const mentionsLabel = options.root.dataset.legendMentions ?? "Mentions"
+    const linksLabel = options.root.dataset.legendLinks ?? "Links"
     legend.replaceChildren(
       makeItem(theme.current.ink, notesLabel),
       makeItem(theme.current.tertiary, tagsLabel),
-      makeItem(theme.current.gray, mentionsLabel),
+      makeItem(theme.current.external, linksLabel),
     )
   }
 
@@ -1678,17 +1748,16 @@ function bindGraph(
     window.clearTimeout(previewHideTimer)
     const notesLabel = options.root.dataset.legendNotes ?? "Notes"
     const tagsLabel = options.root.dataset.legendTags ?? "Tags"
-    const mentionsLabel = options.root.dataset.legendMentions ?? "Mentions"
+    const linksLabel = options.root.dataset.legendLinks ?? "Links"
     if (node.type === "tag") {
       const template = options.root.dataset.previewTagTemplate ?? "{n} notes"
       previewChip.textContent = tagsLabel
       previewTitle.textContent = `#${node.tag}`
       previewExcerpt.textContent = template.replace("{n}", String(node.degree))
-    } else if (node.type === "mention") {
-      previewChip.textContent = mentionsLabel
+    } else if (node.type === "external") {
+      previewChip.textContent = linksLabel
       previewTitle.textContent = node.name
-      previewExcerpt.textContent =
-        options.root.dataset.previewMention ?? "Mentioned, not published yet"
+      previewExcerpt.textContent = node.url
     } else {
       previewChip.textContent = notesLabel
       previewTitle.textContent = node.name
@@ -1830,8 +1899,12 @@ function bindGraph(
     options.root.dataset.railOpen = open ? "true" : "false"
     const toggle = options.root.querySelector("[data-graph-rail-toggle]")
     const scrim = options.root.querySelector("[data-graph-rail-scrim]")
+    const rail = options.root.querySelector("#graph-landing-rail")
     if (toggle instanceof HTMLButtonElement) {
       toggle.setAttribute("aria-expanded", open ? "true" : "false")
+    }
+    if (rail instanceof HTMLElement) {
+      rail.setAttribute("aria-hidden", open ? "false" : "true")
     }
     if (scrim instanceof HTMLElement) {
       scrim.hidden = !open
@@ -1870,7 +1943,7 @@ function bindGraph(
     }
     const notesLabel = options.root.dataset.legendNotes ?? "Notes"
     const tagsLabel = options.root.dataset.legendTags ?? "Tags"
-    const mentionsLabel = options.root.dataset.legendMentions ?? "Mentions"
+    const linksLabel = options.root.dataset.legendLinks ?? "Links"
     const emptyLabel = options.root.dataset.inspectEmpty ?? "No direct connections"
     if (node.type === "tag") {
       inspectChip.textContent = tagsLabel
@@ -1879,11 +1952,10 @@ function bindGraph(
         "{n}",
         String(node.degree),
       )
-    } else if (node.type === "mention") {
-      inspectChip.textContent = mentionsLabel
+    } else if (node.type === "external") {
+      inspectChip.textContent = linksLabel
       inspectTitle.textContent = node.name
-      inspectExcerpt.textContent =
-        options.root.dataset.previewMention ?? "Mentioned, not published yet"
+      inspectExcerpt.textContent = node.url
     } else {
       inspectChip.textContent = notesLabel
       inspectTitle.textContent = node.name
@@ -1911,7 +1983,7 @@ function bindGraph(
           button.className = "graph-landing__inspect-link"
           button.dataset.graphInspectId = neighbor.id
           const kind =
-            neighbor.type === "tag" ? tagsLabel : neighbor.type === "mention" ? mentionsLabel : notesLabel
+            neighbor.type === "tag" ? tagsLabel : neighbor.type === "external" ? linksLabel : notesLabel
           const kindEl = document.createElement("span")
           kindEl.textContent = kind
           const nameEl = document.createElement("strong")
@@ -1926,9 +1998,20 @@ function bindGraph(
       if (node.type === "note" && node.slug.length > 0) {
         inspectOpen.hidden = false
         inspectOpen.href = resolveNoteUrl(node.slug).toString()
+        inspectOpen.textContent = options.root.dataset.inspectRead ?? "Read note"
+        inspectOpen.removeAttribute("target")
+        inspectOpen.removeAttribute("rel")
+      } else if (node.type === "external" && node.url.length > 0) {
+        inspectOpen.hidden = false
+        inspectOpen.href = node.url
+        inspectOpen.textContent = options.root.dataset.inspectOpenExternal ?? "Open"
+        inspectOpen.target = "_blank"
+        inspectOpen.rel = "noopener noreferrer"
       } else {
         inspectOpen.hidden = true
         inspectOpen.removeAttribute("href")
+        inspectOpen.removeAttribute("target")
+        inspectOpen.removeAttribute("rel")
       }
     }
     inspectEl.hidden = false
@@ -1953,6 +2036,10 @@ function bindGraph(
   const selectNode = (node: GraphNode): void => {
     if (selectedId === node.id && node.type === "note" && node.slug.length > 0) {
       navigateToSlug(node.slug)
+      return
+    }
+    if (selectedId === node.id && node.type === "external" && node.url.length > 0) {
+      openExternalUrl(node.url)
       return
     }
     selectedId = node.id
@@ -1982,6 +2069,7 @@ function bindGraph(
   if (typeof graph.onBackgroundClick === "function") {
     graph.onBackgroundClick(() => {
       clearSelection()
+      setRailOpen(false)
     })
   }
 
@@ -2088,7 +2176,11 @@ function bindGraph(
       return
     }
     if (target.closest("[data-graph-rail-toggle]")) {
-      setRailOpen(options.root.dataset.railOpen !== "true")
+      const nextOpen = options.root.dataset.railOpen !== "true"
+      if (nextOpen) {
+        clearSelection()
+      }
+      setRailOpen(nextOpen)
       return
     }
     if (target.closest("[data-graph-rail-scrim]")) {
@@ -2202,6 +2294,7 @@ function bindGraph(
     window.addCleanup(() => spreadInput.removeEventListener("input", onSpread))
   }
 
+  setRailOpen(false)
   options.root.addEventListener("click", onRootClick)
   window.addCleanup(() => options.root.removeEventListener("click", onRootClick))
 
