@@ -315,25 +315,6 @@ export default (() => {
                   </svg>
                 </button>
               </nav>
-              <button
-                type="button"
-                class="graph-landing__rail-toggle"
-                data-graph-rail-toggle
-                aria-expanded="false"
-                aria-controls="graph-landing-rail"
-                aria-label={copy.controls}
-                title={copy.controls}
-              >
-                <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" focusable="false">
-                  <path
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.6"
-                    stroke-linecap="round"
-                    d="M3 5h12M3 9h12M3 13h12"
-                  />
-                </svg>
-              </button>
             </div>
             <button
               type="button"
@@ -342,6 +323,25 @@ export default (() => {
               aria-label={copy.inspectClose}
               hidden
             ></button>
+            <button
+              type="button"
+              class="graph-landing__rail-toggle"
+              data-graph-rail-toggle
+              aria-expanded="false"
+              aria-controls="graph-landing-rail"
+              aria-label={copy.controls}
+              title={copy.controls}
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" focusable="false">
+                <path
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  d="M3 5h12M3 9h12M3 13h12"
+                />
+              </svg>
+            </button>
             <div
               class="graph-landing__rail"
               id="graph-landing-rail"
