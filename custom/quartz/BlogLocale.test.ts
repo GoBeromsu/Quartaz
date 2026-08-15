@@ -162,6 +162,40 @@ describe("Blog locale-aware UI", () => {
     assert.doesNotMatch(articleList, /젊음이 아름답다/)
   })
 
+  test("falls back to the Obsidian source post when the other locale has no translation", () => {
+    const cfg = readBlogConfiguration()
+    const multilingual = cfg.multilingual
+    if (!multilingual) {
+      assert.fail("test config should include multilingual settings")
+    }
+    const sourceOnly = metadata(multilingual, "ko", "after-korea")
+    const props = componentProps(cfg, "en/index" as FullSlug)
+    props.allFiles = [
+      ...props.allFiles,
+      {
+        slug: "articles/after-returning-to-korea" as FullSlug,
+        filePath: "Articles/한국에 돌아온 후 근황.md",
+        frontmatter: { title: "한국에 돌아온 후 근황", tags: ["life"] },
+        dates: { created: new Date("2026-03-01T00:00:00.000Z") },
+        defaultDateType: "created",
+      },
+      {
+        slug: sourceOnly.localizedPath.replace(/^\//, "") as FullSlug,
+        filePath: "ko-after-korea.md",
+        frontmatter: { title: "번역 없는 원문", tags: ["life"] },
+        dates: { created: new Date("2026-04-01T00:00:00.000Z") },
+        defaultDateType: "created",
+        multilingual: sourceOnly,
+      },
+    ]
+    const articleList = renderToString(BlogArticleList({ title: "Writing", limit: 0 })(props))
+
+    assert.match(articleList, /Youth Is Beautiful/)
+    assert.match(articleList, /한국에 돌아온 후 근황/)
+    assert.match(articleList, /번역 없는 원문/)
+    assert.doesNotMatch(articleList, /젊음이 아름답다/)
+  })
+
   test("localizes header links for locale-prefixed pages", () => {
     const cfg = readBlogConfiguration()
     const props = componentProps(cfg, "ko/index" as FullSlug)

@@ -70,14 +70,82 @@ export function pageMatchesLocale(
   return localeFromSlug(cfg, slugString(fileData)) === locale
 }
 
+function fileLocale(
+  cfg: GlobalConfiguration,
+  file: QuartzPluginData,
+): MultilingualLocale | undefined {
+  if (isTranslationMetadata(file.multilingual)) {
+    return file.multilingual.locale
+  }
+
+  return localeFromSlug(cfg, slugString(file))
+}
+
+function noteIdentity(cfg: GlobalConfiguration, file: QuartzPluginData): string {
+  if (isTranslationMetadata(file.multilingual)) {
+    return `key:${file.multilingual.translationKey}`
+  }
+
+  const slug = slugString(file)
+  const multilingual = cfg.multilingual
+  if (!multilingual || !slug) {
+    return `slug:${slug ?? ""}`
+  }
+
+  try {
+    const stripped = stripLocalePrefix(multilingual, slug)
+    return `slug:${stripped.permalink}`
+  } catch (error) {
+    if (error instanceof MultilingualContractError) {
+      return `slug:${slug}`
+    }
+    throw error
+  }
+}
+
+function pickPreferredFile(
+  cfg: GlobalConfiguration,
+  members: readonly QuartzPluginData[],
+  locale: MultilingualLocale | undefined,
+): QuartzPluginData | undefined {
+  const sourceLocale = cfg.multilingual?.sourceLocale
+  return (
+    members.find((file) => fileLocale(cfg, file) === locale) ??
+    members.find((file) => fileLocale(cfg, file) === sourceLocale) ??
+    members.find((file) => fileLocale(cfg, file) === undefined) ??
+    members[0]
+  )
+}
+
+// One row per Obsidian note: current-locale translation if it exists,
+// otherwise the source-locale original. Unpaired garden notes appear
+// on every locale instead of being hidden behind a missing translation.
 export function localeScopedFiles(
   cfg: GlobalConfiguration,
   currentFile: QuartzPluginData,
   allFiles: readonly QuartzPluginData[],
 ): readonly QuartzPluginData[] {
-  const locale = currentLocaleId(cfg, currentFile)
+  if (!cfg.multilingual?.enabled) {
+    return allFiles
+  }
 
-  return allFiles.filter((file) => pageMatchesLocale(cfg, file, locale))
+  const locale = currentLocaleId(cfg, currentFile)
+  const groups = new Map<string, QuartzPluginData[]>()
+  for (const file of allFiles) {
+    const identity = noteIdentity(cfg, file)
+    const members = groups.get(identity) ?? []
+    members.push(file)
+    groups.set(identity, members)
+  }
+
+  const preferred: QuartzPluginData[] = []
+  for (const members of groups.values()) {
+    const picked = pickPreferredFile(cfg, members, locale)
+    if (picked) {
+      preferred.push(picked)
+    }
+  }
+  return preferred
 }
 
 export function localizeInternalHref(

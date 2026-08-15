@@ -350,17 +350,47 @@ function isUtilityNote(entry: ContentEntry): boolean {
   return slug === "about" || slug.endsWith("/about") || slug.startsWith("inbox/")
 }
 
-function noteBelongsToLocale(entry: ContentEntry, context: LocaleContext): boolean {
+function stripKnownPrefix(
+  slug: string,
+  prefixes: readonly string[],
+): { locale: string | undefined; permalink: string } {
+  for (const prefix of prefixes) {
+    if (slug === prefix) {
+      return { locale: prefix, permalink: "" }
+    }
+    if (slug.startsWith(`${prefix}/`)) {
+      return { locale: prefix, permalink: slug.slice(prefix.length + 1) }
+    }
+  }
+  return { locale: undefined, permalink: slug }
+}
+
+function entryLocale(entry: ContentEntry, prefixes: readonly string[]): string | undefined {
   if (entry.multilingual?.locale) {
-    return entry.multilingual.locale === context.localeId
+    return entry.multilingual.locale
   }
-  if (entry.slug.startsWith(`${context.localeId}/`)) {
-    return true
+  return stripKnownPrefix(entry.slug, prefixes).locale
+}
+
+function noteIdentity(entry: ContentEntry, prefixes: readonly string[]): string {
+  if (entry.multilingual?.translationKey) {
+    return `key:${entry.multilingual.translationKey}`
   }
-  const hasKnownPrefix = context.prefixes.some((prefix) => entry.slug.startsWith(`${prefix}/`))
-  // Unprefixed leftovers (articles/ without a translationKey) belong only
-  // to the source locale. Prefixed siblings of the other language stay out.
-  return !hasKnownPrefix && context.localeId === context.sourceLocale
+  return `slug:${stripKnownPrefix(entry.slug, prefixes).permalink}`
+}
+
+function pickPreferredNote(
+  members: readonly ContentEntry[],
+  context: LocaleContext,
+): ContentEntry {
+  const picked =
+    members.find((entry) => entryLocale(entry, context.prefixes) === context.localeId) ??
+    members.find((entry) => entryLocale(entry, context.prefixes) === context.sourceLocale) ??
+    members.find((entry) => entryLocale(entry, context.prefixes) === undefined)
+  if (!picked) {
+    throw new Error("graph-landing: locale group had no notes to pick")
+  }
+  return picked
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -461,24 +491,20 @@ function dominantTagOf(noteTags: string[], tagCounts: Map<string, number>): stri
 }
 
 function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphData {
-  const localeNotes = entries.filter((entry) => {
-    if (isFolderIndex(entry.slug) || isTagPage(entry.slug) || isUtilityNote(entry)) {
-      return false
-    }
-    return noteBelongsToLocale(entry, context)
+  const candidates = entries.filter((entry) => {
+    return !isFolderIndex(entry.slug) && !isTagPage(entry.slug) && !isUtilityNote(entry)
   })
-  const seenKeys = new Set<string>()
-  const notes = localeNotes.filter((entry) => {
-    const key = entry.multilingual?.translationKey
-    if (!key) {
-      return true
-    }
-    if (seenKeys.has(key)) {
-      return false
-    }
-    seenKeys.add(key)
-    return true
-  })
+  const groups = new Map<string, ContentEntry[]>()
+  for (const entry of candidates) {
+    const identity = noteIdentity(entry, context.prefixes)
+    const members = groups.get(identity) ?? []
+    members.push(entry)
+    groups.set(identity, members)
+  }
+  const notes: ContentEntry[] = []
+  for (const members of groups.values()) {
+    notes.push(pickPreferredNote(members, context))
+  }
 
   const noteIds = new Set(notes.map((note) => note.slug))
   const resolvers = buildNoteResolvers(notes)
