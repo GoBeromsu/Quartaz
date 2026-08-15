@@ -343,7 +343,11 @@ function isTagPage(slug: string): boolean {
 
 function isUtilityNote(entry: ContentEntry): boolean {
   const key = entry.multilingual?.translationKey
-  return key === "home" || key === "graph"
+  if (key === "home" || key === "graph" || key === "about") {
+    return true
+  }
+  const slug = entry.slug
+  return slug === "about" || slug.endsWith("/about") || slug.startsWith("inbox/")
 }
 
 function noteBelongsToLocale(entry: ContentEntry, context: LocaleContext): boolean {
@@ -354,6 +358,8 @@ function noteBelongsToLocale(entry: ContentEntry, context: LocaleContext): boole
     return true
   }
   const hasKnownPrefix = context.prefixes.some((prefix) => entry.slug.startsWith(`${prefix}/`))
+  // Unprefixed leftovers (articles/ without a translationKey) belong only
+  // to the source locale. Prefixed siblings of the other language stay out.
   return !hasKnownPrefix && context.localeId === context.sourceLocale
 }
 
@@ -455,11 +461,23 @@ function dominantTagOf(noteTags: string[], tagCounts: Map<string, number>): stri
 }
 
 function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphData {
-  const notes = entries.filter((entry) => {
+  const localeNotes = entries.filter((entry) => {
     if (isFolderIndex(entry.slug) || isTagPage(entry.slug) || isUtilityNote(entry)) {
       return false
     }
     return noteBelongsToLocale(entry, context)
+  })
+  const seenKeys = new Set<string>()
+  const notes = localeNotes.filter((entry) => {
+    const key = entry.multilingual?.translationKey
+    if (!key) {
+      return true
+    }
+    if (seenKeys.has(key)) {
+      return false
+    }
+    seenKeys.add(key)
+    return true
   })
 
   const noteIds = new Set(notes.map((note) => note.slug))

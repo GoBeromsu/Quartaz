@@ -129,6 +129,14 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
   }
 }
 
+function localeHomeHref(localeId: string): string {
+  return `/${localeId}/`
+}
+
+function localePageHref(localeId: string, permalink: string): string {
+  return `/${localeId}/${permalink}`
+}
+
 function slugToAbsHref(slug: string): string {
   const isIndex = slug === "index" || slug.endsWith("/index")
   const withoutIndex = isIndex ? slug.replace(/\/?index$/, "") : slug
@@ -210,6 +218,11 @@ export default (() => {
     const copy = overlayCopyForLocale(localeId)
     const translationKey = multilingual?.translationKey ?? "graph"
     const localeToggle = localeToggleLink(allFiles, locales, localeId, translationKey)
+    const homeSlug = findLocaleSlug(allFiles, "home", localeId)
+    const aboutSlug = findLocaleSlug(allFiles, "about", localeId)
+    const homeHref = homeSlug ? slugToAbsHref(homeSlug) : localeHomeHref(localeId)
+    const aboutHref = aboutSlug ? slugToAbsHref(aboutSlug) : localePageHref(localeId, "about")
+    const writingHref = homeHref
 
     return (
       <div
@@ -236,16 +249,15 @@ export default (() => {
           <div class="graph-landing__overlay">
             <div class="graph-landing__chrome">
               <div class="graph-landing__title-block graph-landing__title-block--chrome">
-                <p class="graph-landing__title">Beomsu Koh</p>
-                <p class="graph-landing__counts" data-graph-counts>
-                  {copy.countsTemplate.replace("{n}", "–").replace("{m}", "–")}
-                </p>
+                <a class="graph-landing__title" href={homeHref}>
+                  Beomsu Koh
+                </a>
               </div>
               <nav class="graph-landing__top-right" aria-label="Site">
-                <a class="graph-landing__nav-link" href="/articles/">
+                <a class="graph-landing__nav-link" href={writingHref}>
                   {copy.articles}
                 </a>
-                <a class="graph-landing__nav-link" href="/about">
+                <a class="graph-landing__nav-link" href={aboutHref}>
                   {copy.about}
                 </a>
                 {localeToggle ? (

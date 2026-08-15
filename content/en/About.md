@@ -1,14 +1,13 @@
 ---
-aliases:
-  - about
+aliases: []
 date_created: 2026-01-18
 date_modified: 2026-03-08
 translationKey: about
-locale: ko
+locale: en
 sourceLocale: ko
 sourcePath: content/About.md
 sourceHash: sha256:beomsu-about-2026-03-08
-translationStatus: source
+translationStatus: translated
 permalink: about
 tags: []
 title: About
