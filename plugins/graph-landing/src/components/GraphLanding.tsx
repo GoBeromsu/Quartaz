@@ -354,9 +354,10 @@ export default (() => {
               type="button"
               class="graph-landing__audio-toggle"
               data-graph-audio-toggle
-              aria-pressed="false"
-              aria-label={copy.audioPlay}
-              title={copy.audioPlay}
+              data-playing="true"
+              aria-pressed="true"
+              aria-label={copy.audioStop}
+              title={copy.audioStop}
             >
               <svg
                 class="graph-landing__icon graph-landing__icon--audio-on"

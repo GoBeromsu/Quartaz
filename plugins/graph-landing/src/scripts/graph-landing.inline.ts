@@ -2592,7 +2592,7 @@ function bindAmbientAudio(root: HTMLElement): void {
   }
 
   const onToggle = (): void => {
-    if (wanted) {
+    if (wanted && started) {
       pauseAmbient()
       return
     }
@@ -2616,7 +2616,7 @@ function bindAmbientAudio(root: HTMLElement): void {
     }
   }
 
-  setButton(false)
+  setButton(wanted)
   button.addEventListener("click", onToggle)
   root.addEventListener("pointerdown", onFirstGesture, { once: true })
   document.addEventListener("visibilitychange", onVisibility)
