@@ -1,7 +1,12 @@
 html:has(.graph-landing),
 body:has(.graph-landing) {
+  --graph-external: #3f6f8c;
   height: 100dvh;
   overflow: hidden;
+}
+
+html[saved-theme="dark"]:has(.graph-landing) {
+  --graph-external: #8fb6c8;
 }
 
 .page:has(.graph-landing) > #quartz-body {
@@ -70,7 +75,7 @@ body:has(.graph-landing) {
 }
 
 .graph-landing__rail {
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(16px);
   background: color-mix(in srgb, var(--light) 78%, transparent);
   border: 1px solid var(--lightgray);
   border-radius: 14px;
@@ -80,17 +85,32 @@ body:has(.graph-landing) {
   flex-direction: column;
   gap: 8px;
   left: 16px;
-  max-height: calc(100dvh - 32px);
+  max-height: calc(100dvh - 88px);
   max-width: 248px;
+  opacity: 0;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 14px 14px 12px;
-  pointer-events: auto;
-  touch-action: pan-y;
+  pointer-events: none;
   position: absolute;
-  top: 16px;
+  top: 64px;
+  touch-action: pan-y;
+  transform: translateX(calc(-100% - 20px));
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease,
+    visibility 0.22s ease;
+  visibility: hidden;
   width: 248px;
+  z-index: 4;
+}
+
+.graph-landing[data-rail-open="true"] .graph-landing__rail {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+  visibility: visible;
 }
 
 .graph-landing__rail > * {
@@ -101,7 +121,7 @@ body:has(.graph-landing) {
   align-items: center;
   display: flex;
   gap: 8px;
-  justify-content: flex-end;
+  justify-content: flex-start;
   left: 0;
   padding: 1.25rem 1.5rem;
   pointer-events: none;
@@ -112,12 +132,36 @@ body:has(.graph-landing) {
 }
 
 .graph-landing__title-block--chrome {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  pointer-events: auto;
+}
+
+.graph-landing__scrim {
   display: none;
 }
 
-.graph-landing__rail-toggle,
-.graph-landing__scrim {
-  display: none;
+.graph-landing__rail-toggle {
+  align-items: center;
+  background: color-mix(in srgb, var(--light) 78%, transparent);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--lightgray);
+  border-radius: 10px;
+  color: var(--dark);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 40px;
+  justify-content: center;
+  order: -1;
+  pointer-events: auto;
+  width: 40px;
+}
+
+.graph-landing__rail-toggle:focus-visible {
+  outline: 2px solid var(--secondary);
+  outline-offset: 2px;
 }
 
 .graph-landing__top-right {
@@ -448,8 +492,8 @@ a.graph-landing__title:focus-visible {
   background: var(--tertiary);
 }
 
-.graph-landing__dot--mention {
-  background: var(--gray);
+.graph-landing__dot--external {
+  background: var(--graph-external);
 }
 
 .graph-landing__preview {
@@ -745,12 +789,6 @@ a.graph-landing__title:focus-visible {
     pointer-events: auto;
   }
 
-  .graph-landing__title-block--chrome {
-    display: flex;
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-
   .graph-landing__title-block--rail {
     display: none;
   }
@@ -774,23 +812,10 @@ a.graph-landing__title:focus-visible {
   }
 
   .graph-landing__rail-toggle {
-    align-items: center;
     background: transparent;
     border: 0;
-    border-radius: 8px;
-    color: var(--dark);
-    cursor: pointer;
-    display: inline-flex;
-    flex: 0 0 auto;
     height: 44px;
-    justify-content: center;
-    pointer-events: auto;
     width: 44px;
-  }
-
-  .graph-landing__rail-toggle:focus-visible {
-    outline: 2px solid var(--secondary);
-    outline-offset: 2px;
   }
 
   .graph-landing__scrim {
@@ -814,11 +839,13 @@ a.graph-landing__title:focus-visible {
     left: 0;
     max-height: min(58dvh, calc(100dvh - 4.5rem));
     max-width: none;
+    opacity: 1;
     padding: 18px 14px max(14px, env(safe-area-inset-bottom));
+    pointer-events: none;
     right: 0;
     top: auto;
     transform: translateY(110%);
-    transition: transform 0.22s ease;
+    visibility: visible;
     width: auto;
     z-index: 4;
   }

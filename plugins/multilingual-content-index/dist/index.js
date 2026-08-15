@@ -1,40 +1,75 @@
-import path from "path"
-import fs from "fs/promises"
+import path from 'path';
+import fs from 'fs/promises';
 
-var __defProp = Object.defineProperty
+var __defProp = Object.defineProperty;
 var __export = (target, all2) => {
-  for (var name in all2) __defProp(target, name, { get: all2[name], enumerable: true })
-}
+  for (var name in all2)
+    __defProp(target, name, { get: all2[name], enumerable: true });
+};
 
-// node_modules/@quartz-community/types/dist/index.js
+// ../../node_modules/@quartz-community/types/dist/index.js
 function joinSegments(...segments) {
-  return segments
-    .filter((segment) => segment.length > 0)
-    .join("/")
-    .replace(/\/+/g, "/")
+  return segments.filter((segment) => segment.length > 0).join("/").replace(/\/+/g, "/");
+}
+"function" == typeof Promise ? Promise.prototype.then.bind(Promise.resolve()) : setTimeout, Math.random().toString(8);
+
+// ../../node_modules/@quartz-community/utils/dist/index.js
+function simplifySlug(fp) {
+  const res = stripSlashes(trimSuffix(fp, "index"));
+  return res.length === 0 ? "/" : res;
+}
+function endsWith(s2, suffix) {
+  return s2 === suffix || s2.endsWith("/" + suffix);
+}
+function trimSuffix(s2, suffix) {
+  if (endsWith(s2, suffix)) {
+    s2 = s2.slice(0, -suffix.length);
+  }
+  return s2;
+}
+function stripSlashes(s2, onlyStripPrefix) {
+  if (s2.startsWith("/")) {
+    s2 = s2.substring(1);
+  }
+  return s2;
+}
+function escapeHTML(unsafe) {
+  return unsafe.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
 }
 
-// node_modules/comma-separated-tokens/index.js
-function stringify(values, options) {
-  const settings = options || {}
-  const input = values[values.length - 1] === "" ? [...values, ""] : values
-  return input
-    .join((settings.padRight ? " " : "") + "," + (settings.padLeft === false ? "" : " "))
-    .trim()
+// ../../node_modules/@quartz-community/utils/dist/sort.js
+function getDate(data) {
+  const defaultDateType = data.defaultDateType;
+  if (!defaultDateType) {
+    return void 0;
+  }
+  const dates = data.dates;
+  return dates?.[defaultDateType];
 }
 
-// node_modules/hast-util-whitespace/lib/index.js
-var re = /[ \t\n\f\r]/g
-function whitespace(thing) {
-  return typeof thing === "object"
-    ? thing.type === "text"
-      ? empty(thing.value)
-      : false
-    : empty(thing)
-}
-function empty(value) {
-  return value.replace(re, "") === ""
-}
+// node_modules/html-void-elements/index.js
+var htmlVoidElements = [
+  "area",
+  "base",
+  "basefont",
+  "bgsound",
+  "br",
+  "col",
+  "command",
+  "embed",
+  "frame",
+  "hr",
+  "image",
+  "img",
+  "input",
+  "keygen",
+  "link",
+  "meta",
+  "param",
+  "source",
+  "track",
+  "wbr"
+];
 
 // node_modules/property-information/lib/util/schema.js
 var Schema = class {
@@ -49,31 +84,31 @@ var Schema = class {
    *   Schema.
    */
   constructor(property, normal, space) {
-    this.normal = normal
-    this.property = property
+    this.normal = normal;
+    this.property = property;
     if (space) {
-      this.space = space
+      this.space = space;
     }
   }
-}
-Schema.prototype.normal = {}
-Schema.prototype.property = {}
-Schema.prototype.space = void 0
+};
+Schema.prototype.normal = {};
+Schema.prototype.property = {};
+Schema.prototype.space = void 0;
 
 // node_modules/property-information/lib/util/merge.js
 function merge(definitions, space) {
-  const property = {}
-  const normal = {}
+  const property = {};
+  const normal = {};
   for (const definition of definitions) {
-    Object.assign(property, definition.property)
-    Object.assign(normal, definition.normal)
+    Object.assign(property, definition.property);
+    Object.assign(normal, definition.normal);
   }
-  return new Schema(property, normal, space)
+  return new Schema(property, normal, space);
 }
 
 // node_modules/property-information/lib/normalize.js
 function normalize(value) {
-  return value.toLowerCase()
+  return value.toLowerCase();
 }
 
 // node_modules/property-information/lib/util/info.js
@@ -87,25 +122,25 @@ var Info = class {
    *   Info.
    */
   constructor(property, attribute) {
-    this.attribute = attribute
-    this.property = property
+    this.attribute = attribute;
+    this.property = property;
   }
-}
-Info.prototype.attribute = ""
-Info.prototype.booleanish = false
-Info.prototype.boolean = false
-Info.prototype.commaOrSpaceSeparated = false
-Info.prototype.commaSeparated = false
-Info.prototype.defined = false
-Info.prototype.mustUseProperty = false
-Info.prototype.number = false
-Info.prototype.overloadedBoolean = false
-Info.prototype.property = ""
-Info.prototype.spaceSeparated = false
-Info.prototype.space = void 0
+};
+Info.prototype.attribute = "";
+Info.prototype.booleanish = false;
+Info.prototype.boolean = false;
+Info.prototype.commaOrSpaceSeparated = false;
+Info.prototype.commaSeparated = false;
+Info.prototype.defined = false;
+Info.prototype.mustUseProperty = false;
+Info.prototype.number = false;
+Info.prototype.overloadedBoolean = false;
+Info.prototype.property = "";
+Info.prototype.spaceSeparated = false;
+Info.prototype.space = void 0;
 
 // node_modules/property-information/lib/util/types.js
-var types_exports = {}
+var types_exports = {};
 __export(types_exports, {
   boolean: () => boolean,
   booleanish: () => booleanish,
@@ -113,24 +148,25 @@ __export(types_exports, {
   commaSeparated: () => commaSeparated,
   number: () => number,
   overloadedBoolean: () => overloadedBoolean,
-  spaceSeparated: () => spaceSeparated,
-})
-var powers = 0
-var boolean = increment()
-var booleanish = increment()
-var overloadedBoolean = increment()
-var number = increment()
-var spaceSeparated = increment()
-var commaSeparated = increment()
-var commaOrSpaceSeparated = increment()
+  spaceSeparated: () => spaceSeparated
+});
+var powers = 0;
+var boolean = increment();
+var booleanish = increment();
+var overloadedBoolean = increment();
+var number = increment();
+var spaceSeparated = increment();
+var commaSeparated = increment();
+var commaOrSpaceSeparated = increment();
 function increment() {
-  return 2 ** ++powers
+  return 2 ** ++powers;
 }
 
 // node_modules/property-information/lib/util/defined-info.js
-var checks =
+var checks = (
   /** @type {ReadonlyArray<keyof typeof types>} */
   Object.keys(types_exports)
+);
 var DefinedInfo = class extends Info {
   /**
    * @constructor
@@ -146,43 +182,43 @@ var DefinedInfo = class extends Info {
    *   Info.
    */
   constructor(property, attribute, mask, space) {
-    let index = -1
-    super(property, attribute)
-    mark(this, "space", space)
+    let index = -1;
+    super(property, attribute);
+    mark(this, "space", space);
     if (typeof mask === "number") {
       while (++index < checks.length) {
-        const check = checks[index]
-        mark(this, checks[index], (mask & types_exports[check]) === types_exports[check])
+        const check = checks[index];
+        mark(this, checks[index], (mask & types_exports[check]) === types_exports[check]);
       }
     }
   }
-}
-DefinedInfo.prototype.defined = true
+};
+DefinedInfo.prototype.defined = true;
 function mark(values, key2, value) {
   if (value) {
-    values[key2] = value
+    values[key2] = value;
   }
 }
 
 // node_modules/property-information/lib/util/create.js
 function create(definition) {
-  const properties = {}
-  const normals = {}
+  const properties = {};
+  const normals = {};
   for (const [property, value] of Object.entries(definition.properties)) {
     const info = new DefinedInfo(
       property,
       definition.transform(definition.attributes || {}, property),
       value,
-      definition.space,
-    )
+      definition.space
+    );
     if (definition.mustUseProperty && definition.mustUseProperty.includes(property)) {
-      info.mustUseProperty = true
+      info.mustUseProperty = true;
     }
-    properties[property] = info
-    normals[normalize(property)] = property
-    normals[normalize(info.attribute)] = property
+    properties[property] = info;
+    normals[normalize(property)] = property;
+    normals[normalize(info.attribute)] = property;
   }
-  return new Schema(properties, normals, definition.space)
+  return new Schema(properties, normals, definition.space);
 }
 
 // node_modules/property-information/lib/aria.js
@@ -236,21 +272,21 @@ var aria = create({
     ariaValueMin: number,
     ariaValueNow: number,
     ariaValueText: null,
-    role: null,
+    role: null
   },
   transform(_2, property) {
-    return property === "role" ? property : "aria-" + property.slice(4).toLowerCase()
-  },
-})
+    return property === "role" ? property : "aria-" + property.slice(4).toLowerCase();
+  }
+});
 
 // node_modules/property-information/lib/util/case-sensitive-transform.js
 function caseSensitiveTransform(attributes, attribute) {
-  return attribute in attributes ? attributes[attribute] : attribute
+  return attribute in attributes ? attributes[attribute] : attribute;
 }
 
 // node_modules/property-information/lib/util/case-insensitive-transform.js
 function caseInsensitiveTransform(attributes, property) {
-  return caseSensitiveTransform(attributes, property.toLowerCase())
+  return caseSensitiveTransform(attributes, property.toLowerCase());
 }
 
 // node_modules/property-information/lib/html.js
@@ -259,7 +295,7 @@ var html = create({
     acceptcharset: "accept-charset",
     classname: "class",
     htmlfor: "for",
-    httpequiv: "http-equiv",
+    httpequiv: "http-equiv"
   },
   mustUseProperty: ["checked", "multiple", "muted", "selected"],
   properties: {
@@ -621,11 +657,11 @@ var html = create({
     property: null,
     results: number,
     security: null,
-    unselectable: null,
+    unselectable: null
   },
   space: "html",
-  transform: caseInsensitiveTransform,
-})
+  transform: caseInsensitiveTransform
+});
 
 // node_modules/property-information/lib/svg.js
 var svg = create({
@@ -803,7 +839,7 @@ var svg = create({
     xHeight: "x-height",
     // These were camelcased in Tiny. Now lowercased in SVG 2
     playbackOrder: "playbackorder",
-    timelineBegin: "timelinebegin",
+    timelineBegin: "timelinebegin"
   },
   properties: {
     about: commaOrSpaceSeparated,
@@ -1185,11 +1221,11 @@ var svg = create({
     y2: null,
     yChannelSelector: null,
     z: null,
-    zoomAndPan: null,
+    zoomAndPan: null
   },
   space: "svg",
-  transform: caseSensitiveTransform,
-})
+  transform: caseSensitiveTransform
+});
 
 // node_modules/property-information/lib/xlink.js
 var xlink = create({
@@ -1200,219 +1236,154 @@ var xlink = create({
     xLinkRole: null,
     xLinkShow: null,
     xLinkTitle: null,
-    xLinkType: null,
+    xLinkType: null
   },
   space: "xlink",
   transform(_2, property) {
-    return "xlink:" + property.slice(5).toLowerCase()
-  },
-})
+    return "xlink:" + property.slice(5).toLowerCase();
+  }
+});
 
 // node_modules/property-information/lib/xmlns.js
 var xmlns = create({
   attributes: { xmlnsxlink: "xmlns:xlink" },
   properties: { xmlnsXLink: null, xmlns: null },
   space: "xmlns",
-  transform: caseInsensitiveTransform,
-})
+  transform: caseInsensitiveTransform
+});
 
 // node_modules/property-information/lib/xml.js
 var xml = create({
   properties: { xmlBase: null, xmlLang: null, xmlSpace: null },
   space: "xml",
   transform(_2, property) {
-    return "xml:" + property.slice(3).toLowerCase()
-  },
-})
+    return "xml:" + property.slice(3).toLowerCase();
+  }
+});
 
 // node_modules/property-information/lib/find.js
-var cap = /[A-Z]/g
-var dash = /-[a-z]/g
-var valid = /^data[-\w.:]+$/i
+var cap = /[A-Z]/g;
+var dash = /-[a-z]/g;
+var valid = /^data[-\w.:]+$/i;
 function find(schema, value) {
-  const normal = normalize(value)
-  let property = value
-  let Type = Info
+  const normal = normalize(value);
+  let property = value;
+  let Type = Info;
   if (normal in schema.normal) {
-    return schema.property[schema.normal[normal]]
+    return schema.property[schema.normal[normal]];
   }
   if (normal.length > 4 && normal.slice(0, 4) === "data" && valid.test(value)) {
     if (value.charAt(4) === "-") {
-      const rest = value.slice(5).replace(dash, camelcase)
-      property = "data" + rest.charAt(0).toUpperCase() + rest.slice(1)
+      const rest = value.slice(5).replace(dash, camelcase);
+      property = "data" + rest.charAt(0).toUpperCase() + rest.slice(1);
     } else {
-      const rest = value.slice(4)
+      const rest = value.slice(4);
       if (!dash.test(rest)) {
-        let dashes = rest.replace(cap, kebab)
+        let dashes = rest.replace(cap, kebab);
         if (dashes.charAt(0) !== "-") {
-          dashes = "-" + dashes
+          dashes = "-" + dashes;
         }
-        value = "data" + dashes
+        value = "data" + dashes;
       }
     }
-    Type = DefinedInfo
+    Type = DefinedInfo;
   }
-  return new Type(property, value)
+  return new Type(property, value);
 }
 function kebab($0) {
-  return "-" + $0.toLowerCase()
+  return "-" + $0.toLowerCase();
 }
 function camelcase($0) {
-  return $0.charAt(1).toUpperCase()
+  return $0.charAt(1).toUpperCase();
 }
 
 // node_modules/property-information/index.js
-var html2 = merge([aria, html, xlink, xmlns, xml], "html")
-var svg2 = merge([aria, svg, xlink, xmlns, xml], "svg")
-
-// node_modules/space-separated-tokens/index.js
-function stringify2(values) {
-  return values.join(" ").trim()
-}
-;("function" == typeof Promise ? Promise.prototype.then.bind(Promise.resolve()) : setTimeout,
-  Math.random().toString(8))
-
-// node_modules/@quartz-community/utils/dist/index.js
-function simplifySlug(fp) {
-  const res = stripSlashes(trimSuffix(fp, "index"))
-  return res.length === 0 ? "/" : res
-}
-function endsWith(s2, suffix) {
-  return s2 === suffix || s2.endsWith("/" + suffix)
-}
-function trimSuffix(s2, suffix) {
-  if (endsWith(s2, suffix)) {
-    s2 = s2.slice(0, -suffix.length)
-  }
-  return s2
-}
-function stripSlashes(s2, onlyStripPrefix) {
-  if (s2.startsWith("/")) {
-    s2 = s2.substring(1)
-  }
-  return s2
-}
-function escapeHTML(unsafe) {
-  return unsafe
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;")
-}
-
-// node_modules/@quartz-community/utils/dist/sort.js
-function getDate(data) {
-  const defaultDateType = data.defaultDateType
-  if (!defaultDateType) {
-    return void 0
-  }
-  const dates = data.dates
-  return dates?.[defaultDateType]
-}
-
-// node_modules/html-void-elements/index.js
-var htmlVoidElements = [
-  "area",
-  "base",
-  "basefont",
-  "bgsound",
-  "br",
-  "col",
-  "command",
-  "embed",
-  "frame",
-  "hr",
-  "image",
-  "img",
-  "input",
-  "keygen",
-  "link",
-  "meta",
-  "param",
-  "source",
-  "track",
-  "wbr",
-]
+var html2 = merge([aria, html, xlink, xmlns, xml], "html");
+var svg2 = merge([aria, svg, xlink, xmlns, xml], "svg");
 
 // node_modules/zwitch/index.js
-var own2 = {}.hasOwnProperty
+var own2 = {}.hasOwnProperty;
 function zwitch(key2, options) {
-  const settings = options || {}
+  const settings = options || {};
   function one2(value, ...parameters) {
-    let fn = one2.invalid
-    const handlers = one2.handlers
+    let fn = one2.invalid;
+    const handlers = one2.handlers;
     if (value && own2.call(value, key2)) {
-      const id = String(value[key2])
-      fn = own2.call(handlers, id) ? handlers[id] : one2.unknown
+      const id = String(value[key2]);
+      fn = own2.call(handlers, id) ? handlers[id] : one2.unknown;
     }
     if (fn) {
-      return fn.call(this, value, ...parameters)
+      return fn.call(this, value, ...parameters);
     }
   }
-  one2.handlers = settings.handlers || {}
-  one2.invalid = settings.invalid
-  one2.unknown = settings.unknown
-  return one2
+  one2.handlers = settings.handlers || {};
+  one2.invalid = settings.invalid;
+  one2.unknown = settings.unknown;
+  return one2;
 }
 
 // node_modules/stringify-entities/lib/core.js
-var defaultSubsetRegex = /["&'<>`]/g
-var surrogatePairsRegex = /[\uD800-\uDBFF][\uDC00-\uDFFF]/g
-var controlCharactersRegex =
+var defaultSubsetRegex = /["&'<>`]/g;
+var surrogatePairsRegex = /[\uD800-\uDBFF][\uDC00-\uDFFF]/g;
+var controlCharactersRegex = (
   // eslint-disable-next-line no-control-regex, unicorn/no-hex-escape
   /[\x01-\t\v\f\x0E-\x1F\x7F\x81\x8D\x8F\x90\x9D\xA0-\uFFFF]/g
-var regexEscapeRegex = /[|\\{}()[\]^$+*?.]/g
-var subsetToRegexCache = /* @__PURE__ */ new WeakMap()
+);
+var regexEscapeRegex = /[|\\{}()[\]^$+*?.]/g;
+var subsetToRegexCache = /* @__PURE__ */ new WeakMap();
 function core(value, options) {
   value = value.replace(
     options.subset ? charactersToExpressionCached(options.subset) : defaultSubsetRegex,
-    basic,
-  )
+    basic
+  );
   if (options.subset || options.escapeOnly) {
-    return value
+    return value;
   }
-  return value.replace(surrogatePairsRegex, surrogate).replace(controlCharactersRegex, basic)
+  return value.replace(surrogatePairsRegex, surrogate).replace(controlCharactersRegex, basic);
   function surrogate(pair, index, all2) {
     return options.format(
       (pair.charCodeAt(0) - 55296) * 1024 + pair.charCodeAt(1) - 56320 + 65536,
       all2.charCodeAt(index + 2),
-      options,
-    )
+      options
+    );
   }
   function basic(character, index, all2) {
-    return options.format(character.charCodeAt(0), all2.charCodeAt(index + 1), options)
+    return options.format(
+      character.charCodeAt(0),
+      all2.charCodeAt(index + 1),
+      options
+    );
   }
 }
 function charactersToExpressionCached(subset) {
-  let cached = subsetToRegexCache.get(subset)
+  let cached = subsetToRegexCache.get(subset);
   if (!cached) {
-    cached = charactersToExpression(subset)
-    subsetToRegexCache.set(subset, cached)
+    cached = charactersToExpression(subset);
+    subsetToRegexCache.set(subset, cached);
   }
-  return cached
+  return cached;
 }
 function charactersToExpression(subset) {
-  const groups = []
-  let index = -1
+  const groups = [];
+  let index = -1;
   while (++index < subset.length) {
-    groups.push(subset[index].replace(regexEscapeRegex, "\\$&"))
+    groups.push(subset[index].replace(regexEscapeRegex, "\\$&"));
   }
-  return new RegExp("(?:" + groups.join("|") + ")", "g")
+  return new RegExp("(?:" + groups.join("|") + ")", "g");
 }
 
 // node_modules/stringify-entities/lib/util/to-hexadecimal.js
-var hexadecimalRegex = /[\dA-Fa-f]/
+var hexadecimalRegex = /[\dA-Fa-f]/;
 function toHexadecimal(code, next, omit) {
-  const value = "&#x" + code.toString(16).toUpperCase()
-  return omit && next && !hexadecimalRegex.test(String.fromCharCode(next)) ? value : value + ";"
+  const value = "&#x" + code.toString(16).toUpperCase();
+  return omit && next && !hexadecimalRegex.test(String.fromCharCode(next)) ? value : value + ";";
 }
 
 // node_modules/stringify-entities/lib/util/to-decimal.js
-var decimalRegex = /\d/
+var decimalRegex = /\d/;
 function toDecimal(code, next, omit) {
-  const value = "&#" + String(code)
-  return omit && next && !decimalRegex.test(String.fromCharCode(next)) ? value : value + ";"
+  const value = "&#" + String(code);
+  return omit && next && !decimalRegex.test(String.fromCharCode(next)) ? value : value + ";";
 }
 
 // node_modules/character-entities-legacy/index.js
@@ -1522,8 +1493,8 @@ var characterEntitiesLegacy = [
   "uuml",
   "yacute",
   "yen",
-  "yuml",
-]
+  "yuml"
+];
 
 // node_modules/character-entities-html4/index.js
 var characterEntitiesHtml4 = {
@@ -1778,139 +1749,160 @@ var characterEntitiesHtml4 = {
   permil: "\u2030",
   lsaquo: "\u2039",
   rsaquo: "\u203A",
-  euro: "\u20AC",
-}
+  euro: "\u20AC"
+};
 
 // node_modules/stringify-entities/lib/constant/dangerous.js
-var dangerous = ["cent", "copy", "divide", "gt", "lt", "not", "para", "times"]
+var dangerous = [
+  "cent",
+  "copy",
+  "divide",
+  "gt",
+  "lt",
+  "not",
+  "para",
+  "times"
+];
 
 // node_modules/stringify-entities/lib/util/to-named.js
-var own3 = {}.hasOwnProperty
-var characters = {}
-var key
+var own3 = {}.hasOwnProperty;
+var characters = {};
+var key;
 for (key in characterEntitiesHtml4) {
   if (own3.call(characterEntitiesHtml4, key)) {
-    characters[characterEntitiesHtml4[key]] = key
+    characters[characterEntitiesHtml4[key]] = key;
   }
 }
-var notAlphanumericRegex = /[^\dA-Za-z]/
+var notAlphanumericRegex = /[^\dA-Za-z]/;
 function toNamed(code, next, omit, attribute) {
-  const character = String.fromCharCode(code)
+  const character = String.fromCharCode(code);
   if (own3.call(characters, character)) {
-    const name = characters[character]
-    const value = "&" + name
-    if (
-      omit &&
-      characterEntitiesLegacy.includes(name) &&
-      !dangerous.includes(name) &&
-      (!attribute || (next && next !== 61 && notAlphanumericRegex.test(String.fromCharCode(next))))
-    ) {
-      return value
+    const name = characters[character];
+    const value = "&" + name;
+    if (omit && characterEntitiesLegacy.includes(name) && !dangerous.includes(name) && (!attribute || next && next !== 61 && notAlphanumericRegex.test(String.fromCharCode(next)))) {
+      return value;
     }
-    return value + ";"
+    return value + ";";
   }
-  return ""
+  return "";
 }
 
 // node_modules/stringify-entities/lib/util/format-smart.js
 function formatSmart(code, next, options) {
-  let numeric = toHexadecimal(code, next, options.omitOptionalSemicolons)
-  let named
+  let numeric = toHexadecimal(code, next, options.omitOptionalSemicolons);
+  let named;
   if (options.useNamedReferences || options.useShortestReferences) {
-    named = toNamed(code, next, options.omitOptionalSemicolons, options.attribute)
+    named = toNamed(
+      code,
+      next,
+      options.omitOptionalSemicolons,
+      options.attribute
+    );
   }
   if ((options.useShortestReferences || !named) && options.useShortestReferences) {
-    const decimal = toDecimal(code, next, options.omitOptionalSemicolons)
+    const decimal = toDecimal(code, next, options.omitOptionalSemicolons);
     if (decimal.length < numeric.length) {
-      numeric = decimal
+      numeric = decimal;
     }
   }
-  return named && (!options.useShortestReferences || named.length < numeric.length)
-    ? named
-    : numeric
+  return named && (!options.useShortestReferences || named.length < numeric.length) ? named : numeric;
 }
 
 // node_modules/stringify-entities/lib/index.js
 function stringifyEntities(value, options) {
-  return core(value, Object.assign({ format: formatSmart }, options))
+  return core(value, Object.assign({ format: formatSmart }, options));
 }
 
 // node_modules/hast-util-to-html/lib/handle/comment.js
-var htmlCommentRegex = /^>|^->|<!--|-->|--!>|<!-$/g
-var bogusCommentEntitySubset = [">"]
-var commentEntitySubset = ["<", ">"]
+var htmlCommentRegex = /^>|^->|<!--|-->|--!>|<!-$/g;
+var bogusCommentEntitySubset = [">"];
+var commentEntitySubset = ["<", ">"];
 function comment(node, _1, _2, state) {
-  return state.settings.bogusComments
-    ? "<?" +
-        stringifyEntities(
-          node.value,
-          Object.assign({}, state.settings.characterReferences, {
-            subset: bogusCommentEntitySubset,
-          }),
-        ) +
-        ">"
-    : "<!--" + node.value.replace(htmlCommentRegex, encode) + "-->"
+  return state.settings.bogusComments ? "<?" + stringifyEntities(
+    node.value,
+    Object.assign({}, state.settings.characterReferences, {
+      subset: bogusCommentEntitySubset
+    })
+  ) + ">" : "<!--" + node.value.replace(htmlCommentRegex, encode) + "-->";
   function encode($0) {
     return stringifyEntities(
       $0,
       Object.assign({}, state.settings.characterReferences, {
-        subset: commentEntitySubset,
-      }),
-    )
+        subset: commentEntitySubset
+      })
+    );
   }
 }
 
 // node_modules/hast-util-to-html/lib/handle/doctype.js
 function doctype(_1, _2, _3, state) {
-  return (
-    "<!" +
-    (state.settings.upperDoctype ? "DOCTYPE" : "doctype") +
-    (state.settings.tightDoctype ? "" : " ") +
-    "html>"
-  )
+  return "<!" + (state.settings.upperDoctype ? "DOCTYPE" : "doctype") + (state.settings.tightDoctype ? "" : " ") + "html>";
 }
 
 // node_modules/ccount/index.js
 function ccount(value, character) {
-  const source = String(value)
+  const source = String(value);
   if (typeof character !== "string") {
-    throw new TypeError("Expected character")
+    throw new TypeError("Expected character");
   }
-  let count = 0
-  let index = source.indexOf(character)
+  let count = 0;
+  let index = source.indexOf(character);
   while (index !== -1) {
-    count++
-    index = source.indexOf(character, index + character.length)
+    count++;
+    index = source.indexOf(character, index + character.length);
   }
-  return count
+  return count;
+}
+
+// node_modules/comma-separated-tokens/index.js
+function stringify(values, options) {
+  const settings = options || {};
+  const input = values[values.length - 1] === "" ? [...values, ""] : values;
+  return input.join(
+    (settings.padRight ? " " : "") + "," + (settings.padLeft === false ? "" : " ")
+  ).trim();
+}
+
+// node_modules/space-separated-tokens/index.js
+function stringify2(values) {
+  return values.join(" ").trim();
+}
+
+// node_modules/hast-util-whitespace/lib/index.js
+var re = /[ \t\n\f\r]/g;
+function whitespace(thing) {
+  return typeof thing === "object" ? thing.type === "text" ? empty(thing.value) : false : empty(thing);
+}
+function empty(value) {
+  return value.replace(re, "") === "";
 }
 
 // node_modules/hast-util-to-html/lib/omission/util/siblings.js
-var siblingAfter = siblings(1)
-var siblingBefore = siblings(-1)
-var emptyChildren = []
+var siblingAfter = siblings(1);
+var siblingBefore = siblings(-1);
+var emptyChildren = [];
 function siblings(increment2) {
-  return sibling
+  return sibling;
   function sibling(parent, index, includeWhitespace) {
-    const siblings2 = parent ? parent.children : emptyChildren
-    let offset = (index || 0) + increment2
-    let next = siblings2[offset]
+    const siblings2 = parent ? parent.children : emptyChildren;
+    let offset = (index || 0) + increment2;
+    let next = siblings2[offset];
     if (!includeWhitespace) {
       while (next && whitespace(next)) {
-        offset += increment2
-        next = siblings2[offset]
+        offset += increment2;
+        next = siblings2[offset];
       }
     }
-    return next
+    return next;
   }
 }
 
 // node_modules/hast-util-to-html/lib/omission/omission.js
-var own4 = {}.hasOwnProperty
+var own4 = {}.hasOwnProperty;
 function omission(handlers) {
-  return omit
+  return omit;
   function omit(node, index, parent) {
-    return own4.call(handlers, node.tagName) && handlers[node.tagName](node, index, parent)
+    return own4.call(handlers, node.tagName) && handlers[node.tagName](node, index, parent);
   }
 }
 
@@ -1934,119 +1926,71 @@ var closing = omission({
   tfoot,
   th: cells,
   thead,
-  tr,
-})
+  tr
+});
 function headOrColgroupOrCaption(_2, index, parent) {
-  const next = siblingAfter(parent, index, true)
-  return (
-    !next ||
-    (next.type !== "comment" && !(next.type === "text" && whitespace(next.value.charAt(0))))
-  )
+  const next = siblingAfter(parent, index, true);
+  return !next || next.type !== "comment" && !(next.type === "text" && whitespace(next.value.charAt(0)));
 }
 function html3(_2, index, parent) {
-  const next = siblingAfter(parent, index)
-  return !next || next.type !== "comment"
+  const next = siblingAfter(parent, index);
+  return !next || next.type !== "comment";
 }
 function body(_2, index, parent) {
-  const next = siblingAfter(parent, index)
-  return !next || next.type !== "comment"
+  const next = siblingAfter(parent, index);
+  return !next || next.type !== "comment";
 }
 function p2(_2, index, parent) {
-  const next = siblingAfter(parent, index)
-  return next
-    ? next.type === "element" &&
-        (next.tagName === "address" ||
-          next.tagName === "article" ||
-          next.tagName === "aside" ||
-          next.tagName === "blockquote" ||
-          next.tagName === "details" ||
-          next.tagName === "div" ||
-          next.tagName === "dl" ||
-          next.tagName === "fieldset" ||
-          next.tagName === "figcaption" ||
-          next.tagName === "figure" ||
-          next.tagName === "footer" ||
-          next.tagName === "form" ||
-          next.tagName === "h1" ||
-          next.tagName === "h2" ||
-          next.tagName === "h3" ||
-          next.tagName === "h4" ||
-          next.tagName === "h5" ||
-          next.tagName === "h6" ||
-          next.tagName === "header" ||
-          next.tagName === "hgroup" ||
-          next.tagName === "hr" ||
-          next.tagName === "main" ||
-          next.tagName === "menu" ||
-          next.tagName === "nav" ||
-          next.tagName === "ol" ||
-          next.tagName === "p" ||
-          next.tagName === "pre" ||
-          next.tagName === "section" ||
-          next.tagName === "table" ||
-          next.tagName === "ul")
-    : !parent || // Confusing parent.
-        !(
-          parent.type === "element" &&
-          (parent.tagName === "a" ||
-            parent.tagName === "audio" ||
-            parent.tagName === "del" ||
-            parent.tagName === "ins" ||
-            parent.tagName === "map" ||
-            parent.tagName === "noscript" ||
-            parent.tagName === "video")
-        )
+  const next = siblingAfter(parent, index);
+  return next ? next.type === "element" && (next.tagName === "address" || next.tagName === "article" || next.tagName === "aside" || next.tagName === "blockquote" || next.tagName === "details" || next.tagName === "div" || next.tagName === "dl" || next.tagName === "fieldset" || next.tagName === "figcaption" || next.tagName === "figure" || next.tagName === "footer" || next.tagName === "form" || next.tagName === "h1" || next.tagName === "h2" || next.tagName === "h3" || next.tagName === "h4" || next.tagName === "h5" || next.tagName === "h6" || next.tagName === "header" || next.tagName === "hgroup" || next.tagName === "hr" || next.tagName === "main" || next.tagName === "menu" || next.tagName === "nav" || next.tagName === "ol" || next.tagName === "p" || next.tagName === "pre" || next.tagName === "section" || next.tagName === "table" || next.tagName === "ul") : !parent || // Confusing parent.
+  !(parent.type === "element" && (parent.tagName === "a" || parent.tagName === "audio" || parent.tagName === "del" || parent.tagName === "ins" || parent.tagName === "map" || parent.tagName === "noscript" || parent.tagName === "video"));
 }
 function li(_2, index, parent) {
-  const next = siblingAfter(parent, index)
-  return !next || (next.type === "element" && next.tagName === "li")
+  const next = siblingAfter(parent, index);
+  return !next || next.type === "element" && next.tagName === "li";
 }
 function dt(_2, index, parent) {
-  const next = siblingAfter(parent, index)
+  const next = siblingAfter(parent, index);
   return Boolean(
-    next && next.type === "element" && (next.tagName === "dt" || next.tagName === "dd"),
-  )
+    next && next.type === "element" && (next.tagName === "dt" || next.tagName === "dd")
+  );
 }
 function dd(_2, index, parent) {
-  const next = siblingAfter(parent, index)
-  return !next || (next.type === "element" && (next.tagName === "dt" || next.tagName === "dd"))
+  const next = siblingAfter(parent, index);
+  return !next || next.type === "element" && (next.tagName === "dt" || next.tagName === "dd");
 }
 function rubyElement(_2, index, parent) {
-  const next = siblingAfter(parent, index)
-  return !next || (next.type === "element" && (next.tagName === "rp" || next.tagName === "rt"))
+  const next = siblingAfter(parent, index);
+  return !next || next.type === "element" && (next.tagName === "rp" || next.tagName === "rt");
 }
 function optgroup(_2, index, parent) {
-  const next = siblingAfter(parent, index)
-  return !next || (next.type === "element" && next.tagName === "optgroup")
+  const next = siblingAfter(parent, index);
+  return !next || next.type === "element" && next.tagName === "optgroup";
 }
 function option(_2, index, parent) {
-  const next = siblingAfter(parent, index)
-  return (
-    !next || (next.type === "element" && (next.tagName === "option" || next.tagName === "optgroup"))
-  )
+  const next = siblingAfter(parent, index);
+  return !next || next.type === "element" && (next.tagName === "option" || next.tagName === "optgroup");
 }
 function thead(_2, index, parent) {
-  const next = siblingAfter(parent, index)
+  const next = siblingAfter(parent, index);
   return Boolean(
-    next && next.type === "element" && (next.tagName === "tbody" || next.tagName === "tfoot"),
-  )
+    next && next.type === "element" && (next.tagName === "tbody" || next.tagName === "tfoot")
+  );
 }
 function tbody(_2, index, parent) {
-  const next = siblingAfter(parent, index)
-  return (
-    !next || (next.type === "element" && (next.tagName === "tbody" || next.tagName === "tfoot"))
-  )
+  const next = siblingAfter(parent, index);
+  return !next || next.type === "element" && (next.tagName === "tbody" || next.tagName === "tfoot");
 }
 function tfoot(_2, index, parent) {
-  return !siblingAfter(parent, index)
+  return !siblingAfter(parent, index);
 }
 function tr(_2, index, parent) {
-  const next = siblingAfter(parent, index)
-  return !next || (next.type === "element" && next.tagName === "tr")
+  const next = siblingAfter(parent, index);
+  return !next || next.type === "element" && next.tagName === "tr";
 }
 function cells(_2, index, parent) {
-  const next = siblingAfter(parent, index)
-  return !next || (next.type === "element" && (next.tagName === "td" || next.tagName === "th"))
+  const next = siblingAfter(parent, index);
+  return !next || next.type === "element" && (next.tagName === "td" || next.tagName === "th");
 }
 
 // node_modules/hast-util-to-html/lib/omission/opening.js
@@ -2055,66 +1999,42 @@ var opening = omission({
   colgroup,
   head,
   html: html4,
-  tbody: tbody2,
-})
+  tbody: tbody2
+});
 function html4(node) {
-  const head2 = siblingAfter(node, -1)
-  return !head2 || head2.type !== "comment"
+  const head2 = siblingAfter(node, -1);
+  return !head2 || head2.type !== "comment";
 }
 function head(node) {
-  const seen = /* @__PURE__ */ new Set()
+  const seen = /* @__PURE__ */ new Set();
   for (const child2 of node.children) {
     if (child2.type === "element" && (child2.tagName === "base" || child2.tagName === "title")) {
-      if (seen.has(child2.tagName)) return false
-      seen.add(child2.tagName)
+      if (seen.has(child2.tagName)) return false;
+      seen.add(child2.tagName);
     }
   }
-  const child = node.children[0]
-  return !child || child.type === "element"
+  const child = node.children[0];
+  return !child || child.type === "element";
 }
 function body2(node) {
-  const head2 = siblingAfter(node, -1, true)
-  return (
-    !head2 ||
-    (head2.type !== "comment" &&
-      !(head2.type === "text" && whitespace(head2.value.charAt(0))) &&
-      !(
-        head2.type === "element" &&
-        (head2.tagName === "meta" ||
-          head2.tagName === "link" ||
-          head2.tagName === "script" ||
-          head2.tagName === "style" ||
-          head2.tagName === "template")
-      ))
-  )
+  const head2 = siblingAfter(node, -1, true);
+  return !head2 || head2.type !== "comment" && !(head2.type === "text" && whitespace(head2.value.charAt(0))) && !(head2.type === "element" && (head2.tagName === "meta" || head2.tagName === "link" || head2.tagName === "script" || head2.tagName === "style" || head2.tagName === "template"));
 }
 function colgroup(node, index, parent) {
-  const previous = siblingBefore(parent, index)
-  const head2 = siblingAfter(node, -1, true)
-  if (
-    parent &&
-    previous &&
-    previous.type === "element" &&
-    previous.tagName === "colgroup" &&
-    closing(previous, parent.children.indexOf(previous), parent)
-  ) {
-    return false
+  const previous = siblingBefore(parent, index);
+  const head2 = siblingAfter(node, -1, true);
+  if (parent && previous && previous.type === "element" && previous.tagName === "colgroup" && closing(previous, parent.children.indexOf(previous), parent)) {
+    return false;
   }
-  return Boolean(head2 && head2.type === "element" && head2.tagName === "col")
+  return Boolean(head2 && head2.type === "element" && head2.tagName === "col");
 }
 function tbody2(node, index, parent) {
-  const previous = siblingBefore(parent, index)
-  const head2 = siblingAfter(node, -1)
-  if (
-    parent &&
-    previous &&
-    previous.type === "element" &&
-    (previous.tagName === "thead" || previous.tagName === "tbody") &&
-    closing(previous, parent.children.indexOf(previous), parent)
-  ) {
-    return false
+  const previous = siblingBefore(parent, index);
+  const head2 = siblingAfter(node, -1);
+  if (parent && previous && previous.type === "element" && (previous.tagName === "thead" || previous.tagName === "tbody") && closing(previous, parent.children.indexOf(previous), parent)) {
+    return false;
   }
-  return Boolean(head2 && head2.type === "element" && head2.tagName === "tr")
+  return Boolean(head2 && head2.type === "element" && head2.tagName === "tr");
 }
 
 // node_modules/hast-util-to-html/lib/handle/element.js
@@ -2122,200 +2042,176 @@ var constants = {
   // See: <https://html.spec.whatwg.org/#attribute-name-state>.
   name: [
     ["	\n\f\r &/=>".split(""), "	\n\f\r \"&'/=>`".split("")],
-    ["\0\t\n\f\r \"&'/<=>`".split(""), "\0\t\n\f\r \"&'/<=>`".split("")],
+    [`\0	
+\f\r "&'/<=>`.split(""), "\0	\n\f\r \"&'/<=>`".split("")]
   ],
   // See: <https://html.spec.whatwg.org/#attribute-value-(unquoted)-state>.
   unquoted: [
     ["	\n\f\r &>".split(""), "\0	\n\f\r \"&'<=>`".split("")],
-    ["\0	\n\f\r \"&'<=>`".split(""), "\0	\n\f\r \"&'<=>`".split("")],
+    ["\0	\n\f\r \"&'<=>`".split(""), "\0	\n\f\r \"&'<=>`".split("")]
   ],
   // See: <https://html.spec.whatwg.org/#attribute-value-(single-quoted)-state>.
   single: [
     ["&'".split(""), "\"&'`".split("")],
-    ["\0&'".split(""), "\0\"&'`".split("")],
+    ["\0&'".split(""), "\0\"&'`".split("")]
   ],
   // See: <https://html.spec.whatwg.org/#attribute-value-(double-quoted)-state>.
   double: [
     ['"&'.split(""), "\"&'`".split("")],
-    ['\0"&'.split(""), "\0\"&'`".split("")],
-  ],
-}
+    ['\0"&'.split(""), "\0\"&'`".split("")]
+  ]
+};
 function element(node, index, parent, state) {
-  const schema = state.schema
-  const omit = schema.space === "svg" ? false : state.settings.omitOptionalTags
-  let selfClosing =
-    schema.space === "svg"
-      ? state.settings.closeEmptyElements
-      : state.settings.voids.includes(node.tagName.toLowerCase())
-  const parts = []
-  let last
+  const schema = state.schema;
+  const omit = schema.space === "svg" ? false : state.settings.omitOptionalTags;
+  let selfClosing = schema.space === "svg" ? state.settings.closeEmptyElements : state.settings.voids.includes(node.tagName.toLowerCase());
+  const parts = [];
+  let last;
   if (schema.space === "html" && node.tagName === "svg") {
-    state.schema = svg2
+    state.schema = svg2;
   }
-  const attributes = serializeAttributes(state, node.properties)
+  const attributes = serializeAttributes(state, node.properties);
   const content = state.all(
-    schema.space === "html" && node.tagName === "template" ? node.content : node,
-  )
-  state.schema = schema
-  if (content) selfClosing = false
+    schema.space === "html" && node.tagName === "template" ? node.content : node
+  );
+  state.schema = schema;
+  if (content) selfClosing = false;
   if (attributes || !omit || !opening(node, index, parent)) {
-    parts.push("<", node.tagName, attributes ? " " + attributes : "")
+    parts.push("<", node.tagName, attributes ? " " + attributes : "");
     if (selfClosing && (schema.space === "svg" || state.settings.closeSelfClosing)) {
-      last = attributes.charAt(attributes.length - 1)
-      if (
-        !state.settings.tightSelfClosing ||
-        last === "/" ||
-        (last && last !== '"' && last !== "'")
-      ) {
-        parts.push(" ")
+      last = attributes.charAt(attributes.length - 1);
+      if (!state.settings.tightSelfClosing || last === "/" || last && last !== '"' && last !== "'") {
+        parts.push(" ");
       }
-      parts.push("/")
+      parts.push("/");
     }
-    parts.push(">")
+    parts.push(">");
   }
-  parts.push(content)
+  parts.push(content);
   if (!selfClosing && (!omit || !closing(node, index, parent))) {
-    parts.push("</" + node.tagName + ">")
+    parts.push("</" + node.tagName + ">");
   }
-  return parts.join("")
+  return parts.join("");
 }
 function serializeAttributes(state, properties) {
-  const values = []
-  let index = -1
-  let key2
+  const values = [];
+  let index = -1;
+  let key2;
   if (properties) {
     for (key2 in properties) {
       if (properties[key2] !== null && properties[key2] !== void 0) {
-        const value = serializeAttribute(state, key2, properties[key2])
-        if (value) values.push(value)
+        const value = serializeAttribute(state, key2, properties[key2]);
+        if (value) values.push(value);
       }
     }
   }
   while (++index < values.length) {
-    const last = state.settings.tightAttributes
-      ? values[index].charAt(values[index].length - 1)
-      : void 0
+    const last = state.settings.tightAttributes ? values[index].charAt(values[index].length - 1) : void 0;
     if (index !== values.length - 1 && last !== '"' && last !== "'") {
-      values[index] += " "
+      values[index] += " ";
     }
   }
-  return values.join("")
+  return values.join("");
 }
 function serializeAttribute(state, key2, value) {
-  const info = find(state.schema, key2)
-  const x2 = state.settings.allowParseErrors && state.schema.space === "html" ? 0 : 1
-  const y2 = state.settings.allowDangerousCharacters ? 0 : 1
-  let quote = state.quote
-  let result
+  const info = find(state.schema, key2);
+  const x2 = state.settings.allowParseErrors && state.schema.space === "html" ? 0 : 1;
+  const y2 = state.settings.allowDangerousCharacters ? 0 : 1;
+  let quote = state.quote;
+  let result;
   if (info.overloadedBoolean && (value === info.attribute || value === "")) {
-    value = true
-  } else if (
-    (info.boolean || info.overloadedBoolean) &&
-    (typeof value !== "string" || value === info.attribute || value === "")
-  ) {
-    value = Boolean(value)
+    value = true;
+  } else if ((info.boolean || info.overloadedBoolean) && (typeof value !== "string" || value === info.attribute || value === "")) {
+    value = Boolean(value);
   }
-  if (
-    value === null ||
-    value === void 0 ||
-    value === false ||
-    (typeof value === "number" && Number.isNaN(value))
-  ) {
-    return ""
+  if (value === null || value === void 0 || value === false || typeof value === "number" && Number.isNaN(value)) {
+    return "";
   }
   const name = stringifyEntities(
     info.attribute,
     Object.assign({}, state.settings.characterReferences, {
       // Always encode without parse errors in non-HTML.
-      subset: constants.name[x2][y2],
-    }),
-  )
-  if (value === true) return name
-  value = Array.isArray(value)
-    ? (info.commaSeparated ? stringify : stringify2)(value, {
-        padLeft: !state.settings.tightCommaSeparatedLists,
-      })
-    : String(value)
-  if (state.settings.collapseEmptyAttributes && !value) return name
+      subset: constants.name[x2][y2]
+    })
+  );
+  if (value === true) return name;
+  value = Array.isArray(value) ? (info.commaSeparated ? stringify : stringify2)(value, {
+    padLeft: !state.settings.tightCommaSeparatedLists
+  }) : String(value);
+  if (state.settings.collapseEmptyAttributes && !value) return name;
   if (state.settings.preferUnquoted) {
     result = stringifyEntities(
       value,
       Object.assign({}, state.settings.characterReferences, {
         attribute: true,
-        subset: constants.unquoted[x2][y2],
-      }),
-    )
+        subset: constants.unquoted[x2][y2]
+      })
+    );
   }
   if (result !== value) {
     if (state.settings.quoteSmart && ccount(value, quote) > ccount(value, state.alternative)) {
-      quote = state.alternative
+      quote = state.alternative;
     }
-    result =
-      quote +
-      stringifyEntities(
-        value,
-        Object.assign({}, state.settings.characterReferences, {
-          // Always encode without parse errors in non-HTML.
-          subset: (quote === "'" ? constants.single : constants.double)[x2][y2],
-          attribute: true,
-        }),
-      ) +
-      quote
+    result = quote + stringifyEntities(
+      value,
+      Object.assign({}, state.settings.characterReferences, {
+        // Always encode without parse errors in non-HTML.
+        subset: (quote === "'" ? constants.single : constants.double)[x2][y2],
+        attribute: true
+      })
+    ) + quote;
   }
-  return name + (result ? "=" + result : result)
+  return name + (result ? "=" + result : result);
 }
 
 // node_modules/hast-util-to-html/lib/handle/text.js
-var textEntitySubset = ["<", "&"]
+var textEntitySubset = ["<", "&"];
 function text(node, _2, parent, state) {
-  return parent &&
-    parent.type === "element" &&
-    (parent.tagName === "script" || parent.tagName === "style")
-    ? node.value
-    : stringifyEntities(
-        node.value,
-        Object.assign({}, state.settings.characterReferences, {
-          subset: textEntitySubset,
-        }),
-      )
+  return parent && parent.type === "element" && (parent.tagName === "script" || parent.tagName === "style") ? node.value : stringifyEntities(
+    node.value,
+    Object.assign({}, state.settings.characterReferences, {
+      subset: textEntitySubset
+    })
+  );
 }
 
 // node_modules/hast-util-to-html/lib/handle/raw.js
 function raw(node, index, parent, state) {
-  return state.settings.allowDangerousHtml ? node.value : text(node, index, parent, state)
+  return state.settings.allowDangerousHtml ? node.value : text(node, index, parent, state);
 }
 
 // node_modules/hast-util-to-html/lib/handle/root.js
 function root(node, _1, _2, state) {
-  return state.all(node)
+  return state.all(node);
 }
 
 // node_modules/hast-util-to-html/lib/handle/index.js
 var handle = zwitch("type", {
   invalid,
   unknown,
-  handlers: { comment, doctype, element, raw, root, text },
-})
+  handlers: { comment, doctype, element, raw, root, text }
+});
 function invalid(node) {
-  throw new Error("Expected node, not `" + node + "`")
+  throw new Error("Expected node, not `" + node + "`");
 }
 function unknown(node_) {
-  const node =
+  const node = (
     /** @type {Nodes} */
     node_
-  throw new Error("Cannot compile unknown node `" + node.type + "`")
+  );
+  throw new Error("Cannot compile unknown node `" + node.type + "`");
 }
 
 // node_modules/hast-util-to-html/lib/index.js
-var emptyOptions = {}
-var emptyCharacterReferences = {}
-var emptyChildren2 = []
+var emptyOptions = {};
+var emptyCharacterReferences = {};
+var emptyChildren2 = [];
 function toHtml(tree, options) {
-  const options_ = options || emptyOptions
-  const quote = options_.quote || '"'
-  const alternative = quote === '"' ? "'" : '"'
+  const options_ = options || emptyOptions;
+  const quote = options_.quote || '"';
+  const alternative = quote === '"' ? "'" : '"';
   if (quote !== '"' && quote !== "'") {
-    throw new Error("Invalid quote `" + quote + "`, expected `'` or `\"`")
+    throw new Error("Invalid quote `" + quote + "`, expected `'` or `\"`");
   }
   const state = {
     one,
@@ -2337,62 +2233,58 @@ function toHtml(tree, options) {
       voids: options_.voids || htmlVoidElements,
       characterReferences: options_.characterReferences || emptyCharacterReferences,
       closeSelfClosing: options_.closeSelfClosing || false,
-      closeEmptyElements: options_.closeEmptyElements || false,
+      closeEmptyElements: options_.closeEmptyElements || false
     },
     schema: options_.space === "svg" ? svg2 : html2,
     quote,
-    alternative,
-  }
-  return state.one(Array.isArray(tree) ? { type: "root", children: tree } : tree, void 0, void 0)
+    alternative
+  };
+  return state.one(
+    Array.isArray(tree) ? { type: "root", children: tree } : tree,
+    void 0,
+    void 0
+  );
 }
 function one(node, index, parent) {
-  return handle(node, index, parent, this)
+  return handle(node, index, parent, this);
 }
 function all(parent) {
-  const results = []
-  const children = (parent && parent.children) || emptyChildren2
-  let index = -1
+  const results = [];
+  const children = parent && parent.children || emptyChildren2;
+  let index = -1;
   while (++index < children.length) {
-    results[index] = this.one(children[index], index, parent)
+    results[index] = this.one(children[index], index, parent);
   }
-  return results.join("")
+  return results.join("");
 }
 
 // src/multilingual.ts
 function isRecord(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value)
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function optionalString(value) {
-  return typeof value === "string" && value.trim() !== "" ? value : void 0
+  return typeof value === "string" && value.trim() !== "" ? value : void 0;
 }
 function readContentIndexMode(value) {
   if (value === "all" || value === "source") {
-    return value
+    return value;
   }
-  return void 0
+  return void 0;
 }
 function readTranslationDetails(data) {
-  const metadata = data.multilingual
+  const metadata = data.multilingual;
   if (!isRecord(metadata)) {
-    return void 0
+    return void 0;
   }
-  const translationKey = optionalString(metadata.translationKey)
-  const locale = optionalString(metadata.locale)
-  const sourceLocale = optionalString(metadata.sourceLocale)
-  const translationStatus = optionalString(metadata.translationStatus)
-  const permalink = optionalString(metadata.permalink)
-  const localizedPath = optionalString(metadata.localizedPath)
-  const canonicalUrl = optionalString(metadata.canonicalUrl)
-  if (
-    !translationKey ||
-    !locale ||
-    !sourceLocale ||
-    !translationStatus ||
-    !permalink ||
-    !localizedPath ||
-    !canonicalUrl
-  ) {
-    return void 0
+  const translationKey = optionalString(metadata.translationKey);
+  const locale = optionalString(metadata.locale);
+  const sourceLocale = optionalString(metadata.sourceLocale);
+  const translationStatus = optionalString(metadata.translationStatus);
+  const permalink = optionalString(metadata.permalink);
+  const localizedPath = optionalString(metadata.localizedPath);
+  const canonicalUrl = optionalString(metadata.canonicalUrl);
+  if (!translationKey || !locale || !sourceLocale || !translationStatus || !permalink || !localizedPath || !canonicalUrl) {
+    return void 0;
   }
   return {
     translationKey,
@@ -2401,26 +2293,26 @@ function readTranslationDetails(data) {
     translationStatus,
     permalink,
     localizedPath,
-    canonicalUrl,
-  }
+    canonicalUrl
+  };
 }
 function readMultilingualConfig(cfg) {
-  const config = cfg.multilingual
+  const config = cfg.multilingual;
   if (!isRecord(config)) {
-    return void 0
+    return void 0;
   }
-  const sourceLocale = optionalString(config.sourceLocale)
-  const xDefaultRoute = optionalString(config.xDefaultRoute) ?? "/"
-  const contentIndex = config.contentIndex
-  const locales = config.locales
+  const sourceLocale = optionalString(config.sourceLocale);
+  const xDefaultRoute = optionalString(config.xDefaultRoute) ?? "/";
+  const contentIndex = config.contentIndex;
+  const locales = config.locales;
   if (!sourceLocale || !isRecord(contentIndex) || !Array.isArray(locales)) {
-    return void 0
+    return void 0;
   }
-  const search = readContentIndexMode(contentIndex.search)
-  const rss = readContentIndexMode(contentIndex.rss)
-  const sitemap = readContentIndexMode(contentIndex.sitemap)
+  const search = readContentIndexMode(contentIndex.search);
+  const rss = readContentIndexMode(contentIndex.rss);
+  const sitemap = readContentIndexMode(contentIndex.sitemap);
   if (!search || !rss || !sitemap) {
-    return void 0
+    return void 0;
   }
   return {
     sourceLocale,
@@ -2428,36 +2320,124 @@ function readMultilingualConfig(cfg) {
     contentIndex: { search, rss, sitemap },
     locales: locales.flatMap((locale) => {
       if (!isRecord(locale)) {
-        return []
+        return [];
       }
-      const id = optionalString(locale.id)
-      const bcp47Locale = optionalString(locale.locale)
-      return id && bcp47Locale ? [{ id, locale: bcp47Locale }] : []
-    }),
-  }
+      const id = optionalString(locale.id);
+      const bcp47Locale = optionalString(locale.locale);
+      return id && bcp47Locale ? [{ id, locale: bcp47Locale }] : [];
+    })
+  };
 }
 function orderedAlternateLinks(config, content, translationKey) {
-  const urlByLocale = /* @__PURE__ */ new Map()
+  const urlByLocale = /* @__PURE__ */ new Map();
   for (const item of content) {
-    const metadata = item.multilingual
+    const metadata = item.multilingual;
     if (metadata?.translationKey === translationKey) {
-      urlByLocale.set(metadata.locale, metadata.canonicalUrl)
+      urlByLocale.set(metadata.locale, metadata.canonicalUrl);
     }
   }
   return config.locales.flatMap((locale) => {
-    const url = urlByLocale.get(locale.id)
-    return url ? [{ hreflang: locale.locale, url }] : []
-  })
+    const url = urlByLocale.get(locale.id);
+    return url ? [{ hreflang: locale.locale, url }] : [];
+  });
 }
 function sourceLocaleEntries(config, entries) {
-  const sourceEntries = []
+  const sourceEntries = [];
   for (const [slug2, content] of entries) {
-    const metadata = content.multilingual
+    const metadata = content.multilingual;
     if (metadata?.locale === config.sourceLocale && metadata.translationStatus === "source") {
-      sourceEntries.push([slug2, content])
+      sourceEntries.push([slug2, content]);
     }
   }
-  return sourceEntries
+  return sourceEntries;
+}
+
+// src/externalLinks.ts
+function siteHostsFromBaseUrl(baseUrl) {
+  const trimmed = baseUrl.trim().toLowerCase();
+  if (trimmed.length === 0) {
+    return [];
+  }
+  const withoutProtocol = trimmed.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+  const withoutWww = withoutProtocol.replace(/^www\./, "");
+  if (withoutWww.length === 0) {
+    return [];
+  }
+  return [withoutWww, `www.${withoutWww}`];
+}
+function siteHostsForBlog(baseUrl) {
+  const hosts = [...siteHostsFromBaseUrl(baseUrl), ...siteHostsFromBaseUrl("beomsukoh.com")];
+  return [...new Set(hosts)];
+}
+function normalizeExternalUrl(href) {
+  try {
+    const parsed = new URL(href, "https://quartz.invalid");
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return null;
+    }
+    if (parsed.hostname === "quartz.invalid") {
+      return null;
+    }
+    parsed.hash = "";
+    parsed.hostname = parsed.hostname.toLowerCase();
+    if (parsed.pathname !== "/" && parsed.pathname.endsWith("/")) {
+      parsed.pathname = parsed.pathname.replace(/\/+$/, "");
+    }
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+}
+function isOutsideSiteUrl(href, siteHosts) {
+  const normalized = normalizeExternalUrl(href);
+  if (normalized === null) {
+    return false;
+  }
+  const hostname = new URL(normalized).hostname;
+  return !siteHosts.includes(hostname);
+}
+function hrefOfNode(node) {
+  if (node.type !== "element" || node.tagName !== "a") {
+    return null;
+  }
+  const href = node.properties?.href;
+  if (typeof href !== "string") {
+    return null;
+  }
+  return href;
+}
+function walkHast(node, visit) {
+  visit(node);
+  const children = node.children;
+  if (!children) {
+    return;
+  }
+  for (const child of children) {
+    walkHast(child, visit);
+  }
+}
+function collectExternalLinks(args) {
+  const seen = /* @__PURE__ */ new Set();
+  const links = [];
+  walkHast(args.tree, (node) => {
+    const href = hrefOfNode(node);
+    if (href === null) {
+      return;
+    }
+    const normalized = normalizeExternalUrl(href);
+    if (normalized === null) {
+      return;
+    }
+    if (!isOutsideSiteUrl(normalized, args.siteHosts)) {
+      return;
+    }
+    if (seen.has(normalized)) {
+      return;
+    }
+    seen.add(normalized);
+    links.push(normalized);
+  });
+  return links;
 }
 
 // src/emitter.ts
@@ -2469,87 +2449,75 @@ var defaultOptions = {
   rssSlug: "index",
   includeEmptyFiles: true,
   rssRecentNotesText: "Recent notes",
-  rssLastFewNotesText: (count) => `Last ${count} notes`,
-}
+  rssLastFewNotesText: (count) => `Last ${count} notes`
+};
 var write = async (args) => {
-  const pathToPage = joinSegments(args.ctx.argv.output, args.slug + args.ext)
-  const dir = path.dirname(pathToPage)
-  await fs.mkdir(dir, { recursive: true })
-  await fs.writeFile(pathToPage, args.content)
-  return pathToPage
-}
+  const pathToPage = joinSegments(args.ctx.argv.output, args.slug + args.ext);
+  const dir = path.dirname(pathToPage);
+  await fs.mkdir(dir, { recursive: true });
+  await fs.writeFile(pathToPage, args.content);
+  return pathToPage;
+};
 function createAbsoluteUrl(base, slug2) {
-  return `https://${joinSegments(base, encodeURI(slug2))}`
+  return `https://${joinSegments(base, encodeURI(slug2))}`;
 }
 function createXDefaultUrl(base, config) {
-  return config.xDefaultRoute === "/"
-    ? `https://${base}/`
-    : createAbsoluteUrl(base, config.xDefaultRoute.replace(/^\//, ""))
+  return config.xDefaultRoute === "/" ? `https://${base}/` : createAbsoluteUrl(base, config.xDefaultRoute.replace(/^\//, ""));
 }
 function generateSiteMap(cfg, idx) {
-  const base = cfg.baseUrl ?? ""
-  const multilingualConfig = readMultilingualConfig(cfg)
-  const allContent = Array.from(idx.values())
+  const base = cfg.baseUrl ?? "";
+  const multilingualConfig = readMultilingualConfig(cfg);
+  const allContent = Array.from(idx.values());
   const createAlternateEntries = (content) => {
     if (!multilingualConfig || !content.multilingual) {
-      return ""
+      return "";
     }
     const alternates = orderedAlternateLinks(
       multilingualConfig,
       allContent,
-      content.multilingual.translationKey,
-    )
-    const xDefault = createXDefaultUrl(base, multilingualConfig)
+      content.multilingual.translationKey
+    );
+    const xDefault = createXDefaultUrl(base, multilingualConfig);
     return [
       ...alternates.map(
-        (alternate) =>
-          `<xhtml:link rel="alternate" hreflang="${escapeHTML(alternate.hreflang)}" href="${escapeHTML(alternate.url)}" />`,
+        (alternate) => `<xhtml:link rel="alternate" hreflang="${escapeHTML(alternate.hreflang)}" href="${escapeHTML(alternate.url)}" />`
       ),
-      `<xhtml:link rel="alternate" hreflang="x-default" href="${escapeHTML(xDefault)}" />`,
-    ].join("\n    ")
-  }
+      `<xhtml:link rel="alternate" hreflang="x-default" href="${escapeHTML(xDefault)}" />`
+    ].join("\n    ");
+  };
   const createURLEntry = (slug2, content) => `<url>
     <loc>${content.multilingual?.canonicalUrl ?? createAbsoluteUrl(base, slug2)}</loc>
     ${content.date && `<lastmod>${content.date.toISOString()}</lastmod>`}
     ${createAlternateEntries(content)}
-  </url>`
-  const urls = Array.from(idx)
-    .map(([slug2, content]) => createURLEntry(simplifySlug(slug2), content))
-    .join("")
-  return `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">${urls}</urlset>`
+  </url>`;
+  const urls = Array.from(idx).map(([slug2, content]) => createURLEntry(simplifySlug(slug2), content)).join("");
+  return `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">${urls}</urlset>`;
 }
 function generateRSSFeed(cfg, idx, options, limit) {
-  const base = cfg.baseUrl ?? ""
-  const multilingualConfig = readMultilingualConfig(cfg)
-  const rssEntries =
-    multilingualConfig?.contentIndex.rss === "source"
-      ? sourceLocaleEntries(multilingualConfig, idx)
-      : Array.from(idx)
-  const pageTitle = cfg.pageTitle ?? ""
-  const recentNotesText = options.rssRecentNotesText ?? "Recent notes"
-  const lastFewNotesText = options.rssLastFewNotesText ?? ((count) => `Last ${count} notes`)
+  const base = cfg.baseUrl ?? "";
+  const multilingualConfig = readMultilingualConfig(cfg);
+  const rssEntries = multilingualConfig?.contentIndex.rss === "source" ? sourceLocaleEntries(multilingualConfig, idx) : Array.from(idx);
+  const pageTitle = cfg.pageTitle ?? "";
+  const recentNotesText = options.rssRecentNotesText ?? "Recent notes";
+  const lastFewNotesText = options.rssLastFewNotesText ?? ((count) => `Last ${count} notes`);
   const createURLEntry = (slug2, content) => `<item>
     <title>${escapeHTML(content.title)}</title>
     <link>${content.multilingual?.canonicalUrl ?? createAbsoluteUrl(base, slug2)}</link>
     <guid>${content.multilingual?.canonicalUrl ?? createAbsoluteUrl(base, slug2)}</guid>
     <description><![CDATA[ ${content.richContent ?? content.description} ]]></description>
     <pubDate>${content.date?.toUTCString()}</pubDate>
-  </item>`
-  const items = rssEntries
-    .sort(([_2, f1], [__, f2]) => {
-      if (f1.date && f2.date) {
-        return f2.date.getTime() - f1.date.getTime()
-      } else if (f1.date && !f2.date) {
-        return -1
-      } else if (!f1.date && f2.date) {
-        return 1
-      }
-      return f1.title.localeCompare(f2.title)
-    })
-    .map(([slug2, content]) => createURLEntry(simplifySlug(slug2), content))
-    .slice(0, limit ?? idx.size)
-    .join("")
-  const description = `${limit ? lastFewNotesText(limit) : recentNotesText} on ${escapeHTML(pageTitle)}`
+  </item>`;
+  const items = rssEntries.sort(([_2, f1], [__, f2]) => {
+    if (f1.date && f2.date) {
+      return f2.date.getTime() - f1.date.getTime();
+    } else if (f1.date && !f2.date) {
+      return -1;
+    } else if (!f1.date && f2.date) {
+      return 1;
+    }
+    return f1.title.localeCompare(f2.title);
+  }).map(([slug2, content]) => createURLEntry(simplifySlug(slug2), content)).slice(0, limit ?? idx.size).join("");
+  const description = `${limit ? lastFewNotesText(limit) : recentNotesText} on ${escapeHTML(pageTitle)}`;
   return `<?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0">
     <channel>
@@ -2559,49 +2527,48 @@ function generateRSSFeed(cfg, idx, options, limit) {
       <generator>Quartz -- quartz.jzhao.xyz</generator>
       ${items}
     </channel>
-  </rss>`
+  </rss>`;
 }
 var ContentIndex = (opts) => {
-  const options = { ...defaultOptions, ...opts }
+  const options = { ...defaultOptions, ...opts };
   const emitAll = async (ctx, content) => {
-    const cfg = ctx.cfg.configuration
-    const linkIndex = /* @__PURE__ */ new Map()
+    const cfg = ctx.cfg.configuration;
+    const siteHosts = siteHostsForBlog(cfg.baseUrl ?? "");
+    const linkIndex = /* @__PURE__ */ new Map();
     for (const [tree, file] of content) {
-      const data = file.data ?? {}
-      if (data.unlisted === true) continue
-      const slug2 = data.slug
-      const date = getDate(data) ?? /* @__PURE__ */ new Date()
-      const text2 = data.text
-      if (options.includeEmptyFiles || (text2 && text2 !== "")) {
-        const frontmatter = data.frontmatter ?? {}
-        const isEncrypted = data.encrypted === true
+      const data = file.data ?? {};
+      if (data.unlisted === true) continue;
+      const slug2 = data.slug;
+      const date = getDate(data) ?? /* @__PURE__ */ new Date();
+      const text2 = data.text;
+      if (options.includeEmptyFiles || text2 && text2 !== "") {
+        const frontmatter = data.frontmatter ?? {};
+        const isEncrypted = data.encrypted === true;
         linkIndex.set(slug2, {
           slug: slug2,
           filePath: data.relativePath,
           title: frontmatter.title ?? "",
           links: data.links ?? [],
           tags: frontmatter.tags ?? [],
+          externalLinks: collectExternalLinks({ tree, siteHosts }),
           content: text2 ?? "",
-          richContent:
-            options.rssFullHtml && !isEncrypted
-              ? escapeHTML(toHtml(tree, { allowDangerousHtml: true }))
-              : void 0,
+          richContent: options.rssFullHtml && !isEncrypted ? escapeHTML(toHtml(tree, { allowDangerousHtml: true })) : void 0,
           date,
           description: data.description ?? "",
-          multilingual: readTranslationDetails(data),
-        })
+          multilingual: readTranslationDetails(data)
+        });
       }
     }
-    const outputs = []
+    const outputs = [];
     if (options.enableSiteMap) {
       outputs.push(
         await write({
           ctx,
           content: generateSiteMap(cfg, linkIndex),
           slug: "sitemap",
-          ext: ".xml",
-        }),
-      )
+          ext: ".xml"
+        })
+      );
     }
     if (options.enableRSS) {
       outputs.push(
@@ -2609,36 +2576,36 @@ var ContentIndex = (opts) => {
           ctx,
           content: generateRSSFeed(cfg, linkIndex, options, options.rssLimit),
           slug: options.rssSlug ?? "index",
-          ext: ".xml",
-        }),
-      )
+          ext: ".xml"
+        })
+      );
     }
-    const fp = joinSegments("static", "contentIndex")
+    const fp = joinSegments("static", "contentIndex");
     const simplifiedIndex = Object.fromEntries(
       Array.from(linkIndex).map(([slug2, content2]) => {
-        delete content2.description
-        delete content2.date
-        return [slug2, content2]
-      }),
-    )
+        delete content2.description;
+        delete content2.date;
+        return [slug2, content2];
+      })
+    );
     outputs.push(
       await write({
         ctx,
         content: JSON.stringify(simplifiedIndex),
         slug: fp,
-        ext: ".json",
-      }),
-    )
-    return outputs
-  }
+        ext: ".json"
+      })
+    );
+    return outputs;
+  };
   return {
     name: "ContentIndex",
     emit: (ctx, content) => emitAll(ctx, content),
     // RSS auto-discovery link tag should be added via a component plugin or manually in the layout.
-    partialEmit: (ctx, content) => emitAll(ctx, content),
-  }
-}
+    partialEmit: (ctx, content) => emitAll(ctx, content)
+  };
+};
 
-export { ContentIndex }
+export { ContentIndex };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

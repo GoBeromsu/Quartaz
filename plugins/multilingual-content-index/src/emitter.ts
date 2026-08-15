@@ -22,6 +22,7 @@ import {
   sourceLocaleEntries,
 } from "./multilingual"
 import type { ContentTranslationDetails, MultilingualIndexConfiguration } from "./multilingual"
+import { collectExternalLinks, siteHostsForBlog } from "./externalLinks"
 
 export type ContentIndexMap = Map<FullSlug, ContentDetails>
 export type ContentDetails = {
@@ -30,6 +31,7 @@ export type ContentDetails = {
   title: string
   links: SimpleSlug[]
   tags: string[]
+  externalLinks: string[]
   content: string
   richContent?: string
   date?: Date
@@ -176,6 +178,7 @@ export const ContentIndex: QuartzEmitterPlugin<Partial<Options>> = (opts) => {
   const options = { ...defaultOptions, ...opts }
   const emitAll = async (ctx: BuildCtx, content: ProcessedContent[]): Promise<FilePath[]> => {
     const cfg = ctx.cfg.configuration
+    const siteHosts = siteHostsForBlog(cfg.baseUrl ?? "")
     const linkIndex: ContentIndexMap = new Map()
     for (const [tree, file] of content) {
       const data = (file.data as Record<string, unknown>) ?? {}
@@ -192,6 +195,7 @@ export const ContentIndex: QuartzEmitterPlugin<Partial<Options>> = (opts) => {
           title: (frontmatter.title as string) ?? "",
           links: (data.links as SimpleSlug[] | undefined) ?? [],
           tags: (frontmatter.tags as string[] | undefined) ?? [],
+          externalLinks: collectExternalLinks({ tree: tree as Root, siteHosts }),
           content: text ?? "",
           richContent:
             options.rssFullHtml && !isEncrypted
