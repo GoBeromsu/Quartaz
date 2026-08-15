@@ -1,11 +1,17 @@
 html:has(.graph-landing),
 body:has(.graph-landing) {
-  --graph-external: #3f6f8c;
+  // Cream paper + cool slate ink. Wine (#a52142) and teal sit as
+  // complements so the constellation reads on a light ground.
+  --graph-paper: #f3efe6;
+  --graph-edge: #2a3348;
+  --graph-external: #0f6a72;
   height: 100dvh;
   overflow: hidden;
 }
 
 html[saved-theme="dark"]:has(.graph-landing) {
+  --graph-paper: var(--light);
+  --graph-edge: #a8b0c2;
   --graph-external: #8fb6c8;
 }
 
@@ -29,7 +35,7 @@ html[saved-theme="dark"]:has(.graph-landing) {
 }
 
 .graph-landing {
-  background: var(--light);
+  background: var(--graph-paper);
   color: var(--dark);
   font-family: var(--bodyFont);
   max-width: 100%;
@@ -40,7 +46,7 @@ html[saved-theme="dark"]:has(.graph-landing) {
 /* Pinned to the viewport so host wrappers (page padding, header rows)
    can never crop the canvas. */
 .graph-landing__hero {
-  background: var(--light);
+  background: var(--graph-paper);
   height: 100svh;
   height: 100dvh;
   inset: 0;

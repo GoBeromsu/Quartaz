@@ -54,6 +54,7 @@ interface ThemeTokens {
   tertiary: string
   gray: string
   external: string
+  edge: string
   font: string
 }
 
@@ -252,6 +253,7 @@ const LINK_RADIUS: Record<LinkKind, number> = {
   folder: 0.16,
 }
 const EDGE_INK_DARK = "#a8b0c2"
+const EDGE_INK_LIGHT = "#2a3348"
 const CLOUD_NOTE = { min: 80, max: 200 }
 const CLOUD_HUB = { min: 40, max: 110 }
 const CLOUD_EXTERNAL = { min: 160, max: 280 }
@@ -825,12 +827,13 @@ function resolveCssColor(variableName: string, fallback: string): string {
 function readTheme(): ThemeTokens {
   const font = getComputedStyle(document.documentElement).getPropertyValue("--bodyFont").trim()
   return {
-    bg: resolveCssColor("--light", "#ffffff"),
+    bg: resolveCssColor("--graph-paper", "#f3efe6"),
     ink: resolveCssColor("--darkgray", "#0f0f0f"),
     accent: resolveCssColor("--secondary", "#a52142"),
     tertiary: resolveCssColor("--tertiary", "#c75b75"),
     gray: resolveCssColor("--gray", "#737373"),
-    external: resolveCssColor("--graph-external", "#3f6f8c"),
+    external: resolveCssColor("--graph-external", "#0f6a72"),
+    edge: resolveCssColor("--graph-edge", isDarkTheme() ? EDGE_INK_DARK : EDGE_INK_LIGHT),
     font: font.length > 0 ? font : "Inter, sans-serif",
   }
 }
@@ -1280,6 +1283,17 @@ function bindGraph(
       }
       return mixRgb("#ffffff", theme.current.accent, 0.12)
     }
+    // Light is subtractive ink on paper: deepen midtones so wine / teal
+    // keep chroma against the cream ground instead of washing out.
+    if (node.type === "external") {
+      return mixRgb(theme.current.external, "#08343a", 0.12)
+    }
+    if (node.type === "tag") {
+      return mixRgb(theme.current.tertiary, theme.current.accent, 0.55)
+    }
+    if (node.isHub) {
+      return mixRgb(theme.current.ink, theme.current.accent, 0.22)
+    }
     return color
   }
 
@@ -1287,15 +1301,15 @@ function bindGraph(
   const edgeBaseOpacity = (kind: LinkKind): number => {
     const dark = isDarkTheme()
     if (kind === "wikilink") {
-      return dark ? 0.34 : 0.34
+      return dark ? 0.34 : 0.52
     }
     if (kind === "external") {
-      return dark ? 0.3 : 0.3
+      return dark ? 0.3 : 0.44
     }
     if (kind === "tag") {
-      return dark ? 0.22 : 0.2
+      return dark ? 0.22 : 0.32
     }
-    return dark ? 0.12 : 0.11
+    return dark ? 0.12 : 0.2
   }
 
   const edgeOpacity = (link: GraphLink): number => {
@@ -1303,7 +1317,7 @@ function bindGraph(
     const target = linkEndpointId(link.target)
     const focus = litId()
     if (focus !== null && (source === focus || target === focus)) {
-      return isDarkTheme() ? 0.72 : 0.62
+      return isDarkTheme() ? 0.72 : 0.78
     }
     if (focus !== null || state.focusTag !== null || state.focusFolder !== null) {
       if (!isActive(source) || !isActive(target)) {
@@ -1318,12 +1332,9 @@ function bindGraph(
     const target = linkEndpointId(link.target)
     const focus = litId()
     if (focus !== null && (source === focus || target === focus)) {
-      return mixRgb(theme.current.accent, EDGE_INK_DARK, 0.45)
+      return mixRgb(theme.current.accent, theme.current.edge, 0.45)
     }
-    if (isDarkTheme()) {
-      return EDGE_INK_DARK
-    }
-    return theme.current.gray
+    return theme.current.edge
   }
 
   const edgeStroke = (link: GraphLink): string => {
@@ -1462,7 +1473,7 @@ function bindGraph(
       }
       // Alex-style label: small, no stroke bubble, floating beside the star.
       const sprite = new SpriteText(node.name)
-      const labelInk = isDarkTheme() ? "rgba(255, 255, 255, 0.85)" : theme.current.ink
+      const labelInk = isDarkTheme() ? "rgba(255, 255, 255, 0.85)" : withAlpha(theme.current.ink, 0.88)
       sprite.color = isActive(node.id) ? labelInk : withAlpha(labelInk, DIM_ALPHA)
       sprite.fontWeight = "400"
       sprite.strokeWidth = 0
