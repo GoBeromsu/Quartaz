@@ -163,9 +163,56 @@ html[saved-theme="dark"]:has(.graph-landing) {
   z-index: 5;
 }
 
-.graph-landing__rail-toggle:focus-visible {
+.graph-landing__rail-toggle:focus-visible,
+.graph-landing__audio-toggle:focus-visible {
   outline: 2px solid var(--secondary);
   outline-offset: 2px;
+}
+
+.graph-landing__audio-toggle {
+  align-items: center;
+  backdrop-filter: blur(10px);
+  background: color-mix(in srgb, var(--light) 78%, transparent);
+  border: 1px solid var(--lightgray);
+  border-radius: 10px;
+  bottom: 16px;
+  box-shadow: 0 8px 24px rgba(8, 10, 16, 0.16);
+  color: var(--dark);
+  cursor: pointer;
+  display: inline-flex;
+  height: 40px;
+  justify-content: center;
+  left: calc(16px + 40px + 8px);
+  pointer-events: auto;
+  position: absolute;
+  width: 40px;
+  z-index: 5;
+}
+
+.graph-landing__audio-toggle .graph-landing__icon--audio-on {
+  display: none;
+}
+
+.graph-landing__audio-toggle[data-playing="true"] .graph-landing__icon--audio-on {
+  display: block;
+}
+
+.graph-landing__audio-toggle[data-playing="true"] .graph-landing__icon--audio-off {
+  display: none;
+}
+
+.graph-landing__audio,
+.graph-landing__audio iframe {
+  height: 1px;
+  width: 1px;
+}
+
+.graph-landing__audio {
+  left: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+  bottom: 0;
 }
 
 .graph-landing__top-right {
@@ -815,11 +862,19 @@ a.graph-landing__title:focus-visible {
     min-height: 40px;
   }
 
-  .graph-landing__rail-toggle {
+  .graph-landing__rail-toggle,
+  .graph-landing__audio-toggle {
     bottom: max(16px, env(safe-area-inset-bottom));
     height: 44px;
-    left: max(16px, env(safe-area-inset-left));
     width: 44px;
+  }
+
+  .graph-landing__rail-toggle {
+    left: max(16px, env(safe-area-inset-left));
+  }
+
+  .graph-landing__audio-toggle {
+    left: calc(max(16px, env(safe-area-inset-left)) + 44px + 8px);
   }
 
   .graph-landing__scrim {
