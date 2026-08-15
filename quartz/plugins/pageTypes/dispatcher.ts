@@ -32,6 +32,14 @@ function absoluteSiteUrl(baseUrl: string | undefined, pathname: string): string 
   return new URL(pathname, origin).toString()
 }
 
+export async function writeMultilingualXDefaultPage(ctx: BuildCtx): Promise<number> {
+  let count = 0
+  for await (const _ of emitMultilingualXDefaultPage(ctx)) {
+    count += 1
+  }
+  return count
+}
+
 async function* emitMultilingualXDefaultPage(ctx: BuildCtx) {
   const cfg = ctx.cfg.configuration
   const multilingual = cfg.multilingual

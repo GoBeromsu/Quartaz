@@ -8,6 +8,7 @@ import { styleText } from "util"
 import { parseMarkdown } from "./processors/parse"
 import { filterContent } from "./processors/filter"
 import { emitContent } from "./processors/emit"
+import { writeMultilingualXDefaultPage } from "./plugins/pageTypes/dispatcher"
 import cfg from "../quartz"
 import { FilePath, joinSegments, slugifyFilePath } from "./util/path"
 import { detectSlugCollisions, formatCollisionWarning } from "./util/slugCollisions"
@@ -348,6 +349,8 @@ async function rebuild(changes: ChangeEvent[], clientRefresh: () => void, buildD
         }
       }
     }
+
+    emittedFiles += await writeMultilingualXDefaultPage(ctx)
 
     console.log(
       `Emitted ${emittedFiles} files to \`${argv.output}\` in ${perf.timeSince("rebuild")}`,
