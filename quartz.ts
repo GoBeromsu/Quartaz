@@ -24,14 +24,19 @@ const translationKeyOf = (file: FileLike): string | undefined => {
   return typeof value === "string" ? value : undefined
 }
 
-// Locale homes are ko/index & en/index (translationKey: home), so a bare
-// slug === "index" check never fires on the multilingual home pages.
-const isHomePage = (file: FileLike) => file.slug === "index" || translationKeyOf(file) === "home"
+// Former article-list home now lives at Writing (/ko/writing, /en/writing).
+const isWritingPage = (file: FileLike) => translationKeyOf(file) === "writing"
 
-// Utility pages (home, dedicated graph page, language chooser) must not
-// appear in article listings.
-const isUtilityPage = (file: FileLike) =>
-  file.slug === "index" || translationKeyOf(file) === "home" || translationKeyOf(file) === "graph"
+// Utility pages must not appear in article listings.
+const isUtilityPage = (file: FileLike) => {
+  const key = translationKeyOf(file)
+  return (
+    file.slug === "index" ||
+    key === "home" ||
+    key === "graph" ||
+    key === "writing"
+  )
+}
 
 const sharedHeader = [
   Component.Flex({
@@ -41,6 +46,7 @@ const sharedHeader = [
       {
         Component: Component.External("BlogLinksHeader", {
           links: {
+            Writing: "/writing",
             Graph: "/graph",
             About: "/about",
           },
@@ -63,11 +69,11 @@ const sharedAfterBody = [
       limit: 3,
       filter: (file: FileLike) => !isUtilityPage(file),
     }),
-    condition: (props) => isHomePage(props.fileData),
+    condition: (props) => isWritingPage(props.fileData),
   }),
   Component.ConditionalRender({
     component: Component.External("BlogAllTags", { title: "Topics" }),
-    condition: (props) => isHomePage(props.fileData),
+    condition: (props) => isWritingPage(props.fileData),
   }),
   Component.ConditionalRender({
     component: Component.External("BlogArticleList", {
@@ -75,11 +81,11 @@ const sharedAfterBody = [
       limit: 0,
       filter: (file: FileLike) => !isUtilityPage(file),
     }),
-    condition: (props) => isHomePage(props.fileData),
+    condition: (props) => isWritingPage(props.fileData),
   }),
   Component.ConditionalRender({
     component: Component.External("tag-list"),
-    condition: (props) => !isHomePage(props.fileData),
+    condition: (props) => !isWritingPage(props.fileData),
   }),
   Component.External("comments", {
     provider: "giscus",
@@ -108,11 +114,16 @@ const layout = await loadQuartzLayout({
       afterBody: sharedAfterBody,
       left: [],
       // Floating TOC on wide viewports; BlogStyles positions and hides it.
-      right: [Component.External("TableOfContents")],
+      right: [
+        Component.ConditionalRender({
+          component: Component.External("TableOfContents"),
+          condition: (props) => !isWritingPage(props.fileData),
+        }),
+      ],
       beforeBody: [
         Component.ConditionalRender({
           component: Component.External("breadcrumbs"),
-          condition: (props) => !isHomePage(props.fileData),
+          condition: (props) => !isWritingPage(props.fileData),
         }),
         Component.ConditionalRender({
           component: Component.External("article-title"),
@@ -122,7 +133,7 @@ const layout = await loadQuartzLayout({
         }),
         Component.ConditionalRender({
           component: Component.External("content-meta"),
-          condition: (props) => !isHomePage(props.fileData),
+          condition: (props) => !isWritingPage(props.fileData),
         }),
       ],
     },
@@ -133,11 +144,10 @@ const layout = await loadQuartzLayout({
       left: [],
       right: [],
       beforeBody: [
-        // Locale homes (ko/index, en/index) render through the folder page
-        // type; keep them chrome-free like the original blog home.
+        // Writing (/ko/writing, /en/writing) keeps the old home listing chrome.
         Component.ConditionalRender({
           component: Component.External("breadcrumbs"),
-          condition: (props) => !isHomePage(props.fileData),
+          condition: (props) => !isWritingPage(props.fileData),
         }),
         Component.ConditionalRender({
           component: Component.External("article-title"),
@@ -147,7 +157,7 @@ const layout = await loadQuartzLayout({
         }),
         Component.ConditionalRender({
           component: Component.External("content-meta"),
-          condition: (props) => !isHomePage(props.fileData),
+          condition: (props) => !isWritingPage(props.fileData),
         }),
       ],
     },
@@ -164,9 +174,9 @@ const layout = await loadQuartzLayout({
       ],
     },
     graph: {
-      // MinimalFrame does not render header/afterBody. The dedicated graph
-      // page (/ko/graph, /en/graph) carries its own rail (글/About, locale
-      // switcher, theme) so the canvas can stay exactly 100dvh.
+      // MinimalFrame does not render header/afterBody. Locale homes and
+      // /graph carry their own rail (Writing/About, locale switcher, theme)
+      // so the canvas can stay exactly 100dvh.
       frame: "minimal",
       header: [],
       afterBody: [],

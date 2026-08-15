@@ -12,7 +12,7 @@ import { validateMultilingualConfig } from "../../../quartz/util/multilingual"
 import type { GlobalConfiguration, MultilingualConfiguration } from "../../../quartz/cfg"
 import type { BuildCtx } from "../../../quartz/util/ctx"
 import type { FullSlug } from "../../../quartz/util/path"
-import { isLocaleHomeSlug } from "./locale"
+import { isLocaleHomeFile, isLocaleHomeSlug } from "./locale"
 import BlogAllTags from "./components/BlogAllTags"
 import BlogArticleList from "./components/BlogArticleList"
 import BlogLatest from "./components/BlogLatest"
@@ -175,6 +175,12 @@ describe("Blog home locale-aware listings", () => {
     assert.equal(isLocaleHomeSlug("ko/index"), true)
     assert.equal(isLocaleHomeSlug("en/index"), true)
     assert.equal(isLocaleHomeSlug("en/beauty-of-youth"), false)
+  })
+
+  test("treats writing and graph utility notes as listing exclusions", () => {
+    assert.equal(isLocaleHomeFile({ frontmatter: { translationKey: "writing" } }), true)
+    assert.equal(isLocaleHomeFile({ frontmatter: { translationKey: "graph" } }), true)
+    assert.equal(isLocaleHomeFile({ frontmatter: { translationKey: "about" } }), false)
   })
 
   test("scopes article lists and tags to the current Korean locale home", () => {

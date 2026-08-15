@@ -219,10 +219,11 @@ export default (() => {
     const translationKey = multilingual?.translationKey ?? "graph"
     const localeToggle = localeToggleLink(allFiles, locales, localeId, translationKey)
     const homeSlug = findLocaleSlug(allFiles, "home", localeId)
+    const writingSlug = findLocaleSlug(allFiles, "writing", localeId)
     const aboutSlug = findLocaleSlug(allFiles, "about", localeId)
     const homeHref = homeSlug ? slugToAbsHref(homeSlug) : localeHomeHref(localeId)
     const aboutHref = aboutSlug ? slugToAbsHref(aboutSlug) : localePageHref(localeId, "about")
-    const writingHref = homeHref
+    const writingHref = writingSlug ? slugToAbsHref(writingSlug) : localePageHref(localeId, "writing")
 
     return (
       <div
