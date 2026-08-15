@@ -40,6 +40,8 @@ interface OverlayCopy {
   themeToggle: string
   filtersToggle: string
   controls: string
+  audioStop: string
+  audioPlay: string
   folderRoot: string
   previewHint: string
   previewTagTemplate: string
@@ -81,6 +83,8 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
       themeToggle: "라이트/다크 모드 전환",
       filtersToggle: "필터",
       controls: "Controls",
+      audioStop: "노래 끄기",
+      audioPlay: "노래 켜기",
       folderRoot: "루트",
       previewHint: "클릭하면 연결이 열립니다",
       previewTagTemplate: "{n}개 노트",
@@ -114,6 +118,8 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
     themeToggle: "Toggle light / dark mode",
     filtersToggle: "Filters",
     controls: "Controls",
+    audioStop: "Stop music",
+    audioPlay: "Play music",
     folderRoot: "Root",
     previewHint: "Click to inspect connections",
     previewTagTemplate: "{n} notes",
@@ -241,6 +247,8 @@ export default (() => {
         data-preview-tag-template={copy.previewTagTemplate}
         data-inspect-read={copy.inspectOpen}
         data-inspect-open-external={copy.inspectOpenExternal}
+        data-audio-stop={copy.audioStop}
+        data-audio-play={copy.audioPlay}
         data-inspect-connected={copy.inspectConnected}
         data-inspect-empty={copy.inspectEmpty}
       >
@@ -342,6 +350,64 @@ export default (() => {
                 />
               </svg>
             </button>
+            <button
+              type="button"
+              class="graph-landing__audio-toggle"
+              data-graph-audio-toggle
+              aria-pressed="false"
+              aria-label={copy.audioPlay}
+              title={copy.audioPlay}
+            >
+              <svg
+                class="graph-landing__icon graph-landing__icon--audio-on"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M4.5 10v4h3.2L12 18.2V5.8L7.7 10H4.5Z"
+                />
+                <path
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  d="M15.2 9.2a3.4 3.4 0 0 1 0 5.6M17.6 7a6.2 6.2 0 0 1 0 10"
+                />
+              </svg>
+              <svg
+                class="graph-landing__icon graph-landing__icon--audio-off"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M4.5 10v4h3.2L12 18.2V5.8L7.7 10H4.5Z"
+                />
+                <path
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  d="M16 9.5 20 14.5M20 9.5 16 14.5"
+                />
+              </svg>
+            </button>
+            <div class="graph-landing__audio" data-graph-audio-host></div>
             <div
               class="graph-landing__rail"
               id="graph-landing-rail"

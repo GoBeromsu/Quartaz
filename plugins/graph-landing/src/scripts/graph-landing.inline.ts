@@ -219,6 +219,11 @@ const LINK_OPACITY = 1
 const DIM_ALPHA = 0.18
 const LENS_STORAGE_KEY = "graph-landing:lens"
 const TUNE_STORAGE_KEY = "graph-landing:tune"
+const AUDIO_STORAGE_KEY = "graph-landing:ambient-audio"
+const AMBIENT_VIDEO_ID = "UDVtMYqUAyw"
+const AMBIENT_MAX_VOLUME = 12
+const AMBIENT_FADE_MS = 28000
+const YOUTUBE_IFRAME_API = "https://www.youtube.com/iframe_api"
 const AUTO_ROTATE_SPEED = 0.18
 const HUB_VAL_SCALE = 1.4
 const TAG_LENS_VAL_SCALE = 1.25
@@ -2078,6 +2083,8 @@ function bindGraph(
     let pointerDown: { x: number; y: number } | null = null
     const onPointerDown = (event: PointerEvent): void => {
       pointerDown = { x: event.clientX, y: event.clientY }
+      // Grabbing holds the constellation still; release resumes the idle spin.
+      setAutoRotate(false)
     }
     const nearestNode = (clientX: number, clientY: number): GraphNode | null => {
       if (typeof graph.graph2ScreenCoords !== "function") {
@@ -2106,13 +2113,12 @@ function bindGraph(
     const onPointerUp = (event: PointerEvent): void => {
       const start = pointerDown
       pointerDown = null
+      setAutoRotate(true)
       if (!start) {
         return
       }
       const moved = (event.clientX - start.x) ** 2 + (event.clientY - start.y) ** 2
       if (moved > 25) {
-        // Orbit drag is intentional camera control; pause idle auto-rotate.
-        setAutoRotate(false)
         return
       }
       window.setTimeout(() => {
@@ -2128,11 +2134,17 @@ function bindGraph(
         }
       }, 0)
     }
+    const onPointerCancel = (): void => {
+      pointerDown = null
+      setAutoRotate(true)
+    }
     mount.addEventListener("pointerdown", onPointerDown, true)
     mount.addEventListener("pointerup", onPointerUp, true)
+    mount.addEventListener("pointercancel", onPointerCancel, true)
     window.addCleanup(() => {
       mount.removeEventListener("pointerdown", onPointerDown, true)
       mount.removeEventListener("pointerup", onPointerUp, true)
+      mount.removeEventListener("pointercancel", onPointerCancel, true)
     })
   }
 
@@ -2311,6 +2323,316 @@ function bindGraph(
   window.addCleanup(() => window.removeEventListener("keydown", onKeyDown))
 }
 
+interface YoutubePlayer {
+  playVideo: () => void
+  pauseVideo: () => void
+  setVolume: (volume: number) => void
+  getPlayerState: () => number
+  destroy: () => void
+}
+
+interface YoutubeNamespace {
+  Player: new (
+    element: HTMLElement,
+    options: {
+      videoId: string
+      width: string
+      height: string
+      playerVars: Record<string, number | string>
+      events: {
+        onReady: (event: { target: YoutubePlayer }) => void
+        onStateChange: (event: { data: number; target: YoutubePlayer }) => void
+        onError: () => void
+      }
+    },
+  ) => YoutubePlayer
+  PlayerState: {
+    ENDED: number
+  }
+}
+
+interface YoutubeWindow extends Window {
+  YT?: YoutubeNamespace
+  onYouTubeIframeAPIReady?: () => void
+}
+
+function prefersReducedData(): boolean {
+  return window.matchMedia("(prefers-reduced-data: reduce)").matches
+}
+
+function readAmbientStopped(): boolean {
+  try {
+    return window.localStorage.getItem(AUDIO_STORAGE_KEY) === "stopped"
+  } catch (error) {
+    console.error("[graph-landing] could not read ambient audio preference", error)
+    return false
+  }
+}
+
+function writeAmbientStopped(stopped: boolean): void {
+  try {
+    if (stopped) {
+      window.localStorage.setItem(AUDIO_STORAGE_KEY, "stopped")
+      return
+    }
+    window.localStorage.removeItem(AUDIO_STORAGE_KEY)
+  } catch (error) {
+    console.error("[graph-landing] could not persist ambient audio preference", error)
+  }
+}
+
+function fadeVolume(args: {
+  from: number
+  to: number
+  durationMs: number
+  apply: (volume: number) => void
+}): () => void {
+  const started = performance.now()
+  let frame = 0
+  const tick = (now: number): void => {
+    const t = Math.min(1, (now - started) / args.durationMs)
+    const eased = t * t
+    args.apply(args.from + (args.to - args.from) * eased)
+    if (t < 1) {
+      frame = window.requestAnimationFrame(tick)
+    }
+  }
+  frame = window.requestAnimationFrame(tick)
+  return (): void => {
+    window.cancelAnimationFrame(frame)
+  }
+}
+
+function loadYoutubeApi(): Promise<YoutubeNamespace> {
+  const existing = (window as YoutubeWindow).YT
+  if (existing && typeof existing.Player === "function") {
+    return Promise.resolve(existing)
+  }
+  return new Promise((resolve, reject) => {
+    const youtubeWindow = window as YoutubeWindow
+    const previous = youtubeWindow.onYouTubeIframeAPIReady
+    youtubeWindow.onYouTubeIframeAPIReady = () => {
+      if (typeof previous === "function") {
+        previous()
+      }
+      const api = youtubeWindow.YT
+      if (!api || typeof api.Player !== "function") {
+        reject(new Error("graph-landing: YouTube API missing Player"))
+        return
+      }
+      resolve(api)
+    }
+    if (!document.querySelector("script[data-graph-youtube-api]")) {
+      const script = document.createElement("script")
+      script.src = YOUTUBE_IFRAME_API
+      script.async = true
+      script.dataset.graphYoutubeApi = "1"
+      script.addEventListener("error", () => {
+        reject(new Error("graph-landing: YouTube API failed to load"))
+      })
+      document.head.appendChild(script)
+    }
+  })
+}
+
+function createYoutubePlayer(args: {
+  api: YoutubeNamespace
+  host: HTMLElement
+  onReady: (player: YoutubePlayer) => void
+  onEnded: (player: YoutubePlayer) => void
+}): YoutubePlayer {
+  return new args.api.Player(args.host, {
+    videoId: AMBIENT_VIDEO_ID,
+    width: "1",
+    height: "1",
+    playerVars: {
+      autoplay: 0,
+      controls: 0,
+      disablekb: 1,
+      fs: 0,
+      iv_load_policy: 3,
+      loop: 1,
+      modestbranding: 1,
+      origin: window.location.origin,
+      playsinline: 1,
+      playlist: AMBIENT_VIDEO_ID,
+      rel: 0,
+    },
+    events: {
+      onReady: (event) => {
+        args.onReady(event.target)
+      },
+      onStateChange: (event) => {
+        if (event.data === args.api.PlayerState.ENDED) {
+          args.onEnded(event.target)
+        }
+      },
+      onError: () => {
+        console.error("[graph-landing] ambient YouTube player failed")
+      },
+    },
+  })
+}
+
+function bindAmbientAudio(root: HTMLElement): void {
+  const button = root.querySelector("[data-graph-audio-toggle]")
+  const host = root.querySelector("[data-graph-audio-host]")
+  if (!(button instanceof HTMLButtonElement) || !(host instanceof HTMLElement)) {
+    return
+  }
+
+  const stopLabel = root.dataset.audioStop ?? "Stop music"
+  const playLabel = root.dataset.audioPlay ?? "Play music"
+  let player: YoutubePlayer | null = null
+  let cancelFade: (() => void) | null = null
+  let wanted = !readAmbientStopped()
+  let started = false
+
+  const setButton = (playing: boolean): void => {
+    button.setAttribute("aria-pressed", playing ? "true" : "false")
+    button.setAttribute("aria-label", playing ? stopLabel : playLabel)
+    button.title = playing ? stopLabel : playLabel
+    button.dataset.playing = playing ? "true" : "false"
+  }
+
+  const stopFade = (): void => {
+    if (cancelFade) {
+      cancelFade()
+      cancelFade = null
+    }
+  }
+
+  const applyVolume = (volume: number): void => {
+    if (!player) {
+      return
+    }
+    player.setVolume(Math.max(0, Math.min(AMBIENT_MAX_VOLUME, volume)))
+  }
+
+  const pauseAmbient = (): void => {
+    wanted = false
+    started = false
+    stopFade()
+    writeAmbientStopped(true)
+    if (player) {
+      player.pauseVideo()
+      applyVolume(0)
+    }
+    setButton(false)
+  }
+
+  const startAmbient = async (): Promise<void> => {
+    if (!wanted || started) {
+      return
+    }
+    started = true
+    setButton(true)
+    try {
+      const api = await loadYoutubeApi()
+      if (!wanted) {
+        started = false
+        setButton(false)
+        return
+      }
+      if (!player) {
+        player = createYoutubePlayer({
+          api,
+          host,
+          onReady: (readyPlayer) => {
+            if (!wanted) {
+              readyPlayer.pauseVideo()
+              return
+            }
+            readyPlayer.setVolume(0)
+            readyPlayer.playVideo()
+            stopFade()
+            cancelFade = fadeVolume({
+              from: 0,
+              to: AMBIENT_MAX_VOLUME,
+              durationMs: AMBIENT_FADE_MS,
+              apply: applyVolume,
+            })
+          },
+          onEnded: (endedPlayer) => {
+            if (!wanted) {
+              return
+            }
+            endedPlayer.playVideo()
+            applyVolume(AMBIENT_MAX_VOLUME)
+          },
+        })
+        return
+      }
+      player.setVolume(0)
+      player.playVideo()
+      stopFade()
+      cancelFade = fadeVolume({
+        from: 0,
+        to: AMBIENT_MAX_VOLUME,
+        durationMs: AMBIENT_FADE_MS,
+        apply: applyVolume,
+      })
+    } catch (error) {
+      started = false
+      setButton(false)
+      console.error("[graph-landing] ambient audio unavailable", error)
+    }
+  }
+
+  const onFirstGesture = (event: Event): void => {
+    const target = event.target
+    if (target instanceof Element && target.closest("[data-graph-audio-toggle]")) {
+      return
+    }
+    root.removeEventListener("pointerdown", onFirstGesture)
+    if (!wanted || prefersReducedMotion() || prefersReducedData()) {
+      return
+    }
+    void startAmbient()
+  }
+
+  const onToggle = (): void => {
+    if (wanted) {
+      pauseAmbient()
+      return
+    }
+    wanted = true
+    writeAmbientStopped(false)
+    void startAmbient()
+  }
+
+  const onVisibility = (): void => {
+    if (!player) {
+      return
+    }
+    if (document.hidden) {
+      stopFade()
+      player.pauseVideo()
+      return
+    }
+    if (wanted && player) {
+      player.playVideo()
+      applyVolume(AMBIENT_MAX_VOLUME)
+    }
+  }
+
+  setButton(false)
+  button.addEventListener("click", onToggle)
+  root.addEventListener("pointerdown", onFirstGesture, { once: true })
+  document.addEventListener("visibilitychange", onVisibility)
+  window.addCleanup(() => {
+    button.removeEventListener("click", onToggle)
+    root.removeEventListener("pointerdown", onFirstGesture)
+    document.removeEventListener("visibilitychange", onVisibility)
+    stopFade()
+    if (player) {
+      player.pauseVideo()
+      player.destroy()
+      player = null
+    }
+  })
+}
+
 async function initGraphLanding(): Promise<void> {
   const root = document.querySelector(".graph-landing")
   if (!(root instanceof HTMLElement)) {
@@ -2320,6 +2642,7 @@ async function initGraphLanding(): Promise<void> {
     return
   }
   root.dataset.graphReady = "1"
+  bindAmbientAudio(root)
 
   const canvas = root.querySelector("#graph-landing-mount")
   if (!(canvas instanceof HTMLElement)) {
