@@ -1,0 +1,1 @@
+@layer quartz-base{.blog-links-header{flex-wrap:wrap;align-items:center;gap:1.5rem;display:flex}.blog-links-header a{color:var(--blog-ink);font-weight:400;text-decoration:none}.blog-links-header a:hover{color:var(--blog-accent)}@media (max-width:430px){.blog-links-header{gap:.85rem}}}
