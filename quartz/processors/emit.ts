@@ -7,6 +7,7 @@ import { trace } from "../util/trace"
 import { BuildCtx } from "../util/ctx"
 import { StaticResources } from "../util/resources"
 import { styleText } from "util"
+import { writeMultilingualXDefaultPage } from "../plugins/pageTypes/dispatcher"
 
 async function runEmitter(
   emitter: QuartzEmitterPluginInstance,
@@ -89,6 +90,11 @@ export async function emitContent(ctx: BuildCtx, content: ProcessedContent[]) {
     ),
   )
   emittedFiles += counts.reduce((sum, c) => sum + c, 0)
+  // AliasRedirects case-redirects run after the dispatcher and, on
+  // case-sensitive filesystems, treat a locale-prefixed slug rewrite
+  // (index.md -> ko/index) as a case change. Rewrite / last so the
+  // x-default language selector always wins.
+  emittedFiles += await writeMultilingualXDefaultPage(ctx)
 
   if (emitErrors > 0) {
     console.warn(
