@@ -313,7 +313,8 @@ a {
 // Page Frame Overrides
 // ============================================================================
 
-// Full-width frame: no sidebars, center content spans full width
+// Full-width frame: single center column. A configured right sidebar
+// (Quartz TableOfContents) uses the stock desktop sidebar track.
 .page[data-frame="full-width"] > #quartz-body {
   grid-template-columns: auto;
   grid-template-rows: auto auto auto;
@@ -329,6 +330,29 @@ a {
   & .center.full-width {
     max-width: 100%;
     min-width: 100%;
+  }
+
+  &:has(> .sidebar.right .toc) {
+    @media all and ($desktop) {
+      grid-template-columns: minmax(0, 1fr) #{$sidePanelWidth};
+      grid-template-areas:
+        "grid-center grid-sidebar-right"
+        "grid-footer grid-sidebar-right";
+
+      & .center.full-width {
+        grid-area: grid-center;
+      }
+    }
+  }
+
+  & > .sidebar.right:not(:has(.toc)) {
+    display: none;
+  }
+
+  @media all and not ($desktop) {
+    & > .sidebar.right {
+      display: none;
+    }
   }
 }
 

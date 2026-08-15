@@ -7,7 +7,7 @@ const Header = HeaderConstructor()
  * Full-width page frame — the center content area spans the full width of
  * the page. Header, beforeBody, body, afterBody, and footer are all
  * rendered in a single column. Right components, when configured, render
- * in a floating aside so themes can position them (e.g. a sticky TOC).
+ * in Quartz's normal right sidebar column (in document flow).
  *
  * Useful for page types like Canvas, presentations, or dashboards that
  * need maximum horizontal space.
@@ -47,11 +47,11 @@ export const FullWidthFrame: PageFrame = {
           </div>
         </div>
         {right.length > 0 && (
-          <aside class="sidebar right">
+          <div class="right sidebar">
             {right.map((RightComponent) => (
               <RightComponent {...componentData} />
             ))}
-          </aside>
+          </div>
         )}
         {footer.map((FooterComponent) => (
           <FooterComponent {...componentData} />
