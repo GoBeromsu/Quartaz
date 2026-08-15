@@ -54,7 +54,6 @@ interface ThemeTokens {
   tertiary: string
   gray: string
   external: string
-  edge: string
   font: string
 }
 
@@ -827,13 +826,12 @@ function resolveCssColor(variableName: string, fallback: string): string {
 function readTheme(): ThemeTokens {
   const font = getComputedStyle(document.documentElement).getPropertyValue("--bodyFont").trim()
   return {
-    bg: resolveCssColor("--graph-paper", "#f3efe6"),
+    bg: resolveCssColor("--light", "#ffffff"),
     ink: resolveCssColor("--darkgray", "#0f0f0f"),
     accent: resolveCssColor("--secondary", "#a52142"),
     tertiary: resolveCssColor("--tertiary", "#c75b75"),
     gray: resolveCssColor("--gray", "#737373"),
-    external: resolveCssColor("--graph-external", "#0f6a72"),
-    edge: resolveCssColor("--graph-edge", isDarkTheme() ? EDGE_INK_DARK : EDGE_INK_LIGHT),
+    external: resolveCssColor("--graph-external", "#3f6f8c"),
     font: font.length > 0 ? font : "Inter, sans-serif",
   }
 }
@@ -1283,8 +1281,8 @@ function bindGraph(
       }
       return mixRgb("#ffffff", theme.current.accent, 0.12)
     }
-    // Light is subtractive ink on paper: deepen midtones so wine / teal
-    // keep chroma against the cream ground instead of washing out.
+    // Light is ink on white: deepen wine / teal so they keep chroma
+    // against the white ground. Dark fills stay on the night-sky path.
     if (node.type === "external") {
       return mixRgb(theme.current.external, "#08343a", 0.12)
     }
@@ -1331,10 +1329,11 @@ function bindGraph(
     const source = linkEndpointId(link.source)
     const target = linkEndpointId(link.target)
     const focus = litId()
+    const ink = isDarkTheme() ? EDGE_INK_DARK : EDGE_INK_LIGHT
     if (focus !== null && (source === focus || target === focus)) {
-      return mixRgb(theme.current.accent, theme.current.edge, 0.45)
+      return mixRgb(theme.current.accent, ink, 0.45)
     }
-    return theme.current.edge
+    return ink
   }
 
   const edgeStroke = (link: GraphLink): string => {
