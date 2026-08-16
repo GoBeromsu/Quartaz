@@ -46,6 +46,28 @@ export interface GraphData {
   links: GraphLink[]
 }
 
+// Bare YouTube video id shape (11 chars in practice, but YT ids aren't
+// formally length-locked, so this stays a little wider); deliberately does
+// not accept a full youtube.com/youtu.be URL — callers must extract the id
+// themselves (see README's ambientVideoId docs).
+const AMBIENT_VIDEO_ID_PATTERN = /^[A-Za-z0-9_-]{6,20}$/
+
+/**
+ * Validates a user-supplied `ambientVideoId` option value read from the
+ * `data-graph-ambient-video-id` attribute: trims whitespace and accepts
+ * only a bare id matching `AMBIENT_VIDEO_ID_PATTERN`. Returns `undefined`
+ * for anything else (unset, empty/whitespace-only, malformed, or a full
+ * URL), so callers can fall back to the current hardcoded ambient track
+ * unchanged when the option is absent or invalid.
+ */
+export function sanitizeAmbientVideoId(value: string | undefined | null): string | undefined {
+  if (!value) {
+    return undefined
+  }
+  const trimmed = value.trim()
+  return AMBIENT_VIDEO_ID_PATTERN.test(trimmed) ? trimmed : undefined
+}
+
 export function linkEndpointId(endpoint: string | GraphNode): string {
   if (typeof endpoint === "string") {
     return endpoint

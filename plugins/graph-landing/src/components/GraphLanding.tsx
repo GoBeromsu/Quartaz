@@ -297,6 +297,7 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
           data-graph-lod-fog={options.lod?.fog ? "true" : undefined}
           data-graph-lod-node-resolution={options.lod?.nodeResolution}
           data-graph-lod-link-resolution={options.lod?.linkResolution}
+          data-graph-ambient-video-id={options.ambientVideoId}
           data-counts-template={copy.countsTemplate}
           data-folder-root-label={copy.folderRoot}
           data-legend-notes={copy.notes}

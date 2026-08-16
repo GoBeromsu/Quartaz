@@ -23,6 +23,7 @@ import {
   isBeyondCullDistance,
   linkEndpointId,
   lodLevelForDistance,
+  sanitizeAmbientVideoId,
   selectRenderedSubset,
   type GraphData,
   type GraphLink,
@@ -2808,11 +2809,12 @@ function loadYoutubeApi(): Promise<YoutubeNamespace> {
 function createYoutubePlayer(args: {
   api: YoutubeNamespace
   host: HTMLElement
+  videoId: string
   onReady: (player: YoutubePlayer) => void
   onEnded: (player: YoutubePlayer) => void
 }): YoutubePlayer {
   return new args.api.Player(args.host, {
-    videoId: AMBIENT_VIDEO_ID,
+    videoId: args.videoId,
     width: "200",
     height: "113",
     playerVars: {
@@ -2826,7 +2828,7 @@ function createYoutubePlayer(args: {
       mute: 1,
       origin: window.location.origin,
       playsinline: 1,
-      playlist: AMBIENT_VIDEO_ID,
+      playlist: args.videoId,
       rel: 0,
     },
     events: {
@@ -2854,6 +2856,11 @@ function bindAmbientAudio(root: HTMLElement): void {
 
   const stopLabel = root.dataset.audioStop ?? "Stop music"
   const playLabel = root.dataset.audioPlay ?? "Play music"
+  // Falls back to the built-in track whenever ambientVideoId is unset or
+  // fails validation (see sanitizeAmbientVideoId), so an absent/invalid
+  // option reproduces today's behavior byte for byte.
+  const ambientVideoId =
+    sanitizeAmbientVideoId(root.dataset.graphAmbientVideoId) ?? AMBIENT_VIDEO_ID
   let player: YoutubePlayer | null = null
   let playerReady = false
   let cancelFade: (() => void) | null = null
@@ -2924,6 +2931,7 @@ function bindAmbientAudio(root: HTMLElement): void {
       player = createYoutubePlayer({
         api,
         host,
+        videoId: ambientVideoId,
         onReady: (readyPlayer) => {
           playerReady = true
           readyPlayer.mute()
