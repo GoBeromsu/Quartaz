@@ -232,7 +232,7 @@ function pathToRoot(slug: string): string {
   return rootPath
 }
 
-const defaultComponentOptions: Required<GraphLandingPageOptions> = {
+const defaultComponentOptions: GraphLandingPageOptions = {
   indexSource: "contentIndex",
 }
 
@@ -275,6 +275,13 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
           data-locale-prefixes={localePrefixes}
           data-index-source={options.indexSource}
           data-graph-index-path={graphIndexPath}
+          data-tag-cooc-disabled={options.tagCooccurrence === false ? "true" : undefined}
+          data-tag-cooc-max-tags-per-note={
+            options.tagCooccurrence ? options.tagCooccurrence.maxTagsPerNote : undefined
+          }
+          data-tag-cooc-max-edges={
+            options.tagCooccurrence ? options.tagCooccurrence.maxEdges : undefined
+          }
           data-counts-template={copy.countsTemplate}
           data-folder-root-label={copy.folderRoot}
           data-legend-notes={copy.notes}

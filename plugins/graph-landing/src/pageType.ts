@@ -9,9 +9,19 @@ export interface GraphLandingPageOptions {
    * the multilingual-content-index emitter's `emitGraphIndex: true` option).
    */
   indexSource?: "contentIndex" | "graphIndex"
+  /**
+   * Caps the O(k^2) tag co-occurrence edge generation in the client graph
+   * builder. Default: undefined (unlimited, current behavior — every pair of
+   * tags on a note gets a faint co-occurrence edge). Set to `false` to skip
+   * tag co-occurrence edges entirely. Set to an object to cap generation:
+   * `maxTagsPerNote` skips co-occurrence pairs for notes with more tags than
+   * the threshold; `maxEdges` stops adding co-occurrence edges once that many
+   * have been added (deterministic order, same as today's note iteration).
+   */
+  tagCooccurrence?: { maxTagsPerNote?: number; maxEdges?: number } | false
 }
 
-const defaultOptions: Required<GraphLandingPageOptions> = {
+const defaultOptions: GraphLandingPageOptions = {
   indexSource: "contentIndex",
 }
 

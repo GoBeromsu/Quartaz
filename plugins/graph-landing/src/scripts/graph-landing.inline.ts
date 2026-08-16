@@ -554,7 +554,13 @@ function dominantTagOf(noteTags: string[], tagCounts: Map<string, number>): stri
   return ranked[0] ?? ""
 }
 
-function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphData {
+type TagCooccurrenceOption = { maxTagsPerNote?: number; maxEdges?: number } | false | undefined
+
+function buildGraphData(
+  entries: ContentEntry[],
+  context: LocaleContext,
+  tagCooccurrence: TagCooccurrenceOption = undefined,
+): GraphData {
   const candidates = entries.filter((entry) => {
     return !isFolderIndex(entry.slug) && !isTagPage(entry.slug) && !isUtilityNote(entry)
   })
@@ -588,10 +594,10 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
   // Faint layers (cooc/folder) render as web texture but must not inflate
   // node degrees, hub ranking, or sizes: those stay driven by real
   // wikilinks, external sites, and tag membership.
-  const addEdge = (source: string, target: string, kind: LinkKind, countsDegree: boolean): void => {
+  const addEdge = (source: string, target: string, kind: LinkKind, countsDegree: boolean): boolean => {
     const key = edgeKey(source, target, kind)
     if (seenEdges.has(key)) {
-      return
+      return false
     }
     seenEdges.add(key)
     links.push({ source, target, kind })
@@ -599,6 +605,7 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
       bumpDegree(source)
       bumpDegree(target)
     }
+    return true
   }
 
   for (const note of notes) {
@@ -646,13 +653,31 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
   }
 
   // Tag co-occurrence: tags sharing at least one note get a faint tag-tag edge.
-  for (const note of notes) {
-    if (note.tags.length < 2) {
-      continue
-    }
-    for (let i = 0; i < note.tags.length; i += 1) {
-      for (let j = i + 1; j < note.tags.length; j += 1) {
-        addEdge(`tag:${note.tags[i]}`, `tag:${note.tags[j]}`, "cooc", false)
+  // `tagCooccurrence` caps this O(k^2)-per-note generation: `false` disables it
+  // entirely, `maxTagsPerNote` skips notes with too many tags (their pair count
+  // grows quadratically), and `maxEdges` stops once that many edges exist.
+  // Default (undefined) preserves the original unlimited behavior.
+  if (tagCooccurrence !== false) {
+    const maxTagsPerNote = tagCooccurrence?.maxTagsPerNote
+    const maxEdges = tagCooccurrence?.maxEdges
+    let coocEdgeCount = 0
+    noteLoop: for (const note of notes) {
+      if (note.tags.length < 2) {
+        continue
+      }
+      if (maxTagsPerNote !== undefined && note.tags.length > maxTagsPerNote) {
+        continue
+      }
+      for (let i = 0; i < note.tags.length; i += 1) {
+        for (let j = i + 1; j < note.tags.length; j += 1) {
+          if (maxEdges !== undefined && coocEdgeCount >= maxEdges) {
+            break noteLoop
+          }
+          const added = addEdge(`tag:${note.tags[i]}`, `tag:${note.tags[j]}`, "cooc", false)
+          if (added) {
+            coocEdgeCount += 1
+          }
+        }
       }
     }
   }
@@ -2709,6 +2734,19 @@ async function initGraphLanding(): Promise<void> {
   const countsTemplate = root.dataset.countsTemplate ?? "{n} nodes · {m} edges"
   const indexSource = root.dataset.indexSource === "graphIndex" ? "graphIndex" : "contentIndex"
   const graphIndexPath = root.dataset.graphIndexPath ?? ""
+  const tagCooccurrence: TagCooccurrenceOption =
+    root.dataset.tagCoocDisabled === "true"
+      ? false
+      : root.dataset.tagCoocMaxTagsPerNote || root.dataset.tagCoocMaxEdges
+        ? {
+            maxTagsPerNote: root.dataset.tagCoocMaxTagsPerNote
+              ? Number.parseInt(root.dataset.tagCoocMaxTagsPerNote, 10)
+              : undefined,
+            maxEdges: root.dataset.tagCoocMaxEdges
+              ? Number.parseInt(root.dataset.tagCoocMaxEdges, 10)
+              : undefined,
+          }
+        : undefined
 
   let cancelled = false
   let graph: ForceGraphInstance | null = null
@@ -2776,11 +2814,15 @@ async function initGraphLanding(): Promise<void> {
     return
   }
 
-  const data = buildGraphData(parseContentIndex(indexRaw), {
-    localeId,
-    sourceLocale,
-    prefixes,
-  })
+  const data = buildGraphData(
+    parseContentIndex(indexRaw),
+    {
+      localeId,
+      sourceLocale,
+      prefixes,
+    },
+    tagCooccurrence,
+  )
 
   const countText = countsTemplate
     .replace("{n}", String(data.nodes.length))
