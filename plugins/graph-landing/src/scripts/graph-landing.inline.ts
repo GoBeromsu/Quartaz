@@ -21,11 +21,10 @@ interface ContentEntry {
 import {
   affectedFocusNodeIds,
   expandHopIds,
-  isBeyondCullDistance,
+  getOrCreate,
   linkEndpointId,
-  linkGeometryCacheKey,
-  linkMaterialCacheKey,
   lodLevelForDistance,
+  parseNonNegativeNumber,
   sanitizeAmbientVideoId,
   selectRenderedSubset,
   type GraphData,
@@ -1686,16 +1685,10 @@ function bindGraph(
     fill: string,
   ): { geometry: unknown; material: unknown } => {
     const key = `${Math.round(radius * 4)}|${fill}`
-    const cached = dotResourceCache.get(key)
-    if (cached) {
-      return cached
-    }
-    const resource = {
+    return getOrCreate(dotResourceCache, key, () => ({
       geometry: new three.SphereGeometry(radius, 6, 6),
       material: new three.MeshBasicMaterial({ color: fill }),
-    }
-    dotResourceCache.set(key, resource)
-    return resource
+    }))
   }
 
   // Shared link geometry/material caches for `lod.shareLinkResources`,
@@ -1714,14 +1707,12 @@ function bindGraph(
   const linkMaterialCache = new Map<string, ThreeMaterialHandle>()
 
   const linkGeometryFor = (three: ThreeApi, radius: number, resolution: number): unknown => {
-    const key = linkGeometryCacheKey(radius, resolution)
-    const cached = linkGeometryCache.get(key)
-    if (cached) {
-      return cached
-    }
-    const geometry = new three.CylinderGeometry(radius, radius, 1, resolution)
-    linkGeometryCache.set(key, geometry)
-    return geometry
+    const key = `${radius}|${resolution}`
+    return getOrCreate(
+      linkGeometryCache,
+      key,
+      () => new three.CylinderGeometry(radius, radius, 1, resolution),
+    )
   }
 
   const linkMaterialFor = (
@@ -1729,19 +1720,18 @@ function bindGraph(
     color: string,
     opacity: number,
   ): ThreeMaterialHandle => {
-    const key = linkMaterialCacheKey(color, opacity)
-    const cached = linkMaterialCache.get(key)
-    if (cached) {
-      return cached
-    }
-    const material = new three.MeshBasicMaterial({
-      color,
-      transparent: true,
-      opacity,
-      depthWrite: false,
-    })
-    linkMaterialCache.set(key, material)
-    return material
+    const key = `${color}|${opacity}`
+    return getOrCreate(
+      linkMaterialCache,
+      key,
+      () =>
+        new three.MeshBasicMaterial({
+          color,
+          transparent: true,
+          opacity,
+          depthWrite: false,
+        }),
+    )
   }
 
   const paintLabels3d = (): void => {
@@ -1971,6 +1961,7 @@ function bindGraph(
   // width) never depends on focus, so no scale mutation is needed here.
   const applyFocusChange = (previousFocus: string | null, nextFocus: string | null): void => {
     const affected = affectedFocusNodeIds(neighbors, previousFocus, nextFocus)
+    const visitedLinks = new Set<GraphLink>()
     for (const id of affected) {
       const node = renderedNodeById.get(id)
       if (!node) {
@@ -1988,6 +1979,14 @@ function bindGraph(
         label.sprite.visible = showNodeLabel(node)
       }
       for (const link of linksByNode.get(id) ?? []) {
+        // `affected` contains the focus node + its neighbors, so a link
+        // between two affected nodes (e.g. the focus and one of its
+        // neighbors) is reachable via linksByNode from both endpoints.
+        // Track already-processed links so each is mutated exactly once.
+        if (visitedLinks.has(link)) {
+          continue
+        }
+        visitedLinks.add(link)
         const mesh = linkMeshes.get(link)
         if (!mesh) {
           continue
@@ -2007,6 +2006,24 @@ function bindGraph(
           mesh.material.opacity = edgeOpacity(link)
         }
       }
+    }
+  }
+
+  // Shared focus-change repaint path used by onNodeHover/clearSelection/
+  // selectNode: incremental repaint (particles + affected-node/link colors)
+  // when incrementalRepaint+use3d are both on, otherwise a full accessor
+  // refresh (+ label repaint in 3d mode). Callers just invoke this and
+  // fall through to whatever they do next, exactly as the inlined block
+  // used to.
+  const repaintFocusChange = (previousFocus: string | null): void => {
+    if (options.interaction.incrementalRepaint && options.use3d) {
+      refreshParticles()
+      applyFocusChange(previousFocus, litId())
+      return
+    }
+    refreshAccessors()
+    if (options.use3d) {
+      paintLabels3d()
     }
   }
 
@@ -2266,15 +2283,7 @@ function bindGraph(
         hidePreview()
       }
     }
-    if (options.interaction.incrementalRepaint && options.use3d) {
-      refreshParticles()
-      applyFocusChange(previousFocus, litId())
-      return
-    }
-    refreshAccessors()
-    if (options.use3d) {
-      paintLabels3d()
-    }
+    repaintFocusChange(previousFocus)
   })
 
   if (options.use3d) {
@@ -2336,18 +2345,26 @@ function bindGraph(
       twinkleFrame = window.requestAnimationFrame(twinkle)
       window.addCleanup(() => window.cancelAnimationFrame(twinkleFrame))
     }
-    // Label-distance fade: rAF-driven camera-distance check per labeled
-    // node, hiding sprites beyond options.lod.labelDistance. Unlike
-    // twinkle above this is a functional/perf threshold rather than
-    // decorative motion, so it runs regardless of prefersReducedMotion()
-    // — and it is entirely absent (no rAF loop registered at all) unless
-    // labelDistance is explicitly set, preserving current behavior when
-    // unset.
-    if (options.lod.labelDistance !== undefined && typeof graph.cameraPosition === "function") {
-      const labelDistance = options.lod.labelDistance
+    // Label-distance fade + link-distance culling: merged into a single rAF
+    // loop that reads graph.cameraPosition() once per frame instead of
+    // twice, running the label-fade pass when options.lod.labelDistance is
+    // set and the link-cull pass when options.lod.cullDistance is set.
+    // Unlike twinkle above, these are functional/perf thresholds rather
+    // than decorative motion, so the loop runs regardless of
+    // prefersReducedMotion() — and it is entirely absent (no rAF loop
+    // registered at all) unless at least one of labelDistance/cullDistance
+    // is explicitly set, preserving current behavior when both are unset.
+    // Links touching the currently focused (hovered or selected) node
+    // always stay visible regardless of distance, same as before.
+    const labelDistance = options.lod.labelDistance
+    const cullDistance = options.lod.cullDistance
+    if (
+      (labelDistance !== undefined || cullDistance !== undefined) &&
+      typeof graph.cameraPosition === "function"
+    ) {
       const getCameraPosition = graph.cameraPosition.bind(graph)
-      let labelFadeFrame = 0
-      const updateLabelFade = (): void => {
+      let lodFrame = 0
+      const updateLod = (): void => {
         const cam = getCameraPosition() as Partial<Vec3> | undefined
         if (
           cam &&
@@ -2355,61 +2372,37 @@ function bindGraph(
           typeof cam.y === "number" &&
           typeof cam.z === "number"
         ) {
-          for (const entry of labelSprites.values()) {
-            const nx = entry.node.x ?? 0
-            const ny = entry.node.y ?? 0
-            const nz = entry.node.z ?? 0
-            const distance = Math.hypot(cam.x - nx, cam.y - ny, cam.z - nz)
-            entry.sprite.visible = lodLevelForDistance(distance, labelDistance) === "full"
-          }
-        }
-        labelFadeFrame = window.requestAnimationFrame(updateLabelFade)
-      }
-      labelFadeFrame = window.requestAnimationFrame(updateLabelFade)
-      window.addCleanup(() => window.cancelAnimationFrame(labelFadeFrame))
-    }
-    // Link-distance culling: rAF-driven camera-distance check per link
-    // mesh, hiding meshes beyond options.lod.cullDistance via
-    // mesh.visible. Links touching the currently focused (hovered or
-    // selected) node always stay visible regardless of distance. Same
-    // rationale as the label-fade loop above: linkPositionUpdate only
-    // fires on simulation ticks (not continuously), so a dedicated rAF
-    // loop is needed to react to camera movement once the layout has
-    // frozen. Entirely absent (no rAF loop registered, linkMeshes stays
-    // empty) unless cullDistance is explicitly set, preserving current
-    // behavior byte for byte when the option is unset.
-    if (options.lod.cullDistance !== undefined && typeof graph.cameraPosition === "function") {
-      const cullDistance = options.lod.cullDistance
-      const getCullCameraPosition = graph.cameraPosition.bind(graph)
-      let linkCullFrame = 0
-      const updateLinkCull = (): void => {
-        const cam = getCullCameraPosition() as Partial<Vec3> | undefined
-        if (
-          cam &&
-          typeof cam.x === "number" &&
-          typeof cam.y === "number" &&
-          typeof cam.z === "number"
-        ) {
-          const focus = litId()
-          for (const [link, mesh] of linkMeshes) {
-            const sourceId = linkEndpointId(link.source)
-            const targetId = linkEndpointId(link.target)
-            if (focus !== null && (sourceId === focus || targetId === focus)) {
-              mesh.visible = true
-              continue
+          if (labelDistance !== undefined) {
+            for (const entry of labelSprites.values()) {
+              const nx = entry.node.x ?? 0
+              const ny = entry.node.y ?? 0
+              const nz = entry.node.z ?? 0
+              const distance = Math.hypot(cam.x - nx, cam.y - ny, cam.z - nz)
+              entry.sprite.visible = lodLevelForDistance(distance, labelDistance) === "full"
             }
-            const distance = Math.hypot(
-              cam.x - mesh.position.x,
-              cam.y - mesh.position.y,
-              cam.z - mesh.position.z,
-            )
-            mesh.visible = !isBeyondCullDistance(distance, cullDistance)
+          }
+          if (cullDistance !== undefined) {
+            const focus = litId()
+            for (const [link, mesh] of linkMeshes) {
+              const sourceId = linkEndpointId(link.source)
+              const targetId = linkEndpointId(link.target)
+              if (focus !== null && (sourceId === focus || targetId === focus)) {
+                mesh.visible = true
+                continue
+              }
+              const distance = Math.hypot(
+                cam.x - mesh.position.x,
+                cam.y - mesh.position.y,
+                cam.z - mesh.position.z,
+              )
+              mesh.visible = !(lodLevelForDistance(distance, cullDistance) === "dot")
+            }
           }
         }
-        linkCullFrame = window.requestAnimationFrame(updateLinkCull)
+        lodFrame = window.requestAnimationFrame(updateLod)
       }
-      linkCullFrame = window.requestAnimationFrame(updateLinkCull)
-      window.addCleanup(() => window.cancelAnimationFrame(linkCullFrame))
+      lodFrame = window.requestAnimationFrame(updateLod)
+      window.addCleanup(() => window.cancelAnimationFrame(lodFrame))
     }
   } else {
     graph.warmupTicks(options.layout.warmupTicks ?? 60)
@@ -2600,15 +2593,7 @@ function bindGraph(
     }
     options.root.dataset.inspecting = "false"
     setAutoRotate(true)
-    if (options.interaction.incrementalRepaint && options.use3d) {
-      refreshParticles()
-      applyFocusChange(previousFocus, litId())
-      return
-    }
-    refreshAccessors()
-    if (options.use3d) {
-      paintLabels3d()
-    }
+    repaintFocusChange(previousFocus)
   }
 
   const selectNode = (node: GraphNode): void => {
@@ -2624,15 +2609,7 @@ function bindGraph(
     selectedId = node.id
     // Inspect/preview already shows the destination; keep the constellation spinning.
     fillInspect(node)
-    if (options.interaction.incrementalRepaint && options.use3d) {
-      refreshParticles()
-      applyFocusChange(previousFocus, litId())
-      return
-    }
-    refreshAccessors()
-    if (options.use3d) {
-      paintLabels3d()
-    }
+    repaintFocusChange(previousFocus)
   }
 
   const activateNode = (node: GraphNode): void => {
@@ -3279,15 +3256,9 @@ async function initGraphLanding(): Promise<void> {
   // result, e.g. "abc" → NaN) must fall back to "render all" / "1 hop"
   // rather than reaching selectRenderedSubset/expandFromNode as NaN, which
   // would otherwise produce an EMPTY rendered graph (ranked.slice(0, NaN)).
-  const parsedMaxRenderedNodes = root.dataset.maxRenderedNodes
-    ? Number.parseInt(root.dataset.maxRenderedNodes, 10)
-    : undefined
-  const maxRenderedNodes =
-    parsedMaxRenderedNodes !== undefined &&
-    Number.isFinite(parsedMaxRenderedNodes) &&
-    parsedMaxRenderedNodes >= 0
-      ? parsedMaxRenderedNodes
-      : undefined
+  const maxRenderedNodes = parseNonNegativeNumber(root.dataset.maxRenderedNodes, (s) =>
+    Number.parseInt(s, 10),
+  )
   const parsedExpandHops = root.dataset.expandHops
     ? Number.parseInt(root.dataset.expandHops, 10)
     : 1
@@ -3310,83 +3281,36 @@ async function initGraphLanding(): Promise<void> {
   // Same NaN/negative-guarded parse pattern as maxRenderedNodes/expandHops
   // above: a malformed dataset value falls back to "unset" (renderer
   // default) rather than reaching warmupTicks/cooldownTicks/theta as NaN.
-  const parsedLayoutWarmupTicks = root.dataset.graphLayoutWarmupTicks
-    ? Number.parseInt(root.dataset.graphLayoutWarmupTicks, 10)
-    : undefined
-  const layoutWarmupTicks =
-    parsedLayoutWarmupTicks !== undefined &&
-    Number.isFinite(parsedLayoutWarmupTicks) &&
-    parsedLayoutWarmupTicks >= 0
-      ? parsedLayoutWarmupTicks
-      : undefined
-  const parsedLayoutCooldownTicks = root.dataset.graphLayoutCooldownTicks
-    ? Number.parseInt(root.dataset.graphLayoutCooldownTicks, 10)
-    : undefined
-  const layoutCooldownTicks =
-    parsedLayoutCooldownTicks !== undefined &&
-    Number.isFinite(parsedLayoutCooldownTicks) &&
-    parsedLayoutCooldownTicks >= 0
-      ? parsedLayoutCooldownTicks
-      : undefined
-  const parsedLayoutChargeTheta = root.dataset.graphLayoutChargeTheta
-    ? Number.parseFloat(root.dataset.graphLayoutChargeTheta)
-    : undefined
-  const layoutChargeTheta =
-    parsedLayoutChargeTheta !== undefined &&
-    Number.isFinite(parsedLayoutChargeTheta) &&
-    parsedLayoutChargeTheta >= 0
-      ? parsedLayoutChargeTheta
-      : undefined
+  const layoutWarmupTicks = parseNonNegativeNumber(root.dataset.graphLayoutWarmupTicks, (s) =>
+    Number.parseInt(s, 10),
+  )
+  const layoutCooldownTicks = parseNonNegativeNumber(root.dataset.graphLayoutCooldownTicks, (s) =>
+    Number.parseInt(s, 10),
+  )
+  const layoutChargeTheta = parseNonNegativeNumber(
+    root.dataset.graphLayoutChargeTheta,
+    Number.parseFloat,
+  )
   // Same NaN/negative-guarded parse pattern as the layout.* fields above: a
   // malformed or absent dataset value falls back to "unset" (LOD entirely
   // disabled — no THREE.LOD wrapping, no label-fade rAF loop), preserving
   // current behavior byte for byte when the lod option is not configured.
-  const parsedLodLabelDistance = root.dataset.graphLodLabelDistance
-    ? Number.parseFloat(root.dataset.graphLodLabelDistance)
-    : undefined
-  const lodLabelDistance =
-    parsedLodLabelDistance !== undefined &&
-    Number.isFinite(parsedLodLabelDistance) &&
-    parsedLodLabelDistance >= 0
-      ? parsedLodLabelDistance
-      : undefined
-  const parsedLodDotDistance = root.dataset.graphLodDotDistance
-    ? Number.parseFloat(root.dataset.graphLodDotDistance)
-    : undefined
-  const lodDotDistance =
-    parsedLodDotDistance !== undefined &&
-    Number.isFinite(parsedLodDotDistance) &&
-    parsedLodDotDistance >= 0
-      ? parsedLodDotDistance
-      : undefined
-  const parsedLodCullDistance = root.dataset.graphLodCullDistance
-    ? Number.parseFloat(root.dataset.graphLodCullDistance)
-    : undefined
-  const lodCullDistance =
-    parsedLodCullDistance !== undefined &&
-    Number.isFinite(parsedLodCullDistance) &&
-    parsedLodCullDistance >= 0
-      ? parsedLodCullDistance
-      : undefined
+  const lodLabelDistance = parseNonNegativeNumber(
+    root.dataset.graphLodLabelDistance,
+    Number.parseFloat,
+  )
+  const lodDotDistance = parseNonNegativeNumber(root.dataset.graphLodDotDistance, Number.parseFloat)
+  const lodCullDistance = parseNonNegativeNumber(
+    root.dataset.graphLodCullDistance,
+    Number.parseFloat,
+  )
   const lodFog = root.dataset.graphLodFog === "true"
-  const parsedLodNodeResolution = root.dataset.graphLodNodeResolution
-    ? Number.parseInt(root.dataset.graphLodNodeResolution, 10)
-    : undefined
-  const lodNodeResolution =
-    parsedLodNodeResolution !== undefined &&
-    Number.isFinite(parsedLodNodeResolution) &&
-    parsedLodNodeResolution >= 0
-      ? parsedLodNodeResolution
-      : undefined
-  const parsedLodLinkResolution = root.dataset.graphLodLinkResolution
-    ? Number.parseInt(root.dataset.graphLodLinkResolution, 10)
-    : undefined
-  const lodLinkResolution =
-    parsedLodLinkResolution !== undefined &&
-    Number.isFinite(parsedLodLinkResolution) &&
-    parsedLodLinkResolution >= 0
-      ? parsedLodLinkResolution
-      : undefined
+  const lodNodeResolution = parseNonNegativeNumber(root.dataset.graphLodNodeResolution, (s) =>
+    Number.parseInt(s, 10),
+  )
+  const lodLinkResolution = parseNonNegativeNumber(root.dataset.graphLodLinkResolution, (s) =>
+    Number.parseInt(s, 10),
+  )
   const interactionIncrementalRepaint = root.dataset.graphInteractionIncrementalRepaint === "true"
   const lodShareLinkResources = root.dataset.graphLodShareLinkResources === "true"
 

@@ -96,16 +96,43 @@ export function lodLevelForDistance(distance: number, threshold: number | undefi
 }
 
 /**
- * Pure link-distance-cull decision for the 3D renderer's link-cull rAF loop,
- * built on lodLevelForDistance's identical "distance >= threshold" boundary
- * semantics (kept in one place so a link and a node LOD swap at the exact
- * same distance never disagree). `cullDistance` undefined (or
- * non-finite/negative) always returns false — no link is ever culled, current
- * behavior unchanged. Named separately from lodLevelForDistance because
- * "full"/"dot" reads oddly for links; call sites just want a boolean.
+ * Generic memoizing lookup: returns the cached value for `key` if present,
+ * otherwise builds it with `factory`, stores it, and returns it. Matches the
+ * `if (cached) return cached` truthy-check semantics every call site here
+ * previously inlined by hand (all cached values are objects, never a falsy
+ * value), so behavior is unchanged. Used by dotResourceFor/linkGeometryFor/
+ * linkMaterialFor to share this shared-resource-cache pattern instead of
+ * three near-identical copies.
  */
-export function isBeyondCullDistance(distance: number, cullDistance: number | undefined): boolean {
-  return lodLevelForDistance(distance, cullDistance) === "dot"
+export function getOrCreate<T>(cache: Map<string, T>, key: string, factory: () => T): T {
+  const cached = cache.get(key)
+  if (cached) {
+    return cached
+  }
+  const value = factory()
+  cache.set(key, value)
+  return value
+}
+
+/**
+ * Shared "parse an optional non-negative numeric dataset attribute" pattern
+ * used by graph-landing.inline.ts's option parsing: `raw` unset (falsy)
+ * yields `undefined` directly; otherwise `raw` is run through `parser`
+ * (`Number.parseInt`/`Number.parseFloat`, both `(s: string) => number`
+ * compatible) and the result is returned only if it is finite and `>= 0` —
+ * a malformed value (NaN) or a negative value both fall back to
+ * `undefined` (renderer default / "unset"), never reaching a caller as
+ * NaN or a negative number. Matches the guarded parse blocks each of
+ * maxRenderedNodes/layoutWarmupTicks/layoutCooldownTicks/layoutChargeTheta/
+ * lodLabelDistance/lodDotDistance/lodCullDistance/lodNodeResolution/
+ * lodLinkResolution used to inline by hand.
+ */
+export function parseNonNegativeNumber(
+  raw: string | undefined,
+  parser: (value: string) => number,
+): number | undefined {
+  const parsed = raw ? parser(raw) : undefined
+  return parsed !== undefined && Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined
 }
 
 /**
@@ -221,28 +248,4 @@ export function affectedFocusNodeIds(
     }
   }
   return result
-}
-
-/**
- * Cache key for a shared link material, keyed by exactly the two properties
- * `linkMaterialFor` (graph-landing.inline.ts) constructs a MeshBasicMaterial
- * from: color and opacity. Used by `lod.shareLinkResources` to look up (or
- * populate) a MeshBasicMaterial shared across every link with the same
- * color/opacity instead of each link allocating its own.
- */
-export function linkMaterialCacheKey(color: string, opacity: number): string {
-  return `${color}|${opacity}`
-}
-
-/**
- * Cache key for a shared link geometry, keyed by exactly the two properties
- * `linkGeometryFor` (graph-landing.inline.ts) constructs a unit-height
- * CylinderGeometry from: radius and radial segment resolution. Safe to share
- * across links regardless of on-screen length because this plugin's own
- * `linkPositionUpdate` callback scales link length via the mesh's
- * `scale.y`, never the geometry itself — every link's CylinderGeometry is
- * always built with height 1 (see paintLinks3d).
- */
-export function linkGeometryCacheKey(radius: number, resolution: number): string {
-  return `${radius}|${resolution}`
 }
