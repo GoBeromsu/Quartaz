@@ -1,0 +1,63 @@
+From bbedc0b5313075d555ca9aa0dc893b9ffd3a3b3d Mon Sep 17 00:00:00 2001
+From: gobeumsu <gobeumsu@gmail.com>
+Date: Sun, 16 Aug 2026 20:18:34 +0900
+Subject: [PATCH] local: lenient, non-fatal YAML frontmatter parsing
+
+- yaml.load(..., { json: true }) so duplicate top-level frontmatter
+  keys resolve last-value-wins instead of throwing
+- wrap matter() in try/catch; on failure, log a single-line warning
+  with the file path + error and continue with empty frontmatter
+  instead of aborting the whole 20k-note build
+
+Root-caused against note-properties@e68145b (upstream quartz-community/note-properties).
+Applied on behalf of the ataraxia-quartz local-ataraxia branch.
+---
+ src/transformer.ts | 32 ++++++++++++++++++++++++--------
+ 1 file changed, 24 insertions(+), 8 deletions(-)
+
+diff --git a/src/transformer.ts b/src/transformer.ts
+index 03fed52..f827ed5 100644
+--- a/src/transformer.ts
++++ b/src/transformer.ts
+@@ -166,14 +166,30 @@ export const NoteProperties: QuartzTransformerPlugin<Partial<NotePropertiesOptio
+         () => {
+           return (_, file) => {
+             const fileData = Buffer.from(file.value as Uint8Array);
+-            const { data } = matter(fileData, {
+-              delimiters: opts.delimiters,
+-              language: opts.language,
+-              engines: {
+-                yaml: (s) => yaml.load(s, { schema: yaml.JSON_SCHEMA }) as object,
+-                toml: (s) => toml.parse(s) as object,
+-              },
+-            });
++            // Lenient, non-fatal frontmatter parsing: a single malformed note
++            // (e.g. duplicated YAML mapping keys) must not abort the whole
++            // build. `json: true` makes js-yaml resolve duplicate keys as
++            // last-value-wins instead of throwing; the surrounding try/catch
++            // is a last-resort backstop that falls back to empty frontmatter
++            // and logs a single-line warning so bad notes are still visible.
++            let data: Record<string, any> = {};
++            try {
++              const parsed = matter(fileData, {
++                delimiters: opts.delimiters,
++                language: opts.language,
++                engines: {
++                  yaml: (s) => yaml.load(s, { schema: yaml.JSON_SCHEMA, json: true }) as object,
++                  toml: (s) => toml.parse(s) as object,
++                },
++              });
++              data = parsed.data;
++            } catch (err) {
++              console.warn(
++                `[NoteProperties] Skipping malformed frontmatter in ${file.path}: ${
++                  (err as Error).message
++                }`,
++              );
++            }
+ 
+             if (data.title != null && data.title.toString() !== "") {
+               data.title = data.title.toString();
+-- 
+2.50.1 (Apple Git-155)
+

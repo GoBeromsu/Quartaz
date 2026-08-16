@@ -87,16 +87,6 @@ const sharedAfterBody = [
     component: Component.External("tag-list"),
     condition: (props) => !isWritingPage(props.fileData),
   }),
-  Component.External("comments", {
-    provider: "giscus",
-    options: {
-      repo: "GoBeromsu/Quartaz",
-      repoId: "R_kgDOMzvCAQ",
-      category: "Announcements",
-      categoryId: "DIC_kwDOMzvCAc4Civ7w",
-      reactionsEnabled: false,
-    },
-  }),
 ]
 
 const sharedFooter = [Component.External("BlogFooter", { links: footerLinks })]

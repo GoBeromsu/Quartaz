@@ -1,19 +1,15 @@
 # yaml-language-server: $schema=./quartz/plugins/quartz-plugins.schema.json
 configuration:
-  pageTitle: Beomsu Koh
+  pageTitle: Ataraxia (local)
   pageTitleSuffix: ""
   enableSPA: true
   enablePopovers: true
-  analytics:
-    provider: google
-    tagId: G-P07C416MPF
   locale: ko-KR
-  baseUrl: beomsukoh.com
+  baseUrl: 100.122.16.120:8090
   multilingual:
     enabled: true
     sourceLocale: ko
-    targetLocales:
-      - en
+    targetLocales: []
     locales:
       - id: ko
         locale: ko-KR
@@ -21,12 +17,6 @@ configuration:
         direction: ltr
         label: Korean
         nativeName: 한국어
-      - id: en
-        locale: en-US
-        routePrefix: /en/
-        direction: ltr
-        label: English
-        nativeName: English
     localizedSlug: false
     defaultLocaleRoute: /ko/
     xDefaultRoute: /
@@ -39,22 +29,14 @@ configuration:
       rss: source
       sitemap: all
   ignorePatterns:
-    - .git
-    - .gitignore
-    - .obsidian
+    - .git/**
+    - "**/.gitignore"
+    - .obsidian/**
+    - .smart-env/**
+    - .trash/**
     - "**/*.pdf"
     - "**/*.canvas"
-    - "**/private/*"
-    - .smart-env
-    - 50. Calendar
-    - 70. Settings
-    - zh-Hans/**
-    - hi/**
-    - es/**
-    - fr/**
-    - ar/**
-    - bn/**
-    - pt-BR/**
+    - "**/.DS_Store"
   theme:
     fontOrigin: googleFonts
     cdnCaching: true
@@ -106,7 +88,6 @@ plugins:
       defaultDateType: created
       priority:
         - frontmatter
-        - git
         - filesystem
     order: 10
   - source: github:quartz-community/syntax-highlighting
@@ -147,10 +128,6 @@ plugins:
     options:
       renderEngine: katex
     order: 80
-  - source: github:quartz-community/remove-draft
-    enabled: true
-  - source: github:quartz-community/unlisted-pages
-    enabled: true
   - source: github:quartz-community/alias-redirects
     enabled: true
   - source: ./plugins/multilingual-content-index
@@ -165,10 +142,6 @@ plugins:
   - source: ./plugins/blog-home
     enabled: true
   - source: github:quartz-community/favicon
-    enabled: true
-  - source: github:quartz-community/og-image
-    enabled: true
-  - source: github:quartz-community/cname
     enabled: true
   - source: github:quartz-community/content-page
     enabled: true
@@ -189,8 +162,6 @@ plugins:
   - source: github:quartz-community/content-meta
     enabled: true
   - source: github:quartz-community/tag-list
-    enabled: true
-  - source: github:quartz-community/comments
     enabled: true
 layout:
   byPageType:
