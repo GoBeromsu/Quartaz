@@ -39,6 +39,17 @@ export type ContentDetails = {
   multilingual?: ContentTranslationDetails
 }
 
+/** Lightweight, graph-only projection of ContentDetails emitted to static/graphIndex.json. */
+export type GraphIndexEntry = {
+  slug: FullSlug
+  title: string
+  links: SimpleSlug[]
+  tags: string[]
+  externalLinks: string[]
+  excerpt: string
+  multilingual?: ContentTranslationDetails
+}
+
 interface Options {
   enableSiteMap: boolean
   enableRSS: boolean
@@ -48,6 +59,10 @@ interface Options {
   includeEmptyFiles: boolean
   rssRecentNotesText?: string
   rssLastFewNotesText?: (count: number) => string
+  /** When set, truncate `content` in the emitted contentIndex.json to at most this many characters. Does not affect RSS/sitemap. Default: undefined (full content). */
+  contentMaxChars?: number
+  /** When true, additionally emit a lightweight static/graphIndex.json containing only graph-needed fields with a pre-truncated `excerpt` instead of full `content`. Default: false. */
+  emitGraphIndex: boolean
 }
 
 const defaultOptions: Options = {
@@ -59,6 +74,15 @@ const defaultOptions: Options = {
   includeEmptyFiles: true,
   rssRecentNotesText: "Recent notes",
   rssLastFewNotesText: (count) => `Last ${count} notes`,
+  emitGraphIndex: false,
+}
+
+/** Matches graph-landing's client-side EXCERPT_LENGTH constant. */
+const GRAPH_EXCERPT_LENGTH = 220
+
+function truncateText(text: string, maxChars: number): string {
+  if (text.length <= maxChars) return text
+  return text.slice(0, maxChars)
 }
 
 const write = async (args: {
@@ -232,10 +256,34 @@ export const ContentIndex: QuartzEmitterPlugin<Partial<Options>> = (opts) => {
     }
 
     const fp = joinSegments("static", "contentIndex") as unknown as FullSlug
+    const graphIndexEntries: Record<string, GraphIndexEntry> | undefined = options.emitGraphIndex
+      ? {}
+      : undefined
+
     const simplifiedIndex = Object.fromEntries(
       Array.from(linkIndex).map(([slug, content]) => {
         delete content.description
         delete content.date
+
+        if (graphIndexEntries) {
+          graphIndexEntries[slug] = {
+            slug: content.slug,
+            title: content.title,
+            links: content.links,
+            tags: content.tags,
+            externalLinks: content.externalLinks,
+            excerpt: truncateText(content.content, GRAPH_EXCERPT_LENGTH),
+            multilingual: content.multilingual,
+          }
+        }
+
+        if (
+          options.contentMaxChars !== undefined &&
+          content.content.length > options.contentMaxChars
+        ) {
+          content.content = truncateText(content.content, options.contentMaxChars)
+        }
+
         return [slug, content]
       }),
     )
@@ -248,6 +296,17 @@ export const ContentIndex: QuartzEmitterPlugin<Partial<Options>> = (opts) => {
         ext: ".json",
       }),
     )
+
+    if (graphIndexEntries) {
+      outputs.push(
+        await write({
+          ctx,
+          content: JSON.stringify(graphIndexEntries),
+          slug: joinSegments("static", "graphIndex") as unknown as FullSlug,
+          ext: ".json",
+        }),
+      )
+    }
 
     return outputs
   }

@@ -34,6 +34,10 @@ interface Options {
     includeEmptyFiles: boolean;
     rssRecentNotesText?: string;
     rssLastFewNotesText?: (count: number) => string;
+    /** When set, truncate `content` in the emitted contentIndex.json to at most this many characters. Does not affect RSS/sitemap. Default: undefined (full content). */
+    contentMaxChars?: number;
+    /** When true, additionally emit a lightweight static/graphIndex.json containing only graph-needed fields with a pre-truncated `excerpt` instead of full `content`. Default: false. */
+    emitGraphIndex: boolean;
 }
 declare const ContentIndex: QuartzEmitterPlugin<Partial<Options>>;
 
