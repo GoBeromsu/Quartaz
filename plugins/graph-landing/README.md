@@ -16,11 +16,40 @@ block at all.
 
 ## Requirements
 
-- `indexSource: "graphIndex"` requires the `multilingual-content-index`
-  emitter to be installed and configured with `emitGraphIndex: true` — it's
-  the plugin that writes the `static/graphIndex.json` file this page type
-  fetches when that option is set. With `indexSource` left at its default
-  (`"contentIndex"`), no such dependency exists.
+- `indexSource: "contentIndex"` (the default) works out of the box with
+  stock Quartz v5's built-in content index emitter — no other plugin
+  required. The client fetches `static/contentIndex.json` and reads each
+  entry's `slug`, `title`, `links`, `tags`, `externalLinks`, and `content`
+  fields.
+- `indexSource: "graphIndex"` instead fetches a `static/graphIndex.json`
+  file, which nothing in stock Quartz v5 emits — you need a separate
+  emitter plugin that writes it (Quartaz's `multilingual-content-index`
+  plugin does this behind its own `emitGraphIndex: true` option). Any
+  emitter can supply it as long as the file matches the shape below; this
+  plugin does not import or depend on any specific emitter package.
+- Expected `graphIndex.json` shape: a JSON object whose values (any keys,
+  typically slugs) are entries of the form
+  ```ts
+  {
+    slug: string
+    title: string
+    links: string[] // outgoing wikilink slugs
+    tags: string[]
+    externalLinks: string[]
+    excerpt: string // short preview text, pre-truncated by the emitter
+    multilingual?: {
+      translationKey?: string
+      locale?: string
+    }
+  }
+  ```
+  `excerpt` takes the place of `contentIndex.json`'s full `content` field
+  and is shown as-is in the node preview/inspect panels, so emitters
+  should keep it short (this plugin's own client-side excerpt fallback for
+  `contentIndex.json` truncates to 220 characters). Any entry missing a
+  non-empty `slug` is skipped; missing `title`/`links`/`tags`/
+  `externalLinks`/`excerpt` fall back to the slug / empty array / empty
+  string respectively rather than erroring.
 - `skipContentIndexFetch` (an internal flag this plugin sets on its page
   type instance, not a user-facing option) is a performance hint: when
   `indexSource: "graphIndex"` is set, this page fetches its own
