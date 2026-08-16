@@ -20,6 +20,7 @@ interface ContentEntry {
 // unchanged.
 import {
   expandHopIds,
+  isBeyondCullDistance,
   linkEndpointId,
   lodLevelForDistance,
   selectRenderedSubset,
@@ -127,6 +128,7 @@ interface ForceGraphInstance {
     ) => boolean | void,
   ) => unknown
   postProcessingComposer?: () => { addPass: (pass: unknown) => void }
+  scene?: () => { fog: unknown }
   linkDirectionalParticles?: (n: number | ((link: GraphLink) => number)) => unknown
   linkDirectionalParticleWidth?: (n: number) => unknown
   linkDirectionalParticleSpeed?: (n: number) => unknown
@@ -163,10 +165,20 @@ interface ThreeLOD extends ThreeObject {
   addLevel: (object: unknown, distance?: number) => unknown
 }
 
+// Return type for `new three.Mesh(...)`, used by the link-distance-cull rAF
+// loop to read a link's current world position and toggle visibility without
+// an unsafe cast. Every existing Mesh call site (node star, node dot,
+// link cylinder) already treats the constructor's return value as
+// unknown-compatible, so widening from `unknown` to this shape is safe.
+interface ThreeMeshHandle {
+  visible: boolean
+  position: Vec3
+}
+
 interface ThreeApi {
   Group: new () => ThreeObject
   LOD: new () => ThreeLOD
-  Mesh: new (geo: unknown, mat: unknown) => unknown
+  Mesh: new (geo: unknown, mat: unknown) => ThreeMeshHandle
   SphereGeometry: new (radius: number, width: number, height: number) => unknown
   CylinderGeometry: new (
     radiusTop: number,
@@ -186,6 +198,7 @@ interface ThreeApi {
     emissive: string
     emissiveIntensity: number
   }) => EmissiveMaterial
+  Fog: new (color: string, near: number, far: number) => unknown
 }
 
 // Pinned esm.sh URLs. Keep THREE_VERSION identical across 3D imports
@@ -226,6 +239,12 @@ const FOCUS_TAG_VAL_SCALE = 1.15
 const EXTERNAL_VAL_SCALE = 0.55
 const INITIAL_CAMERA: Vec3 = { x: 330, y: 235, z: 565 }
 const INITIAL_LOOK_AT: Vec3 = { x: 0, y: 0, z: 0 }
+// Fog range for `lod.fog`, sized relative to INITIAL_CAMERA's ~695-unit
+// distance from the origin: near sits inside the default view so close
+// geometry stays crisp, far sits past the far edge of a typical framed
+// graph so fog reads as depth cue rather than a visible wall.
+const FOG_NEAR = 300
+const FOG_FAR = 1600
 // Alex grammar: small bright cores with tight bloom halos, hairline edges.
 // Bloom stays tight (low radius, mid threshold) so the night-sky background
 // keeps its near-black depth instead of washing into gray fog.
@@ -1201,6 +1220,10 @@ function bindGraph(
     lod: {
       labelDistance: number | undefined
       dotDistance: number | undefined
+      cullDistance: number | undefined
+      fog: boolean
+      nodeResolution: number | undefined
+      linkResolution: number | undefined
     }
   },
 ): void {
@@ -1556,6 +1579,13 @@ function bindGraph(
   // etc.) so it never holds stale sprite references.
   const labelSprites = new Map<string, { sprite: SpriteTextInstance; node: GraphNode }>()
 
+  // Populated by paintLinks3d() only when options.lod.cullDistance is set,
+  // consumed by the link-distance-cull rAF loop below. Keyed by the link
+  // object itself (stable identity across repaints for a given data set)
+  // rather than a derived string key, avoiding an extra id-construction
+  // step per link on every animation frame.
+  const linkMeshes = new Map<GraphLink, ThreeMeshHandle>()
+
   // Shared geometry/material cache for the low-detail "dot" LOD tier, keyed
   // by a coarse radius bucket + fill color. Only ever populated when
   // options.lod.dotDistance is set; a fresh Mesh instance is still created
@@ -1590,6 +1620,7 @@ function bindGraph(
     const SpriteText = options.spriteText
     const three = options.three
     const dotDistance = options.lod.dotDistance
+    const nodeSegments = options.lod.nodeResolution ?? 14
     twinkleMaterials.clear()
     labelSprites.clear()
     dotResourceCache.clear()
@@ -1611,10 +1642,13 @@ function bindGraph(
             emissiveIntensity: base,
           })
           twinkleMaterials.set(node.id, { material, base, phase: node.phase })
-          star = new three.Mesh(new three.SphereGeometry(radius, 14, 14), material)
+          star = new three.Mesh(
+            new three.SphereGeometry(radius, nodeSegments, nodeSegments),
+            material,
+          )
         } else {
           star = new three.Mesh(
-            new three.SphereGeometry(radius, 14, 14),
+            new three.SphereGeometry(radius, nodeSegments, nodeSegments),
             new three.MeshBasicMaterial({ color: fill }),
           )
         }
@@ -1664,6 +1698,9 @@ function bindGraph(
       return
     }
     const up = new three.Vector3(0, 1, 0)
+    const linkSegments = options.lod.linkResolution ?? 5
+    const cullDistance = options.lod.cullDistance
+    linkMeshes.clear()
     graph.linkThreeObject((link) => {
       const radius = LINK_RADIUS[link.kind] * tune.edgeScale
       const material = new three.MeshBasicMaterial({
@@ -1672,7 +1709,17 @@ function bindGraph(
         opacity: edgeOpacity(link),
         depthWrite: false,
       })
-      return new three.Mesh(new three.CylinderGeometry(radius, radius, 1, 5), material)
+      const mesh = new three.Mesh(
+        new three.CylinderGeometry(radius, radius, 1, linkSegments),
+        material,
+      )
+      // Only tracked when cullDistance is set — with it unset, linkMeshes
+      // stays empty and the link-cull rAF loop below never registers at
+      // all, preserving current behavior byte for byte.
+      if (cullDistance !== undefined) {
+        linkMeshes.set(link, mesh)
+      }
+      return mesh
     })
     if (typeof graph.linkPositionUpdate !== "function") {
       return
@@ -1898,6 +1945,18 @@ function bindGraph(
   const activeBackground = (): string =>
     options.use3d ? canvasBackground3d(theme.current) : canvasBackground(theme.current)
 
+  // Sets/refreshes the 3D scene's THREE.Fog to match the active theme
+  // background, giving distant geometry a depth cue instead of a hard
+  // edge. No-op (graph.scene() is never even called) unless both use3d
+  // and options.lod.fog are true, preserving current behavior byte for
+  // byte when the option is unset.
+  const updateFog = (): void => {
+    if (!options.use3d || !options.lod.fog || !options.three || typeof graph.scene !== "function") {
+      return
+    }
+    graph.scene().fog = new options.three.Fog(activeBackground(), FOG_NEAR, FOG_FAR)
+  }
+
   graph.graphData(currentData())
   graph.backgroundColor(activeBackground())
   graph.nodeLabel((node) => node.name)
@@ -2020,6 +2079,7 @@ function bindGraph(
       }
     }
     paintLabels3d()
+    updateFog()
     // Subtle emissive twinkle: rAF-driven sine per node, +-15%, dark only.
     if (!prefersReducedMotion()) {
       let twinkleFrame = 0
@@ -2065,6 +2125,49 @@ function bindGraph(
       }
       labelFadeFrame = window.requestAnimationFrame(updateLabelFade)
       window.addCleanup(() => window.cancelAnimationFrame(labelFadeFrame))
+    }
+    // Link-distance culling: rAF-driven camera-distance check per link
+    // mesh, hiding meshes beyond options.lod.cullDistance via
+    // mesh.visible. Links touching the currently focused (hovered or
+    // selected) node always stay visible regardless of distance. Same
+    // rationale as the label-fade loop above: linkPositionUpdate only
+    // fires on simulation ticks (not continuously), so a dedicated rAF
+    // loop is needed to react to camera movement once the layout has
+    // frozen. Entirely absent (no rAF loop registered, linkMeshes stays
+    // empty) unless cullDistance is explicitly set, preserving current
+    // behavior byte for byte when the option is unset.
+    if (options.lod.cullDistance !== undefined && typeof graph.cameraPosition === "function") {
+      const cullDistance = options.lod.cullDistance
+      const getCullCameraPosition = graph.cameraPosition.bind(graph)
+      let linkCullFrame = 0
+      const updateLinkCull = (): void => {
+        const cam = getCullCameraPosition() as Partial<Vec3> | undefined
+        if (
+          cam &&
+          typeof cam.x === "number" &&
+          typeof cam.y === "number" &&
+          typeof cam.z === "number"
+        ) {
+          const focus = litId()
+          for (const [link, mesh] of linkMeshes) {
+            const sourceId = linkEndpointId(link.source)
+            const targetId = linkEndpointId(link.target)
+            if (focus !== null && (sourceId === focus || targetId === focus)) {
+              mesh.visible = true
+              continue
+            }
+            const distance = Math.hypot(
+              cam.x - mesh.position.x,
+              cam.y - mesh.position.y,
+              cam.z - mesh.position.z,
+            )
+            mesh.visible = !isBeyondCullDistance(distance, cullDistance)
+          }
+        }
+        linkCullFrame = window.requestAnimationFrame(updateLinkCull)
+      }
+      linkCullFrame = window.requestAnimationFrame(updateLinkCull)
+      window.addCleanup(() => window.cancelAnimationFrame(linkCullFrame))
     }
   } else {
     graph.warmupTicks(options.layout.warmupTicks ?? 60)
@@ -2394,6 +2497,7 @@ function bindGraph(
   const onThemeChange = (): void => {
     theme.current = readTheme()
     graph.backgroundColor(activeBackground())
+    updateFog()
     if (options.bloomPass) {
       options.bloomPass.strength = isDarkTheme() ? BLOOM_STRENGTH : 0
       options.bloomPass.radius = BLOOM_RADIUS
@@ -2989,6 +3093,34 @@ async function initGraphLanding(): Promise<void> {
     parsedLodDotDistance >= 0
       ? parsedLodDotDistance
       : undefined
+  const parsedLodCullDistance = root.dataset.graphLodCullDistance
+    ? Number.parseFloat(root.dataset.graphLodCullDistance)
+    : undefined
+  const lodCullDistance =
+    parsedLodCullDistance !== undefined &&
+    Number.isFinite(parsedLodCullDistance) &&
+    parsedLodCullDistance >= 0
+      ? parsedLodCullDistance
+      : undefined
+  const lodFog = root.dataset.graphLodFog === "true"
+  const parsedLodNodeResolution = root.dataset.graphLodNodeResolution
+    ? Number.parseInt(root.dataset.graphLodNodeResolution, 10)
+    : undefined
+  const lodNodeResolution =
+    parsedLodNodeResolution !== undefined &&
+    Number.isFinite(parsedLodNodeResolution) &&
+    parsedLodNodeResolution >= 0
+      ? parsedLodNodeResolution
+      : undefined
+  const parsedLodLinkResolution = root.dataset.graphLodLinkResolution
+    ? Number.parseInt(root.dataset.graphLodLinkResolution, 10)
+    : undefined
+  const lodLinkResolution =
+    parsedLodLinkResolution !== undefined &&
+    Number.isFinite(parsedLodLinkResolution) &&
+    parsedLodLinkResolution >= 0
+      ? parsedLodLinkResolution
+      : undefined
 
   let cancelled = false
   let graph: ForceGraphInstance | null = null
@@ -3126,6 +3258,10 @@ async function initGraphLanding(): Promise<void> {
     lod: {
       labelDistance: lodLabelDistance,
       dotDistance: lodDotDistance,
+      cullDistance: lodCullDistance,
+      fog: lodFog,
+      nodeResolution: lodNodeResolution,
+      linkResolution: lodLinkResolution,
     },
   })
 }

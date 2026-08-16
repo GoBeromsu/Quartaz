@@ -74,6 +74,19 @@ export function lodLevelForDistance(distance: number, threshold: number | undefi
 }
 
 /**
+ * Pure link-distance-cull decision for the 3D renderer's link-cull rAF loop,
+ * built on lodLevelForDistance's identical "distance >= threshold" boundary
+ * semantics (kept in one place so a link and a node LOD swap at the exact
+ * same distance never disagree). `cullDistance` undefined (or
+ * non-finite/negative) always returns false — no link is ever culled, current
+ * behavior unchanged. Named separately from lodLevelForDistance because
+ * "full"/"dot" reads oddly for links; call sites just want a boolean.
+ */
+export function isBeyondCullDistance(distance: number, cullDistance: number | undefined): boolean {
+  return lodLevelForDistance(distance, cullDistance) === "dot"
+}
+
+/**
  * Picks the top-`maxRenderedNodes` nodes by degree (descending, ties broken
  * by ascending id) out of `full`, then filters `full.links` down to only the
  * links whose endpoints both survived the cut. Used to cap the initial

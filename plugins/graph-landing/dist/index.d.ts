@@ -96,6 +96,36 @@ interface GraphLandingPageOptions {
          * at all).
          */
         dotDistance?: number;
+        /**
+         * Camera distance (world units) beyond which a link's cylinder mesh is
+         * hidden (`mesh.visible = false`), except links touching the currently
+         * focused (hovered/selected) node, which always stay visible regardless
+         * of distance. Default: undefined (no link is ever hidden by distance;
+         * current behavior unchanged).
+         */
+        cullDistance?: number;
+        /**
+         * When true, sets the 3D scene's `THREE.Fog` to match the active theme
+         * background color, giving distant geometry a depth cue instead of a
+         * hard edge. Purely visual — it does not cull or skip rendering
+         * anything itself (pairs naturally with `cullDistance`, which does).
+         * Default: undefined/false (no fog; current behavior unchanged). Has no
+         * effect when the 2D renderer is active.
+         */
+        fog?: boolean;
+        /**
+         * Overrides the segment count (width/height segments) used for each
+         * node's full-detail sphere geometry. Default: undefined (14, current
+         * behavior unchanged). Lower values trade visual smoothness for fewer
+         * triangles per node.
+         */
+        nodeResolution?: number;
+        /**
+         * Overrides the radial segment count used for each link's cylinder
+         * geometry. Default: undefined (5, current behavior unchanged). Lower
+         * values trade visual smoothness for fewer triangles per link.
+         */
+        linkResolution?: number;
     };
 }
 declare const GraphLandingPage: QuartzPageTypePlugin<GraphLandingPageOptions>;

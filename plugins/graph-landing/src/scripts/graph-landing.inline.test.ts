@@ -2,6 +2,7 @@ import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 import {
   expandHopIds,
+  isBeyondCullDistance,
   lodLevelForDistance,
   selectRenderedSubset,
   type GraphData,
@@ -190,5 +191,32 @@ describe("lodLevelForDistance", () => {
 
   it("returns dot for a zero threshold at zero distance (boundary is inclusive)", () => {
     assert.equal(lodLevelForDistance(0, 0), "dot")
+  })
+})
+
+describe("isBeyondCullDistance", () => {
+  it("returns false when cullDistance is undefined, regardless of distance", () => {
+    assert.equal(isBeyondCullDistance(0, undefined), false)
+    assert.equal(isBeyondCullDistance(1000, undefined), false)
+  })
+
+  it("returns false when cullDistance is NaN", () => {
+    assert.equal(isBeyondCullDistance(1000, NaN), false)
+  })
+
+  it("returns false when cullDistance is negative", () => {
+    assert.equal(isBeyondCullDistance(1000, -5), false)
+  })
+
+  it("returns false when distance is strictly below cullDistance", () => {
+    assert.equal(isBeyondCullDistance(99, 100), false)
+  })
+
+  it("returns true when distance equals cullDistance", () => {
+    assert.equal(isBeyondCullDistance(100, 100), true)
+  })
+
+  it("returns true when distance exceeds cullDistance", () => {
+    assert.equal(isBeyondCullDistance(150, 100), true)
   })
 })
