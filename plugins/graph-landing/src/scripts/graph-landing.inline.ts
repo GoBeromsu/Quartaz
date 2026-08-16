@@ -823,6 +823,39 @@ function buildGraphData(
   return { nodes, links }
 }
 
+/**
+ * Picks the initial rendered node subset when `maxRenderedNodes` is set:
+ * the top-N nodes by degree (computed over the full parsed index, same
+ * `degree` field buildGraphData already assigns to every node), with a
+ * deterministic tie-break by node id (slug) so the choice is stable across
+ * rebuilds. Edges are kept only when both endpoints survive the cut.
+ *
+ * When `maxRenderedNodes` is undefined, or is large enough to include every
+ * node anyway, this returns the exact same `full` object reference (not a
+ * copy) — callers use that identity to detect "nothing to expand" and skip
+ * the lazy-expansion machinery entirely, preserving current behavior byte
+ * for byte when the option is unset.
+ */
+function selectRenderedSubset(full: GraphData, maxRenderedNodes: number | undefined): GraphData {
+  if (maxRenderedNodes === undefined || maxRenderedNodes >= full.nodes.length) {
+    return full
+  }
+  const ranked = [...full.nodes].sort((a, b) => {
+    if (b.degree !== a.degree) {
+      return b.degree - a.degree
+    }
+    return a.id < b.id ? -1 : a.id > b.id ? 1 : 0
+  })
+  const picked = ranked.slice(0, Math.max(0, maxRenderedNodes))
+  const renderedIds = new Set(picked.map((node) => node.id))
+  const links = full.links.filter((link) => {
+    const source = linkEndpointId(link.source)
+    const target = linkEndpointId(link.target)
+    return renderedIds.has(source) && renderedIds.has(target)
+  })
+  return { nodes: picked, links }
+}
+
 function neighborMap(links: GraphLink[]): Map<string, Set<string>> {
   const neighbors = new Map<string, Set<string>>()
   const add = (from: string, to: string): void => {
@@ -1204,9 +1237,92 @@ function bindGraph(
     spriteText: SpriteTextCtor | null
     bloomPass: BloomPass | null
     three: ThreeApi | null
+    fullData: GraphData
+    expandHops: number
   },
 ): void {
-  const neighbors = neighborMap(data.links)
+  let neighbors = neighborMap(data.links)
+
+  // --- Lazy k-hop expansion (maxRenderedNodes) --------------------------
+  // `data` starts out as either the full index (maxRenderedNodes unset, in
+  // which case `options.fullData === data` and expansion is a no-op) or a
+  // top-N-by-degree subset. `data.nodes`/`data.links` are mutated in place
+  // (pushed into) on expansion so every existing closure over `data` in this
+  // function keeps working unchanged — no rewiring of `currentData()` or the
+  // rest of the view logic is needed.
+  const fullNodeById = new Map(options.fullData.nodes.map((node) => [node.id, node]))
+  // Same "real relationships only" definition used for hover highlighting
+  // (wikilink/tag/external) — cooc/folder texture edges do not drive expansion.
+  const fullAdjacency = neighborMap(options.fullData.links)
+  const renderedIds = new Set(data.nodes.map((node) => node.id))
+  const expandEdgeKey = (source: string, target: string, kind: LinkKind): string =>
+    source < target ? `${source}|${target}|${kind}` : `${target}|${source}|${kind}`
+  const renderedEdgeKeys = new Set(
+    data.links.map((link) =>
+      expandEdgeKey(linkEndpointId(link.source), linkEndpointId(link.target), link.kind),
+    ),
+  )
+
+  /**
+   * BFS out from `nodeId` through the full index up to `options.expandHops`
+   * hops, pulling any not-yet-rendered nodes (and the edges that connect them
+   * to the rendered set) into `data`. Returns true when it actually added
+   * anything, so the caller only needs to refresh the view on a real change.
+   */
+  const expandFromNode = (nodeId: string): boolean => {
+    if (options.fullData === data) {
+      return false
+    }
+    const hops = Math.max(0, Math.floor(options.expandHops))
+    if (hops <= 0) {
+      return false
+    }
+    const toAdd = new Set<string>()
+    const visited = new Set<string>([nodeId])
+    let frontier = new Set<string>([nodeId])
+    for (let hop = 0; hop < hops; hop += 1) {
+      const next = new Set<string>()
+      for (const id of frontier) {
+        for (const neighborId of fullAdjacency.get(id) ?? []) {
+          if (visited.has(neighborId)) {
+            continue
+          }
+          visited.add(neighborId)
+          next.add(neighborId)
+          if (!renderedIds.has(neighborId)) {
+            toAdd.add(neighborId)
+          }
+        }
+      }
+      frontier = next
+    }
+    if (toAdd.size === 0) {
+      return false
+    }
+    for (const id of toAdd) {
+      const node = fullNodeById.get(id)
+      if (!node) {
+        continue
+      }
+      data.nodes.push(node)
+      renderedIds.add(id)
+    }
+    for (const link of options.fullData.links) {
+      const source = linkEndpointId(link.source)
+      const target = linkEndpointId(link.target)
+      if (!renderedIds.has(source) || !renderedIds.has(target)) {
+        continue
+      }
+      const key = expandEdgeKey(source, target, link.kind)
+      if (renderedEdgeKeys.has(key)) {
+        continue
+      }
+      renderedEdgeKeys.add(key)
+      data.links.push(link)
+    }
+    neighbors = neighborMap(data.links)
+    return true
+  }
   const state: ViewState = {
     lens: readStoredLens(),
     allLabels: false,
@@ -2121,6 +2237,12 @@ function bindGraph(
   }
 
   const activateNode = (node: GraphNode): void => {
+    // Lazily pull the clicked node's neighbors into the live simulation
+    // before selecting it, so `fillInspect`'s connectedNeighbors reflects the
+    // freshly-expanded set immediately. No-op when maxRenderedNodes is unset.
+    if (expandFromNode(node.id)) {
+      applyView()
+    }
     selectNode(node)
   }
 
@@ -2734,6 +2856,10 @@ async function initGraphLanding(): Promise<void> {
   const countsTemplate = root.dataset.countsTemplate ?? "{n} nodes · {m} edges"
   const indexSource = root.dataset.indexSource === "graphIndex" ? "graphIndex" : "contentIndex"
   const graphIndexPath = root.dataset.graphIndexPath ?? ""
+  const maxRenderedNodes = root.dataset.maxRenderedNodes
+    ? Number.parseInt(root.dataset.maxRenderedNodes, 10)
+    : undefined
+  const expandHops = root.dataset.expandHops ? Number.parseInt(root.dataset.expandHops, 10) : 1
   const tagCooccurrence: TagCooccurrenceOption =
     root.dataset.tagCoocDisabled === "true"
       ? false
@@ -2814,7 +2940,7 @@ async function initGraphLanding(): Promise<void> {
     return
   }
 
-  const data = buildGraphData(
+  const fullData = buildGraphData(
     parseContentIndex(indexRaw),
     {
       localeId,
@@ -2823,6 +2949,10 @@ async function initGraphLanding(): Promise<void> {
     },
     tagCooccurrence,
   )
+  // When maxRenderedNodes is unset (or >= total nodes), selectRenderedSubset
+  // returns `fullData` itself (same reference) — the render/count/debug-handle
+  // path below is then byte-for-byte the same as before this option existed.
+  const data = selectRenderedSubset(fullData, maxRenderedNodes)
 
   const countText = countsTemplate
     .replace("{n}", String(data.nodes.length))
@@ -2854,7 +2984,15 @@ async function initGraphLanding(): Promise<void> {
   // Debug handle for browser QA (edge/kind breakdown, hover simulation).
   ;(canvas as HTMLElement & { __graphLanding?: ForceGraphInstance }).__graphLanding = graph
   ;(canvas as HTMLElement & { __graphData?: GraphData }).__graphData = data
-  bindGraph(graph, data, theme, { use3d, root, spriteText, bloomPass, three })
+  bindGraph(graph, data, theme, {
+    use3d,
+    root,
+    spriteText,
+    bloomPass,
+    three,
+    fullData,
+    expandHops,
+  })
 }
 
 const PREFERRED_LOCALE_STORAGE_KEY = "preferred-locale"

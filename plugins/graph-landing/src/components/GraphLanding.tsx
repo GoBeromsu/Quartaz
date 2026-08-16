@@ -275,6 +275,10 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
           data-locale-prefixes={localePrefixes}
           data-index-source={options.indexSource}
           data-graph-index-path={graphIndexPath}
+          data-max-rendered-nodes={options.maxRenderedNodes}
+          data-expand-hops={
+            options.maxRenderedNodes !== undefined ? options.expandHops : undefined
+          }
           data-tag-cooc-disabled={options.tagCooccurrence === false ? "true" : undefined}
           data-tag-cooc-max-tags-per-note={
             options.tagCooccurrence ? options.tagCooccurrence.maxTagsPerNote : undefined

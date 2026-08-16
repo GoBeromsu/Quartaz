@@ -64,6 +64,12 @@
       },
       "tagCooccurrence": {
         "type": "object"
+      },
+      "maxRenderedNodes": {
+        "type": "number"
+      },
+      "expandHops": {
+        "type": "number"
       }
     }
   },

@@ -19,6 +19,21 @@ export interface GraphLandingPageOptions {
    * have been added (deterministic order, same as today's note iteration).
    */
   tagCooccurrence?: { maxTagsPerNote?: number; maxEdges?: number } | false
+  /**
+   * Caps how many nodes the graph renders initially, keeping only the top-N
+   * nodes by degree (computed over the full parsed index, deterministic
+   * tie-break by slug). Default: undefined (render every node, current
+   * behavior). The full index stays available client-side so that clicking a
+   * node lazily expands its neighbors (see `expandHops`) into the live
+   * simulation instead of doing a full re-layout.
+   */
+  maxRenderedNodes?: number
+  /**
+   * Number of hops to pull in from the full index when a rendered node is
+   * clicked and `maxRenderedNodes` is set. Default: 1. Has no effect unless
+   * `maxRenderedNodes` is also set.
+   */
+  expandHops?: number
 }
 
 const defaultOptions: GraphLandingPageOptions = {
