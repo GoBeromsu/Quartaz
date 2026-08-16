@@ -135,8 +135,17 @@ plugins:
     options:
       enableSiteMap: true
       enableRSS: true
+      contentMaxChars: 500
+      emitGraphIndex: true
   - source: ./plugins/graph-landing
     enabled: true
+    options:
+      indexSource: graphIndex
+      maxRenderedNodes: 1500
+      expandHops: 1
+      tagCooccurrence:
+        maxTagsPerNote: 6
+        maxEdges: 5000
   - source: ./plugins/blog-chrome
     enabled: true
   - source: ./plugins/blog-home
