@@ -127,6 +127,16 @@ interface GraphLandingPageOptions {
          */
         linkResolution?: number;
     };
+    /**
+     * YouTube video id for the ambient audio track played behind the graph.
+     * Must be a bare video id (not a URL) — e.g. from
+     * https://www.youtube.com/watch?v=o6HpCFhNcnQ the id is `o6HpCFhNcnQ`.
+     * Default: undefined — current behavior unchanged, the plugin's built-in
+     * ambient track plays. Validated client-side (trimmed, must match
+     * `/^[A-Za-z0-9_-]{6,20}$/`); an invalid value is ignored and the
+     * built-in track plays instead.
+     */
+    ambientVideoId?: string;
 }
 declare const GraphLandingPage: QuartzPageTypePlugin<GraphLandingPageOptions>;
 

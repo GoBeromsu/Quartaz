@@ -4,6 +4,7 @@ import {
   expandHopIds,
   isBeyondCullDistance,
   lodLevelForDistance,
+  sanitizeAmbientVideoId,
   selectRenderedSubset,
   type GraphData,
   type GraphLink,
@@ -218,5 +219,41 @@ describe("isBeyondCullDistance", () => {
 
   it("returns true when distance exceeds cullDistance", () => {
     assert.equal(isBeyondCullDistance(150, 100), true)
+  })
+})
+
+describe("sanitizeAmbientVideoId", () => {
+  it("returns undefined when unset", () => {
+    assert.equal(sanitizeAmbientVideoId(undefined), undefined)
+    assert.equal(sanitizeAmbientVideoId(null), undefined)
+    assert.equal(sanitizeAmbientVideoId(""), undefined)
+  })
+
+  it("returns undefined for whitespace-only input", () => {
+    assert.equal(sanitizeAmbientVideoId("   "), undefined)
+  })
+
+  it("trims surrounding whitespace on an otherwise valid id", () => {
+    assert.equal(sanitizeAmbientVideoId("  o6HpCFhNcnQ  "), "o6HpCFhNcnQ")
+  })
+
+  it("accepts a bare id of letters, digits, underscore, and hyphen", () => {
+    assert.equal(sanitizeAmbientVideoId("o6HpCFhNcnQ"), "o6HpCFhNcnQ")
+    assert.equal(sanitizeAmbientVideoId("abc-DEF_123"), "abc-DEF_123")
+  })
+
+  it("rejects a full YouTube URL", () => {
+    assert.equal(sanitizeAmbientVideoId("https://www.youtube.com/watch?v=o6HpCFhNcnQ"), undefined)
+    assert.equal(sanitizeAmbientVideoId("youtu.be/o6HpCFhNcnQ"), undefined)
+  })
+
+  it("rejects ids shorter than 6 or longer than 20 characters", () => {
+    assert.equal(sanitizeAmbientVideoId("abc12"), undefined)
+    assert.equal(sanitizeAmbientVideoId("a".repeat(21)), undefined)
+  })
+
+  it("rejects ids containing disallowed characters", () => {
+    assert.equal(sanitizeAmbientVideoId("abc def"), undefined)
+    assert.equal(sanitizeAmbientVideoId("abc.def123"), undefined)
   })
 })

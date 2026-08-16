@@ -30,6 +30,7 @@ block at all.
       fog: true
       nodeResolution: 8
       linkResolution: 3
+    ambientVideoId: o6HpCFhNcnQ
 ```
 
 ### `indexSource`
@@ -141,6 +142,19 @@ fog). Has no effect when the 2D renderer is active.
   link's cylinder geometry. Default: `undefined` (`5`, original
   behavior). Lower values trade visual smoothness for fewer triangles per
   link.
+
+### `ambientVideoId`
+
+YouTube video id for the ambient audio track played behind the graph
+(toggled by the audio button in the controls rail).
+
+- Default: `undefined` — the plugin's built-in ambient track plays,
+  original behavior unchanged.
+- Takes a bare video id, not a URL — e.g. from
+  `https://www.youtube.com/watch?v=o6HpCFhNcnQ` the id is `o6HpCFhNcnQ`.
+- Validated client-side: trimmed, then must match `/^[A-Za-z0-9_-]{6,20}$/`.
+  An unset or invalid value (empty, too short/long, a full URL, disallowed
+  characters) is ignored and the built-in track plays instead.
 
 ## 3D performance
 
