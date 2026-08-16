@@ -149,6 +149,14 @@ export interface GraphLandingPageOptions {
    * built-in track plays instead.
    */
   ambientVideoId?: string
+  /**
+   * Fallback locale id used when a page's locale cannot be determined from
+   * its multilingual frontmatter/slug prefix, and when the site's
+   * multilingual config has no `sourceLocale` set. Default: undefined —
+   * current behavior unchanged, falls back to `"ko"`. Set this when
+   * publishing a site whose primary locale is not Korean.
+   */
+  defaultLocale?: string
 }
 
 const defaultOptions: GraphLandingPageOptions = {

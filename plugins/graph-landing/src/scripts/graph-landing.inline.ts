@@ -3033,8 +3033,13 @@ async function initGraphLanding(): Promise<void> {
   }
 
   const countEls = root.querySelectorAll("[data-graph-counts]")
-  const localeId = root.dataset.locale ?? "ko"
-  const sourceLocale = root.dataset.sourceLocale ?? "ko"
+  // data-locale/data-source-locale are always emitted by GraphLanding.tsx,
+  // so these fallbacks are defense-in-depth only (e.g. DOM built outside
+  // the real component). They still honor a configured defaultLocale
+  // before falling back to "ko", for consistency with the server-side
+  // resolution in GraphLanding.tsx.
+  const localeId = root.dataset.locale ?? root.dataset.graphDefaultLocale ?? "ko"
+  const sourceLocale = root.dataset.sourceLocale ?? root.dataset.graphDefaultLocale ?? "ko"
   const prefixes = (root.dataset.localePrefixes ?? "")
     .split(",")
     .map((prefix) => prefix.trim())

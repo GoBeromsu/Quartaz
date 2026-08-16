@@ -31,6 +31,7 @@ block at all.
       nodeResolution: 8
       linkResolution: 3
     ambientVideoId: o6HpCFhNcnQ
+    defaultLocale: en
 ```
 
 ### `indexSource`
@@ -155,6 +156,16 @@ YouTube video id for the ambient audio track played behind the graph
 - Validated client-side: trimmed, then must match `/^[A-Za-z0-9_-]{6,20}$/`.
   An unset or invalid value (empty, too short/long, a full URL, disallowed
   characters) is ignored and the built-in track plays instead.
+
+### `defaultLocale`
+
+Fallback locale id used when a page's locale can't be determined from its
+multilingual frontmatter/slug prefix, and when the site's multilingual
+config has no `sourceLocale` set.
+
+- Default: `undefined` — original behavior unchanged, falls back to `"ko"`.
+- Set this when publishing a site whose primary locale is not Korean (e.g.
+  `defaultLocale: en`).
 
 ## 3D performance
 
