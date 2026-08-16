@@ -98,7 +98,10 @@ interface ForceGraphInstance {
   onNodeHover: (fn: (node: GraphNode | null) => void) => unknown
   onNodeClick: (fn: (node: GraphNode | null, event?: Event) => void) => unknown
   onBackgroundClick?: (fn: (event?: Event) => void) => unknown
-  d3Force: (name: string, force?: unknown) =>
+  d3Force: (
+    name: string,
+    force?: unknown,
+  ) =>
     | {
         strength?: (value: number | ((link: GraphLink) => number)) => unknown
         distance?: (value: number | ((link: GraphLink) => number)) => unknown
@@ -133,7 +136,11 @@ interface ForceGraphInstance {
   linkThreeObject?: (fn: (link: GraphLink) => unknown) => unknown
   linkPositionUpdate?: (
     fn: (
-      obj: { position: Vec3; scale: Vec3; quaternion: { setFromUnitVectors: (a: unknown, b: unknown) => void } },
+      obj: {
+        position: Vec3
+        scale: Vec3
+        quaternion: { setFromUnitVectors: (a: unknown, b: unknown) => void }
+      },
       coords: { start: Vec3; end: Vec3 },
     ) => boolean | void,
   ) => unknown
@@ -306,7 +313,15 @@ function parseContentIndex(raw: Record<string, unknown>): ContentEntry[] {
       links: asStringArray(record.links),
       tags: asStringArray(record.tags),
       externalLinks: asStringArray(record.externalLinks),
-      content: typeof record.content === "string" ? record.content : "",
+      // graphIndex.json entries carry a pre-truncated `excerpt` instead of
+      // full `content`; prefer it when present so the graph index path and
+      // the contentIndex path both populate ContentEntry.content correctly.
+      content:
+        typeof record.excerpt === "string"
+          ? record.excerpt
+          : typeof record.content === "string"
+            ? record.content
+            : "",
       multilingual,
     })
   }
@@ -390,10 +405,7 @@ function noteIdentity(entry: ContentEntry, prefixes: readonly string[]): string 
   return `slug:${stripKnownPrefix(entry.slug, prefixes).permalink}`
 }
 
-function pickPreferredNote(
-  members: readonly ContentEntry[],
-  context: LocaleContext,
-): ContentEntry {
+function pickPreferredNote(members: readonly ContentEntry[], context: LocaleContext): ContentEntry {
   const picked =
     members.find((entry) => entryLocale(entry, context.prefixes) === context.localeId) ??
     members.find((entry) => entryLocale(entry, context.prefixes) === context.sourceLocale) ??
@@ -699,7 +711,9 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
     return MIN_NODE_VAL + ((scaled - minScaled) / scaledSpan) * (MAX_NODE_VAL - MIN_NODE_VAL)
   }
 
-  const rankedNotes = [...notes].sort((a, b) => (degree.get(b.slug) ?? 0) - (degree.get(a.slug) ?? 0))
+  const rankedNotes = [...notes].sort(
+    (a, b) => (degree.get(b.slug) ?? 0) - (degree.get(a.slug) ?? 0),
+  )
   const hubIds = new Set(
     rankedNotes
       .filter((note) => (degree.get(note.slug) ?? 0) > 0)
@@ -1080,7 +1094,9 @@ function noteFolderById(nodes: GraphNode[], endpoint: string | GraphNode): strin
 function clusterTargets(data: GraphData, lens: Lens, radius: number): Map<string, Vec3> {
   const targets = new Map<string, Vec3>()
   if (lens === "folder") {
-    const folders = [...new Set(data.nodes.filter((node) => node.type === "note").map((node) => node.folder))]
+    const folders = [
+      ...new Set(data.nodes.filter((node) => node.type === "note").map((node) => node.folder)),
+    ]
     folders.forEach((folder, index) => {
       const angle = (Math.PI * 2 * index) / Math.max(folders.length, 1)
       const point = { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius, z: 0 }
@@ -1432,7 +1448,10 @@ function bindGraph(
     }
   }
 
-  const twinkleMaterials = new Map<string, { material: EmissiveMaterial; base: number; phase: number }>()
+  const twinkleMaterials = new Map<
+    string,
+    { material: EmissiveMaterial; base: number; phase: number }
+  >()
 
   const paintLabels3d = (): void => {
     if (!options.use3d || typeof graph.nodeThreeObject !== "function") {
@@ -1472,7 +1491,9 @@ function bindGraph(
       }
       // Alex-style label: small, no stroke bubble, floating beside the star.
       const sprite = new SpriteText(node.name)
-      const labelInk = isDarkTheme() ? "rgba(255, 255, 255, 0.85)" : withAlpha(theme.current.ink, 0.88)
+      const labelInk = isDarkTheme()
+        ? "rgba(255, 255, 255, 0.85)"
+        : withAlpha(theme.current.ink, 0.88)
       sprite.color = isActive(node.id) ? labelInk : withAlpha(labelInk, DIM_ALPHA)
       sprite.fontWeight = "400"
       sprite.strokeWidth = 0
@@ -1877,14 +1898,18 @@ function bindGraph(
       ctx.fillStyle = nodeFill(node)
       ctx.fill()
       if (node.isHub) {
-        ctx.strokeStyle = isActive(node.id) ? theme.current.accent : withAlpha(theme.current.accent, DIM_ALPHA)
+        ctx.strokeStyle = isActive(node.id)
+          ? theme.current.accent
+          : withAlpha(theme.current.accent, DIM_ALPHA)
         ctx.lineWidth = 1.2 / globalScale
         ctx.stroke()
       }
       if (showNodeLabel(node)) {
         const fontSize = 11.5 / globalScale
         ctx.font = `${fontSize}px ${theme.current.font}`
-        ctx.fillStyle = isActive(node.id) ? theme.current.ink : withAlpha(theme.current.ink, DIM_ALPHA)
+        ctx.fillStyle = isActive(node.id)
+          ? theme.current.ink
+          : withAlpha(theme.current.ink, DIM_ALPHA)
         ctx.textAlign = "center"
         ctx.textBaseline = "bottom"
         ctx.fillText(node.name, x, y - radius - 6)
@@ -1998,7 +2023,11 @@ function bindGraph(
           button.className = "graph-landing__inspect-link"
           button.dataset.graphInspectId = neighbor.id
           const kind =
-            neighbor.type === "tag" ? tagsLabel : neighbor.type === "external" ? linksLabel : notesLabel
+            neighbor.type === "tag"
+              ? tagsLabel
+              : neighbor.type === "external"
+                ? linksLabel
+                : notesLabel
           const kindEl = document.createElement("span")
           kindEl.textContent = kind
           const nameEl = document.createElement("strong")
@@ -2218,7 +2247,11 @@ function bindGraph(
       return
     }
     const lensBtn = target.closest("[data-graph-lens]")
-    if (lensBtn instanceof HTMLElement && lensBtn.dataset.graphLens && isLens(lensBtn.dataset.graphLens)) {
+    if (
+      lensBtn instanceof HTMLElement &&
+      lensBtn.dataset.graphLens &&
+      isLens(lensBtn.dataset.graphLens)
+    ) {
       setLens(lensBtn.dataset.graphLens)
       return
     }
@@ -2674,6 +2707,8 @@ async function initGraphLanding(): Promise<void> {
     .map((prefix) => prefix.trim())
     .filter((prefix) => prefix.length > 0)
   const countsTemplate = root.dataset.countsTemplate ?? "{n} nodes · {m} edges"
+  const indexSource = root.dataset.indexSource === "graphIndex" ? "graphIndex" : "contentIndex"
+  const graphIndexPath = root.dataset.graphIndexPath ?? ""
 
   let cancelled = false
   let graph: ForceGraphInstance | null = null
@@ -2711,7 +2746,10 @@ async function initGraphLanding(): Promise<void> {
     ? (import(UNREAL_BLOOM) as Promise<{ UnrealBloomPass?: new () => BloomPass }>)
         .then((mod) => (mod.UnrealBloomPass ? new mod.UnrealBloomPass() : null))
         .catch((error: unknown) => {
-          console.error("[graph-landing] UnrealBloomPass unavailable; dark-mode bloom disabled", error)
+          console.error(
+            "[graph-landing] UnrealBloomPass unavailable; dark-mode bloom disabled",
+            error,
+          )
           return null
         })
     : Promise.resolve(null)
@@ -2721,7 +2759,14 @@ async function initGraphLanding(): Promise<void> {
 
   let indexRaw: Record<string, unknown>
   try {
-    indexRaw = asRecord(await fetchData)
+    // graphIndex.json is a lighter, graph-only projection served alongside
+    // contentIndex.json; it is fetched independently here (rather than via
+    // the page-global `fetchData`) so the shared core fetch used by other
+    // scripts on the page (e.g. search) is left untouched.
+    indexRaw =
+      indexSource === "graphIndex"
+        ? asRecord(await fetch(graphIndexPath).then((response) => response.json()))
+        : asRecord(await fetchData)
   } catch (error) {
     showLoadError(canvas, "Graph could not load content index.")
     throw error

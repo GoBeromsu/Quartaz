@@ -47,13 +47,22 @@
     "name": "graph-landing",
     "displayName": "Graph Landing",
     "description": "Full-viewport knowledge-graph constellation for locale home pages.",
-    "category": ["pageType"],
+    "category": [
+      "pageType"
+    ],
     "version": "0.1.0",
     "quartzVersion": ">=5.0.0",
     "dependencies": [],
     "defaultOrder": 55,
     "defaultEnabled": true,
-    "defaultOptions": {}
+    "defaultOptions": {
+      "indexSource": "contentIndex"
+    },
+    "optionSchema": {
+      "indexSource": {
+        "type": "string"
+      }
+    }
   },
   "engines": {
     "node": ">=22",
