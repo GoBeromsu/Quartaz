@@ -15,9 +15,8 @@ translationKey: agent-driven-development-process
 locale: ko
 sourceLocale: ko
 sourcePath: content/Articles/Agent driven developement process.md
-sourceHash: sha256:47f1e37c0af34b9d4617a8f702d5cc5fef1b114eba890d5c397bbbde341aedbe
+sourceHash: sha256:529b72beb82ddd704abfde170dc8d57799d4ff0a6352ec0b7055f0105a65c64a
 translationStatus: source
-permalink: agent-driven-development-process
 ---
 
 ## Agent Driven Development Process
