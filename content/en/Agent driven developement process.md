@@ -2,43 +2,39 @@
 aliases:
   - Agent Driven Development
   - 에이전트 주도 개발
-date_created: 2026-04-10
-date_modified: 2026-04-10
-moc: "[[📚 801 Blog]]"
+title: Agent Driven Development Process
+permalink: agent-driven-development-process
+date_created: 2026-04-11
+date_modified: 2026-08-17
 status: inprogress
 tags:
   - artificialintelligence
   - softwareengineering
-quartz_url: null
-tistory_url: null
-medium_url: null
 type: article
 translationKey: agent-driven-development-process
 locale: en
 sourceLocale: ko
 sourcePath: content/Articles/Agent driven developement process.md
-sourceHash: sha256:47f1e37c0af34b9d4617a8f702d5cc5fef1b114eba890d5c397bbbde341aedbe
+sourceHash: sha256:529b72beb82ddd704abfde170dc8d57799d4ff0a6352ec0b7055f0105a65c64a
 translationStatus: translated
-permalink: agent-driven-development-process
-title: Agent Driven Development Process
 ---
 
 ## Agent Driven Development Process
 
 > [!abstract] TL;DR
-> Each skill is my own strength, my internal power, and the system is what operates those skills. Training is the painful process of observing patterns in external systems, internalizing them, and building up skills of my own. This essay reflects on what I should do in the age of agentic coding.
+> Each skill is my own strength — my internal power (내공) — and the system is what operates those skills. Training is the painful process of observing patterns in external systems, internalizing them, and building up skills of my own. This essay reflects on what I should do in the age of agentic coding.
 
-I began writing this from a concern about what I should learn in this era and what I should leave behind. The starting point is [[결국 모든 것은 loop]]: in the flow from harness engineering to prompt engineering and context engineering, the point is that agents autonomously solve problems. A necessary Loop emerges for that purpose.
+I began writing this from a concern about what I should learn in this era and what I should leave behind. The starting point is that, in the end, everything is a loop. The flow running from harness engineering through prompt engineering to context engineering is about agents autonomously solving problems. A Loop inevitably becomes necessary for that.
 
 ## Diagnosis of the Era: A World Where Execution Has Become Cheap
 
-CEO [[노정석]] says that almost every problem can be converted into a compute-based search problem. Set a goal and run the Loop until it passes evaluation. OpenAI's harness-engineering article demonstrated this in practice. A small number of engineers handed execution to agents, while humans focused on environment design and feedback loops, producing one million lines of code in five months.
+CEO Noh Jung-seok says that almost every problem can be converted into a compute-based search problem. Set a goal and run the Loop until it passes evaluation. OpenAI's harness-engineering article demonstrated this in practice. A small number of engineers handed execution to agents, while humans focused on environment design and feedback loops, producing one million lines of code in five months.
 
-[[Geoffrey Huntley]], the creator of the [[Ralph Loop]] and an engineer who advocates for an "automated software factory," says in [[Everything is a Ralph Loop]]: "Software is now clay on the pottery wheel." His claim is that this is no longer an era of stacking bricks one by one, but an era of programming loops. Recently, we saw evidence for this claim in [[What you need to learn from claw-code repo|claw code]]. Converting a large-scale codebase in a few hours has become possible.
+Geoffrey Huntley, the creator of the Ralph Loop and an engineer who advocates for an "automated software factory," says in [everything is a ralph loop](https://ghuntley.com/loop/): "Software is now clay on the pottery wheel." His claim is that this is no longer an era of stacking bricks one by one, but an era of programming loops. Recently, we saw evidence for this claim in [claw code](https://x.com/realsigridjin/status/2039472968624185713). Converting a large-scale codebase in a few hours has become possible.
 
-In the end, I understand that software development will be converted into a compute-based search problem, and that it will become something shaped down through repeated Loops, like turning a pottery wheel. [[Simon Willison]], Django co-creator and blogger specializing in AI development tools, also diagnosed in [[Designing Agentic Loops]] that the ability to design agentic loops itself is a core competency of this era. This flow seems to be continuing.
+In the end, I understand that everything will be converted into a compute-based search problem, and that software development will become something shaped down through repeated Loops, like turning a pottery wheel. Simon Willison, Django co-creator and blogger specializing in AI development tools, also diagnosed in [Designing agentic loops](https://simonw.substack.com/p/designing-agentic-loops) that the ability to design agentic loops itself is a core competency of this era. This flow seems to be continuing.
 
-Then what should young me do? I think it is the ability to make Loops. This does not mean [[Software Engineering]] is unnecessary, nor does it mean AI will do everything and we should simply wait comfortably for that time. I think the need to gain hard experience and study intensely has not changed. We live in a world where problems appear faster than we solve them, and in a world where many more problems have become solvable. We need to build loops that solve problems.
+Then what should young me do? I think it is the ability to make Loops. This does not mean Software Engineering is unnecessary, nor does it mean AI will do everything and we should simply wait comfortably for that time. I think the need to gain hard experience and study intensely has not changed. We live in a world where problems appear faster than we solve them, and in a world where many more problems have become solvable. We need to build loops that solve problems.
 
 Fundamentally, energy is required for putting in input and getting output, and for keeping entropy low. Humans have no choice but to operate as that module, because desire comes from humans, and because problems are defined by humans.
 
@@ -58,7 +54,7 @@ When my own unique skills accumulate and show my own flow, they will give value 
 
 > Hey, tsk, that is not how you do it. Give it here. This is how it is done.
 
-Let us turn the Loop into a sect. We, who solve many problems in the world, are the founders of each sect. Our training is to turn internalized capabilities into skills and give them to disciples, to transmit insight, and to give this martial art, this Loop, to students, the agents.
+Let us turn the Loop into a sect. We, who solve many problems in the world, are the founders of each sect. Our training is to turn internalized capabilities into skills and give them to disciples, to transmit insight, and to give this martial art — the Loop — to students, the agents.
 
 We need to train and internalize while standing on the shoulders of giants who presented concepts such as ralph, autopilot, and autoresearch. We have no choice but to verify at which layer we can solve problems that cannot be solved by one-click execution alone: whether it is a skill, a loop, a batch, or whether the benchmark is wrong.
 
@@ -70,7 +66,7 @@ This does not mean creating every skill directly from scratch alone. It means wa
 
 ### 1. Turn Every Problem Into a Search Problem, and Every Search Into a Loop
 
-When there is a problem, turn it into a structure that can be searched, then turn that search into a repeatable loop. This is also what [[Harness Engineering]] describes: wrapping non-deterministic model behavior with deterministic workflow primitives such as goal-setting, evaluation loops, routing, and fallback.
+When there is a problem, turn it into a structure that can be searched, then turn that search into a repeatable loop. This is also what Harness Engineering describes: wrapping non-deterministic model behavior with deterministic workflow primitives such as goal-setting, evaluation loops, routing, and fallback.
 
 In practice, this means writing a spec, having an agent run the loop, and repeating until the evaluation passes. It is not "somehow do it well." It is redefining the problem as "what goal should be set, and how will it pass?"
 
@@ -78,13 +74,13 @@ In practice, this means writing a spec, having an agent run the loop, and repeat
 
 I think what this era requires is using many tools while building up my own tools. Seeing that someone used something, then leveling up my own version of it. Like building up one's own skills in martial arts fiction.
 
-Anyone can use the same model and the same CLI. The difference comes from the depth of the skills built on top of them. As OpenAI showed in [[Harness engineering leveraging Codex in an agent-first world]], I think the source of differentiation is not the stronger model itself, but the surrounding process: rails, verification, routing, and so on.
+Anyone can use the same model and the same CLI. The difference comes from the depth of the skills built on top of them. As OpenAI showed in [Harness engineering: leveraging Codex in an agent-first world](https://openai.com/index/harness-engineering/), I think the source of differentiation is not the stronger model itself, but the surrounding process: rails, verification, routing, and so on.
 
 Even with a single Obsidian CLI, I may use it for debugging, while another person may use it with a different philosophy. Multiple skills can branch out from one CLI.
 
 ### 3. The Spec Determines the Quality of the Loop
 
-I am learning that a detailed spec matters when running a loop. Whether it is the [[Ralph Loop]] or autopilot, the quality of the input spec determines the quality of the output. This is also what [[Harness Engineering]] emphasizes: once the goal stabilizes, the loop removes chaos and refines the result.
+I am learning that a detailed spec matters when running a loop. Whether it is the Ralph Loop or autopilot, the quality of the input spec determines the quality of the output. This is also what Harness Engineering emphasizes: once the goal stabilizes, the loop removes chaos and refines the result.
 
 I understand that Google created DESIGN.md and OpenAI gathered grand rules under docs/ in order to make good specs. They record their own philosophy and make it repeatedly referable. A Spec is not a one-off document; it is a crystallization of accumulated judgment.
 
@@ -96,7 +92,7 @@ OpenAI expressed this as "enforce boundaries centrally, allow autonomy locally."
 
 ### 5. Dogfooding Is the Only Antifragile Path
 
-The skills we struggle to make are fragile. The world is complex, and nothing works forever after being made once. [[Entropy]] inevitably rises. The only way to gain Antifragile properties is **to keep dogfooding what I make**.
+The skills we struggle to make are fragile. The world is complex, and nothing works forever after being made once. Entropy inevitably rises. The only way to gain Antifragile properties is **to keep dogfooding what I make**.
 
 As Huntley said: "watch the loop — that is where your personal development and learning will come from." Watching the loop, finding the failure domain, and solving it so it does not happen again. This repetition turns a skill from fragile into antifragile.
 
@@ -112,26 +108,13 @@ What matters in this process is not speed but direction. Execution has already b
 
 ## References
 
-- [[Harness Engineering]]
-- [[Everything is a Ralph Loop]]
-- [[Harness engineering leveraging Codex in an agent-first world]]
-- [[Designing Agentic Loops]]
-- [[EP 91. 26.1Q 비즈니스 관점에서의 AI]]
-- [[EP 74. 비즈니스 관점에서 오늘의 AI - 도망자 연합 발족 선언]]
-- [[2026-03-31 Google Summer of Code]]
-- [[노정석]]
-- [[AI Agent]]
-- [[Agentic AI]]
-- [[Geoffrey Huntley]]
-- [[Simon Willison]]
+- [everything is a ralph loop](https://ghuntley.com/loop/)
+- [Harness engineering: leveraging Codex in an agent-first world](https://openai.com/index/harness-engineering/)
+- [Designing agentic loops](https://simonw.substack.com/p/designing-agentic-loops)
+- [claw code](https://x.com/realsigridjin/status/2039472968624185713)
+- [EP 91. 26.1Q 비즈니스 관점에서의 AI](https://www.youtube.com/watch?v=FPYOVt2B5EM)
+- [EP 74. 비즈니스 관점에서 오늘의 AI - 도망자 연합 발족 선언](https://www.youtube.com/watch?v=JOcJhNCNDZE)
 
 ## Next Step
 
-- Use [[Agent Skill Deploy]] to configure and manage my own skills.
-
-## Thinking
-
-> 💭 [[2026-04-10]] 14:39
-> Did this perspective come from the reinforcement learning side?
-
----
+- Configure and manage my own skills with Agent Skill Deploy
