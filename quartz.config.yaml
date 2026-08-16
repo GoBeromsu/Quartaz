@@ -146,6 +146,16 @@ plugins:
       tagCooccurrence:
         maxTagsPerNote: 6
         maxEdges: 5000
+      renderMode: "3d"
+      layout:
+        freezeAfterWarmup: true
+      lod:
+        labelDistance: 800
+        dotDistance: 1200
+        cullDistance: 1600
+        fog: true
+        nodeResolution: 8
+        linkResolution: 3
   - source: ./plugins/blog-chrome
     enabled: true
   - source: ./plugins/blog-home
