@@ -48,6 +48,97 @@ export interface GraphLandingPageOptions {
    * `maxRenderedNodes` is also set.
    */
   expandHops?: number
+  /**
+   * Which client renderer to use. Default: undefined ("auto") — current
+   * behavior unchanged: 3D loads when WebGL is available and the user has
+   * not requested reduced motion, otherwise the 2D canvas renderer loads
+   * instead. Set to "3d" to require the 3D renderer: it never falls back to
+   * 2D — if WebGL is unavailable or reduced-motion is requested, the graph
+   * shows a short notice via the existing canvas-message path instead of
+   * silently loading 2D.
+   */
+  renderMode?: "auto" | "3d"
+  /**
+   * Tunes the force-simulation warmup/settle behavior. Default: undefined —
+   * current behavior unchanged (3D: warmupTicks 50 / cooldownTicks 200; 2D:
+   * warmupTicks 60 / cooldownTicks 180; charge force theta uses d3-force's
+   * built-in default).
+   */
+  layout?: {
+    /**
+     * When true, forces cooldownTicks to 0 after the warmup pass runs so
+     * the simulation freezes immediately instead of continuing to settle —
+     * the maintainer-recommended pattern for a one-shot layout. Overrides
+     * any `cooldownTicks` value set alongside it. Default: false.
+     */
+    freezeAfterWarmup?: boolean
+    /** Overrides the renderer's default warmupTicks (3D: 50, 2D: 60). */
+    warmupTicks?: number
+    /**
+     * Overrides the renderer's default cooldownTicks (3D: 200, 2D: 180).
+     * Ignored when `freezeAfterWarmup` is true.
+     */
+    cooldownTicks?: number
+    /**
+     * Sets the d3-force charge force's Barnes-Hut approximation `theta`.
+     * Higher values trade layout accuracy for speed. Default: d3-force's
+     * built-in default (0.9).
+     */
+    chargeTheta?: number
+  }
+  /**
+   * Camera-distance level-of-detail for the 3D renderer. Default: undefined
+   * (current behavior unchanged — every node renders its full sphere +
+   * label mesh regardless of camera distance, no THREE.LOD wrapping, no
+   * distance-driven label hide). Has no effect when the 2D renderer is
+   * active.
+   */
+  lod?: {
+    /**
+     * Camera distance (world units) beyond which a node's label sprite is
+     * hidden. Default: undefined (labels never hide based on distance;
+     * current behavior unchanged). Applies independently of `dotDistance`.
+     */
+    labelDistance?: number
+    /**
+     * Camera distance (world units) beyond which a node's full-detail
+     * sphere mesh is swapped for a cheap, shared low-poly "dot" mesh via
+     * THREE.LOD. Default: undefined (every node always renders its
+     * full-detail mesh; current behavior unchanged, no THREE.LOD wrapping
+     * at all).
+     */
+    dotDistance?: number
+    /**
+     * Camera distance (world units) beyond which a link's cylinder mesh is
+     * hidden (`mesh.visible = false`), except links touching the currently
+     * focused (hovered/selected) node, which always stay visible regardless
+     * of distance. Default: undefined (no link is ever hidden by distance;
+     * current behavior unchanged).
+     */
+    cullDistance?: number
+    /**
+     * When true, sets the 3D scene's `THREE.Fog` to match the active theme
+     * background color, giving distant geometry a depth cue instead of a
+     * hard edge. Purely visual — it does not cull or skip rendering
+     * anything itself (pairs naturally with `cullDistance`, which does).
+     * Default: undefined/false (no fog; current behavior unchanged). Has no
+     * effect when the 2D renderer is active.
+     */
+    fog?: boolean
+    /**
+     * Overrides the segment count (width/height segments) used for each
+     * node's full-detail sphere geometry. Default: undefined (14, current
+     * behavior unchanged). Lower values trade visual smoothness for fewer
+     * triangles per node.
+     */
+    nodeResolution?: number
+    /**
+     * Overrides the radial segment count used for each link's cylinder
+     * geometry. Default: undefined (5, current behavior unchanged). Lower
+     * values trade visual smoothness for fewer triangles per link.
+     */
+    linkResolution?: number
+  }
 }
 
 const defaultOptions: GraphLandingPageOptions = {

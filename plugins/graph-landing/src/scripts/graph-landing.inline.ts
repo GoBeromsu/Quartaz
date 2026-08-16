@@ -11,41 +11,23 @@ interface ContentEntry {
   }
 }
 
-interface GraphNode {
-  id: string
-  name: string
-  type: "note" | "tag" | "external"
-  val: number
-  degree: number
-  isHub: boolean
-  tag: string
-  slug: string
-  url: string
-  folder: string
-  tags: string[]
-  dominantTag: string
-  excerpt: string
-  phase: number
-  x?: number
-  y?: number
-  z?: number
-  vx?: number
-  vy?: number
-  vz?: number
-}
-
-type LinkKind = "wikilink" | "tag" | "cooc" | "folder" | "external"
-
-interface GraphLink {
-  source: string | GraphNode
-  target: string | GraphNode
-  kind: LinkKind
-}
-
-interface GraphData {
-  nodes: GraphNode[]
-  links: GraphLink[]
-}
+// GraphNode/LinkKind/GraphLink/GraphData and the pure selectRenderedSubset/
+// expandHopIds/linkEndpointId helpers live in ./graph-landing-pure (a file
+// with no top-level DOM side effects) so Node-based unit tests can import
+// them directly. esbuild's `bundle: true` nested build (see
+// tsup.config.ts's inlineScriptPlugin) inlines that module's code into the
+// final minified bundle exactly as before this split, so dist output is
+// unchanged.
+import {
+  expandHopIds,
+  isBeyondCullDistance,
+  linkEndpointId,
+  lodLevelForDistance,
+  selectRenderedSubset,
+  type GraphData,
+  type GraphLink,
+  type GraphNode,
+} from "./graph-landing-pure"
 
 interface ThemeTokens {
   bg: string
@@ -105,6 +87,7 @@ interface ForceGraphInstance {
     | {
         strength?: (value: number | ((link: GraphLink) => number)) => unknown
         distance?: (value: number | ((link: GraphLink) => number)) => unknown
+        theta?: (value: number) => unknown
       }
     | undefined
   d3ReheatSimulation: () => unknown
@@ -145,6 +128,7 @@ interface ForceGraphInstance {
     ) => boolean | void,
   ) => unknown
   postProcessingComposer?: () => { addPass: (pass: unknown) => void }
+  scene?: () => { fog: unknown }
   linkDirectionalParticles?: (n: number | ((link: GraphLink) => number)) => unknown
   linkDirectionalParticleWidth?: (n: number) => unknown
   linkDirectionalParticleSpeed?: (n: number) => unknown
@@ -164,6 +148,7 @@ interface SpriteTextInstance {
   strokeColor: string
   position: { x: number; y: number }
   center: { set: (x: number, y: number) => void }
+  visible: boolean
 }
 
 interface EmissiveMaterial {
@@ -176,9 +161,24 @@ interface ThreeObject {
   add: (obj: unknown) => void
 }
 
+interface ThreeLOD extends ThreeObject {
+  addLevel: (object: unknown, distance?: number) => unknown
+}
+
+// Return type for `new three.Mesh(...)`, used by the link-distance-cull rAF
+// loop to read a link's current world position and toggle visibility without
+// an unsafe cast. Every existing Mesh call site (node star, node dot,
+// link cylinder) already treats the constructor's return value as
+// unknown-compatible, so widening from `unknown` to this shape is safe.
+interface ThreeMeshHandle {
+  visible: boolean
+  position: Vec3
+}
+
 interface ThreeApi {
   Group: new () => ThreeObject
-  Mesh: new (geo: unknown, mat: unknown) => unknown
+  LOD: new () => ThreeLOD
+  Mesh: new (geo: unknown, mat: unknown) => ThreeMeshHandle
   SphereGeometry: new (radius: number, width: number, height: number) => unknown
   CylinderGeometry: new (
     radiusTop: number,
@@ -198,6 +198,7 @@ interface ThreeApi {
     emissive: string
     emissiveIntensity: number
   }) => EmissiveMaterial
+  Fog: new (color: string, near: number, far: number) => unknown
 }
 
 // Pinned esm.sh URLs. Keep THREE_VERSION identical across 3D imports
@@ -238,6 +239,12 @@ const FOCUS_TAG_VAL_SCALE = 1.15
 const EXTERNAL_VAL_SCALE = 0.55
 const INITIAL_CAMERA: Vec3 = { x: 330, y: 235, z: 565 }
 const INITIAL_LOOK_AT: Vec3 = { x: 0, y: 0, z: 0 }
+// Fog range for `lod.fog`, sized relative to INITIAL_CAMERA's ~695-unit
+// distance from the origin: near sits inside the default view so close
+// geometry stays crisp, far sits past the far edge of a typical framed
+// graph so fog reads as depth cue rather than a visible wall.
+const FOG_NEAR = 300
+const FOG_FAR = 1600
 // Alex grammar: small bright cores with tight bloom halos, hairline edges.
 // Bloom stays tight (low radius, mid threshold) so the night-sky background
 // keeps its near-black depth instead of washing into gray fog.
@@ -828,47 +835,6 @@ function buildGraphData(
   return { nodes, links }
 }
 
-/**
- * Picks the initial rendered node subset when `maxRenderedNodes` is set:
- * the top-N nodes by degree (computed over the full parsed index, same
- * `degree` field buildGraphData already assigns to every node), with a
- * deterministic tie-break by node id (slug) so the choice is stable across
- * rebuilds. Edges are kept only when both endpoints survive the cut.
- *
- * When `maxRenderedNodes` is undefined, or is large enough to include every
- * node anyway, this returns the exact same `full` object reference (not a
- * copy) — callers use that identity to detect "nothing to expand" and skip
- * the lazy-expansion machinery entirely, preserving current behavior byte
- * for byte when the option is unset.
- */
-function selectRenderedSubset(full: GraphData, maxRenderedNodes: number | undefined): GraphData {
-  // Defense in depth: a non-finite or negative value (e.g. a bad NaN from
-  // an upstream parse) must render everything, not fall through to
-  // `ranked.slice(0, NaN)` — which silently produces an EMPTY graph.
-  if (
-    maxRenderedNodes === undefined ||
-    !Number.isFinite(maxRenderedNodes) ||
-    maxRenderedNodes < 0 ||
-    maxRenderedNodes >= full.nodes.length
-  ) {
-    return full
-  }
-  const ranked = [...full.nodes].sort((a, b) => {
-    if (b.degree !== a.degree) {
-      return b.degree - a.degree
-    }
-    return a.id < b.id ? -1 : a.id > b.id ? 1 : 0
-  })
-  const picked = ranked.slice(0, Math.max(0, maxRenderedNodes))
-  const renderedIds = new Set(picked.map((node) => node.id))
-  const links = full.links.filter((link) => {
-    const source = linkEndpointId(link.source)
-    const target = linkEndpointId(link.target)
-    return renderedIds.has(source) && renderedIds.has(target)
-  })
-  return { nodes: picked, links }
-}
-
 function neighborMap(links: GraphLink[]): Map<string, Set<string>> {
   const neighbors = new Map<string, Set<string>>()
   const add = (from: string, to: string): void => {
@@ -888,13 +854,6 @@ function neighborMap(links: GraphLink[]): Map<string, Set<string>> {
     add(target, source)
   }
   return neighbors
-}
-
-function linkEndpointId(endpoint: string | GraphNode): string {
-  if (typeof endpoint === "string") {
-    return endpoint
-  }
-  return endpoint.id
 }
 
 function resolveCssColor(variableName: string, fallback: string): string {
@@ -1252,6 +1211,20 @@ function bindGraph(
     three: ThreeApi | null
     fullData: GraphData
     expandHops: number
+    layout: {
+      freezeAfterWarmup: boolean
+      warmupTicks: number | undefined
+      cooldownTicks: number | undefined
+      chargeTheta: number | undefined
+    }
+    lod: {
+      labelDistance: number | undefined
+      dotDistance: number | undefined
+      cullDistance: number | undefined
+      fog: boolean
+      nodeResolution: number | undefined
+      linkResolution: number | undefined
+    }
   },
 ): void {
   let neighbors = neighborMap(data.links)
@@ -1298,29 +1271,7 @@ function bindGraph(
     if (options.fullData === data) {
       return false
     }
-    const hops = Math.max(0, Math.floor(options.expandHops))
-    if (hops <= 0) {
-      return false
-    }
-    const toAdd = new Set<string>()
-    const visited = new Set<string>([nodeId])
-    let frontier = new Set<string>([nodeId])
-    for (let hop = 0; hop < hops; hop += 1) {
-      const next = new Set<string>()
-      for (const id of frontier) {
-        for (const neighborId of fullAdjacency.get(id) ?? []) {
-          if (visited.has(neighborId)) {
-            continue
-          }
-          visited.add(neighborId)
-          next.add(neighborId)
-          if (!renderedIds.has(neighborId)) {
-            toAdd.add(neighborId)
-          }
-        }
-      }
-      frontier = next
-    }
+    const toAdd = expandHopIds(fullAdjacency, renderedIds, nodeId, options.expandHops)
     if (toAdd.size === 0) {
       return false
     }
@@ -1565,6 +1516,9 @@ function bindGraph(
     if (charge?.strength) {
       charge.strength(chargeStrength)
     }
+    if (charge?.theta && options.layout.chargeTheta !== undefined) {
+      charge.theta(options.layout.chargeTheta)
+    }
     const link = graph.d3Force("link")
     if (link?.distance) {
       link.distance((edge) => {
@@ -1619,13 +1573,57 @@ function bindGraph(
     { material: EmissiveMaterial; base: number; phase: number }
   >()
 
+  // Populated by paintLabels3d() only when options.lod.labelDistance is set,
+  // consumed by the label-distance-fade rAF loop below. Cleared/repopulated
+  // alongside twinkleMaterials on every repaint (theme change, tune change,
+  // etc.) so it never holds stale sprite references.
+  const labelSprites = new Map<string, { sprite: SpriteTextInstance; node: GraphNode }>()
+
+  // Populated by paintLinks3d() only when options.lod.cullDistance is set,
+  // consumed by the link-distance-cull rAF loop below. Keyed by the link
+  // object itself (stable identity across repaints for a given data set)
+  // rather than a derived string key, avoiding an extra id-construction
+  // step per link on every animation frame.
+  const linkMeshes = new Map<GraphLink, ThreeMeshHandle>()
+
+  // Shared geometry/material cache for the low-detail "dot" LOD tier, keyed
+  // by a coarse radius bucket + fill color. Only ever populated when
+  // options.lod.dotDistance is set; a fresh Mesh instance is still created
+  // per node (cheap JS object), but many nodes share the same underlying
+  // Geometry/Material GL resources instead of each allocating its own —
+  // directly addressing the zero-sharing baseline (13,287 unique
+  // geometries/materials) measured before this option existed.
+  const dotResourceCache = new Map<string, { geometry: unknown; material: unknown }>()
+
+  const dotResourceFor = (
+    three: ThreeApi,
+    radius: number,
+    fill: string,
+  ): { geometry: unknown; material: unknown } => {
+    const key = `${Math.round(radius * 4)}|${fill}`
+    const cached = dotResourceCache.get(key)
+    if (cached) {
+      return cached
+    }
+    const resource = {
+      geometry: new three.SphereGeometry(radius, 6, 6),
+      material: new three.MeshBasicMaterial({ color: fill }),
+    }
+    dotResourceCache.set(key, resource)
+    return resource
+  }
+
   const paintLabels3d = (): void => {
     if (!options.use3d || typeof graph.nodeThreeObject !== "function") {
       return
     }
     const SpriteText = options.spriteText
     const three = options.three
+    const dotDistance = options.lod.dotDistance
+    const nodeSegments = options.lod.nodeResolution ?? 14
     twinkleMaterials.clear()
+    labelSprites.clear()
+    dotResourceCache.clear()
     if (typeof graph.nodeThreeObjectExtend === "function") {
       graph.nodeThreeObjectExtend(three === null)
     }
@@ -1644,12 +1642,26 @@ function bindGraph(
             emissiveIntensity: base,
           })
           twinkleMaterials.set(node.id, { material, base, phase: node.phase })
-          star = new three.Mesh(new three.SphereGeometry(radius, 14, 14), material)
+          star = new three.Mesh(
+            new three.SphereGeometry(radius, nodeSegments, nodeSegments),
+            material,
+          )
         } else {
           star = new three.Mesh(
-            new three.SphereGeometry(radius, 14, 14),
+            new three.SphereGeometry(radius, nodeSegments, nodeSegments),
             new three.MeshBasicMaterial({ color: fill }),
           )
+        }
+        // Only wraps in THREE.LOD when dotDistance is explicitly set; with
+        // it unset `star` stays the plain full-detail Mesh built above,
+        // preserving current behavior byte for byte.
+        if (dotDistance !== undefined && star !== false) {
+          const dot = dotResourceFor(three, radius, fill)
+          const dotMesh = new three.Mesh(dot.geometry, dot.material)
+          const lod = new three.LOD()
+          lod.addLevel(star, 0)
+          lod.addLevel(dotMesh, dotDistance)
+          star = lod
         }
       }
       if (!showNodeLabel(node) || !SpriteText) {
@@ -1667,6 +1679,9 @@ function bindGraph(
       sprite.center.set(0, 0.5)
       sprite.position.x = radius + 2
       sprite.position.y = 0
+      if (options.lod.labelDistance !== undefined) {
+        labelSprites.set(node.id, { sprite, node })
+      }
       if (!three || star === false) {
         return sprite
       }
@@ -1683,6 +1698,9 @@ function bindGraph(
       return
     }
     const up = new three.Vector3(0, 1, 0)
+    const linkSegments = options.lod.linkResolution ?? 5
+    const cullDistance = options.lod.cullDistance
+    linkMeshes.clear()
     graph.linkThreeObject((link) => {
       const radius = LINK_RADIUS[link.kind] * tune.edgeScale
       const material = new three.MeshBasicMaterial({
@@ -1691,7 +1709,17 @@ function bindGraph(
         opacity: edgeOpacity(link),
         depthWrite: false,
       })
-      return new three.Mesh(new three.CylinderGeometry(radius, radius, 1, 5), material)
+      const mesh = new three.Mesh(
+        new three.CylinderGeometry(radius, radius, 1, linkSegments),
+        material,
+      )
+      // Only tracked when cullDistance is set — with it unset, linkMeshes
+      // stays empty and the link-cull rAF loop below never registers at
+      // all, preserving current behavior byte for byte.
+      if (cullDistance !== undefined) {
+        linkMeshes.set(link, mesh)
+      }
+      return mesh
     })
     if (typeof graph.linkPositionUpdate !== "function") {
       return
@@ -1917,6 +1945,18 @@ function bindGraph(
   const activeBackground = (): string =>
     options.use3d ? canvasBackground3d(theme.current) : canvasBackground(theme.current)
 
+  // Sets/refreshes the 3D scene's THREE.Fog to match the active theme
+  // background, giving distant geometry a depth cue instead of a hard
+  // edge. No-op (graph.scene() is never even called) unless both use3d
+  // and options.lod.fog are true, preserving current behavior byte for
+  // byte when the option is unset.
+  const updateFog = (): void => {
+    if (!options.use3d || !options.lod.fog || !options.three || typeof graph.scene !== "function") {
+      return
+    }
+    graph.scene().fog = new options.three.Fog(activeBackground(), FOG_NEAR, FOG_FAR)
+  }
+
   graph.graphData(currentData())
   graph.backgroundColor(activeBackground())
   graph.nodeLabel((node) => node.name)
@@ -2013,8 +2053,10 @@ function bindGraph(
       }, 1600)
       window.addCleanup(() => window.clearTimeout(rotateTimer))
     }
-    graph.warmupTicks(50)
-    graph.cooldownTicks(200)
+    graph.warmupTicks(options.layout.warmupTicks ?? 50)
+    graph.cooldownTicks(
+      options.layout.freezeAfterWarmup ? 0 : (options.layout.cooldownTicks ?? 200),
+    )
     if (typeof graph.linkDirectionalParticleWidth === "function") {
       graph.linkDirectionalParticleWidth(1.1)
     }
@@ -2037,6 +2079,7 @@ function bindGraph(
       }
     }
     paintLabels3d()
+    updateFog()
     // Subtle emissive twinkle: rAF-driven sine per node, +-15%, dark only.
     if (!prefersReducedMotion()) {
       let twinkleFrame = 0
@@ -2051,9 +2094,86 @@ function bindGraph(
       twinkleFrame = window.requestAnimationFrame(twinkle)
       window.addCleanup(() => window.cancelAnimationFrame(twinkleFrame))
     }
+    // Label-distance fade: rAF-driven camera-distance check per labeled
+    // node, hiding sprites beyond options.lod.labelDistance. Unlike
+    // twinkle above this is a functional/perf threshold rather than
+    // decorative motion, so it runs regardless of prefersReducedMotion()
+    // — and it is entirely absent (no rAF loop registered at all) unless
+    // labelDistance is explicitly set, preserving current behavior when
+    // unset.
+    if (options.lod.labelDistance !== undefined && typeof graph.cameraPosition === "function") {
+      const labelDistance = options.lod.labelDistance
+      const getCameraPosition = graph.cameraPosition.bind(graph)
+      let labelFadeFrame = 0
+      const updateLabelFade = (): void => {
+        const cam = getCameraPosition() as Partial<Vec3> | undefined
+        if (
+          cam &&
+          typeof cam.x === "number" &&
+          typeof cam.y === "number" &&
+          typeof cam.z === "number"
+        ) {
+          for (const entry of labelSprites.values()) {
+            const nx = entry.node.x ?? 0
+            const ny = entry.node.y ?? 0
+            const nz = entry.node.z ?? 0
+            const distance = Math.hypot(cam.x - nx, cam.y - ny, cam.z - nz)
+            entry.sprite.visible = lodLevelForDistance(distance, labelDistance) === "full"
+          }
+        }
+        labelFadeFrame = window.requestAnimationFrame(updateLabelFade)
+      }
+      labelFadeFrame = window.requestAnimationFrame(updateLabelFade)
+      window.addCleanup(() => window.cancelAnimationFrame(labelFadeFrame))
+    }
+    // Link-distance culling: rAF-driven camera-distance check per link
+    // mesh, hiding meshes beyond options.lod.cullDistance via
+    // mesh.visible. Links touching the currently focused (hovered or
+    // selected) node always stay visible regardless of distance. Same
+    // rationale as the label-fade loop above: linkPositionUpdate only
+    // fires on simulation ticks (not continuously), so a dedicated rAF
+    // loop is needed to react to camera movement once the layout has
+    // frozen. Entirely absent (no rAF loop registered, linkMeshes stays
+    // empty) unless cullDistance is explicitly set, preserving current
+    // behavior byte for byte when the option is unset.
+    if (options.lod.cullDistance !== undefined && typeof graph.cameraPosition === "function") {
+      const cullDistance = options.lod.cullDistance
+      const getCullCameraPosition = graph.cameraPosition.bind(graph)
+      let linkCullFrame = 0
+      const updateLinkCull = (): void => {
+        const cam = getCullCameraPosition() as Partial<Vec3> | undefined
+        if (
+          cam &&
+          typeof cam.x === "number" &&
+          typeof cam.y === "number" &&
+          typeof cam.z === "number"
+        ) {
+          const focus = litId()
+          for (const [link, mesh] of linkMeshes) {
+            const sourceId = linkEndpointId(link.source)
+            const targetId = linkEndpointId(link.target)
+            if (focus !== null && (sourceId === focus || targetId === focus)) {
+              mesh.visible = true
+              continue
+            }
+            const distance = Math.hypot(
+              cam.x - mesh.position.x,
+              cam.y - mesh.position.y,
+              cam.z - mesh.position.z,
+            )
+            mesh.visible = !isBeyondCullDistance(distance, cullDistance)
+          }
+        }
+        linkCullFrame = window.requestAnimationFrame(updateLinkCull)
+      }
+      linkCullFrame = window.requestAnimationFrame(updateLinkCull)
+      window.addCleanup(() => window.cancelAnimationFrame(linkCullFrame))
+    }
   } else {
-    graph.warmupTicks(60)
-    graph.cooldownTicks(180)
+    graph.warmupTicks(options.layout.warmupTicks ?? 60)
+    graph.cooldownTicks(
+      options.layout.freezeAfterWarmup ? 0 : (options.layout.cooldownTicks ?? 180),
+    )
     graph.nodeCanvasObject((node, ctx, globalScale) => {
       const radius = nodeWorldRadius(node)
       const x = node.x ?? 0
@@ -2377,6 +2497,7 @@ function bindGraph(
   const onThemeChange = (): void => {
     theme.current = readTheme()
     graph.backgroundColor(activeBackground())
+    updateFog()
     if (options.bloomPass) {
       options.bloomPass.strength = isDarkTheme() ? BLOOM_STRENGTH : 0
       options.bloomPass.radius = BLOOM_RADIUS
@@ -2918,6 +3039,88 @@ async function initGraphLanding(): Promise<void> {
               : undefined,
           }
         : undefined
+  const graphRenderMode: "auto" | "3d" = root.dataset.graphRenderMode === "3d" ? "3d" : "auto"
+  const layoutFreezeAfterWarmup = root.dataset.graphLayoutFreezeAfterWarmup === "true"
+  // Same NaN/negative-guarded parse pattern as maxRenderedNodes/expandHops
+  // above: a malformed dataset value falls back to "unset" (renderer
+  // default) rather than reaching warmupTicks/cooldownTicks/theta as NaN.
+  const parsedLayoutWarmupTicks = root.dataset.graphLayoutWarmupTicks
+    ? Number.parseInt(root.dataset.graphLayoutWarmupTicks, 10)
+    : undefined
+  const layoutWarmupTicks =
+    parsedLayoutWarmupTicks !== undefined &&
+    Number.isFinite(parsedLayoutWarmupTicks) &&
+    parsedLayoutWarmupTicks >= 0
+      ? parsedLayoutWarmupTicks
+      : undefined
+  const parsedLayoutCooldownTicks = root.dataset.graphLayoutCooldownTicks
+    ? Number.parseInt(root.dataset.graphLayoutCooldownTicks, 10)
+    : undefined
+  const layoutCooldownTicks =
+    parsedLayoutCooldownTicks !== undefined &&
+    Number.isFinite(parsedLayoutCooldownTicks) &&
+    parsedLayoutCooldownTicks >= 0
+      ? parsedLayoutCooldownTicks
+      : undefined
+  const parsedLayoutChargeTheta = root.dataset.graphLayoutChargeTheta
+    ? Number.parseFloat(root.dataset.graphLayoutChargeTheta)
+    : undefined
+  const layoutChargeTheta =
+    parsedLayoutChargeTheta !== undefined &&
+    Number.isFinite(parsedLayoutChargeTheta) &&
+    parsedLayoutChargeTheta >= 0
+      ? parsedLayoutChargeTheta
+      : undefined
+  // Same NaN/negative-guarded parse pattern as the layout.* fields above: a
+  // malformed or absent dataset value falls back to "unset" (LOD entirely
+  // disabled — no THREE.LOD wrapping, no label-fade rAF loop), preserving
+  // current behavior byte for byte when the lod option is not configured.
+  const parsedLodLabelDistance = root.dataset.graphLodLabelDistance
+    ? Number.parseFloat(root.dataset.graphLodLabelDistance)
+    : undefined
+  const lodLabelDistance =
+    parsedLodLabelDistance !== undefined &&
+    Number.isFinite(parsedLodLabelDistance) &&
+    parsedLodLabelDistance >= 0
+      ? parsedLodLabelDistance
+      : undefined
+  const parsedLodDotDistance = root.dataset.graphLodDotDistance
+    ? Number.parseFloat(root.dataset.graphLodDotDistance)
+    : undefined
+  const lodDotDistance =
+    parsedLodDotDistance !== undefined &&
+    Number.isFinite(parsedLodDotDistance) &&
+    parsedLodDotDistance >= 0
+      ? parsedLodDotDistance
+      : undefined
+  const parsedLodCullDistance = root.dataset.graphLodCullDistance
+    ? Number.parseFloat(root.dataset.graphLodCullDistance)
+    : undefined
+  const lodCullDistance =
+    parsedLodCullDistance !== undefined &&
+    Number.isFinite(parsedLodCullDistance) &&
+    parsedLodCullDistance >= 0
+      ? parsedLodCullDistance
+      : undefined
+  const lodFog = root.dataset.graphLodFog === "true"
+  const parsedLodNodeResolution = root.dataset.graphLodNodeResolution
+    ? Number.parseInt(root.dataset.graphLodNodeResolution, 10)
+    : undefined
+  const lodNodeResolution =
+    parsedLodNodeResolution !== undefined &&
+    Number.isFinite(parsedLodNodeResolution) &&
+    parsedLodNodeResolution >= 0
+      ? parsedLodNodeResolution
+      : undefined
+  const parsedLodLinkResolution = root.dataset.graphLodLinkResolution
+    ? Number.parseInt(root.dataset.graphLodLinkResolution, 10)
+    : undefined
+  const lodLinkResolution =
+    parsedLodLinkResolution !== undefined &&
+    Number.isFinite(parsedLodLinkResolution) &&
+    parsedLodLinkResolution >= 0
+      ? parsedLodLinkResolution
+      : undefined
 
   let cancelled = false
   let graph: ForceGraphInstance | null = null
@@ -2935,7 +3138,16 @@ async function initGraphLanding(): Promise<void> {
 
   // Kick off every network dependency at once: content index, renderer,
   // and the three.js extras all race in parallel instead of a CDN waterfall.
-  const use3d = shouldUse3D()
+  // "auto" (unset, default): current behavior, WebGL+motion decide.
+  // "3d": never falls back to 2D — if WebGL is missing or reduced-motion is
+  // requested, show the existing canvas-message path instead of silently
+  // loading the 2D renderer.
+  const canRender3d = shouldUse3D()
+  if (graphRenderMode === "3d" && !canRender3d) {
+    showLoadError(canvas, "3D graph unavailable: WebGL is required and motion must be enabled.")
+    return
+  }
+  const use3d = graphRenderMode === "3d" || canRender3d
   const rendererPromise = loadRenderer(use3d)
   const spritePromise: Promise<SpriteTextCtor | null> = use3d
     ? (import(SPRITE_TEXT) as Promise<{ default?: SpriteTextCtor }>)
@@ -3037,6 +3249,20 @@ async function initGraphLanding(): Promise<void> {
     three,
     fullData,
     expandHops,
+    layout: {
+      freezeAfterWarmup: layoutFreezeAfterWarmup,
+      warmupTicks: layoutWarmupTicks,
+      cooldownTicks: layoutCooldownTicks,
+      chargeTheta: layoutChargeTheta,
+    },
+    lod: {
+      labelDistance: lodLabelDistance,
+      dotDistance: lodDotDistance,
+      cullDistance: lodCullDistance,
+      fog: lodFog,
+      nodeResolution: lodNodeResolution,
+      linkResolution: lodLinkResolution,
+    },
   })
 }
 

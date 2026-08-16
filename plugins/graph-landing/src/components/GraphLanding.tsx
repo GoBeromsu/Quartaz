@@ -276,9 +276,7 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
           data-index-source={options.indexSource}
           data-graph-index-path={graphIndexPath}
           data-max-rendered-nodes={options.maxRenderedNodes}
-          data-expand-hops={
-            options.maxRenderedNodes !== undefined ? options.expandHops : undefined
-          }
+          data-expand-hops={options.maxRenderedNodes !== undefined ? options.expandHops : undefined}
           data-tag-cooc-disabled={options.tagCooccurrence === false ? "true" : undefined}
           data-tag-cooc-max-tags-per-note={
             options.tagCooccurrence ? options.tagCooccurrence.maxTagsPerNote : undefined
@@ -286,6 +284,19 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
           data-tag-cooc-max-edges={
             options.tagCooccurrence ? options.tagCooccurrence.maxEdges : undefined
           }
+          data-graph-render-mode={options.renderMode === "3d" ? "3d" : undefined}
+          data-graph-layout-freeze-after-warmup={
+            options.layout?.freezeAfterWarmup ? "true" : undefined
+          }
+          data-graph-layout-warmup-ticks={options.layout?.warmupTicks}
+          data-graph-layout-cooldown-ticks={options.layout?.cooldownTicks}
+          data-graph-layout-charge-theta={options.layout?.chargeTheta}
+          data-graph-lod-label-distance={options.lod?.labelDistance}
+          data-graph-lod-dot-distance={options.lod?.dotDistance}
+          data-graph-lod-cull-distance={options.lod?.cullDistance}
+          data-graph-lod-fog={options.lod?.fog ? "true" : undefined}
+          data-graph-lod-node-resolution={options.lod?.nodeResolution}
+          data-graph-lod-link-resolution={options.lod?.linkResolution}
           data-counts-template={copy.countsTemplate}
           data-folder-root-label={copy.folderRoot}
           data-legend-notes={copy.notes}
