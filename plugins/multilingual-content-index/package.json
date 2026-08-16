@@ -4,14 +4,11 @@
   "description": "Local Quartz content index emitter with multilingual sitemap, RSS, and search metadata.",
   "type": "module",
   "license": "MIT",
-  "author": "GoBeromsu",
-  "homepage": "https://github.com/GoBeromsu/quartz-multilingual-content-index#readme",
-  "bugs": {
-    "url": "https://github.com/GoBeromsu/quartz-multilingual-content-index/issues"
-  },
+  "author": "Quartz Community",
+  "homepage": "https://quartz.jzhao.xyz",
   "repository": {
     "type": "git",
-    "url": "https://github.com/GoBeromsu/quartz-multilingual-content-index"
+    "url": "https://github.com/quartz-community/content-index"
   },
   "keywords": [
     "quartz",
@@ -19,9 +16,7 @@
     "content-index",
     "emitter",
     "sitemap",
-    "rss",
-    "multilingual",
-    "i18n"
+    "rss"
   ],
   "files": [
     "dist",
@@ -94,7 +89,7 @@
       "includeEmptyFiles": true,
       "emitGraphIndex": false
     },
-    "configSchema": {
+    "optionSchema": {
       "enableSiteMap": {
         "type": "boolean"
       },
@@ -112,9 +107,6 @@
       },
       "includeEmptyFiles": {
         "type": "boolean"
-      },
-      "rssRecentNotesText": {
-        "type": "string"
       },
       "emitGraphIndex": {
         "type": "boolean"
