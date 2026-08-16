@@ -87,7 +87,7 @@
       "includeEmptyFiles": true,
       "emitGraphIndex": false
     },
-    "optionSchema": {
+    "configSchema": {
       "enableSiteMap": {
         "type": "boolean"
       },
