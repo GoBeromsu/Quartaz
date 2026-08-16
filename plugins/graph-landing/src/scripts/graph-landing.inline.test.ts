@@ -1,6 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 import {
+  affectedFocusNodeIds,
   expandHopIds,
   isBeyondCullDistance,
   lodLevelForDistance,
@@ -255,5 +256,44 @@ describe("sanitizeAmbientVideoId", () => {
   it("rejects ids containing disallowed characters", () => {
     assert.equal(sanitizeAmbientVideoId("abc def"), undefined)
     assert.equal(sanitizeAmbientVideoId("abc.def123"), undefined)
+  })
+})
+
+describe("affectedFocusNodeIds", () => {
+  const neighbors = new Map<string, Set<string>>([
+    ["a", new Set(["b", "c"])],
+    ["b", new Set(["a"])],
+    ["c", new Set(["a"])],
+    ["d", new Set(["e"])],
+    ["e", new Set(["d"])],
+  ])
+
+  it("returns an empty set when both previous and next focus are null", () => {
+    assert.deepEqual(affectedFocusNodeIds(neighbors, null, null), new Set())
+  })
+
+  it("includes only the next focus node and its neighbors when previous is null", () => {
+    assert.deepEqual(affectedFocusNodeIds(neighbors, null, "a"), new Set(["a", "b", "c"]))
+  })
+
+  it("includes only the previous focus node and its neighbors when next is null", () => {
+    assert.deepEqual(affectedFocusNodeIds(neighbors, "a", null), new Set(["a", "b", "c"]))
+  })
+
+  it("unions previous and next focus neighborhoods when both are set and disjoint", () => {
+    assert.deepEqual(affectedFocusNodeIds(neighbors, "a", "d"), new Set(["a", "b", "c", "d", "e"]))
+  })
+
+  it("deduplicates overlapping previous and next focus neighborhoods", () => {
+    // "a" and "b" are neighbors of each other, so their neighborhoods overlap.
+    assert.deepEqual(affectedFocusNodeIds(neighbors, "a", "b"), new Set(["a", "b", "c"]))
+  })
+
+  it("falls back to just the focus id when it has no recorded neighbors", () => {
+    assert.deepEqual(affectedFocusNodeIds(neighbors, "z", null), new Set(["z"]))
+  })
+
+  it("returns the same focus node once when previous and next focus are identical", () => {
+    assert.deepEqual(affectedFocusNodeIds(neighbors, "a", "a"), new Set(["a", "b", "c"]))
   })
 })

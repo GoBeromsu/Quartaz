@@ -19,6 +19,7 @@ interface ContentEntry {
 // final minified bundle exactly as before this split, so dist output is
 // unchanged.
 import {
+  affectedFocusNodeIds,
   expandHopIds,
   isBeyondCullDistance,
   linkEndpointId,
@@ -152,7 +153,26 @@ interface SpriteTextInstance {
   visible: boolean
 }
 
-interface EmissiveMaterial {
+// Settable color handle shared by node/link materials, used by the
+// incremental-repaint path (options.interaction.incrementalRepaint) to
+// mutate a material's color in place without re-setting a three-forcegraph
+// accessor (which would trigger a full mesh-recreation digest — see
+// applyFocusChange).
+interface ThreeColorHandle {
+  set: (value: string) => void
+}
+
+// Return type for `new three.MeshBasicMaterial(...)` and the base shape of
+// `new three.MeshLambertMaterial(...)` (see EmissiveMaterial below), used by
+// the incremental-repaint path to mutate a link/node material's color and
+// opacity directly.
+interface ThreeMaterialHandle {
+  color: ThreeColorHandle
+  opacity: number
+}
+
+interface EmissiveMaterial extends ThreeMaterialHandle {
+  emissive: ThreeColorHandle
   emissiveIntensity: number
 }
 
@@ -174,6 +194,7 @@ interface ThreeLOD extends ThreeObject {
 interface ThreeMeshHandle {
   visible: boolean
   position: Vec3
+  material: ThreeMaterialHandle
 }
 
 interface ThreeApi {
@@ -193,7 +214,7 @@ interface ThreeApi {
     transparent?: boolean
     opacity?: number
     depthWrite?: boolean
-  }) => unknown
+  }) => ThreeMaterialHandle
   MeshLambertMaterial: new (params: {
     color: string
     emissive: string
@@ -1232,6 +1253,9 @@ function bindGraph(
       nodeResolution: number | undefined
       linkResolution: number | undefined
     }
+    interaction: {
+      incrementalRepaint: boolean
+    }
   },
 ): void {
   let neighbors = neighborMap(data.links)
@@ -1482,6 +1506,16 @@ function bindGraph(
 
   const currentData = (): GraphData => data
 
+  // Extracted from paintLabels3d's inline sprite-color computation so
+  // applyFocusChange (the incremental-repaint path) can recompute a single
+  // node's label color without re-running the full label repaint.
+  const labelColorFor = (node: GraphNode): string => {
+    const labelInk = isDarkTheme()
+      ? "rgba(255, 255, 255, 0.85)"
+      : withAlpha(theme.current.ink, 0.88)
+    return isActive(node.id) ? labelInk : withAlpha(labelInk, DIM_ALPHA)
+  }
+
   // Shared by applyZoom (needs direction + length) and updateFog (needs only
   // length, to scale FOG_NEAR_FACTOR/FOG_FAR_FACTOR to the live camera
   // distance). Falls back to INITIAL_CAMERA/INITIAL_CAMERA_DISTANCE before
@@ -1591,18 +1625,47 @@ function bindGraph(
     { material: EmissiveMaterial; base: number; phase: number }
   >()
 
-  // Populated by paintLabels3d() only when options.lod.labelDistance is set,
-  // consumed by the label-distance-fade rAF loop below. Cleared/repopulated
+  // Populated by paintLabels3d() whenever options.lod.labelDistance is set
+  // (consumed by the label-distance-fade rAF loop below) OR whenever
+  // options.interaction.incrementalRepaint is set (consumed by
+  // applyFocusChange, which needs a handle to every node's label sprite to
+  // mutate color/visibility in place on a focus change). Cleared/repopulated
   // alongside twinkleMaterials on every repaint (theme change, tune change,
   // etc.) so it never holds stale sprite references.
   const labelSprites = new Map<string, { sprite: SpriteTextInstance; node: GraphNode }>()
 
-  // Populated by paintLinks3d() only when options.lod.cullDistance is set,
-  // consumed by the link-distance-cull rAF loop below. Keyed by the link
-  // object itself (stable identity across repaints for a given data set)
-  // rather than a derived string key, avoiding an extra id-construction
+  // Populated by paintLinks3d() whenever options.lod.cullDistance is set
+  // (consumed by the link-distance-cull rAF loop below) OR whenever
+  // options.interaction.incrementalRepaint is set (consumed by
+  // applyFocusChange, which needs a handle to every link's mesh to mutate
+  // its material color/opacity in place on a focus change). Keyed by the
+  // link object itself (stable identity across repaints for a given data
+  // set) rather than a derived string key, avoiding an extra id-construction
   // step per link on every animation frame.
   const linkMeshes = new Map<GraphLink, ThreeMeshHandle>()
+
+  // The following three maps are populated only when
+  // options.interaction.incrementalRepaint is set; they back
+  // applyFocusChange's per-node/per-link mutation path and are otherwise
+  // left empty, costing nothing when the option is unset.
+
+  // Star-mesh material per node id (both theme branches), so a focus change
+  // can recolor a node without re-setting graph.nodeThreeObject. The shared
+  // low-detail "dot" LOD material (see dotResourceCache) is deliberately not
+  // tracked here — incremental repaint only recolors the full-detail star;
+  // a node currently showing its distance-culled dot keeps its dot color
+  // until the next full repaint (documented limitation).
+  const nodeMaterials = new Map<string, ThreeMaterialHandle>()
+
+  // Rendered GraphNode by id, rebuilt from `data.nodes` at the top of
+  // paintLabels3d — lets applyFocusChange resolve an affected node id back
+  // to the GraphNode the color/label accessors need, without a linear scan.
+  const renderedNodeById = new Map<string, GraphNode>()
+
+  // Links touching each rendered node id, rebuilt from `data.links` at the
+  // top of paintLinks3d — lets applyFocusChange find the links whose
+  // color/opacity depend on a given focus node without scanning every link.
+  const linksByNode = new Map<string, GraphLink[]>()
 
   // Shared geometry/material cache for the low-detail "dot" LOD tier, keyed
   // by a coarse radius bucket + fill color. Only ever populated when
@@ -1639,9 +1702,17 @@ function bindGraph(
     const three = options.three
     const dotDistance = options.lod.dotDistance
     const nodeSegments = options.lod.nodeResolution ?? 14
+    const incremental = options.interaction.incrementalRepaint
     twinkleMaterials.clear()
     labelSprites.clear()
     dotResourceCache.clear()
+    nodeMaterials.clear()
+    renderedNodeById.clear()
+    if (incremental) {
+      for (const node of data.nodes) {
+        renderedNodeById.set(node.id, node)
+      }
+    }
     if (typeof graph.nodeThreeObjectExtend === "function") {
       graph.nodeThreeObjectExtend(three === null)
     }
@@ -1660,14 +1731,21 @@ function bindGraph(
             emissiveIntensity: base,
           })
           twinkleMaterials.set(node.id, { material, base, phase: node.phase })
+          if (incremental) {
+            nodeMaterials.set(node.id, material)
+          }
           star = new three.Mesh(
             new three.SphereGeometry(radius, nodeSegments, nodeSegments),
             material,
           )
         } else {
+          const material = new three.MeshBasicMaterial({ color: fill })
+          if (incremental) {
+            nodeMaterials.set(node.id, material)
+          }
           star = new three.Mesh(
             new three.SphereGeometry(radius, nodeSegments, nodeSegments),
-            new three.MeshBasicMaterial({ color: fill }),
+            material,
           )
         }
         // Only wraps in THREE.LOD when dotDistance is explicitly set; with
@@ -1682,22 +1760,28 @@ function bindGraph(
           star = lod
         }
       }
-      if (!showNodeLabel(node) || !SpriteText) {
+      const showLabel = showNodeLabel(node)
+      // With incremental unset this is exactly the original
+      // `!showNodeLabel(node) || !SpriteText` gate; with it set, every node
+      // always gets a sprite (needed so applyFocusChange can toggle
+      // visibility on a focus change without recreating anything), and
+      // `sprite.visible` below carries the show/hide decision instead.
+      if (!SpriteText || (!incremental && !showLabel)) {
         return star
       }
       // Alex-style label: small, no stroke bubble, floating beside the star.
       const sprite = new SpriteText(node.name)
-      const labelInk = isDarkTheme()
-        ? "rgba(255, 255, 255, 0.85)"
-        : withAlpha(theme.current.ink, 0.88)
-      sprite.color = isActive(node.id) ? labelInk : withAlpha(labelInk, DIM_ALPHA)
+      sprite.color = labelColorFor(node)
       sprite.fontWeight = "400"
       sprite.strokeWidth = 0
       sprite.textHeight = labeledHubIds.has(node.id) ? 6.5 : 5.5
       sprite.center.set(0, 0.5)
       sprite.position.x = radius + 2
       sprite.position.y = 0
-      if (options.lod.labelDistance !== undefined) {
+      if (incremental) {
+        sprite.visible = showLabel
+        labelSprites.set(node.id, { sprite, node })
+      } else if (options.lod.labelDistance !== undefined) {
         labelSprites.set(node.id, { sprite, node })
       }
       if (!three || star === false) {
@@ -1718,7 +1802,23 @@ function bindGraph(
     const up = new three.Vector3(0, 1, 0)
     const linkSegments = options.lod.linkResolution ?? 5
     const cullDistance = options.lod.cullDistance
+    const incremental = options.interaction.incrementalRepaint
     linkMeshes.clear()
+    linksByNode.clear()
+    if (incremental) {
+      for (const link of data.links) {
+        const source = linkEndpointId(link.source)
+        const target = linkEndpointId(link.target)
+        for (const id of [source, target]) {
+          const existing = linksByNode.get(id)
+          if (existing) {
+            existing.push(link)
+          } else {
+            linksByNode.set(id, [link])
+          }
+        }
+      }
+    }
     graph.linkThreeObject((link) => {
       const radius = LINK_RADIUS[link.kind] * tune.edgeScale
       const material = new three.MeshBasicMaterial({
@@ -1731,10 +1831,12 @@ function bindGraph(
         new three.CylinderGeometry(radius, radius, 1, linkSegments),
         material,
       )
-      // Only tracked when cullDistance is set — with it unset, linkMeshes
-      // stays empty and the link-cull rAF loop below never registers at
-      // all, preserving current behavior byte for byte.
-      if (cullDistance !== undefined) {
+      // Tracked when cullDistance is set (consumed by the link-cull rAF loop
+      // below) or when incrementalRepaint is set (consumed by
+      // applyFocusChange). With both unset, linkMeshes stays empty and the
+      // link-cull rAF loop below never registers at all, preserving current
+      // behavior byte for byte.
+      if (cullDistance !== undefined || incremental) {
         linkMeshes.set(link, mesh)
       }
       return mesh
@@ -1797,6 +1899,47 @@ function bindGraph(
     paintLinks3d()
     if (!options.use3d) {
       graph.nodeCanvasObjectMode(() => "replace")
+    }
+  }
+
+  // Incremental counterpart to refreshAccessors() + paintLabels3d() for a
+  // focus (hover/select) change only. Used when
+  // options.interaction.incrementalRepaint is set, in place of the full
+  // repaint, to avoid re-setting graph.nodeThreeObject/linkThreeObject/
+  // linkWidth — which three-forcegraph/kapsule treat as a signal to
+  // destructively recreate every node/link mesh (see the tracer report this
+  // change is based on). Mutates only the previous and next focus nodes,
+  // their direct neighbors, and the links touching any of them, in place on
+  // the retained material/sprite/mesh handles populated by paintLabels3d()/
+  // paintLinks3d() when incrementalRepaint is on. Visually identical to the
+  // full-repaint path for the same focus state; node/link geometry (radius,
+  // width) never depends on focus, so no scale mutation is needed here.
+  const applyFocusChange = (previousFocus: string | null, nextFocus: string | null): void => {
+    const affected = affectedFocusNodeIds(neighbors, previousFocus, nextFocus)
+    for (const id of affected) {
+      const node = renderedNodeById.get(id)
+      if (!node) {
+        continue
+      }
+      const fill = nodeFill(node)
+      nodeMaterials.get(id)?.color.set(fill)
+      const twinkle = twinkleMaterials.get(id)
+      if (twinkle) {
+        twinkle.material.emissive.set(fill)
+      }
+      const label = labelSprites.get(id)
+      if (label) {
+        label.sprite.color = labelColorFor(node)
+        label.sprite.visible = showNodeLabel(node)
+      }
+      for (const link of linksByNode.get(id) ?? []) {
+        const mesh = linkMeshes.get(link)
+        if (!mesh) {
+          continue
+        }
+        mesh.material.color.set(edgeColor(link))
+        mesh.material.opacity = edgeOpacity(link)
+      }
     }
   }
 
@@ -2047,6 +2190,7 @@ function bindGraph(
   }
 
   graph.onNodeHover((node) => {
+    const previousFocus = litId()
     hoveredId = node ? node.id : null
     if (selectedId === null) {
       if (node) {
@@ -2054,6 +2198,11 @@ function bindGraph(
       } else {
         hidePreview()
       }
+    }
+    if (options.interaction.incrementalRepaint && options.use3d) {
+      refreshParticles()
+      applyFocusChange(previousFocus, litId())
+      return
     }
     refreshAccessors()
     if (options.use3d) {
@@ -2377,12 +2526,18 @@ function bindGraph(
   }
 
   const clearSelection = (): void => {
+    const previousFocus = litId()
     selectedId = null
     if (inspectEl instanceof HTMLElement) {
       inspectEl.hidden = true
     }
     options.root.dataset.inspecting = "false"
     setAutoRotate(true)
+    if (options.interaction.incrementalRepaint && options.use3d) {
+      refreshParticles()
+      applyFocusChange(previousFocus, litId())
+      return
+    }
     refreshAccessors()
     if (options.use3d) {
       paintLabels3d()
@@ -2398,9 +2553,15 @@ function bindGraph(
       openExternalUrl(node.url)
       return
     }
+    const previousFocus = litId()
     selectedId = node.id
     // Inspect/preview already shows the destination; keep the constellation spinning.
     fillInspect(node)
+    if (options.interaction.incrementalRepaint && options.use3d) {
+      refreshParticles()
+      applyFocusChange(previousFocus, litId())
+      return
+    }
     refreshAccessors()
     if (options.use3d) {
       paintLabels3d()
@@ -3159,6 +3320,7 @@ async function initGraphLanding(): Promise<void> {
     parsedLodLinkResolution >= 0
       ? parsedLodLinkResolution
       : undefined
+  const interactionIncrementalRepaint = root.dataset.graphInteractionIncrementalRepaint === "true"
 
   let cancelled = false
   let graph: ForceGraphInstance | null = null
@@ -3300,6 +3462,9 @@ async function initGraphLanding(): Promise<void> {
       fog: lodFog,
       nodeResolution: lodNodeResolution,
       linkResolution: lodLinkResolution,
+    },
+    interaction: {
+      incrementalRepaint: interactionIncrementalRepaint,
     },
   })
 }

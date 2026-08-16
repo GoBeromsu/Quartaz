@@ -84,6 +84,8 @@ block at all.
       fog: true
       nodeResolution: 8
       linkResolution: 3
+    interaction:
+      incrementalRepaint: true
     ambientVideoId: o6HpCFhNcnQ
     defaultLocale: en
 ```
@@ -197,6 +199,25 @@ fog). Has no effect when the 2D renderer is active.
   link's cylinder geometry. Default: `undefined` (`5`, original
   behavior). Lower values trade visual smoothness for fewer triangles per
   link.
+
+### `interaction`
+
+Interaction-driven repaint tuning for the 3D renderer. Default: `undefined`
+— original behavior unchanged (every hover/click triggers a full accessor
+repaint of every node/link/label). Has no effect when the 2D renderer is
+active.
+
+- `incrementalRepaint` — when `true`, hovering or selecting a node mutates
+  only the previous and next focus nodes/links/labels (and their direct
+  neighbors) in place, instead of re-running the full node/link/label
+  repaint on every hover/click. Visually identical to the full-repaint
+  path; avoids the three-forcegraph/kapsule accessor system's destructive
+  mesh recreation that a plain click/hover otherwise triggers (re-setting
+  `nodeThreeObject`/`linkThreeObject`/`linkWidth` on every hover/click
+  causes those libraries to discard and rebuild every node and link mesh,
+  even though nothing about most of them changed). Default: `undefined`/
+  `false` (original behavior unchanged). Full repaints (lens/tag/folder/
+  theme/tune/expand/view changes) are unaffected either way.
 
 ### `ambientVideoId`
 

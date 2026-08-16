@@ -6,6 +6,11 @@ All notable changes to this plugin are documented here.
 
 ### Added
 
+- `interaction.incrementalRepaint` option — when `true`, hovering or
+  selecting a node mutates only the affected nodes/links/labels in place
+  instead of running a full repaint, avoiding destructive mesh recreation
+  in the 3D renderer on every hover/click. Unset behavior is unchanged
+  (every hover/click still triggers a full accessor repaint).
 - `defaultLocale` option — sets the fallback locale used when a page's
   locale can't be determined from its multilingual frontmatter/slug prefix
   and the site's multilingual config has no `sourceLocale` set. Unset

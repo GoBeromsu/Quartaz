@@ -192,3 +192,33 @@ export function expandHopIds(
   }
   return toAdd
 }
+
+/**
+ * Computes the set of node ids affected by a focus change from
+ * `previousFocus` to `nextFocus`: the previous focus node + its direct
+ * neighbors, unioned with the next focus node + its direct neighbors.
+ * Either focus may be null (e.g. hover-out, no selection). Returns an empty
+ * set when both are null. Used by the incremental-repaint path
+ * (`interaction.incrementalRepaint`) to scope a focus-change repaint to only
+ * the nodes/links/labels whose visual state depends on the focused node.
+ */
+export function affectedFocusNodeIds(
+  neighbors: Map<string, Set<string>>,
+  previousFocus: string | null,
+  nextFocus: string | null,
+): Set<string> {
+  const result = new Set<string>()
+  if (previousFocus !== null) {
+    result.add(previousFocus)
+    for (const id of neighbors.get(previousFocus) ?? []) {
+      result.add(id)
+    }
+  }
+  if (nextFocus !== null) {
+    result.add(nextFocus)
+    for (const id of neighbors.get(nextFocus) ?? []) {
+      result.add(id)
+    }
+  }
+  return result
+}

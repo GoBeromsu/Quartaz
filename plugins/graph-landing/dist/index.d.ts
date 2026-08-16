@@ -128,6 +128,25 @@ interface GraphLandingPageOptions {
         linkResolution?: number;
     };
     /**
+     * Interaction-driven repaint tuning for the 3D renderer. Default: undefined
+     * (current behavior unchanged — every hover/click triggers a full accessor
+     * repaint of every node/link/label). Has no effect when the 2D renderer is
+     * active.
+     */
+    interaction?: {
+        /**
+         * When true, hovering or selecting a node mutates only the previous and
+         * next focus nodes/links/labels (and their direct neighbors) in place,
+         * instead of re-running the full node/link/label repaint on every
+         * hover/click. Visually identical to the full-repaint path; avoids the
+         * three-forcegraph/kapsule accessor system's destructive mesh recreation
+         * that a plain click/hover otherwise triggers. Default: undefined/false
+         * (current behavior unchanged). Full repaints (lens/tag/folder/theme/
+         * tune/expand/view changes) are unaffected either way.
+         */
+        incrementalRepaint?: boolean;
+    };
+    /**
      * YouTube video id for the ambient audio track played behind the graph.
      * Must be a bare video id (not a URL) — e.g. from
      * https://www.youtube.com/watch?v=o6HpCFhNcnQ the id is `o6HpCFhNcnQ`.

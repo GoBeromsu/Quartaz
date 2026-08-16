@@ -297,6 +297,9 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
           data-graph-lod-fog={options.lod?.fog ? "true" : undefined}
           data-graph-lod-node-resolution={options.lod?.nodeResolution}
           data-graph-lod-link-resolution={options.lod?.linkResolution}
+          data-graph-interaction-incremental-repaint={
+            options.interaction?.incrementalRepaint ? "true" : undefined
+          }
           data-graph-ambient-video-id={options.ambientVideoId}
           data-graph-default-locale={options.defaultLocale}
           data-counts-template={copy.countsTemplate}
