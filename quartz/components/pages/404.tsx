@@ -15,6 +15,7 @@ const NotFound: QuartzComponent = ({ cfg, ctx }: QuartzComponentProps) => {
           __html: `
           if (typeof fetchData !== "undefined") {
             fetchData.then(function(index) {
+              if (!index || typeof index !== "object") return;
               var basePath = document.body.dataset.basepath || "";
               if (basePath.length > 1 && basePath.endsWith("/")) {
                 basePath = basePath.slice(0, -1);

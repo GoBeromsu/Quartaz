@@ -82,12 +82,12 @@ export function pageResources(
   // shared across all page types, so scripts belonging to components not
   // even rendered on this page (e.g. the search plugin's `document`-level
   // "nav" listener) still run here and read the global unconditionally.
-  // Known consumers (404's `typeof fetchData !== "undefined"` guard, and
-  // search's own falsy-result guard) already treat a falsy resolved value as
-  // "no index," so this avoids a ReferenceError there while still
-  // eliminating the redundant contentIndex.json network request. Every
-  // other page — and the default when unset — keeps the real unconditional
-  // fetch, unchanged.
+  // Known consumers (404's `typeof fetchData !== "undefined"` guard plus its
+  // own falsy/non-object `index` check, and search's own falsy-result guard)
+  // treat a falsy resolved value as "no index," so this avoids a
+  // ReferenceError/TypeError there while still eliminating the redundant
+  // contentIndex.json network request. Every other page — and the default
+  // when unset — keeps the real unconditional fetch, unchanged.
   const contentIndexScript = skipContentIndexFetch
     ? `const fetchData = Promise.resolve(undefined)`
     : `const fetchData = fetch("${contentIndexPath}").then(data => data.json())`
