@@ -11,7 +11,6 @@ import { FilePath, FullSlug, QUARTZ, slugifyFilePath } from "../util/path"
 import path from "path"
 import workerpool, { Promise as WorkerPromise } from "workerpool"
 import { QuartzLogger } from "../util/log"
-import { trace } from "../util/trace"
 import { BuildCtx, WorkerSerializableBuildCtx } from "../util/ctx"
 import { styleText } from "util"
 import { applyMultilingualPageData, isUndeclaredLocaleContent } from "../util/multilingual"
@@ -87,6 +86,7 @@ export function createFileParser(ctx: BuildCtx, fps: FilePath[]) {
   const { argv, cfg } = ctx
   return async (processor: QuartzMdProcessor) => {
     const res: MarkdownContent[] = []
+    let skipped = 0
     for (const fp of fps) {
       try {
         const perf = new PerfTimer()
@@ -124,8 +124,13 @@ export function createFileParser(ctx: BuildCtx, fps: FilePath[]) {
           console.log(`[markdown] ${fp} -> ${file.data.slug} (${perf.timeSince()})`)
         }
       } catch (err) {
-        trace(`\nFailed to process markdown \`${fp}\``, err as Error)
+        skipped++
+        console.warn(`[parse] Skipping ${fp}: ${(err as Error).message}`)
       }
+    }
+
+    if (skipped > 0) {
+      console.warn(`[parse] Skipped ${skipped} file(s) during markdown parsing due to per-file errors`)
     }
 
     return res
@@ -135,6 +140,7 @@ export function createFileParser(ctx: BuildCtx, fps: FilePath[]) {
 export function createMarkdownParser(ctx: BuildCtx, mdContent: MarkdownContent[]) {
   return async (processor: QuartzHtmlProcessor) => {
     const res: ProcessedContent[] = []
+    let skipped = 0
     for (const [ast, file] of mdContent) {
       try {
         const perf = new PerfTimer()
@@ -146,8 +152,13 @@ export function createMarkdownParser(ctx: BuildCtx, mdContent: MarkdownContent[]
           console.log(`[html] ${file.data.slug} (${perf.timeSince()})`)
         }
       } catch (err) {
-        trace(`\nFailed to process html \`${file.data.filePath}\``, err as Error)
+        skipped++
+        console.warn(`[parse] Skipping ${file.data.filePath}: ${(err as Error).message}`)
       }
+    }
+
+    if (skipped > 0) {
+      console.warn(`[parse] Skipped ${skipped} file(s) during html processing due to per-file errors`)
     }
 
     return res
