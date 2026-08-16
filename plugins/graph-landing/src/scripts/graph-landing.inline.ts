@@ -85,6 +85,7 @@ interface ForceGraphInstance {
     | {
         strength?: (value: number | ((link: GraphLink) => number)) => unknown
         distance?: (value: number | ((link: GraphLink) => number)) => unknown
+        theta?: (value: number) => unknown
       }
     | undefined
   d3ReheatSimulation: () => unknown
@@ -1184,6 +1185,12 @@ function bindGraph(
     three: ThreeApi | null
     fullData: GraphData
     expandHops: number
+    layout: {
+      freezeAfterWarmup: boolean
+      warmupTicks: number | undefined
+      cooldownTicks: number | undefined
+      chargeTheta: number | undefined
+    }
   },
 ): void {
   let neighbors = neighborMap(data.links)
@@ -1474,6 +1481,9 @@ function bindGraph(
     const charge = graph.d3Force("charge")
     if (charge?.strength) {
       charge.strength(chargeStrength)
+    }
+    if (charge?.theta && options.layout.chargeTheta !== undefined) {
+      charge.theta(options.layout.chargeTheta)
     }
     const link = graph.d3Force("link")
     if (link?.distance) {
@@ -1923,8 +1933,10 @@ function bindGraph(
       }, 1600)
       window.addCleanup(() => window.clearTimeout(rotateTimer))
     }
-    graph.warmupTicks(50)
-    graph.cooldownTicks(200)
+    graph.warmupTicks(options.layout.warmupTicks ?? 50)
+    graph.cooldownTicks(
+      options.layout.freezeAfterWarmup ? 0 : (options.layout.cooldownTicks ?? 200),
+    )
     if (typeof graph.linkDirectionalParticleWidth === "function") {
       graph.linkDirectionalParticleWidth(1.1)
     }
@@ -1962,8 +1974,10 @@ function bindGraph(
       window.addCleanup(() => window.cancelAnimationFrame(twinkleFrame))
     }
   } else {
-    graph.warmupTicks(60)
-    graph.cooldownTicks(180)
+    graph.warmupTicks(options.layout.warmupTicks ?? 60)
+    graph.cooldownTicks(
+      options.layout.freezeAfterWarmup ? 0 : (options.layout.cooldownTicks ?? 180),
+    )
     graph.nodeCanvasObject((node, ctx, globalScale) => {
       const radius = nodeWorldRadius(node)
       const x = node.x ?? 0
@@ -2828,6 +2842,38 @@ async function initGraphLanding(): Promise<void> {
               : undefined,
           }
         : undefined
+  const graphRenderMode: "auto" | "3d" = root.dataset.graphRenderMode === "3d" ? "3d" : "auto"
+  const layoutFreezeAfterWarmup = root.dataset.graphLayoutFreezeAfterWarmup === "true"
+  // Same NaN/negative-guarded parse pattern as maxRenderedNodes/expandHops
+  // above: a malformed dataset value falls back to "unset" (renderer
+  // default) rather than reaching warmupTicks/cooldownTicks/theta as NaN.
+  const parsedLayoutWarmupTicks = root.dataset.graphLayoutWarmupTicks
+    ? Number.parseInt(root.dataset.graphLayoutWarmupTicks, 10)
+    : undefined
+  const layoutWarmupTicks =
+    parsedLayoutWarmupTicks !== undefined &&
+    Number.isFinite(parsedLayoutWarmupTicks) &&
+    parsedLayoutWarmupTicks >= 0
+      ? parsedLayoutWarmupTicks
+      : undefined
+  const parsedLayoutCooldownTicks = root.dataset.graphLayoutCooldownTicks
+    ? Number.parseInt(root.dataset.graphLayoutCooldownTicks, 10)
+    : undefined
+  const layoutCooldownTicks =
+    parsedLayoutCooldownTicks !== undefined &&
+    Number.isFinite(parsedLayoutCooldownTicks) &&
+    parsedLayoutCooldownTicks >= 0
+      ? parsedLayoutCooldownTicks
+      : undefined
+  const parsedLayoutChargeTheta = root.dataset.graphLayoutChargeTheta
+    ? Number.parseFloat(root.dataset.graphLayoutChargeTheta)
+    : undefined
+  const layoutChargeTheta =
+    parsedLayoutChargeTheta !== undefined &&
+    Number.isFinite(parsedLayoutChargeTheta) &&
+    parsedLayoutChargeTheta >= 0
+      ? parsedLayoutChargeTheta
+      : undefined
 
   let cancelled = false
   let graph: ForceGraphInstance | null = null
@@ -2845,7 +2891,16 @@ async function initGraphLanding(): Promise<void> {
 
   // Kick off every network dependency at once: content index, renderer,
   // and the three.js extras all race in parallel instead of a CDN waterfall.
-  const use3d = shouldUse3D()
+  // "auto" (unset, default): current behavior, WebGL+motion decide.
+  // "3d": never falls back to 2D — if WebGL is missing or reduced-motion is
+  // requested, show the existing canvas-message path instead of silently
+  // loading the 2D renderer.
+  const canRender3d = shouldUse3D()
+  if (graphRenderMode === "3d" && !canRender3d) {
+    showLoadError(canvas, "3D graph unavailable: WebGL is required and motion must be enabled.")
+    return
+  }
+  const use3d = graphRenderMode === "3d" || canRender3d
   const rendererPromise = loadRenderer(use3d)
   const spritePromise: Promise<SpriteTextCtor | null> = use3d
     ? (import(SPRITE_TEXT) as Promise<{ default?: SpriteTextCtor }>)
@@ -2947,6 +3002,12 @@ async function initGraphLanding(): Promise<void> {
     three,
     fullData,
     expandHops,
+    layout: {
+      freezeAfterWarmup: layoutFreezeAfterWarmup,
+      warmupTicks: layoutWarmupTicks,
+      cooldownTicks: layoutCooldownTicks,
+      chargeTheta: layoutChargeTheta,
+    },
   })
 }
 
