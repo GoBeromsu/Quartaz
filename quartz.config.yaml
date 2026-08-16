@@ -149,6 +149,8 @@ plugins:
       renderMode: "3d"
       layout:
         freezeAfterWarmup: true
+      interaction:
+        incrementalRepaint: true
       lod:
         labelDistance: 800
         dotDistance: 1200
@@ -156,6 +158,7 @@ plugins:
         fog: true
         nodeResolution: 8
         linkResolution: 3
+        shareLinkResources: true
       ambientVideoId: o6HpCFhNcnQ
   - source: ./plugins/blog-chrome
     enabled: true
