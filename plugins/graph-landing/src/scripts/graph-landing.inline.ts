@@ -21,6 +21,7 @@ interface ContentEntry {
 import {
   expandHopIds,
   linkEndpointId,
+  lodLevelForDistance,
   selectRenderedSubset,
   type GraphData,
   type GraphLink,
@@ -145,6 +146,7 @@ interface SpriteTextInstance {
   strokeColor: string
   position: { x: number; y: number }
   center: { set: (x: number, y: number) => void }
+  visible: boolean
 }
 
 interface EmissiveMaterial {
@@ -157,8 +159,13 @@ interface ThreeObject {
   add: (obj: unknown) => void
 }
 
+interface ThreeLOD extends ThreeObject {
+  addLevel: (object: unknown, distance?: number) => unknown
+}
+
 interface ThreeApi {
   Group: new () => ThreeObject
+  LOD: new () => ThreeLOD
   Mesh: new (geo: unknown, mat: unknown) => unknown
   SphereGeometry: new (radius: number, width: number, height: number) => unknown
   CylinderGeometry: new (
@@ -1191,6 +1198,10 @@ function bindGraph(
       cooldownTicks: number | undefined
       chargeTheta: number | undefined
     }
+    lod: {
+      labelDistance: number | undefined
+      dotDistance: number | undefined
+    }
   },
 ): void {
   let neighbors = neighborMap(data.links)
@@ -1539,13 +1550,49 @@ function bindGraph(
     { material: EmissiveMaterial; base: number; phase: number }
   >()
 
+  // Populated by paintLabels3d() only when options.lod.labelDistance is set,
+  // consumed by the label-distance-fade rAF loop below. Cleared/repopulated
+  // alongside twinkleMaterials on every repaint (theme change, tune change,
+  // etc.) so it never holds stale sprite references.
+  const labelSprites = new Map<string, { sprite: SpriteTextInstance; node: GraphNode }>()
+
+  // Shared geometry/material cache for the low-detail "dot" LOD tier, keyed
+  // by a coarse radius bucket + fill color. Only ever populated when
+  // options.lod.dotDistance is set; a fresh Mesh instance is still created
+  // per node (cheap JS object), but many nodes share the same underlying
+  // Geometry/Material GL resources instead of each allocating its own —
+  // directly addressing the zero-sharing baseline (13,287 unique
+  // geometries/materials) measured before this option existed.
+  const dotResourceCache = new Map<string, { geometry: unknown; material: unknown }>()
+
+  const dotResourceFor = (
+    three: ThreeApi,
+    radius: number,
+    fill: string,
+  ): { geometry: unknown; material: unknown } => {
+    const key = `${Math.round(radius * 4)}|${fill}`
+    const cached = dotResourceCache.get(key)
+    if (cached) {
+      return cached
+    }
+    const resource = {
+      geometry: new three.SphereGeometry(radius, 6, 6),
+      material: new three.MeshBasicMaterial({ color: fill }),
+    }
+    dotResourceCache.set(key, resource)
+    return resource
+  }
+
   const paintLabels3d = (): void => {
     if (!options.use3d || typeof graph.nodeThreeObject !== "function") {
       return
     }
     const SpriteText = options.spriteText
     const three = options.three
+    const dotDistance = options.lod.dotDistance
     twinkleMaterials.clear()
+    labelSprites.clear()
+    dotResourceCache.clear()
     if (typeof graph.nodeThreeObjectExtend === "function") {
       graph.nodeThreeObjectExtend(three === null)
     }
@@ -1571,6 +1618,17 @@ function bindGraph(
             new three.MeshBasicMaterial({ color: fill }),
           )
         }
+        // Only wraps in THREE.LOD when dotDistance is explicitly set; with
+        // it unset `star` stays the plain full-detail Mesh built above,
+        // preserving current behavior byte for byte.
+        if (dotDistance !== undefined && star !== false) {
+          const dot = dotResourceFor(three, radius, fill)
+          const dotMesh = new three.Mesh(dot.geometry, dot.material)
+          const lod = new three.LOD()
+          lod.addLevel(star, 0)
+          lod.addLevel(dotMesh, dotDistance)
+          star = lod
+        }
       }
       if (!showNodeLabel(node) || !SpriteText) {
         return star
@@ -1587,6 +1645,9 @@ function bindGraph(
       sprite.center.set(0, 0.5)
       sprite.position.x = radius + 2
       sprite.position.y = 0
+      if (options.lod.labelDistance !== undefined) {
+        labelSprites.set(node.id, { sprite, node })
+      }
       if (!three || star === false) {
         return sprite
       }
@@ -1972,6 +2033,38 @@ function bindGraph(
       }
       twinkleFrame = window.requestAnimationFrame(twinkle)
       window.addCleanup(() => window.cancelAnimationFrame(twinkleFrame))
+    }
+    // Label-distance fade: rAF-driven camera-distance check per labeled
+    // node, hiding sprites beyond options.lod.labelDistance. Unlike
+    // twinkle above this is a functional/perf threshold rather than
+    // decorative motion, so it runs regardless of prefersReducedMotion()
+    // — and it is entirely absent (no rAF loop registered at all) unless
+    // labelDistance is explicitly set, preserving current behavior when
+    // unset.
+    if (options.lod.labelDistance !== undefined && typeof graph.cameraPosition === "function") {
+      const labelDistance = options.lod.labelDistance
+      const getCameraPosition = graph.cameraPosition.bind(graph)
+      let labelFadeFrame = 0
+      const updateLabelFade = (): void => {
+        const cam = getCameraPosition() as Partial<Vec3> | undefined
+        if (
+          cam &&
+          typeof cam.x === "number" &&
+          typeof cam.y === "number" &&
+          typeof cam.z === "number"
+        ) {
+          for (const entry of labelSprites.values()) {
+            const nx = entry.node.x ?? 0
+            const ny = entry.node.y ?? 0
+            const nz = entry.node.z ?? 0
+            const distance = Math.hypot(cam.x - nx, cam.y - ny, cam.z - nz)
+            entry.sprite.visible = lodLevelForDistance(distance, labelDistance) === "full"
+          }
+        }
+        labelFadeFrame = window.requestAnimationFrame(updateLabelFade)
+      }
+      labelFadeFrame = window.requestAnimationFrame(updateLabelFade)
+      window.addCleanup(() => window.cancelAnimationFrame(labelFadeFrame))
     }
   } else {
     graph.warmupTicks(options.layout.warmupTicks ?? 60)
@@ -2874,6 +2967,28 @@ async function initGraphLanding(): Promise<void> {
     parsedLayoutChargeTheta >= 0
       ? parsedLayoutChargeTheta
       : undefined
+  // Same NaN/negative-guarded parse pattern as the layout.* fields above: a
+  // malformed or absent dataset value falls back to "unset" (LOD entirely
+  // disabled — no THREE.LOD wrapping, no label-fade rAF loop), preserving
+  // current behavior byte for byte when the lod option is not configured.
+  const parsedLodLabelDistance = root.dataset.graphLodLabelDistance
+    ? Number.parseFloat(root.dataset.graphLodLabelDistance)
+    : undefined
+  const lodLabelDistance =
+    parsedLodLabelDistance !== undefined &&
+    Number.isFinite(parsedLodLabelDistance) &&
+    parsedLodLabelDistance >= 0
+      ? parsedLodLabelDistance
+      : undefined
+  const parsedLodDotDistance = root.dataset.graphLodDotDistance
+    ? Number.parseFloat(root.dataset.graphLodDotDistance)
+    : undefined
+  const lodDotDistance =
+    parsedLodDotDistance !== undefined &&
+    Number.isFinite(parsedLodDotDistance) &&
+    parsedLodDotDistance >= 0
+      ? parsedLodDotDistance
+      : undefined
 
   let cancelled = false
   let graph: ForceGraphInstance | null = null
@@ -3007,6 +3122,10 @@ async function initGraphLanding(): Promise<void> {
       warmupTicks: layoutWarmupTicks,
       cooldownTicks: layoutCooldownTicks,
       chargeTheta: layoutChargeTheta,
+    },
+    lod: {
+      labelDistance: lodLabelDistance,
+      dotDistance: lodDotDistance,
     },
   })
 }

@@ -53,6 +53,26 @@ export function linkEndpointId(endpoint: string | GraphNode): string {
   return endpoint.id
 }
 
+export type LodLevel = "full" | "dot"
+
+/**
+ * Pure camera-distance -> LOD-level decision used by the 3D renderer's
+ * THREE.LOD node objects and its label-distance-fade loop. `threshold`
+ * undefined (or non-finite/negative) always returns "full" — current
+ * behavior unchanged, no distance-based swap at all. Otherwise any
+ * `distance >= threshold` is "dot" (render the shared low-detail
+ * geometry/material, or hide the label), matching THREE.LOD.addLevel's own
+ * "switch once you are at least this far away" semantics so the level
+ * actually shown by three.js and the level this function reports for the
+ * same distance never disagree.
+ */
+export function lodLevelForDistance(distance: number, threshold: number | undefined): LodLevel {
+  if (threshold === undefined || !Number.isFinite(threshold) || threshold < 0) {
+    return "full"
+  }
+  return distance >= threshold ? "dot" : "full"
+}
+
 /**
  * Picks the top-`maxRenderedNodes` nodes by degree (descending, ties broken
  * by ascending id) out of `full`, then filters `full.links` down to only the

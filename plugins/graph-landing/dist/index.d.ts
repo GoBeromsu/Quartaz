@@ -74,6 +74,29 @@ interface GraphLandingPageOptions {
          */
         chargeTheta?: number;
     };
+    /**
+     * Camera-distance level-of-detail for the 3D renderer. Default: undefined
+     * (current behavior unchanged — every node renders its full sphere +
+     * label mesh regardless of camera distance, no THREE.LOD wrapping, no
+     * distance-driven label hide). Has no effect when the 2D renderer is
+     * active.
+     */
+    lod?: {
+        /**
+         * Camera distance (world units) beyond which a node's label sprite is
+         * hidden. Default: undefined (labels never hide based on distance;
+         * current behavior unchanged). Applies independently of `dotDistance`.
+         */
+        labelDistance?: number;
+        /**
+         * Camera distance (world units) beyond which a node's full-detail
+         * sphere mesh is swapped for a cheap, shared low-poly "dot" mesh via
+         * THREE.LOD. Default: undefined (every node always renders its
+         * full-detail mesh; current behavior unchanged, no THREE.LOD wrapping
+         * at all).
+         */
+        dotDistance?: number;
+    };
 }
 declare const GraphLandingPage: QuartzPageTypePlugin<GraphLandingPageOptions>;
 

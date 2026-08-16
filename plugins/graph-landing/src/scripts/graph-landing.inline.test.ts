@@ -2,6 +2,7 @@ import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 import {
   expandHopIds,
+  lodLevelForDistance,
   selectRenderedSubset,
   type GraphData,
   type GraphLink,
@@ -158,5 +159,36 @@ describe("expandHopIds", () => {
     const adjacency = new Map<string, Set<string>>()
     const result = expandHopIds(adjacency, new Set(["a"]), "a", 2)
     assert.deepEqual(result, new Set())
+  })
+})
+
+describe("lodLevelForDistance", () => {
+  it("returns full when threshold is undefined, regardless of distance", () => {
+    assert.equal(lodLevelForDistance(0, undefined), "full")
+    assert.equal(lodLevelForDistance(1000, undefined), "full")
+  })
+
+  it("returns full when threshold is NaN", () => {
+    assert.equal(lodLevelForDistance(1000, NaN), "full")
+  })
+
+  it("returns full when threshold is negative", () => {
+    assert.equal(lodLevelForDistance(1000, -5), "full")
+  })
+
+  it("returns full when distance is strictly below threshold", () => {
+    assert.equal(lodLevelForDistance(99, 100), "full")
+  })
+
+  it("returns dot when distance equals threshold", () => {
+    assert.equal(lodLevelForDistance(100, 100), "dot")
+  })
+
+  it("returns dot when distance exceeds threshold", () => {
+    assert.equal(lodLevelForDistance(150, 100), "dot")
+  })
+
+  it("returns dot for a zero threshold at zero distance (boundary is inclusive)", () => {
+    assert.equal(lodLevelForDistance(0, 0), "dot")
   })
 })
