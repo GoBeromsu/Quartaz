@@ -2455,7 +2455,17 @@ var defaultOptions = {
 var GRAPH_EXCERPT_LENGTH = 220;
 function truncateText(text2, maxChars) {
   if (text2.length <= maxChars) return text2;
-  return text2.slice(0, maxChars);
+  let cut = maxChars;
+  if (cut > 0) {
+    const code = text2.charCodeAt(cut);
+    const prevCode = text2.charCodeAt(cut - 1);
+    const isLowSurrogate = code >= 56320 && code <= 57343;
+    const prevIsHighSurrogate = prevCode >= 55296 && prevCode <= 56319;
+    if (isLowSurrogate && prevIsHighSurrogate) {
+      cut -= 1;
+    }
+  }
+  return text2.slice(0, cut);
 }
 var write = async (args) => {
   const pathToPage = joinSegments(args.ctx.argv.output, args.slug + args.ext);
@@ -2603,8 +2613,11 @@ var ContentIndex = (opts) => {
             multilingual: content2.multilingual
           };
         }
-        if (options.contentMaxChars !== void 0 && content2.content.length > options.contentMaxChars) {
-          content2.content = truncateText(content2.content, options.contentMaxChars);
+        if (options.contentMaxChars !== void 0) {
+          const cap2 = Math.max(0, options.contentMaxChars);
+          if (content2.content.length > cap2) {
+            content2.content = truncateText(content2.content, cap2);
+          }
         }
         return [slug2, content2];
       })

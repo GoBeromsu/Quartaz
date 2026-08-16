@@ -59,7 +59,19 @@ interface Options {
   includeEmptyFiles: boolean
   rssRecentNotesText?: string
   rssLastFewNotesText?: (count: number) => string
-  /** When set, truncate `content` in the emitted contentIndex.json to at most this many characters. Does not affect RSS/sitemap. Default: undefined (full content). */
+  /**
+   * When set, truncate `content` in the emitted contentIndex.json to at most
+   * this many characters. Does not affect RSS/sitemap. Default: undefined
+   * (full content).
+   *
+   * Caution: `content` is also the field the search plugin's FlexSearch
+   * index is built from and that its result snippets are drawn from. Any
+   * text past this cap is dropped before it reaches the index, so it becomes
+   * unsearchable — a search for a term that only occurs beyond the cap will
+   * not find that page. Choose a value generous enough to cover the terms
+   * readers are expected to search for, or leave unset if full-document
+   * search matters more than payload size.
+   */
   contentMaxChars?: number
   /** When true, additionally emit a lightweight static/graphIndex.json containing only graph-needed fields with a pre-truncated `excerpt` instead of full `content`. Default: false. */
   emitGraphIndex: boolean
@@ -80,9 +92,25 @@ const defaultOptions: Options = {
 /** Matches graph-landing's client-side EXCERPT_LENGTH constant. */
 const GRAPH_EXCERPT_LENGTH = 220
 
-function truncateText(text: string, maxChars: number): string {
+/** Exported for direct unit testing of the surrogate-pair-safe cut behavior. */
+export function truncateText(text: string, maxChars: number): string {
   if (text.length <= maxChars) return text
-  return text.slice(0, maxChars)
+  let cut = maxChars
+  // Don't split a UTF-16 surrogate pair (e.g. many emoji, some CJK
+  // extension characters): if the code unit at the cut index is a low
+  // surrogate and the one before it is a high surrogate, they're one
+  // character split across two code units — back the cut up by one so the
+  // pair stays intact instead of leaving a dangling half-character.
+  if (cut > 0) {
+    const code = text.charCodeAt(cut)
+    const prevCode = text.charCodeAt(cut - 1)
+    const isLowSurrogate = code >= 0xdc00 && code <= 0xdfff
+    const prevIsHighSurrogate = prevCode >= 0xd800 && prevCode <= 0xdbff
+    if (isLowSurrogate && prevIsHighSurrogate) {
+      cut -= 1
+    }
+  }
+  return text.slice(0, cut)
 }
 
 const write = async (args: {
@@ -277,11 +305,15 @@ export const ContentIndex: QuartzEmitterPlugin<Partial<Options>> = (opts) => {
           }
         }
 
-        if (
-          options.contentMaxChars !== undefined &&
-          content.content.length > options.contentMaxChars
-        ) {
-          content.content = truncateText(content.content, options.contentMaxChars)
+        if (options.contentMaxChars !== undefined) {
+          // Clamp negative caps to 0 rather than passing them straight to
+          // truncateText/slice, where a negative index counts from the end
+          // of the string and would silently keep a surprising tail of
+          // content instead of truncating it.
+          const cap = Math.max(0, options.contentMaxChars)
+          if (content.content.length > cap) {
+            content.content = truncateText(content.content, cap)
+          }
         }
 
         return [slug, content]
