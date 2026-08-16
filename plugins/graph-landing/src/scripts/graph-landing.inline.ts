@@ -239,12 +239,18 @@ const FOCUS_TAG_VAL_SCALE = 1.15
 const EXTERNAL_VAL_SCALE = 0.55
 const INITIAL_CAMERA: Vec3 = { x: 330, y: 235, z: 565 }
 const INITIAL_LOOK_AT: Vec3 = { x: 0, y: 0, z: 0 }
-// Fog range for `lod.fog`, sized relative to INITIAL_CAMERA's ~695-unit
-// distance from the origin: near sits inside the default view so close
-// geometry stays crisp, far sits past the far edge of a typical framed
-// graph so fog reads as depth cue rather than a visible wall.
-const FOG_NEAR = 300
-const FOG_FAR = 1600
+const INITIAL_CAMERA_DISTANCE = Math.hypot(INITIAL_CAMERA.x, INITIAL_CAMERA.y, INITIAL_CAMERA.z)
+// Fog range for `lod.fog`, expressed as multipliers of the *current* camera
+// distance (recomputed on every applyZoom/updateFog call) rather than fixed
+// world units. applyZoom clamps zoom to [0.4, 2.5], i.e. camera distance
+// ~0.4x-2.5x INITIAL_CAMERA_DISTANCE — fixed FOG_NEAR/FOG_FAR sized for the
+// default distance would sit entirely behind the camera at max zoom-in, or
+// entirely in front of it (washing out the whole graph) at max zoom-out.
+// Scaling with distance keeps the same relative depth-cue framing at every
+// zoom level: near sits inside the current view, far sits past the current
+// view's far edge.
+const FOG_NEAR_FACTOR = 300 / INITIAL_CAMERA_DISTANCE
+const FOG_FAR_FACTOR = 1600 / INITIAL_CAMERA_DISTANCE
 // Alex grammar: small bright cores with tight bloom halos, hairline edges.
 // Bloom stays tight (low radius, mid threshold) so the night-sky background
 // keeps its near-black depth instead of washing into gray fog.
@@ -1475,18 +1481,14 @@ function bindGraph(
 
   const currentData = (): GraphData => data
 
-  // Zoom keeps the current orbit direction and only changes the camera's
-  // distance to the origin, so slider moves never snap the rotation back.
-  const applyZoom = (ms: number): void => {
-    if (options.use3d) {
-      if (typeof graph.cameraPosition !== "function") {
-        return
-      }
-      const base = Math.hypot(INITIAL_CAMERA.x, INITIAL_CAMERA.y, INITIAL_CAMERA.z)
-      const targetLen = base / clamp(tune.zoom, 0.4, 2.5)
+  // Shared by applyZoom (needs direction + length) and updateFog (needs only
+  // length, to scale FOG_NEAR_FACTOR/FOG_FAR_FACTOR to the live camera
+  // distance). Falls back to INITIAL_CAMERA/INITIAL_CAMERA_DISTANCE before
+  // the graph has a real camera position (or in 2D, where callers ignore
+  // dir/len anyway).
+  const currentCameraVector = (): { dir: Vec3; len: number } => {
+    if (typeof graph.cameraPosition === "function") {
       const current = graph.cameraPosition() as Partial<Vec3> | undefined
-      let dir: Vec3 = INITIAL_CAMERA
-      let dirLen = base
       if (
         current &&
         typeof current.x === "number" &&
@@ -1495,12 +1497,27 @@ function bindGraph(
       ) {
         const len = Math.hypot(current.x, current.y, current.z)
         if (len > 1) {
-          dir = { x: current.x, y: current.y, z: current.z }
-          dirLen = len
+          return { dir: { x: current.x, y: current.y, z: current.z }, len }
         }
       }
+    }
+    return { dir: INITIAL_CAMERA, len: INITIAL_CAMERA_DISTANCE }
+  }
+
+  // Zoom keeps the current orbit direction and only changes the camera's
+  // distance to the origin, so slider moves never snap the rotation back.
+  const applyZoom = (ms: number): void => {
+    if (options.use3d) {
+      if (typeof graph.cameraPosition !== "function") {
+        return
+      }
+      const targetLen = INITIAL_CAMERA_DISTANCE / clamp(tune.zoom, 0.4, 2.5)
+      const { dir, len: dirLen } = currentCameraVector()
       const k = targetLen / dirLen
       graph.cameraPosition({ x: dir.x * k, y: dir.y * k, z: dir.z * k }, INITIAL_LOOK_AT, ms)
+      // Fog range is distance-relative (see FOG_NEAR_FACTOR/FOG_FAR_FACTOR),
+      // so a zoom change must refresh it too. No-op when lod.fog is unset.
+      updateFog()
       return
     }
     if (typeof graph.zoom === "function") {
@@ -1949,12 +1966,20 @@ function bindGraph(
   // background, giving distant geometry a depth cue instead of a hard
   // edge. No-op (graph.scene() is never even called) unless both use3d
   // and options.lod.fog are true, preserving current behavior byte for
-  // byte when the option is unset.
+  // byte when the option is unset. near/far scale with the *current*
+  // camera distance (FOG_NEAR_FACTOR/FOG_FAR_FACTOR) rather than fixed
+  // world units, so the fog stays correctly framed across the full
+  // applyZoom range instead of washing out the graph at max zoom-out.
   const updateFog = (): void => {
     if (!options.use3d || !options.lod.fog || !options.three || typeof graph.scene !== "function") {
       return
     }
-    graph.scene().fog = new options.three.Fog(activeBackground(), FOG_NEAR, FOG_FAR)
+    const cameraDistance = currentCameraVector().len
+    graph.scene().fog = new options.three.Fog(
+      activeBackground(),
+      cameraDistance * FOG_NEAR_FACTOR,
+      cameraDistance * FOG_FAR_FACTOR,
+    )
   }
 
   graph.graphData(currentData())
