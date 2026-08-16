@@ -31,6 +31,7 @@ import {
   type GraphData,
   type GraphLink,
   type GraphNode,
+  type LinkKind,
 } from "./graph-landing-pure"
 
 interface ThemeTokens {
