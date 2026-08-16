@@ -594,7 +594,12 @@ function buildGraphData(
   // Faint layers (cooc/folder) render as web texture but must not inflate
   // node degrees, hub ranking, or sizes: those stay driven by real
   // wikilinks, external sites, and tag membership.
-  const addEdge = (source: string, target: string, kind: LinkKind, countsDegree: boolean): boolean => {
+  const addEdge = (
+    source: string,
+    target: string,
+    kind: LinkKind,
+    countsDegree: boolean,
+  ): boolean => {
     const key = edgeKey(source, target, kind)
     if (seenEdges.has(key)) {
       return false
@@ -837,7 +842,15 @@ function buildGraphData(
  * for byte when the option is unset.
  */
 function selectRenderedSubset(full: GraphData, maxRenderedNodes: number | undefined): GraphData {
-  if (maxRenderedNodes === undefined || maxRenderedNodes >= full.nodes.length) {
+  // Defense in depth: a non-finite or negative value (e.g. a bad NaN from
+  // an upstream parse) must render everything, not fall through to
+  // `ranked.slice(0, NaN)` — which silently produces an EMPTY graph.
+  if (
+    maxRenderedNodes === undefined ||
+    !Number.isFinite(maxRenderedNodes) ||
+    maxRenderedNodes < 0 ||
+    maxRenderedNodes >= full.nodes.length
+  ) {
     return full
   }
   const ranked = [...full.nodes].sort((a, b) => {
@@ -1250,18 +1263,30 @@ function bindGraph(
   // (pushed into) on expansion so every existing closure over `data` in this
   // function keeps working unchanged — no rewiring of `currentData()` or the
   // rest of the view logic is needed.
-  const fullNodeById = new Map(options.fullData.nodes.map((node) => [node.id, node]))
-  // Same "real relationships only" definition used for hover highlighting
-  // (wikilink/tag/external) — cooc/folder texture edges do not drive expansion.
-  const fullAdjacency = neighborMap(options.fullData.links)
-  const renderedIds = new Set(data.nodes.map((node) => node.id))
+  //
+  // These structures are only needed by expandFromNode, which itself bails
+  // out immediately when `options.fullData === data` (maxRenderedNodes
+  // unset). Building them eagerly in that case would be pure wasted work at
+  // scale (e.g. 20k nodes), so they're only populated when expansion is
+  // actually possible.
   const expandEdgeKey = (source: string, target: string, kind: LinkKind): string =>
     source < target ? `${source}|${target}|${kind}` : `${target}|${source}|${kind}`
-  const renderedEdgeKeys = new Set(
-    data.links.map((link) =>
-      expandEdgeKey(linkEndpointId(link.source), linkEndpointId(link.target), link.kind),
-    ),
-  )
+  let fullNodeById: Map<string, GraphNode> = new Map()
+  // Same "real relationships only" definition used for hover highlighting
+  // (wikilink/tag/external) — cooc/folder texture edges do not drive expansion.
+  let fullAdjacency: Map<string, Set<string>> = new Map()
+  let renderedIds: Set<string> = new Set()
+  let renderedEdgeKeys: Set<string> = new Set()
+  if (options.fullData !== data) {
+    fullNodeById = new Map(options.fullData.nodes.map((node) => [node.id, node]))
+    fullAdjacency = neighborMap(options.fullData.links)
+    renderedIds = new Set(data.nodes.map((node) => node.id))
+    renderedEdgeKeys = new Set(
+      data.links.map((link) =>
+        expandEdgeKey(linkEndpointId(link.source), linkEndpointId(link.target), link.kind),
+      ),
+    )
+  }
 
   /**
    * BFS out from `nodeId` through the full index up to `options.expandHops`
@@ -2387,9 +2412,16 @@ function bindGraph(
     }
     const inspectLink = target.closest("[data-graph-inspect-id]")
     if (inspectLink instanceof HTMLElement && inspectLink.dataset.graphInspectId) {
-      const next = data.nodes.find((entry) => entry.id === inspectLink.dataset.graphInspectId)
+      // Look up in the full index, not just the currently-rendered subset —
+      // an inspect-panel neighbor link can point at a node that hasn't been
+      // pulled into `data` yet when maxRenderedNodes is set. Route through
+      // activateNode (same as a direct graph click) so that node is expanded
+      // into the live simulation before it's selected.
+      const next = options.fullData.nodes.find(
+        (entry) => entry.id === inspectLink.dataset.graphInspectId,
+      )
       if (next) {
-        selectNode(next)
+        activateNode(next)
       }
       return
     }
@@ -2856,10 +2888,23 @@ async function initGraphLanding(): Promise<void> {
   const countsTemplate = root.dataset.countsTemplate ?? "{n} nodes · {m} edges"
   const indexSource = root.dataset.indexSource === "graphIndex" ? "graphIndex" : "contentIndex"
   const graphIndexPath = root.dataset.graphIndexPath ?? ""
-  const maxRenderedNodes = root.dataset.maxRenderedNodes
+  // A malformed/negative dataset value (or a non-finite Number.parseInt
+  // result, e.g. "abc" → NaN) must fall back to "render all" / "1 hop"
+  // rather than reaching selectRenderedSubset/expandFromNode as NaN, which
+  // would otherwise produce an EMPTY rendered graph (ranked.slice(0, NaN)).
+  const parsedMaxRenderedNodes = root.dataset.maxRenderedNodes
     ? Number.parseInt(root.dataset.maxRenderedNodes, 10)
     : undefined
-  const expandHops = root.dataset.expandHops ? Number.parseInt(root.dataset.expandHops, 10) : 1
+  const maxRenderedNodes =
+    parsedMaxRenderedNodes !== undefined &&
+    Number.isFinite(parsedMaxRenderedNodes) &&
+    parsedMaxRenderedNodes >= 0
+      ? parsedMaxRenderedNodes
+      : undefined
+  const parsedExpandHops = root.dataset.expandHops
+    ? Number.parseInt(root.dataset.expandHops, 10)
+    : 1
+  const expandHops = Number.isFinite(parsedExpandHops) ? parsedExpandHops : 1
   const tagCooccurrence: TagCooccurrenceOption =
     root.dataset.tagCoocDisabled === "true"
       ? false

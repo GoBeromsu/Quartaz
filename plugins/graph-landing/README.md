@@ -54,9 +54,10 @@ external).
 - Default: `undefined` — render every node, original behavior.
 - The full parsed index stays in memory client-side. Clicking a rendered
   node lazily expands its neighborhood (see `expandHops`) into the live
-  simulation with a gentle reheat — no full graph rebuild. If the existing
-  focus/search mechanism ever targets a node outside the rendered set, that
-  node (and its hop neighborhood) is added first, then focused.
+  simulation with a gentle reheat — no full graph rebuild. The inspect
+  panel's neighbor links behave the same way: clicking a neighbor that
+  isn't in the rendered set yet expands it (and its hop neighborhood) into
+  the simulation first, then focuses it.
 
 ### `expandHops`
 
