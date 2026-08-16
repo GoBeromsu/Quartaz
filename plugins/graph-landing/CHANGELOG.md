@@ -6,6 +6,14 @@ All notable changes to this plugin are documented here.
 
 ### Added
 
+- `lod.shareLinkResources` option — when `true`, links with the same
+  computed color/opacity share one material and links with the same
+  radius/resolution share one geometry, instead of every link cylinder
+  allocating its own. Unset behavior is unchanged (every link gets its own
+  geometry/material instance). When combined with
+  `interaction.incrementalRepaint`, a focus change swaps a link's material
+  reference to the matching cached shared material instead of mutating it
+  in place, avoiding cross-link repaint corruption.
 - `interaction.incrementalRepaint` option — when `true`, hovering or
   selecting a node mutates only the affected nodes/links/labels in place
   instead of running a full repaint, avoiding destructive mesh recreation

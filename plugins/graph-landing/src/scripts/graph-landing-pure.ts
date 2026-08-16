@@ -222,3 +222,27 @@ export function affectedFocusNodeIds(
   }
   return result
 }
+
+/**
+ * Cache key for a shared link material, keyed by exactly the two properties
+ * `linkMaterialFor` (graph-landing.inline.ts) constructs a MeshBasicMaterial
+ * from: color and opacity. Used by `lod.shareLinkResources` to look up (or
+ * populate) a MeshBasicMaterial shared across every link with the same
+ * color/opacity instead of each link allocating its own.
+ */
+export function linkMaterialCacheKey(color: string, opacity: number): string {
+  return `${color}|${opacity}`
+}
+
+/**
+ * Cache key for a shared link geometry, keyed by exactly the two properties
+ * `linkGeometryFor` (graph-landing.inline.ts) constructs a unit-height
+ * CylinderGeometry from: radius and radial segment resolution. Safe to share
+ * across links regardless of on-screen length because this plugin's own
+ * `linkPositionUpdate` callback scales link length via the mesh's
+ * `scale.y`, never the geometry itself — every link's CylinderGeometry is
+ * always built with height 1 (see paintLinks3d).
+ */
+export function linkGeometryCacheKey(radius: number, resolution: number): string {
+  return `${radius}|${resolution}`
+}

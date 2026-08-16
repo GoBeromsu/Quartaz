@@ -23,6 +23,8 @@ import {
   expandHopIds,
   isBeyondCullDistance,
   linkEndpointId,
+  linkGeometryCacheKey,
+  linkMaterialCacheKey,
   lodLevelForDistance,
   sanitizeAmbientVideoId,
   selectRenderedSubset,
@@ -1252,6 +1254,7 @@ function bindGraph(
       fog: boolean
       nodeResolution: number | undefined
       linkResolution: number | undefined
+      shareLinkResources: boolean
     }
     interaction: {
       incrementalRepaint: boolean
@@ -1694,6 +1697,52 @@ function bindGraph(
     return resource
   }
 
+  // Shared link geometry/material caches for `lod.shareLinkResources`,
+  // following the dotResourceCache pattern above. Only populated/consumed
+  // when shareLinkResources is on; paintLinks3d clears both maps at the top
+  // of every call (mirroring dotResourceCache.clear()) WITHOUT disposing
+  // prior entries — per spec, shared resources are never disposed on
+  // repaint, only dropped from the cache so a fresh paint repopulates them
+  // from scratch. Geometry is safe to share across links regardless of
+  // on-screen length because paintLinks3d's own linkPositionUpdate callback
+  // (below) scales link length via the mesh's scale.y, never the geometry
+  // itself — every CylinderGeometry here is always built with unit height
+  // (see `new three.CylinderGeometry(radius, radius, 1, resolution)` below,
+  // matching the non-shared branch's `1` height argument).
+  const linkGeometryCache = new Map<string, unknown>()
+  const linkMaterialCache = new Map<string, ThreeMaterialHandle>()
+
+  const linkGeometryFor = (three: ThreeApi, radius: number, resolution: number): unknown => {
+    const key = linkGeometryCacheKey(radius, resolution)
+    const cached = linkGeometryCache.get(key)
+    if (cached) {
+      return cached
+    }
+    const geometry = new three.CylinderGeometry(radius, radius, 1, resolution)
+    linkGeometryCache.set(key, geometry)
+    return geometry
+  }
+
+  const linkMaterialFor = (
+    three: ThreeApi,
+    color: string,
+    opacity: number,
+  ): ThreeMaterialHandle => {
+    const key = linkMaterialCacheKey(color, opacity)
+    const cached = linkMaterialCache.get(key)
+    if (cached) {
+      return cached
+    }
+    const material = new three.MeshBasicMaterial({
+      color,
+      transparent: true,
+      opacity,
+      depthWrite: false,
+    })
+    linkMaterialCache.set(key, material)
+    return material
+  }
+
   const paintLabels3d = (): void => {
     if (!options.use3d || typeof graph.nodeThreeObject !== "function") {
       return
@@ -1803,8 +1852,11 @@ function bindGraph(
     const linkSegments = options.lod.linkResolution ?? 5
     const cullDistance = options.lod.cullDistance
     const incremental = options.interaction.incrementalRepaint
+    const shareLinkResources = options.lod.shareLinkResources
     linkMeshes.clear()
     linksByNode.clear()
+    linkGeometryCache.clear()
+    linkMaterialCache.clear()
     if (incremental) {
       for (const link of data.links) {
         const source = linkEndpointId(link.source)
@@ -1821,16 +1873,18 @@ function bindGraph(
     }
     graph.linkThreeObject((link) => {
       const radius = LINK_RADIUS[link.kind] * tune.edgeScale
-      const material = new three.MeshBasicMaterial({
-        color: edgeColor(link),
-        transparent: true,
-        opacity: edgeOpacity(link),
-        depthWrite: false,
-      })
-      const mesh = new three.Mesh(
-        new three.CylinderGeometry(radius, radius, 1, linkSegments),
-        material,
-      )
+      const material = shareLinkResources
+        ? linkMaterialFor(three, edgeColor(link), edgeOpacity(link))
+        : new three.MeshBasicMaterial({
+            color: edgeColor(link),
+            transparent: true,
+            opacity: edgeOpacity(link),
+            depthWrite: false,
+          })
+      const geometry = shareLinkResources
+        ? linkGeometryFor(three, radius, linkSegments)
+        : new three.CylinderGeometry(radius, radius, 1, linkSegments)
+      const mesh = new three.Mesh(geometry, material)
       // Tracked when cullDistance is set (consumed by the link-cull rAF loop
       // below) or when incrementalRepaint is set (consumed by
       // applyFocusChange). With both unset, linkMeshes stays empty and the
@@ -1937,8 +1991,20 @@ function bindGraph(
         if (!mesh) {
           continue
         }
-        mesh.material.color.set(edgeColor(link))
-        mesh.material.opacity = edgeOpacity(link)
+        // Shared materials (lod.shareLinkResources) are keyed by
+        // color+opacity and reused across many links, so mutating
+        // mesh.material in place here would repaint every other link
+        // sharing that same material instance. Swap the mesh's material
+        // reference to whichever cached shared material matches the new
+        // color/opacity instead (creating one on first use); unshared mode
+        // keeps the original in-place mutation, which is safe there because
+        // each link privately owns its material.
+        if (options.lod.shareLinkResources && options.three) {
+          mesh.material = linkMaterialFor(options.three, edgeColor(link), edgeOpacity(link))
+        } else {
+          mesh.material.color.set(edgeColor(link))
+          mesh.material.opacity = edgeOpacity(link)
+        }
       }
     }
   }
@@ -3321,6 +3387,7 @@ async function initGraphLanding(): Promise<void> {
       ? parsedLodLinkResolution
       : undefined
   const interactionIncrementalRepaint = root.dataset.graphInteractionIncrementalRepaint === "true"
+  const lodShareLinkResources = root.dataset.graphLodShareLinkResources === "true"
 
   let cancelled = false
   let graph: ForceGraphInstance | null = null
@@ -3462,6 +3529,7 @@ async function initGraphLanding(): Promise<void> {
       fog: lodFog,
       nodeResolution: lodNodeResolution,
       linkResolution: lodLinkResolution,
+      shareLinkResources: lodShareLinkResources,
     },
     interaction: {
       incrementalRepaint: interactionIncrementalRepaint,

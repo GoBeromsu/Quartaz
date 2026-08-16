@@ -84,6 +84,7 @@ block at all.
       fog: true
       nodeResolution: 8
       linkResolution: 3
+      shareLinkResources: true
     interaction:
       incrementalRepaint: true
     ambientVideoId: o6HpCFhNcnQ
@@ -199,6 +200,20 @@ fog). Has no effect when the 2D renderer is active.
   link's cylinder geometry. Default: `undefined` (`5`, original
   behavior). Lower values trade visual smoothness for fewer triangles per
   link.
+- `shareLinkResources` — when `true`, links with the same computed color
+  and opacity share one `MeshBasicMaterial` (keyed by color+opacity), and
+  links with the same radius and resolution share one `CylinderGeometry`
+  (keyed by radius+resolution), instead of every link cylinder allocating
+  its own geometry/material. Default: `undefined`/`false` (every link gets
+  its own geometry/material instance; original behavior unchanged). Safe to
+  share regardless of on-screen length: this plugin's own
+  `linkPositionUpdate` callback scales link length via the mesh's
+  `scale.y`, never the geometry itself, so every link's `CylinderGeometry`
+  is always built with unit height (1) whether shared or not. Shared
+  resources are cached across `paintLinks3d` calls and dropped (not
+  disposed) from the cache on each repaint, so a resize/theme/tune change
+  simply repopulates the cache from scratch. See `interaction` below for
+  how this interacts with `incrementalRepaint`.
 
 ### `interaction`
 
@@ -218,6 +233,17 @@ active.
   even though nothing about most of them changed). Default: `undefined`/
   `false` (original behavior unchanged). Full repaints (lens/tag/folder/
   theme/tune/expand/view changes) are unaffected either way.
+
+**Interplay with `lod.shareLinkResources`**: a shared link material is
+reused across every link with the same color+opacity, so mutating it in
+place on focus change would repaint every other link sharing that
+instance, not just the focused one. When both options are on, a focus
+change instead swaps the affected link's `mesh.material` to whichever
+cached shared material matches its new color/opacity (creating one on
+first use) rather than mutating the current material's properties —
+leaving every other link sharing the old material untouched. When
+`shareLinkResources` is off, each link privately owns its material, so
+`incrementalRepaint` mutates it in place as before.
 
 ### `ambientVideoId`
 

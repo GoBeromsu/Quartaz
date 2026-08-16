@@ -138,6 +138,21 @@ export interface GraphLandingPageOptions {
      * values trade visual smoothness for fewer triangles per link.
      */
     linkResolution?: number
+    /**
+     * When true, links with the same computed color and opacity share one
+     * MeshBasicMaterial (keyed by color+opacity) and links with the same
+     * radius and resolution share one CylinderGeometry (keyed by
+     * radius+resolution), instead of every link cylinder allocating its own
+     * geometry/material. Default: undefined/false (every link gets its own
+     * geometry/material instance; current behavior unchanged). Has no
+     * effect when the 2D renderer is active. When combined with
+     * `interaction.incrementalRepaint`, a focus change swaps a link's
+     * material to whichever cached shared material matches its new
+     * color/opacity instead of mutating the link's current material in
+     * place (in-place mutation would repaint every other link sharing that
+     * material instance).
+     */
+    shareLinkResources?: boolean
   }
   /**
    * Interaction-driven repaint tuning for the 3D renderer. Default: undefined

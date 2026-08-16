@@ -297,6 +297,7 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
           data-graph-lod-fog={options.lod?.fog ? "true" : undefined}
           data-graph-lod-node-resolution={options.lod?.nodeResolution}
           data-graph-lod-link-resolution={options.lod?.linkResolution}
+          data-graph-lod-share-link-resources={options.lod?.shareLinkResources ? "true" : undefined}
           data-graph-interaction-incremental-repaint={
             options.interaction?.incrementalRepaint ? "true" : undefined
           }

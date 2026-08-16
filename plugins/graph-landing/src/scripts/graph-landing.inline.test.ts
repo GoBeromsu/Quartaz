@@ -4,6 +4,8 @@ import {
   affectedFocusNodeIds,
   expandHopIds,
   isBeyondCullDistance,
+  linkGeometryCacheKey,
+  linkMaterialCacheKey,
   lodLevelForDistance,
   sanitizeAmbientVideoId,
   selectRenderedSubset,
@@ -295,5 +297,41 @@ describe("affectedFocusNodeIds", () => {
 
   it("returns the same focus node once when previous and next focus are identical", () => {
     assert.deepEqual(affectedFocusNodeIds(neighbors, "a", "a"), new Set(["a", "b", "c"]))
+  })
+})
+
+describe("linkMaterialCacheKey", () => {
+  it("combines color and opacity into a single key", () => {
+    assert.equal(linkMaterialCacheKey("#ff0000", 0.5), "#ff0000|0.5")
+  })
+
+  it("produces different keys for different colors at the same opacity", () => {
+    assert.notEqual(linkMaterialCacheKey("#ff0000", 0.5), linkMaterialCacheKey("#00ff00", 0.5))
+  })
+
+  it("produces different keys for different opacities at the same color", () => {
+    assert.notEqual(linkMaterialCacheKey("#ff0000", 0.5), linkMaterialCacheKey("#ff0000", 0.8))
+  })
+
+  it("produces the same key for repeated calls with identical inputs", () => {
+    assert.equal(linkMaterialCacheKey("#ff0000", 0.5), linkMaterialCacheKey("#ff0000", 0.5))
+  })
+})
+
+describe("linkGeometryCacheKey", () => {
+  it("combines radius and resolution into a single key", () => {
+    assert.equal(linkGeometryCacheKey(1.5, 5), "1.5|5")
+  })
+
+  it("produces different keys for different radii at the same resolution", () => {
+    assert.notEqual(linkGeometryCacheKey(1.5, 5), linkGeometryCacheKey(2, 5))
+  })
+
+  it("produces different keys for different resolutions at the same radius", () => {
+    assert.notEqual(linkGeometryCacheKey(1.5, 5), linkGeometryCacheKey(1.5, 8))
+  })
+
+  it("produces the same key for repeated calls with identical inputs", () => {
+    assert.equal(linkGeometryCacheKey(1.5, 5), linkGeometryCacheKey(1.5, 5))
   })
 })
