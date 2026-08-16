@@ -2,11 +2,30 @@
   "name": "graph-landing",
   "version": "0.1.0",
   "description": "Locale home pageType that renders a full-viewport knowledge-graph constellation.",
+  "keywords": [
+    "quartz",
+    "quartz-plugin",
+    "graph",
+    "pageType",
+    "3d",
+    "visualization"
+  ],
+  "homepage": "https://github.com/GoBeromsu/quartz-graph-landing#readme",
+  "bugs": {
+    "url": "https://github.com/GoBeromsu/quartz-graph-landing/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GoBeromsu/quartz-graph-landing"
+  },
+  "author": "GoBeromsu",
   "type": "module",
   "license": "MIT",
-  "private": true,
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "exports": {
     ".": {
@@ -58,7 +77,7 @@
     "defaultOptions": {
       "indexSource": "contentIndex"
     },
-    "optionSchema": {
+    "configSchema": {
       "indexSource": {
         "type": "string"
       },
@@ -70,6 +89,21 @@
       },
       "expandHops": {
         "type": "number"
+      },
+      "renderMode": {
+        "type": "string"
+      },
+      "layout": {
+        "type": "object"
+      },
+      "lod": {
+        "type": "object"
+      },
+      "ambientVideoId": {
+        "type": "string"
+      },
+      "defaultLocale": {
+        "type": "string"
       }
     }
   },
