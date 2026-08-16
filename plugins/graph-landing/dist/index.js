@@ -704,14 +704,16 @@ var graphPageMatcher = ({ fileData }) => {
 };
 var GraphLandingPage = (userOpts) => {
   const options = { ...defaultOptions, ...userOpts };
-  return {
+  const instance = {
     name: "GraphLanding",
     priority: 20,
     match: graphPageMatcher,
     layout: "graph",
     frame: "minimal",
-    body: GraphLanding_default(options)
+    body: GraphLanding_default(options),
+    skipContentIndexFetch: options.indexSource === "graphIndex"
   };
+  return instance;
 };
 var pageType_default = GraphLandingPage;
 

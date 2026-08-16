@@ -1,5 +1,19 @@
-import type { PageMatcher, QuartzPageTypePlugin } from "@quartz-community/types"
+import type {
+  PageMatcher,
+  QuartzPageTypePlugin,
+  QuartzPageTypePluginInstance,
+} from "@quartz-community/types"
 import GraphLanding from "./components/GraphLanding"
+
+// Extends the published QuartzPageTypePluginInstance with an engine flag not
+// yet part of that package's types: when true, the engine's pageResources()
+// omits the global contentIndex.json fetch for pages using this page type.
+// Widening the return type via intersection (instead of adding the field to
+// the object literal typed as QuartzPageTypePluginInstance directly) avoids
+// an excess-property error against the external package's stricter type.
+type EngineAwarePageTypeInstance = QuartzPageTypePluginInstance & {
+  skipContentIndexFetch?: boolean
+}
 
 export interface GraphLandingPageOptions {
   /**
@@ -50,14 +64,20 @@ const graphPageMatcher: PageMatcher = ({ fileData }) => {
 
 const GraphLandingPage: QuartzPageTypePlugin<GraphLandingPageOptions> = (userOpts) => {
   const options = { ...defaultOptions, ...userOpts }
-  return {
+  // Only skip the engine's global contentIndex.json fetch when this page
+  // fetches its own lighter graphIndex.json directly (see
+  // graph-landing.inline.ts); the default indexSource ("contentIndex")
+  // still relies on the global fetch, unchanged.
+  const instance: EngineAwarePageTypeInstance = {
     name: "GraphLanding",
     priority: 20,
     match: graphPageMatcher,
     layout: "graph",
     frame: "minimal",
     body: GraphLanding(options),
+    skipContentIndexFetch: options.indexSource === "graphIndex",
   }
+  return instance
 }
 
 export default GraphLandingPage
