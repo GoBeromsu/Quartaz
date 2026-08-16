@@ -5,6 +5,60 @@ optional and default to the plugin's original behavior — setting none of
 them reproduces the exact output of a plugin instance with no `options`
 block at all.
 
+## Install
+
+```yaml
+- source: github:GoBeromsu/quartz-graph-landing
+  enabled: true
+  options:
+    indexSource: contentIndex
+```
+
+## Requirements
+
+- `indexSource: "contentIndex"` (the default) works out of the box with
+  stock Quartz v5's built-in content index emitter — no other plugin
+  required. The client fetches `static/contentIndex.json` and reads each
+  entry's `slug`, `title`, `links`, `tags`, `externalLinks`, and `content`
+  fields.
+- `indexSource: "graphIndex"` instead fetches a `static/graphIndex.json`
+  file, which nothing in stock Quartz v5 emits — you need a separate
+  emitter plugin that writes it (Quartaz's `multilingual-content-index`
+  plugin does this behind its own `emitGraphIndex: true` option). Any
+  emitter can supply it as long as the file matches the shape below; this
+  plugin does not import or depend on any specific emitter package.
+- Expected `graphIndex.json` shape: a JSON object whose values (any keys,
+  typically slugs) are entries of the form
+  ```ts
+  {
+    slug: string
+    title: string
+    links: string[] // outgoing wikilink slugs
+    tags: string[]
+    externalLinks: string[]
+    excerpt: string // short preview text, pre-truncated by the emitter
+    multilingual?: {
+      translationKey?: string
+      locale?: string
+    }
+  }
+  ```
+  `excerpt` takes the place of `contentIndex.json`'s full `content` field
+  and is shown as-is in the node preview/inspect panels, so emitters
+  should keep it short (this plugin's own client-side excerpt fallback for
+  `contentIndex.json` truncates to 220 characters). Any entry missing a
+  non-empty `slug` is skipped; missing `title`/`links`/`tags`/
+  `externalLinks`/`excerpt` fall back to the slug / empty array / empty
+  string respectively rather than erroring.
+- `skipContentIndexFetch` (an internal flag this plugin sets on its page
+  type instance, not a user-facing option) is a performance hint: when
+  `indexSource: "graphIndex"` is set, this page fetches its own
+  `graphIndex.json` directly, so the flag tells an aware engine it can skip
+  the separate global `contentIndex.json` fetch it would otherwise make for
+  every page. The Quartaz engine honors this hint. On engines that don't
+  read the flag, both fetches simply happen — content still loads
+  correctly, just via one extra (unused) network request.
+
 ## Options
 
 ```yaml
@@ -30,7 +84,11 @@ block at all.
       fog: true
       nodeResolution: 8
       linkResolution: 3
+      shareLinkResources: true
+    interaction:
+      incrementalRepaint: true
     ambientVideoId: o6HpCFhNcnQ
+    defaultLocale: en
 ```
 
 ### `indexSource`
@@ -142,6 +200,50 @@ fog). Has no effect when the 2D renderer is active.
   link's cylinder geometry. Default: `undefined` (`5`, original
   behavior). Lower values trade visual smoothness for fewer triangles per
   link.
+- `shareLinkResources` — when `true`, links with the same computed color
+  and opacity share one `MeshBasicMaterial` (keyed by color+opacity), and
+  links with the same radius and resolution share one `CylinderGeometry`
+  (keyed by radius+resolution), instead of every link cylinder allocating
+  its own geometry/material. Default: `undefined`/`false` (every link gets
+  its own geometry/material instance; original behavior unchanged). Safe to
+  share regardless of on-screen length: this plugin's own
+  `linkPositionUpdate` callback scales link length via the mesh's
+  `scale.y`, never the geometry itself, so every link's `CylinderGeometry`
+  is always built with unit height (1) whether shared or not. Shared
+  resources are cached across `paintLinks3d` calls and dropped (not
+  disposed) from the cache on each repaint, so a resize/theme/tune change
+  simply repopulates the cache from scratch. See `interaction` below for
+  how this interacts with `incrementalRepaint`.
+
+### `interaction`
+
+Interaction-driven repaint tuning for the 3D renderer. Default: `undefined`
+— original behavior unchanged (every hover/click triggers a full accessor
+repaint of every node/link/label). Has no effect when the 2D renderer is
+active.
+
+- `incrementalRepaint` — when `true`, hovering or selecting a node mutates
+  only the previous and next focus nodes/links/labels (and their direct
+  neighbors) in place, instead of re-running the full node/link/label
+  repaint on every hover/click. Visually identical to the full-repaint
+  path; avoids the three-forcegraph/kapsule accessor system's destructive
+  mesh recreation that a plain click/hover otherwise triggers (re-setting
+  `nodeThreeObject`/`linkThreeObject`/`linkWidth` on every hover/click
+  causes those libraries to discard and rebuild every node and link mesh,
+  even though nothing about most of them changed). Default: `undefined`/
+  `false` (original behavior unchanged). Full repaints (lens/tag/folder/
+  theme/tune/expand/view changes) are unaffected either way.
+
+**Interplay with `lod.shareLinkResources`**: a shared link material is
+reused across every link with the same color+opacity, so mutating it in
+place on focus change would repaint every other link sharing that
+instance, not just the focused one. When both options are on, a focus
+change instead swaps the affected link's `mesh.material` to whichever
+cached shared material matches its new color/opacity (creating one on
+first use) rather than mutating the current material's properties —
+leaving every other link sharing the old material untouched. When
+`shareLinkResources` is off, each link privately owns its material, so
+`incrementalRepaint` mutates it in place as before.
 
 ### `ambientVideoId`
 
@@ -155,6 +257,16 @@ YouTube video id for the ambient audio track played behind the graph
 - Validated client-side: trimmed, then must match `/^[A-Za-z0-9_-]{6,20}$/`.
   An unset or invalid value (empty, too short/long, a full URL, disallowed
   characters) is ignored and the built-in track plays instead.
+
+### `defaultLocale`
+
+Fallback locale id used when a page's locale can't be determined from its
+multilingual frontmatter/slug prefix, and when the site's multilingual
+config has no `sourceLocale` set.
+
+- Default: `undefined` — original behavior unchanged, falls back to `"ko"`.
+- Set this when publishing a site whose primary locale is not Korean (e.g.
+  `defaultLocale: en`).
 
 ## 3D performance
 

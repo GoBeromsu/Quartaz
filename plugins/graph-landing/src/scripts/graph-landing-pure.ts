@@ -96,16 +96,43 @@ export function lodLevelForDistance(distance: number, threshold: number | undefi
 }
 
 /**
- * Pure link-distance-cull decision for the 3D renderer's link-cull rAF loop,
- * built on lodLevelForDistance's identical "distance >= threshold" boundary
- * semantics (kept in one place so a link and a node LOD swap at the exact
- * same distance never disagree). `cullDistance` undefined (or
- * non-finite/negative) always returns false — no link is ever culled, current
- * behavior unchanged. Named separately from lodLevelForDistance because
- * "full"/"dot" reads oddly for links; call sites just want a boolean.
+ * Generic memoizing lookup: returns the cached value for `key` if present,
+ * otherwise builds it with `factory`, stores it, and returns it. Matches the
+ * `if (cached) return cached` truthy-check semantics every call site here
+ * previously inlined by hand (all cached values are objects, never a falsy
+ * value), so behavior is unchanged. Used by dotResourceFor/linkGeometryFor/
+ * linkMaterialFor to share this shared-resource-cache pattern instead of
+ * three near-identical copies.
  */
-export function isBeyondCullDistance(distance: number, cullDistance: number | undefined): boolean {
-  return lodLevelForDistance(distance, cullDistance) === "dot"
+export function getOrCreate<T>(cache: Map<string, T>, key: string, factory: () => T): T {
+  const cached = cache.get(key)
+  if (cached) {
+    return cached
+  }
+  const value = factory()
+  cache.set(key, value)
+  return value
+}
+
+/**
+ * Shared "parse an optional non-negative numeric dataset attribute" pattern
+ * used by graph-landing.inline.ts's option parsing: `raw` unset (falsy)
+ * yields `undefined` directly; otherwise `raw` is run through `parser`
+ * (`Number.parseInt`/`Number.parseFloat`, both `(s: string) => number`
+ * compatible) and the result is returned only if it is finite and `>= 0` —
+ * a malformed value (NaN) or a negative value both fall back to
+ * `undefined` (renderer default / "unset"), never reaching a caller as
+ * NaN or a negative number. Matches the guarded parse blocks each of
+ * maxRenderedNodes/layoutWarmupTicks/layoutCooldownTicks/layoutChargeTheta/
+ * lodLabelDistance/lodDotDistance/lodCullDistance/lodNodeResolution/
+ * lodLinkResolution used to inline by hand.
+ */
+export function parseNonNegativeNumber(
+  raw: string | undefined,
+  parser: (value: string) => number,
+): number | undefined {
+  const parsed = raw ? parser(raw) : undefined
+  return parsed !== undefined && Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined
 }
 
 /**
@@ -191,4 +218,34 @@ export function expandHopIds(
     frontier = next
   }
   return toAdd
+}
+
+/**
+ * Computes the set of node ids affected by a focus change from
+ * `previousFocus` to `nextFocus`: the previous focus node + its direct
+ * neighbors, unioned with the next focus node + its direct neighbors.
+ * Either focus may be null (e.g. hover-out, no selection). Returns an empty
+ * set when both are null. Used by the incremental-repaint path
+ * (`interaction.incrementalRepaint`) to scope a focus-change repaint to only
+ * the nodes/links/labels whose visual state depends on the focused node.
+ */
+export function affectedFocusNodeIds(
+  neighbors: Map<string, Set<string>>,
+  previousFocus: string | null,
+  nextFocus: string | null,
+): Set<string> {
+  const result = new Set<string>()
+  if (previousFocus !== null) {
+    result.add(previousFocus)
+    for (const id of neighbors.get(previousFocus) ?? []) {
+      result.add(id)
+    }
+  }
+  if (nextFocus !== null) {
+    result.add(nextFocus)
+    for (const id of neighbors.get(nextFocus) ?? []) {
+      result.add(id)
+    }
+  }
+  return result
 }

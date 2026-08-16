@@ -126,6 +126,40 @@ interface GraphLandingPageOptions {
          * values trade visual smoothness for fewer triangles per link.
          */
         linkResolution?: number;
+        /**
+         * When true, links with the same computed color and opacity share one
+         * MeshBasicMaterial (keyed by color+opacity) and links with the same
+         * radius and resolution share one CylinderGeometry (keyed by
+         * radius+resolution), instead of every link cylinder allocating its own
+         * geometry/material. Default: undefined/false (every link gets its own
+         * geometry/material instance; current behavior unchanged). Has no
+         * effect when the 2D renderer is active. When combined with
+         * `interaction.incrementalRepaint`, a focus change swaps a link's
+         * material to whichever cached shared material matches its new
+         * color/opacity instead of mutating the link's current material in
+         * place (in-place mutation would repaint every other link sharing that
+         * material instance).
+         */
+        shareLinkResources?: boolean;
+    };
+    /**
+     * Interaction-driven repaint tuning for the 3D renderer. Default: undefined
+     * (current behavior unchanged — every hover/click triggers a full accessor
+     * repaint of every node/link/label). Has no effect when the 2D renderer is
+     * active.
+     */
+    interaction?: {
+        /**
+         * When true, hovering or selecting a node mutates only the previous and
+         * next focus nodes/links/labels (and their direct neighbors) in place,
+         * instead of re-running the full node/link/label repaint on every
+         * hover/click. Visually identical to the full-repaint path; avoids the
+         * three-forcegraph/kapsule accessor system's destructive mesh recreation
+         * that a plain click/hover otherwise triggers. Default: undefined/false
+         * (current behavior unchanged). Full repaints (lens/tag/folder/theme/
+         * tune/expand/view changes) are unaffected either way.
+         */
+        incrementalRepaint?: boolean;
     };
     /**
      * YouTube video id for the ambient audio track played behind the graph.
@@ -137,6 +171,14 @@ interface GraphLandingPageOptions {
      * built-in track plays instead.
      */
     ambientVideoId?: string;
+    /**
+     * Fallback locale id used when a page's locale cannot be determined from
+     * its multilingual frontmatter/slug prefix, and when the site's
+     * multilingual config has no `sourceLocale` set. Default: undefined —
+     * current behavior unchanged, falls back to `"ko"`. Set this when
+     * publishing a site whose primary locale is not Korean.
+     */
+    defaultLocale?: string;
 }
 declare const GraphLandingPage: QuartzPageTypePlugin<GraphLandingPageOptions>;
 

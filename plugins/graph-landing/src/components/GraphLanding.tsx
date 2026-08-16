@@ -246,11 +246,11 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
     const GraphLanding: QuartzComponent = ({ fileData, cfg, allFiles }: QuartzComponentProps) => {
       const multilingual = fileData.multilingual as MultilingualFields | undefined
       const slug = typeof fileData.slug === "string" ? fileData.slug : ""
-      const localeId = multilingual?.locale ?? slug.split("/")[0] ?? "ko"
+      const localeId = multilingual?.locale ?? slug.split("/")[0] ?? options.defaultLocale ?? "ko"
       const multilingualCfg = (
         cfg as QuartzComponentProps["cfg"] & { multilingual?: MultilingualCfg }
       ).multilingual
-      const sourceLocale = multilingualCfg?.sourceLocale ?? "ko"
+      const sourceLocale = multilingualCfg?.sourceLocale ?? options.defaultLocale ?? "ko"
       const locales = multilingualCfg?.locales ?? []
       const localePrefixes = locales.map((locale) => locale.id).join(",")
       const copy = overlayCopyForLocale(localeId)
@@ -297,7 +297,12 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
           data-graph-lod-fog={options.lod?.fog ? "true" : undefined}
           data-graph-lod-node-resolution={options.lod?.nodeResolution}
           data-graph-lod-link-resolution={options.lod?.linkResolution}
+          data-graph-lod-share-link-resources={options.lod?.shareLinkResources ? "true" : undefined}
+          data-graph-interaction-incremental-repaint={
+            options.interaction?.incrementalRepaint ? "true" : undefined
+          }
           data-graph-ambient-video-id={options.ambientVideoId}
+          data-graph-default-locale={options.defaultLocale}
           data-counts-template={copy.countsTemplate}
           data-folder-root-label={copy.folderRoot}
           data-legend-notes={copy.notes}

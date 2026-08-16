@@ -1,9 +1,11 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 import {
+  affectedFocusNodeIds,
   expandHopIds,
-  isBeyondCullDistance,
+  getOrCreate,
   lodLevelForDistance,
+  parseNonNegativeNumber,
   sanitizeAmbientVideoId,
   selectRenderedSubset,
   type GraphData,
@@ -195,33 +197,6 @@ describe("lodLevelForDistance", () => {
   })
 })
 
-describe("isBeyondCullDistance", () => {
-  it("returns false when cullDistance is undefined, regardless of distance", () => {
-    assert.equal(isBeyondCullDistance(0, undefined), false)
-    assert.equal(isBeyondCullDistance(1000, undefined), false)
-  })
-
-  it("returns false when cullDistance is NaN", () => {
-    assert.equal(isBeyondCullDistance(1000, NaN), false)
-  })
-
-  it("returns false when cullDistance is negative", () => {
-    assert.equal(isBeyondCullDistance(1000, -5), false)
-  })
-
-  it("returns false when distance is strictly below cullDistance", () => {
-    assert.equal(isBeyondCullDistance(99, 100), false)
-  })
-
-  it("returns true when distance equals cullDistance", () => {
-    assert.equal(isBeyondCullDistance(100, 100), true)
-  })
-
-  it("returns true when distance exceeds cullDistance", () => {
-    assert.equal(isBeyondCullDistance(150, 100), true)
-  })
-})
-
 describe("sanitizeAmbientVideoId", () => {
   it("returns undefined when unset", () => {
     assert.equal(sanitizeAmbientVideoId(undefined), undefined)
@@ -255,5 +230,132 @@ describe("sanitizeAmbientVideoId", () => {
   it("rejects ids containing disallowed characters", () => {
     assert.equal(sanitizeAmbientVideoId("abc def"), undefined)
     assert.equal(sanitizeAmbientVideoId("abc.def123"), undefined)
+  })
+})
+
+describe("affectedFocusNodeIds", () => {
+  const neighbors = new Map<string, Set<string>>([
+    ["a", new Set(["b", "c"])],
+    ["b", new Set(["a"])],
+    ["c", new Set(["a"])],
+    ["d", new Set(["e"])],
+    ["e", new Set(["d"])],
+  ])
+
+  it("returns an empty set when both previous and next focus are null", () => {
+    assert.deepEqual(affectedFocusNodeIds(neighbors, null, null), new Set())
+  })
+
+  it("includes only the next focus node and its neighbors when previous is null", () => {
+    assert.deepEqual(affectedFocusNodeIds(neighbors, null, "a"), new Set(["a", "b", "c"]))
+  })
+
+  it("includes only the previous focus node and its neighbors when next is null", () => {
+    assert.deepEqual(affectedFocusNodeIds(neighbors, "a", null), new Set(["a", "b", "c"]))
+  })
+
+  it("unions previous and next focus neighborhoods when both are set and disjoint", () => {
+    assert.deepEqual(affectedFocusNodeIds(neighbors, "a", "d"), new Set(["a", "b", "c", "d", "e"]))
+  })
+
+  it("deduplicates overlapping previous and next focus neighborhoods", () => {
+    // "a" and "b" are neighbors of each other, so their neighborhoods overlap.
+    assert.deepEqual(affectedFocusNodeIds(neighbors, "a", "b"), new Set(["a", "b", "c"]))
+  })
+
+  it("falls back to just the focus id when it has no recorded neighbors", () => {
+    assert.deepEqual(affectedFocusNodeIds(neighbors, "z", null), new Set(["z"]))
+  })
+
+  it("returns the same focus node once when previous and next focus are identical", () => {
+    assert.deepEqual(affectedFocusNodeIds(neighbors, "a", "a"), new Set(["a", "b", "c"]))
+  })
+})
+
+describe("getOrCreate", () => {
+  it("creates and caches a value on first call for a key", () => {
+    const cache = new Map<string, { n: number }>()
+    let calls = 0
+    const value = getOrCreate(cache, "a", () => {
+      calls += 1
+      return { n: 1 }
+    })
+    assert.deepEqual(value, { n: 1 })
+    assert.equal(calls, 1)
+    assert.equal(cache.get("a"), value)
+  })
+
+  it("returns the cached value on a repeated call for the same key without calling factory again", () => {
+    const cache = new Map<string, { n: number }>()
+    let calls = 0
+    const factory = () => {
+      calls += 1
+      return { n: calls }
+    }
+    const first = getOrCreate(cache, "a", factory)
+    const second = getOrCreate(cache, "a", factory)
+    assert.equal(second, first)
+    assert.equal(calls, 1)
+  })
+
+  it("creates independent values for different keys", () => {
+    const cache = new Map<string, { n: number }>()
+    let calls = 0
+    const factory = () => {
+      calls += 1
+      return { n: calls }
+    }
+    const a = getOrCreate(cache, "a", factory)
+    const b = getOrCreate(cache, "b", factory)
+    assert.notEqual(a, b)
+    assert.equal(calls, 2)
+  })
+})
+
+describe("parseNonNegativeNumber", () => {
+  it("returns undefined when raw is undefined", () => {
+    assert.equal(
+      parseNonNegativeNumber(undefined, (s) => Number.parseInt(s, 10)),
+      undefined,
+    )
+  })
+
+  it("returns undefined when raw is an empty string", () => {
+    assert.equal(
+      parseNonNegativeNumber("", (s) => Number.parseInt(s, 10)),
+      undefined,
+    )
+  })
+
+  it("returns undefined when the parsed value is NaN (malformed input)", () => {
+    assert.equal(
+      parseNonNegativeNumber("abc", (s) => Number.parseInt(s, 10)),
+      undefined,
+    )
+  })
+
+  it("returns undefined when the parsed value is negative", () => {
+    assert.equal(
+      parseNonNegativeNumber("-5", (s) => Number.parseInt(s, 10)),
+      undefined,
+    )
+  })
+
+  it("returns the parsed value for a valid non-negative integer string", () => {
+    assert.equal(
+      parseNonNegativeNumber("42", (s) => Number.parseInt(s, 10)),
+      42,
+    )
+  })
+
+  it("returns the parsed value for a valid non-negative float string", () => {
+    assert.equal(parseNonNegativeNumber("1.5", Number.parseFloat), 1.5)
+  })
+
+  it("returns 0 at the zero boundary rather than treating it as falsy/undefined", () => {
+    assert.equal(
+      parseNonNegativeNumber("0", (s) => Number.parseInt(s, 10)),
+      0,
+    )
   })
 })
