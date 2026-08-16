@@ -5,6 +5,31 @@ optional and default to the plugin's original behavior — setting none of
 them reproduces the exact output of a plugin instance with no `options`
 block at all.
 
+## Install
+
+```yaml
+- source: github:GoBeromsu/quartz-graph-landing
+  enabled: true
+  options:
+    indexSource: contentIndex
+```
+
+## Requirements
+
+- `indexSource: "graphIndex"` requires the `multilingual-content-index`
+  emitter to be installed and configured with `emitGraphIndex: true` — it's
+  the plugin that writes the `static/graphIndex.json` file this page type
+  fetches when that option is set. With `indexSource` left at its default
+  (`"contentIndex"`), no such dependency exists.
+- `skipContentIndexFetch` (an internal flag this plugin sets on its page
+  type instance, not a user-facing option) is a performance hint: when
+  `indexSource: "graphIndex"` is set, this page fetches its own
+  `graphIndex.json` directly, so the flag tells an aware engine it can skip
+  the separate global `contentIndex.json` fetch it would otherwise make for
+  every page. The Quartaz engine honors this hint. On engines that don't
+  read the flag, both fetches simply happen — content still loads
+  correctly, just via one extra (unused) network request.
+
 ## Options
 
 ```yaml
