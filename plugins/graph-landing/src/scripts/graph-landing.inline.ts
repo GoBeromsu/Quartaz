@@ -98,7 +98,10 @@ interface ForceGraphInstance {
   onNodeHover: (fn: (node: GraphNode | null) => void) => unknown
   onNodeClick: (fn: (node: GraphNode | null, event?: Event) => void) => unknown
   onBackgroundClick?: (fn: (event?: Event) => void) => unknown
-  d3Force: (name: string, force?: unknown) =>
+  d3Force: (
+    name: string,
+    force?: unknown,
+  ) =>
     | {
         strength?: (value: number | ((link: GraphLink) => number)) => unknown
         distance?: (value: number | ((link: GraphLink) => number)) => unknown
@@ -133,7 +136,11 @@ interface ForceGraphInstance {
   linkThreeObject?: (fn: (link: GraphLink) => unknown) => unknown
   linkPositionUpdate?: (
     fn: (
-      obj: { position: Vec3; scale: Vec3; quaternion: { setFromUnitVectors: (a: unknown, b: unknown) => void } },
+      obj: {
+        position: Vec3
+        scale: Vec3
+        quaternion: { setFromUnitVectors: (a: unknown, b: unknown) => void }
+      },
       coords: { start: Vec3; end: Vec3 },
     ) => boolean | void,
   ) => unknown
@@ -306,7 +313,15 @@ function parseContentIndex(raw: Record<string, unknown>): ContentEntry[] {
       links: asStringArray(record.links),
       tags: asStringArray(record.tags),
       externalLinks: asStringArray(record.externalLinks),
-      content: typeof record.content === "string" ? record.content : "",
+      // graphIndex.json entries carry a pre-truncated `excerpt` instead of
+      // full `content`; prefer it when present so the graph index path and
+      // the contentIndex path both populate ContentEntry.content correctly.
+      content:
+        typeof record.excerpt === "string"
+          ? record.excerpt
+          : typeof record.content === "string"
+            ? record.content
+            : "",
       multilingual,
     })
   }
@@ -390,10 +405,7 @@ function noteIdentity(entry: ContentEntry, prefixes: readonly string[]): string 
   return `slug:${stripKnownPrefix(entry.slug, prefixes).permalink}`
 }
 
-function pickPreferredNote(
-  members: readonly ContentEntry[],
-  context: LocaleContext,
-): ContentEntry {
+function pickPreferredNote(members: readonly ContentEntry[], context: LocaleContext): ContentEntry {
   const picked =
     members.find((entry) => entryLocale(entry, context.prefixes) === context.localeId) ??
     members.find((entry) => entryLocale(entry, context.prefixes) === context.sourceLocale) ??
@@ -542,7 +554,13 @@ function dominantTagOf(noteTags: string[], tagCounts: Map<string, number>): stri
   return ranked[0] ?? ""
 }
 
-function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphData {
+type TagCooccurrenceOption = { maxTagsPerNote?: number; maxEdges?: number } | false | undefined
+
+function buildGraphData(
+  entries: ContentEntry[],
+  context: LocaleContext,
+  tagCooccurrence: TagCooccurrenceOption = undefined,
+): GraphData {
   const candidates = entries.filter((entry) => {
     return !isFolderIndex(entry.slug) && !isTagPage(entry.slug) && !isUtilityNote(entry)
   })
@@ -576,10 +594,15 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
   // Faint layers (cooc/folder) render as web texture but must not inflate
   // node degrees, hub ranking, or sizes: those stay driven by real
   // wikilinks, external sites, and tag membership.
-  const addEdge = (source: string, target: string, kind: LinkKind, countsDegree: boolean): void => {
+  const addEdge = (
+    source: string,
+    target: string,
+    kind: LinkKind,
+    countsDegree: boolean,
+  ): boolean => {
     const key = edgeKey(source, target, kind)
     if (seenEdges.has(key)) {
-      return
+      return false
     }
     seenEdges.add(key)
     links.push({ source, target, kind })
@@ -587,6 +610,7 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
       bumpDegree(source)
       bumpDegree(target)
     }
+    return true
   }
 
   for (const note of notes) {
@@ -634,13 +658,31 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
   }
 
   // Tag co-occurrence: tags sharing at least one note get a faint tag-tag edge.
-  for (const note of notes) {
-    if (note.tags.length < 2) {
-      continue
-    }
-    for (let i = 0; i < note.tags.length; i += 1) {
-      for (let j = i + 1; j < note.tags.length; j += 1) {
-        addEdge(`tag:${note.tags[i]}`, `tag:${note.tags[j]}`, "cooc", false)
+  // `tagCooccurrence` caps this O(k^2)-per-note generation: `false` disables it
+  // entirely, `maxTagsPerNote` skips notes with too many tags (their pair count
+  // grows quadratically), and `maxEdges` stops once that many edges exist.
+  // Default (undefined) preserves the original unlimited behavior.
+  if (tagCooccurrence !== false) {
+    const maxTagsPerNote = tagCooccurrence?.maxTagsPerNote
+    const maxEdges = tagCooccurrence?.maxEdges
+    let coocEdgeCount = 0
+    noteLoop: for (const note of notes) {
+      if (note.tags.length < 2) {
+        continue
+      }
+      if (maxTagsPerNote !== undefined && note.tags.length > maxTagsPerNote) {
+        continue
+      }
+      for (let i = 0; i < note.tags.length; i += 1) {
+        for (let j = i + 1; j < note.tags.length; j += 1) {
+          if (maxEdges !== undefined && coocEdgeCount >= maxEdges) {
+            break noteLoop
+          }
+          const added = addEdge(`tag:${note.tags[i]}`, `tag:${note.tags[j]}`, "cooc", false)
+          if (added) {
+            coocEdgeCount += 1
+          }
+        }
       }
     }
   }
@@ -699,7 +741,9 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
     return MIN_NODE_VAL + ((scaled - minScaled) / scaledSpan) * (MAX_NODE_VAL - MIN_NODE_VAL)
   }
 
-  const rankedNotes = [...notes].sort((a, b) => (degree.get(b.slug) ?? 0) - (degree.get(a.slug) ?? 0))
+  const rankedNotes = [...notes].sort(
+    (a, b) => (degree.get(b.slug) ?? 0) - (degree.get(a.slug) ?? 0),
+  )
   const hubIds = new Set(
     rankedNotes
       .filter((note) => (degree.get(note.slug) ?? 0) > 0)
@@ -782,6 +826,47 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
   }
 
   return { nodes, links }
+}
+
+/**
+ * Picks the initial rendered node subset when `maxRenderedNodes` is set:
+ * the top-N nodes by degree (computed over the full parsed index, same
+ * `degree` field buildGraphData already assigns to every node), with a
+ * deterministic tie-break by node id (slug) so the choice is stable across
+ * rebuilds. Edges are kept only when both endpoints survive the cut.
+ *
+ * When `maxRenderedNodes` is undefined, or is large enough to include every
+ * node anyway, this returns the exact same `full` object reference (not a
+ * copy) — callers use that identity to detect "nothing to expand" and skip
+ * the lazy-expansion machinery entirely, preserving current behavior byte
+ * for byte when the option is unset.
+ */
+function selectRenderedSubset(full: GraphData, maxRenderedNodes: number | undefined): GraphData {
+  // Defense in depth: a non-finite or negative value (e.g. a bad NaN from
+  // an upstream parse) must render everything, not fall through to
+  // `ranked.slice(0, NaN)` — which silently produces an EMPTY graph.
+  if (
+    maxRenderedNodes === undefined ||
+    !Number.isFinite(maxRenderedNodes) ||
+    maxRenderedNodes < 0 ||
+    maxRenderedNodes >= full.nodes.length
+  ) {
+    return full
+  }
+  const ranked = [...full.nodes].sort((a, b) => {
+    if (b.degree !== a.degree) {
+      return b.degree - a.degree
+    }
+    return a.id < b.id ? -1 : a.id > b.id ? 1 : 0
+  })
+  const picked = ranked.slice(0, Math.max(0, maxRenderedNodes))
+  const renderedIds = new Set(picked.map((node) => node.id))
+  const links = full.links.filter((link) => {
+    const source = linkEndpointId(link.source)
+    const target = linkEndpointId(link.target)
+    return renderedIds.has(source) && renderedIds.has(target)
+  })
+  return { nodes: picked, links }
 }
 
 function neighborMap(links: GraphLink[]): Map<string, Set<string>> {
@@ -1080,7 +1165,9 @@ function noteFolderById(nodes: GraphNode[], endpoint: string | GraphNode): strin
 function clusterTargets(data: GraphData, lens: Lens, radius: number): Map<string, Vec3> {
   const targets = new Map<string, Vec3>()
   if (lens === "folder") {
-    const folders = [...new Set(data.nodes.filter((node) => node.type === "note").map((node) => node.folder))]
+    const folders = [
+      ...new Set(data.nodes.filter((node) => node.type === "note").map((node) => node.folder)),
+    ]
     folders.forEach((folder, index) => {
       const angle = (Math.PI * 2 * index) / Math.max(folders.length, 1)
       const point = { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius, z: 0 }
@@ -1163,9 +1250,104 @@ function bindGraph(
     spriteText: SpriteTextCtor | null
     bloomPass: BloomPass | null
     three: ThreeApi | null
+    fullData: GraphData
+    expandHops: number
   },
 ): void {
-  const neighbors = neighborMap(data.links)
+  let neighbors = neighborMap(data.links)
+
+  // --- Lazy k-hop expansion (maxRenderedNodes) --------------------------
+  // `data` starts out as either the full index (maxRenderedNodes unset, in
+  // which case `options.fullData === data` and expansion is a no-op) or a
+  // top-N-by-degree subset. `data.nodes`/`data.links` are mutated in place
+  // (pushed into) on expansion so every existing closure over `data` in this
+  // function keeps working unchanged — no rewiring of `currentData()` or the
+  // rest of the view logic is needed.
+  //
+  // These structures are only needed by expandFromNode, which itself bails
+  // out immediately when `options.fullData === data` (maxRenderedNodes
+  // unset). Building them eagerly in that case would be pure wasted work at
+  // scale (e.g. 20k nodes), so they're only populated when expansion is
+  // actually possible.
+  const expandEdgeKey = (source: string, target: string, kind: LinkKind): string =>
+    source < target ? `${source}|${target}|${kind}` : `${target}|${source}|${kind}`
+  let fullNodeById: Map<string, GraphNode> = new Map()
+  // Same "real relationships only" definition used for hover highlighting
+  // (wikilink/tag/external) — cooc/folder texture edges do not drive expansion.
+  let fullAdjacency: Map<string, Set<string>> = new Map()
+  let renderedIds: Set<string> = new Set()
+  let renderedEdgeKeys: Set<string> = new Set()
+  if (options.fullData !== data) {
+    fullNodeById = new Map(options.fullData.nodes.map((node) => [node.id, node]))
+    fullAdjacency = neighborMap(options.fullData.links)
+    renderedIds = new Set(data.nodes.map((node) => node.id))
+    renderedEdgeKeys = new Set(
+      data.links.map((link) =>
+        expandEdgeKey(linkEndpointId(link.source), linkEndpointId(link.target), link.kind),
+      ),
+    )
+  }
+
+  /**
+   * BFS out from `nodeId` through the full index up to `options.expandHops`
+   * hops, pulling any not-yet-rendered nodes (and the edges that connect them
+   * to the rendered set) into `data`. Returns true when it actually added
+   * anything, so the caller only needs to refresh the view on a real change.
+   */
+  const expandFromNode = (nodeId: string): boolean => {
+    if (options.fullData === data) {
+      return false
+    }
+    const hops = Math.max(0, Math.floor(options.expandHops))
+    if (hops <= 0) {
+      return false
+    }
+    const toAdd = new Set<string>()
+    const visited = new Set<string>([nodeId])
+    let frontier = new Set<string>([nodeId])
+    for (let hop = 0; hop < hops; hop += 1) {
+      const next = new Set<string>()
+      for (const id of frontier) {
+        for (const neighborId of fullAdjacency.get(id) ?? []) {
+          if (visited.has(neighborId)) {
+            continue
+          }
+          visited.add(neighborId)
+          next.add(neighborId)
+          if (!renderedIds.has(neighborId)) {
+            toAdd.add(neighborId)
+          }
+        }
+      }
+      frontier = next
+    }
+    if (toAdd.size === 0) {
+      return false
+    }
+    for (const id of toAdd) {
+      const node = fullNodeById.get(id)
+      if (!node) {
+        continue
+      }
+      data.nodes.push(node)
+      renderedIds.add(id)
+    }
+    for (const link of options.fullData.links) {
+      const source = linkEndpointId(link.source)
+      const target = linkEndpointId(link.target)
+      if (!renderedIds.has(source) || !renderedIds.has(target)) {
+        continue
+      }
+      const key = expandEdgeKey(source, target, link.kind)
+      if (renderedEdgeKeys.has(key)) {
+        continue
+      }
+      renderedEdgeKeys.add(key)
+      data.links.push(link)
+    }
+    neighbors = neighborMap(data.links)
+    return true
+  }
   const state: ViewState = {
     lens: readStoredLens(),
     allLabels: false,
@@ -1432,7 +1614,10 @@ function bindGraph(
     }
   }
 
-  const twinkleMaterials = new Map<string, { material: EmissiveMaterial; base: number; phase: number }>()
+  const twinkleMaterials = new Map<
+    string,
+    { material: EmissiveMaterial; base: number; phase: number }
+  >()
 
   const paintLabels3d = (): void => {
     if (!options.use3d || typeof graph.nodeThreeObject !== "function") {
@@ -1472,7 +1657,9 @@ function bindGraph(
       }
       // Alex-style label: small, no stroke bubble, floating beside the star.
       const sprite = new SpriteText(node.name)
-      const labelInk = isDarkTheme() ? "rgba(255, 255, 255, 0.85)" : withAlpha(theme.current.ink, 0.88)
+      const labelInk = isDarkTheme()
+        ? "rgba(255, 255, 255, 0.85)"
+        : withAlpha(theme.current.ink, 0.88)
       sprite.color = isActive(node.id) ? labelInk : withAlpha(labelInk, DIM_ALPHA)
       sprite.fontWeight = "400"
       sprite.strokeWidth = 0
@@ -1877,14 +2064,18 @@ function bindGraph(
       ctx.fillStyle = nodeFill(node)
       ctx.fill()
       if (node.isHub) {
-        ctx.strokeStyle = isActive(node.id) ? theme.current.accent : withAlpha(theme.current.accent, DIM_ALPHA)
+        ctx.strokeStyle = isActive(node.id)
+          ? theme.current.accent
+          : withAlpha(theme.current.accent, DIM_ALPHA)
         ctx.lineWidth = 1.2 / globalScale
         ctx.stroke()
       }
       if (showNodeLabel(node)) {
         const fontSize = 11.5 / globalScale
         ctx.font = `${fontSize}px ${theme.current.font}`
-        ctx.fillStyle = isActive(node.id) ? theme.current.ink : withAlpha(theme.current.ink, DIM_ALPHA)
+        ctx.fillStyle = isActive(node.id)
+          ? theme.current.ink
+          : withAlpha(theme.current.ink, DIM_ALPHA)
         ctx.textAlign = "center"
         ctx.textBaseline = "bottom"
         ctx.fillText(node.name, x, y - radius - 6)
@@ -1998,7 +2189,11 @@ function bindGraph(
           button.className = "graph-landing__inspect-link"
           button.dataset.graphInspectId = neighbor.id
           const kind =
-            neighbor.type === "tag" ? tagsLabel : neighbor.type === "external" ? linksLabel : notesLabel
+            neighbor.type === "tag"
+              ? tagsLabel
+              : neighbor.type === "external"
+                ? linksLabel
+                : notesLabel
           const kindEl = document.createElement("span")
           kindEl.textContent = kind
           const nameEl = document.createElement("strong")
@@ -2067,6 +2262,12 @@ function bindGraph(
   }
 
   const activateNode = (node: GraphNode): void => {
+    // Lazily pull the clicked node's neighbors into the live simulation
+    // before selecting it, so `fillInspect`'s connectedNeighbors reflects the
+    // freshly-expanded set immediately. No-op when maxRenderedNodes is unset.
+    if (expandFromNode(node.id)) {
+      applyView()
+    }
     selectNode(node)
   }
 
@@ -2211,14 +2412,25 @@ function bindGraph(
     }
     const inspectLink = target.closest("[data-graph-inspect-id]")
     if (inspectLink instanceof HTMLElement && inspectLink.dataset.graphInspectId) {
-      const next = data.nodes.find((entry) => entry.id === inspectLink.dataset.graphInspectId)
+      // Look up in the full index, not just the currently-rendered subset —
+      // an inspect-panel neighbor link can point at a node that hasn't been
+      // pulled into `data` yet when maxRenderedNodes is set. Route through
+      // activateNode (same as a direct graph click) so that node is expanded
+      // into the live simulation before it's selected.
+      const next = options.fullData.nodes.find(
+        (entry) => entry.id === inspectLink.dataset.graphInspectId,
+      )
       if (next) {
-        selectNode(next)
+        activateNode(next)
       }
       return
     }
     const lensBtn = target.closest("[data-graph-lens]")
-    if (lensBtn instanceof HTMLElement && lensBtn.dataset.graphLens && isLens(lensBtn.dataset.graphLens)) {
+    if (
+      lensBtn instanceof HTMLElement &&
+      lensBtn.dataset.graphLens &&
+      isLens(lensBtn.dataset.graphLens)
+    ) {
       setLens(lensBtn.dataset.graphLens)
       return
     }
@@ -2674,6 +2886,38 @@ async function initGraphLanding(): Promise<void> {
     .map((prefix) => prefix.trim())
     .filter((prefix) => prefix.length > 0)
   const countsTemplate = root.dataset.countsTemplate ?? "{n} nodes · {m} edges"
+  const indexSource = root.dataset.indexSource === "graphIndex" ? "graphIndex" : "contentIndex"
+  const graphIndexPath = root.dataset.graphIndexPath ?? ""
+  // A malformed/negative dataset value (or a non-finite Number.parseInt
+  // result, e.g. "abc" → NaN) must fall back to "render all" / "1 hop"
+  // rather than reaching selectRenderedSubset/expandFromNode as NaN, which
+  // would otherwise produce an EMPTY rendered graph (ranked.slice(0, NaN)).
+  const parsedMaxRenderedNodes = root.dataset.maxRenderedNodes
+    ? Number.parseInt(root.dataset.maxRenderedNodes, 10)
+    : undefined
+  const maxRenderedNodes =
+    parsedMaxRenderedNodes !== undefined &&
+    Number.isFinite(parsedMaxRenderedNodes) &&
+    parsedMaxRenderedNodes >= 0
+      ? parsedMaxRenderedNodes
+      : undefined
+  const parsedExpandHops = root.dataset.expandHops
+    ? Number.parseInt(root.dataset.expandHops, 10)
+    : 1
+  const expandHops = Number.isFinite(parsedExpandHops) ? parsedExpandHops : 1
+  const tagCooccurrence: TagCooccurrenceOption =
+    root.dataset.tagCoocDisabled === "true"
+      ? false
+      : root.dataset.tagCoocMaxTagsPerNote || root.dataset.tagCoocMaxEdges
+        ? {
+            maxTagsPerNote: root.dataset.tagCoocMaxTagsPerNote
+              ? Number.parseInt(root.dataset.tagCoocMaxTagsPerNote, 10)
+              : undefined,
+            maxEdges: root.dataset.tagCoocMaxEdges
+              ? Number.parseInt(root.dataset.tagCoocMaxEdges, 10)
+              : undefined,
+          }
+        : undefined
 
   let cancelled = false
   let graph: ForceGraphInstance | null = null
@@ -2711,7 +2955,10 @@ async function initGraphLanding(): Promise<void> {
     ? (import(UNREAL_BLOOM) as Promise<{ UnrealBloomPass?: new () => BloomPass }>)
         .then((mod) => (mod.UnrealBloomPass ? new mod.UnrealBloomPass() : null))
         .catch((error: unknown) => {
-          console.error("[graph-landing] UnrealBloomPass unavailable; dark-mode bloom disabled", error)
+          console.error(
+            "[graph-landing] UnrealBloomPass unavailable; dark-mode bloom disabled",
+            error,
+          )
           return null
         })
     : Promise.resolve(null)
@@ -2721,7 +2968,14 @@ async function initGraphLanding(): Promise<void> {
 
   let indexRaw: Record<string, unknown>
   try {
-    indexRaw = asRecord(await fetchData)
+    // graphIndex.json is a lighter, graph-only projection served alongside
+    // contentIndex.json; it is fetched independently here (rather than via
+    // the page-global `fetchData`) so the shared core fetch used by other
+    // scripts on the page (e.g. search) is left untouched.
+    indexRaw =
+      indexSource === "graphIndex"
+        ? asRecord(await fetch(graphIndexPath).then((response) => response.json()))
+        : asRecord(await fetchData)
   } catch (error) {
     showLoadError(canvas, "Graph could not load content index.")
     throw error
@@ -2731,11 +2985,19 @@ async function initGraphLanding(): Promise<void> {
     return
   }
 
-  const data = buildGraphData(parseContentIndex(indexRaw), {
-    localeId,
-    sourceLocale,
-    prefixes,
-  })
+  const fullData = buildGraphData(
+    parseContentIndex(indexRaw),
+    {
+      localeId,
+      sourceLocale,
+      prefixes,
+    },
+    tagCooccurrence,
+  )
+  // When maxRenderedNodes is unset (or >= total nodes), selectRenderedSubset
+  // returns `fullData` itself (same reference) — the render/count/debug-handle
+  // path below is then byte-for-byte the same as before this option existed.
+  const data = selectRenderedSubset(fullData, maxRenderedNodes)
 
   const countText = countsTemplate
     .replace("{n}", String(data.nodes.length))
@@ -2767,7 +3029,15 @@ async function initGraphLanding(): Promise<void> {
   // Debug handle for browser QA (edge/kind breakdown, hover simulation).
   ;(canvas as HTMLElement & { __graphLanding?: ForceGraphInstance }).__graphLanding = graph
   ;(canvas as HTMLElement & { __graphData?: GraphData }).__graphData = data
-  bindGraph(graph, data, theme, { use3d, root, spriteText, bloomPass, three })
+  bindGraph(graph, data, theme, {
+    use3d,
+    root,
+    spriteText,
+    bloomPass,
+    three,
+    fullData,
+    expandHops,
+  })
 }
 
 const PREFERRED_LOCALE_STORAGE_KEY = "preferred-locale"

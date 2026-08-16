@@ -2449,8 +2449,24 @@ var defaultOptions = {
   rssSlug: "index",
   includeEmptyFiles: true,
   rssRecentNotesText: "Recent notes",
-  rssLastFewNotesText: (count) => `Last ${count} notes`
+  rssLastFewNotesText: (count) => `Last ${count} notes`,
+  emitGraphIndex: false
 };
+var GRAPH_EXCERPT_LENGTH = 220;
+function truncateText(text2, maxChars) {
+  if (text2.length <= maxChars) return text2;
+  let cut = maxChars;
+  if (cut > 0) {
+    const code = text2.charCodeAt(cut);
+    const prevCode = text2.charCodeAt(cut - 1);
+    const isLowSurrogate = code >= 56320 && code <= 57343;
+    const prevIsHighSurrogate = prevCode >= 55296 && prevCode <= 56319;
+    if (isLowSurrogate && prevIsHighSurrogate) {
+      cut -= 1;
+    }
+  }
+  return text2.slice(0, cut);
+}
 var write = async (args) => {
   const pathToPage = joinSegments(args.ctx.argv.output, args.slug + args.ext);
   const dir = path.dirname(pathToPage);
@@ -2581,10 +2597,28 @@ var ContentIndex = (opts) => {
       );
     }
     const fp = joinSegments("static", "contentIndex");
+    const graphIndexEntries = options.emitGraphIndex ? {} : void 0;
     const simplifiedIndex = Object.fromEntries(
       Array.from(linkIndex).map(([slug2, content2]) => {
         delete content2.description;
         delete content2.date;
+        if (graphIndexEntries) {
+          graphIndexEntries[slug2] = {
+            slug: content2.slug,
+            title: content2.title,
+            links: content2.links,
+            tags: content2.tags,
+            externalLinks: content2.externalLinks,
+            excerpt: truncateText(content2.content, GRAPH_EXCERPT_LENGTH),
+            multilingual: content2.multilingual
+          };
+        }
+        if (options.contentMaxChars !== void 0) {
+          const cap2 = Math.max(0, options.contentMaxChars);
+          if (content2.content.length > cap2) {
+            content2.content = truncateText(content2.content, cap2);
+          }
+        }
         return [slug2, content2];
       })
     );
@@ -2596,6 +2630,16 @@ var ContentIndex = (opts) => {
         ext: ".json"
       })
     );
+    if (graphIndexEntries) {
+      outputs.push(
+        await write({
+          ctx,
+          content: JSON.stringify(graphIndexEntries),
+          slug: joinSegments("static", "graphIndex"),
+          ext: ".json"
+        })
+      );
+    }
     return outputs;
   };
   return {

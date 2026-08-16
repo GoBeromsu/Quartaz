@@ -105,6 +105,9 @@ export function resolveLayout(
   const overrides = byPageType[pageType.layout] ?? {}
   // Frame priority: config override > page type declaration > default
   const frame = overrides.frame ?? pageType.frame ?? "default"
+  // Same priority order as frame; defaults to false (unconditional fetch, current behavior).
+  const skipContentIndexFetch =
+    overrides.skipContentIndexFetch ?? pageType.skipContentIndexFetch ?? false
   return {
     head: overrides.head ?? sharedDefaults.head!,
     header: overrides.header ?? sharedDefaults.header ?? [],
@@ -115,6 +118,7 @@ export function resolveLayout(
     right: overrides.right ?? sharedDefaults.right ?? [],
     footer: overrides.footer ?? sharedDefaults.footer ?? [],
     frame,
+    skipContentIndexFetch,
   }
 }
 
@@ -179,7 +183,7 @@ async function emitPage(
             ? "/"
             : new URL(`https://${cfg.baseUrl ?? "example.com"}`).pathname) as FullSlug)
         : pathToRoot(slug)
-    const externalResources = pageResources(baseDir, resources, ctx)
+    const externalResources = pageResources(baseDir, resources, ctx, layout.skipContentIndexFetch)
     const componentData: QuartzComponentProps = {
       ctx,
       fileData,
@@ -267,7 +271,12 @@ function populateVirtualPageHtmlAst(
   const cfg = ctx.cfg.configuration
   for (const ve of virtualEntries) {
     const BodyComponent = ve.layout.pageBody
-    const externalResources = pageResources(pathToRoot(ve.vpSlug), resources, ctx)
+    const externalResources = pageResources(
+      pathToRoot(ve.vpSlug),
+      resources,
+      ctx,
+      ve.layout.skipContentIndexFetch,
+    )
     const componentData: QuartzComponentProps = {
       ctx,
       fileData: ve.vfile.data,

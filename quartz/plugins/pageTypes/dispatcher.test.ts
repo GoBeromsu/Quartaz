@@ -106,6 +106,36 @@ describe("resolveLayout frame resolution", () => {
   })
 })
 
+describe("resolveLayout skipContentIndexFetch resolution", () => {
+  test("defaults to false when unspecified", () => {
+    const result = resolveLayout(makePageType(), { head: StubHead }, {})
+    assert.strictEqual(result.skipContentIndexFetch, false)
+  })
+
+  test("page type value is used when no config override", () => {
+    const result = resolveLayout(
+      makePageType({ skipContentIndexFetch: true }),
+      { head: StubHead },
+      {},
+    )
+    assert.strictEqual(result.skipContentIndexFetch, true)
+  })
+
+  test("config override wins over page type value", () => {
+    const result = resolveLayout(
+      makePageType({ skipContentIndexFetch: true }),
+      { head: StubHead },
+      { content: { skipContentIndexFetch: false } },
+    )
+    assert.strictEqual(result.skipContentIndexFetch, false)
+  })
+
+  test("defaults to false when byPageType entry exists but omits the field", () => {
+    const result = resolveLayout(makePageType(), { head: StubHead }, { content: { left: [StubA] } })
+    assert.strictEqual(result.skipContentIndexFetch, false)
+  })
+})
+
 describe("collectComponents", () => {
   test("collects all unique components across page types", () => {
     const pageTypes = [makePageType(), makePageType({ layout: "landing" })]
