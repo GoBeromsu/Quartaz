@@ -156,6 +156,7 @@ plugins:
         fog: true
         nodeResolution: 8
         linkResolution: 3
+      ambientVideoId: o6HpCFhNcnQ
   - source: ./plugins/blog-chrome
     enabled: true
   - source: ./plugins/blog-home
