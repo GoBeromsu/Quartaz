@@ -1,5 +1,6 @@
 ---
-aliases: [n8n File Organizer]
+aliases:
+  - n8n File Organizer
 date_created: 2026-03-26
 date_modified: 2026-03-27
 tags:
@@ -7,6 +8,14 @@ tags:
   - n8n
   - upstage
 type: docs
+translationKey: n8n-file-organizer
+locale: en
+sourceLocale: ko
+sourcePath: content/Articles/Upstage 와 N8N 을 활용한 지옥의 폴더 정리.md
+sourceHash: sha256:dde2c0f59a3d3acf9b1f8e81a9500ba0b1338276fa204dc789660eb9e37b14b6
+translationStatus: translated
+permalink: n8n-file-organizer
+title: Taming the Folder Hell with Upstage and N8N
 ---
 
 > [!tldr]

@@ -181,7 +181,14 @@ function noteIdentity(cfg, file) {
 }
 function pickPreferredFile(cfg, members, locale) {
   const sourceLocale = cfg.multilingual?.sourceLocale;
-  return members.find((file) => fileLocale(cfg, file) === locale) ?? members.find((file) => fileLocale(cfg, file) === sourceLocale) ?? members.find((file) => fileLocale(cfg, file) === void 0) ?? members[0];
+  const current = members.find((file) => fileLocale(cfg, file) === locale);
+  if (current) {
+    return current;
+  }
+  if (locale && locale !== sourceLocale) {
+    return void 0;
+  }
+  return members.find((file) => fileLocale(cfg, file) === sourceLocale) ?? members.find((file) => fileLocale(cfg, file) === void 0) ?? members[0];
 }
 function localeScopedFiles(cfg, currentFile, allFiles) {
   if (!cfg.multilingual?.enabled) {

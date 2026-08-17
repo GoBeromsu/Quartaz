@@ -180,17 +180,22 @@ function pickPreferredFile<T extends LocaleFileData>(
   locale: string | undefined,
 ): T | undefined {
   const sourceLocale = cfg.multilingual?.sourceLocale
+  const current = members.find((file) => fileLocale(cfg, file) === locale)
+  if (current) {
+    return current
+  }
+  if (locale && locale !== sourceLocale) {
+    return undefined
+  }
   return (
-    members.find((file) => fileLocale(cfg, file) === locale) ??
     members.find((file) => fileLocale(cfg, file) === sourceLocale) ??
     members.find((file) => fileLocale(cfg, file) === undefined) ??
     members[0]
   )
 }
 
-// One row per Obsidian note: current-locale translation if it exists,
-// otherwise the source-locale original. Unpaired garden notes appear
-// on every locale instead of being hidden behind a missing translation.
+// One row per note in the current locale. Target locales omit notes that have
+// no translation instead of falling back to the source-locale original.
 export function localeScopedFiles<T extends LocaleFileData>(
   cfg: GlobalConfig,
   currentFile: LocaleFileData,

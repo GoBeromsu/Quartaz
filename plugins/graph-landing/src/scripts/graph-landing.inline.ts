@@ -393,15 +393,18 @@ function noteIdentity(entry: ContentEntry, prefixes: readonly string[]): string 
 function pickPreferredNote(
   members: readonly ContentEntry[],
   context: LocaleContext,
-): ContentEntry {
-  const picked =
-    members.find((entry) => entryLocale(entry, context.prefixes) === context.localeId) ??
+): ContentEntry | undefined {
+  const current = members.find((entry) => entryLocale(entry, context.prefixes) === context.localeId)
+  if (current) {
+    return current
+  }
+  if (context.localeId !== context.sourceLocale) {
+    return undefined
+  }
+  return (
     members.find((entry) => entryLocale(entry, context.prefixes) === context.sourceLocale) ??
     members.find((entry) => entryLocale(entry, context.prefixes) === undefined)
-  if (!picked) {
-    throw new Error("graph-landing: locale group had no notes to pick")
-  }
-  return picked
+  )
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -555,7 +558,10 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
   }
   const notes: ContentEntry[] = []
   for (const members of groups.values()) {
-    notes.push(pickPreferredNote(members, context))
+    const picked = pickPreferredNote(members, context)
+    if (picked) {
+      notes.push(picked)
+    }
   }
 
   const noteIds = new Set(notes.map((note) => note.slug))

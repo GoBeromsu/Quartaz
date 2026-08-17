@@ -204,7 +204,7 @@ describe("Blog home locale-aware listings", () => {
     assert.doesNotMatch(articleList, /젊음이 아름답다/)
   })
 
-  test("falls back to the Obsidian source post when the other locale has no translation", () => {
+  test("omits the Obsidian source post when the other locale has no translation", () => {
     const cfg = readBlogConfiguration()
     const multilingual = cfg.multilingual
     if (!multilingual) {
@@ -233,8 +233,8 @@ describe("Blog home locale-aware listings", () => {
     const articleList = renderToString(BlogArticleList({ title: "Writing", limit: 0 })(props))
 
     assert.match(articleList, /Youth Is Beautiful/)
-    assert.match(articleList, /한국에 돌아온 후 근황/)
-    assert.match(articleList, /번역 없는 원문/)
+    assert.doesNotMatch(articleList, /한국에 돌아온 후 근황/)
+    assert.doesNotMatch(articleList, /번역 없는 원문/)
     assert.doesNotMatch(articleList, /젊음이 아름답다/)
   })
 })

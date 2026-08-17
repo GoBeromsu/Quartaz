@@ -344,7 +344,10 @@ export function renderPage(
     : undefined
   const lang =
     localeConfig?.locale ?? componentData.fileData.frontmatter?.lang ?? cfg.locale ?? "en-US"
-  const direction = multilingualMetadata?.direction ?? i18n(cfg.locale).direction ?? "ltr"
+  const direction = multilingualMetadata?.direction ?? i18n(lang).direction ?? "ltr"
+  if (lang !== cfg.locale) {
+    componentData.cfg = { ...cfg, locale: lang }
+  }
   // During local dev (--serve), the dev server serves from root without the
   // baseUrl subpath, so basePath must be empty to avoid broken links.
   const basePath =
