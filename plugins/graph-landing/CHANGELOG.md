@@ -42,6 +42,15 @@ All notable changes to this plugin are documented here.
   visible frame. Fog range now scales with the live camera distance on
   every zoom.
 
+## 0.1.1
+
+### Added
+
+- `layout.incrementalWarmup` option: skips the synchronous force-simulation
+  warmup when click-expansion adds nodes (removes ~1.4 s main-thread stall
+  on hub nodes); expanded nodes are seeded near the clicked node. Default
+  off — behavior unchanged unless enabled.
+
 ## 0.1.0
 
 Initial local version: `indexSource`, `tagCooccurrence`, `maxRenderedNodes`,
