@@ -14,26 +14,41 @@ scripts/serve.sh      # serves ./public on tcp://100.122.16.120:8090
 `public` directory on disk underneath it, so the server does not need to be
 restarted after each rebuild.
 
-## Register with pm2
+## Register with pm2 (serve only)
 
 ```sh
 pm2 start ecosystem.example.cjs
 pm2 save
 ```
 
-This starts `ataraxia-serve` (always-on) and `ataraxia-rebuild` (runs once,
-then re-runs every 6 hours via `cron_restart`).
+This starts `ataraxia-serve` (always-on). Periodic rebuilds are scheduled
+separately by a Hermes cron job, not by pm2.
 
-## Change port / bind address / interval
+## Rebuild scheduling (Hermes cron)
+
+The periodic rebuild is run by the Hermes cron job `ataraxia-rebuild`
+(wrapper: `~/.hermes/scripts/ataraxia_rebuild.sh`, workdir this repo),
+delivering a one-line result to Discord. It runs `scripts/rebuild.sh`
+synchronously — the ~9 min build is well under Hermes's default
+`script_timeout_seconds` (3600s) for no-agent cron scripts.
+
+```sh
+hermes cron list                                          # show job + next run
+hermes cron status                                         # confirm scheduler is running
+hermes cron edit ataraxia-rebuild --schedule "0 */3 * * *" # change interval (e.g. every 3h)
+hermes cron pause ataraxia-rebuild                          # pause
+hermes cron resume ataraxia-rebuild                         # resume
+hermes cron remove ataraxia-rebuild                         # remove
+```
+
+## Change port / bind address
 
 - Port or bind host: edit `env.PORT` / `env.BIND_HOST` in
   `ecosystem.example.cjs`, or export `PORT=` / `BIND_HOST=` before running
   `scripts/serve.sh` directly.
-- Rebuild interval: edit the `cron_restart` cron string for
-  `ataraxia-rebuild` in `ecosystem.example.cjs` (e.g. `0 */3 * * *` for every
-  3 hours).
-- Other overrides: `VAULT_DIR`, `OUT_DIR`, `NODE_HEAP_MB` (see comments in
-  `scripts/rebuild.sh`).
+- Rebuild env overrides (`VAULT_DIR`, `OUT_DIR`, `NODE_HEAP_MB`): set them in
+  the Hermes cron job's environment or edit `scripts/rebuild.sh`'s defaults
+  directly (see comments in that file).
 
 ## Rollback
 
