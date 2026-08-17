@@ -6,10 +6,13 @@ tsconfig.tsbuildinfo
 .obsidian
 .quartz-cache
 public/
+public-live/
 public-next/
 public-prev*/
 logs/
 .rebuild.lock/
+.watch.pid
+.serve.pid
 .playwright-mcp/
 output/
 private/
