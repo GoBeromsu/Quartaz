@@ -149,6 +149,7 @@ plugins:
       renderMode: "3d"
       layout:
         freezeAfterWarmup: true
+        incrementalWarmup: true
       interaction:
         incrementalRepaint: true
       lod:
