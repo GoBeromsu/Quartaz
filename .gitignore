@@ -6,6 +6,10 @@ tsconfig.tsbuildinfo
 .obsidian
 .quartz-cache
 public/
+public-next/
+public-prev*/
+logs/
+.rebuild.lock/
 .playwright-mcp/
 output/
 private/
