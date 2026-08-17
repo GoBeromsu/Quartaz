@@ -291,6 +291,9 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
           data-graph-layout-warmup-ticks={options.layout?.warmupTicks}
           data-graph-layout-cooldown-ticks={options.layout?.cooldownTicks}
           data-graph-layout-charge-theta={options.layout?.chargeTheta}
+          data-graph-layout-incremental-warmup={
+            options.layout?.incrementalWarmup ? "true" : undefined
+          }
           data-graph-lod-label-distance={options.lod?.labelDistance}
           data-graph-lod-dot-distance={options.lod?.dotDistance}
           data-graph-lod-cull-distance={options.lod?.cullDistance}
