@@ -229,6 +229,48 @@ export function expandHopIds(
  * (`interaction.incrementalRepaint`) to scope a focus-change repaint to only
  * the nodes/links/labels whose visual state depends on the focused node.
  */
+// Golden-angle spiral increment (radians, ~137.5deg) — the standard
+// "no two points ever line up" constant used for evenly-fanning-out points
+// around a center without needing randomness.
+const GOLDEN_ANGLE = 2.399963229728653
+
+// World-unit offset from the source node for seeded siblings. Deliberately
+// smaller than SPREAD_DISTANCE (72-116, the resting link length the force
+// simulation settles newly-warmed nodes to) so seeded nodes visibly start
+// bunched near the node that was clicked rather than already at their
+// eventual resting distance.
+const EXPANDED_NODE_SEED_RADIUS = 20
+
+/**
+ * Deterministically places a newly-expanded node near `source` (the node
+ * that was clicked to reveal it), instead of leaving it unseeded — d3-force
+ * assigns unseeded nodes a default spiral position centered on the graph
+ * origin, not on the node the user just clicked. `index` (0, 1, 2, ...,
+ * incrementing once per node added by the same expand call) fans siblings
+ * out around `source` at GOLDEN_ANGLE increments so they don't all start
+ * stacked on the exact same point. Used by the `layout.incrementalWarmup`
+ * option's expand path, which also skips the simulation's post-graphData
+ * warmup pass — without seeding, those nodes would never move off their
+ * unrelated default position. `source.x`/`y`/`z` missing (not yet
+ * positioned) fall back to the graph origin (0,0,0). `use3d` false keeps
+ * `z` pinned to `source.z` unchanged (2D renderer never reads node.z).
+ */
+export function seedExpandedNodePosition(
+  source: { x?: number; y?: number; z?: number },
+  index: number,
+  use3d: boolean,
+): { x: number; y: number; z: number } {
+  const sx = source.x ?? 0
+  const sy = source.y ?? 0
+  const sz = source.z ?? 0
+  const angle = index * GOLDEN_ANGLE
+  return {
+    x: sx + EXPANDED_NODE_SEED_RADIUS * Math.cos(angle),
+    y: sy + EXPANDED_NODE_SEED_RADIUS * Math.sin(angle),
+    z: use3d ? sz + EXPANDED_NODE_SEED_RADIUS * Math.sin(angle * 0.5) : sz,
+  }
+}
+
 export function affectedFocusNodeIds(
   neighbors: Map<string, Set<string>>,
   previousFocus: string | null,

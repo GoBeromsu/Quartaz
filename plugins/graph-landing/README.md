@@ -77,6 +77,7 @@ block at all.
       warmupTicks: 50
       cooldownTicks: 200
       chargeTheta: 0.9
+      incrementalWarmup: true
     lod:
       labelDistance: 800
       dotDistance: 1200
@@ -168,6 +169,17 @@ d3-force's built-in default).
 - `chargeTheta` — sets the d3-force charge force's Barnes-Hut
   approximation `theta`. Higher values trade layout accuracy for speed.
   Default: d3-force's built-in default (`0.9`).
+- `incrementalWarmup` — when `true`, clicking a node to lazily expand its
+  neighbors (see `expandHops`) skips the full synchronous warmup re-tick
+  that three-forcegraph otherwise runs over the _entire_ current graph on
+  every `graphData()` call — on large graphs (1000+ nodes) that
+  unconditional re-warmup is a multi-second main-thread stall even though
+  only a handful of new nodes were added. Newly expanded nodes are seeded
+  near the node that was clicked (instead of d3-force's unrelated default
+  spiral placement) so they still appear in a sensible spot. Has no effect
+  on `setLens`/tag/folder focus changes, which genuinely restructure the
+  visible graph and still get a full warmup. Default: `false` — current
+  behavior unchanged (every expand re-warms the whole graph).
 
 ### `lod`
 

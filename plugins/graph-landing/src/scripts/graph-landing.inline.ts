@@ -26,6 +26,7 @@ import {
   lodLevelForDistance,
   parseNonNegativeNumber,
   sanitizeAmbientVideoId,
+  seedExpandedNodePosition,
   selectRenderedSubset,
   type GraphData,
   type GraphLink,
@@ -114,7 +115,11 @@ interface ForceGraphInstance {
   nodeThreeObjectExtend?: (extend: boolean) => unknown
   nodeThreeObject?: (fn: (node: GraphNode) => unknown) => unknown
   cooldownTicks: (ticks: number) => unknown
-  warmupTicks: (ticks: number) => unknown
+  // Optional trailing arg supports the getter form (called with no
+  // arguments, returns the currently-set value) used by the
+  // layout.incrementalWarmup path to snapshot/restore the configured
+  // warmupTicks around an expand-triggered graphData() call.
+  warmupTicks: (ticks?: number) => unknown
   cameraPosition?: (pos?: Vec3, lookAt?: Vec3, ms?: number) => unknown
   centerAt?: (x: number, y: number, ms?: number) => unknown
   zoom?: (k: number, ms?: number) => unknown
@@ -137,6 +142,13 @@ interface ForceGraphInstance {
   linkDirectionalParticleWidth?: (n: number) => unknown
   linkDirectionalParticleSpeed?: (n: number) => unknown
   linkDirectionalParticleColor?: (fn: (link: GraphLink) => string) => unknown
+  // three-forcegraph prop (triggerUpdate: false — setting it does not
+  // itself schedule a digest). Its callback runs synchronously at the end
+  // of the kapsule digest's updateFn, immediately after that digest's
+  // warmup for-loop completes. Used by layout.incrementalWarmup to restore
+  // warmupTicks after (not before) the debounced digest that actually
+  // reads it has run — see requestSkippedWarmup below.
+  onFinishUpdate?: (fn: () => void) => unknown
   _destructor: () => void
 }
 
@@ -1246,6 +1258,7 @@ function bindGraph(
       warmupTicks: number | undefined
       cooldownTicks: number | undefined
       chargeTheta: number | undefined
+      incrementalWarmup: boolean
     }
     lod: {
       labelDistance: number | undefined
@@ -1309,10 +1322,27 @@ function bindGraph(
     if (toAdd.size === 0) {
       return false
     }
+    // layout.incrementalWarmup skips the simulation's post-graphData warmup
+    // pass for this expand (see requestSkippedWarmup below), so newly added
+    // nodes would otherwise never move off d3-force's unrelated default
+    // spiral placement. Seed them near the clicked node instead — only when
+    // the option is on, and only nodes that aren't already positioned
+    // (every id here comes from expandHopIds, which already excludes
+    // renderedIds, so this is always true in practice; the check is just
+    // defense in depth).
+    const seedSource = options.layout.incrementalWarmup ? fullNodeById.get(nodeId) : undefined
+    let seedIndex = 0
     for (const id of toAdd) {
       const node = fullNodeById.get(id)
       if (!node) {
         continue
+      }
+      if (seedSource && node.x === undefined) {
+        const seeded = seedExpandedNodePosition(seedSource, seedIndex, options.use3d)
+        node.x = seeded.x
+        node.y = seeded.y
+        node.z = seeded.z
+        seedIndex += 1
       }
       data.nodes.push(node)
       renderedIds.add(id)
@@ -2144,6 +2174,53 @@ function bindGraph(
     )
   }
 
+  // layout.incrementalWarmup: skip the full re-warmup that graph.graphData()
+  // otherwise triggers on every applyView() call, for the expand-only path.
+  //
+  // three-forcegraph's kapsule digest is debounced 1ms (lodash debounce,
+  // trailing-edge only — see kapsule.mjs). `warmupTicks` has
+  // `triggerUpdate: false` (setting it does not itself schedule a digest),
+  // but the digest already scheduled by graphData()'s `triggerUpdate: true`
+  // still reads whatever `state.warmupTicks` is at the moment it eventually
+  // fires. That means a naive synchronous
+  // `warmupTicks(0); graphData(...); warmupTicks(prior)` is a no-op from the
+  // digest's point of view: all three calls happen before the debounced
+  // digest ever runs, so it only ever observes the final, already-restored
+  // value and still runs the full warmup loop.
+  //
+  // `onFinishUpdate` (triggerUpdate: false) is invoked synchronously inside
+  // that same debounced updateFn, immediately after its warmup loop
+  // completes. Restoring warmupTicks there — instead of synchronously right
+  // after graphData() — defers the restore until after the skip has already
+  // taken effect for this digest, while still putting the real value back in
+  // place before any later digest (e.g. a genuine setLens/setFocusTag/
+  // setFocusFolder full-restructure) needs it.
+  let pendingWarmupRestore: number | null = null
+  if (options.layout.incrementalWarmup && typeof graph.onFinishUpdate === "function") {
+    graph.onFinishUpdate(() => {
+      if (pendingWarmupRestore !== null) {
+        graph.warmupTicks(pendingWarmupRestore)
+        pendingWarmupRestore = null
+      }
+    })
+  }
+  // Called only from the expand branch of activateNode, right before
+  // applyView(). Guarded internally (rather than at each call site) so
+  // there's a single source of truth for whether the option is actually
+  // usable. The `pendingWarmupRestore === null` guard makes this safe
+  // against a second expand click landing before the first expand's
+  // debounced digest has fired: the *original* configured value is only
+  // ever captured once, never overwritten with an already-skipped `0`.
+  const requestSkippedWarmup = (): void => {
+    if (!options.layout.incrementalWarmup || typeof graph.onFinishUpdate !== "function") {
+      return
+    }
+    if (pendingWarmupRestore === null) {
+      pendingWarmupRestore = graph.warmupTicks() as number
+    }
+    graph.warmupTicks(0)
+  }
+
   const applyView = (): void => {
     graph.graphData(currentData())
     applyForces()
@@ -2617,6 +2694,7 @@ function bindGraph(
     // before selecting it, so `fillInspect`'s connectedNeighbors reflects the
     // freshly-expanded set immediately. No-op when maxRenderedNodes is unset.
     if (expandFromNode(node.id)) {
+      requestSkippedWarmup()
       applyView()
     }
     selectNode(node)
@@ -3291,6 +3369,7 @@ async function initGraphLanding(): Promise<void> {
     root.dataset.graphLayoutChargeTheta,
     Number.parseFloat,
   )
+  const layoutIncrementalWarmup = root.dataset.graphLayoutIncrementalWarmup === "true"
   // Same NaN/negative-guarded parse pattern as the layout.* fields above: a
   // malformed or absent dataset value falls back to "unset" (LOD entirely
   // disabled — no THREE.LOD wrapping, no label-fade rAF loop), preserving
@@ -3446,6 +3525,7 @@ async function initGraphLanding(): Promise<void> {
       warmupTicks: layoutWarmupTicks,
       cooldownTicks: layoutCooldownTicks,
       chargeTheta: layoutChargeTheta,
+      incrementalWarmup: layoutIncrementalWarmup,
     },
     lod: {
       labelDistance: lodLabelDistance,

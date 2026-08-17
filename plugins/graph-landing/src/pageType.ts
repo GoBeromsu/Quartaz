@@ -85,6 +85,21 @@ export interface GraphLandingPageOptions {
      * built-in default (0.9).
      */
     chargeTheta?: number
+    /**
+     * When true, clicking a node to lazily expand its neighbors (see
+     * `expandHops`) skips the full synchronous warmup re-tick that
+     * three-forcegraph otherwise runs over the *entire* current graph on
+     * every `graphData()` call — on large graphs (1000+ nodes) that
+     * unconditional re-warmup is a multi-second main-thread stall even
+     * though only a handful of new nodes were added. Newly expanded nodes
+     * are seeded near the node that was clicked (instead of d3-force's
+     * unrelated default spiral placement) so they still appear in a
+     * sensible spot. Has no effect on `setLens`/tag/folder focus changes,
+     * which genuinely restructure the visible graph and still get a full
+     * warmup. Default: false — current behavior unchanged (every expand
+     * re-warms the whole graph).
+     */
+    incrementalWarmup?: boolean
   }
   /**
    * Camera-distance level-of-detail for the 3D renderer. Default: undefined

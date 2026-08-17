@@ -7,6 +7,7 @@ import {
   lodLevelForDistance,
   parseNonNegativeNumber,
   sanitizeAmbientVideoId,
+  seedExpandedNodePosition,
   selectRenderedSubset,
   type GraphData,
   type GraphLink,
@@ -357,5 +358,56 @@ describe("parseNonNegativeNumber", () => {
       parseNonNegativeNumber("0", (s) => Number.parseInt(s, 10)),
       0,
     )
+  })
+})
+
+describe("seedExpandedNodePosition", () => {
+  it("places index 0 at radius 20 along angle 0 (directly +x) from a positioned source", () => {
+    const result = seedExpandedNodePosition({ x: 100, y: 200, z: 300 }, 0, true)
+    assert.equal(result.x, 100 + 20 * Math.cos(0))
+    assert.equal(result.y, 200 + 20 * Math.sin(0))
+    assert.equal(result.z, 300 + 20 * Math.sin(0))
+  })
+
+  it("falls back to the graph origin (0,0,0) when the source has no x/y/z yet", () => {
+    const result = seedExpandedNodePosition({}, 0, true)
+    assert.equal(result.x, 20 * Math.cos(0))
+    assert.equal(result.y, 20 * Math.sin(0))
+    assert.equal(result.z, 20 * Math.sin(0))
+  })
+
+  it("keeps z pinned to source.z unchanged when use3d is false", () => {
+    const result = seedExpandedNodePosition({ x: 5, y: 5, z: 42 }, 3, false)
+    assert.equal(result.z, 42)
+  })
+
+  it("defaults z to 0 when use3d is false and source.z is unset", () => {
+    const result = seedExpandedNodePosition({ x: 5, y: 5 }, 3, false)
+    assert.equal(result.z, 0)
+  })
+
+  it("fans different indices out to different (non-overlapping) angles around the source", () => {
+    const source = { x: 0, y: 0, z: 0 }
+    const first = seedExpandedNodePosition(source, 0, true)
+    const second = seedExpandedNodePosition(source, 1, true)
+    const third = seedExpandedNodePosition(source, 2, true)
+    assert.notEqual(first.x, second.x)
+    assert.notEqual(first.y, second.y)
+    assert.notEqual(second.x, third.x)
+    assert.notEqual(second.y, third.y)
+  })
+
+  it("stays within EXPANDED_NODE_SEED_RADIUS (20) of the source in the xy-plane", () => {
+    const source = { x: 10, y: -10, z: 0 }
+    for (let index = 0; index < 8; index += 1) {
+      const result = seedExpandedNodePosition(source, index, true)
+      const dx = result.x - source.x
+      const dy = result.y - source.y
+      const distance = Math.sqrt(dx * dx + dy * dy)
+      assert.ok(
+        Math.abs(distance - 20) < 1e-9,
+        `expected distance ~20 from source, got ${distance}`,
+      )
+    }
   })
 })
