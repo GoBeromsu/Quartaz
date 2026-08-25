@@ -48,11 +48,36 @@ rotate_logs() {
 }
 
 # --- single-instance lock (mkdir is atomic; flock is not shipped on macOS) ---
-if ! mkdir "$LOCK_DIR" 2>/dev/null; then
-  echo "[$(date '+%Y-%m-%d %H:%M:%S')] Another rebuild is already running (lock: $LOCK_DIR). Exiting." >&2
+# Store the owner PID so an interrupted build cannot block every future run.
+acquire_lock() {
+  if mkdir "$LOCK_DIR" 2>/dev/null; then
+    printf '%s\n' "$$" >"$LOCK_DIR/pid"
+    return 0
+  fi
+
+  local owner_pid=""
+  if [ -f "$LOCK_DIR/pid" ]; then
+    owner_pid="$(tr -dc '0-9' <"$LOCK_DIR/pid")"
+  fi
+  if [ -n "$owner_pid" ] && kill -0 "$owner_pid" 2>/dev/null; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Another rebuild is already running (pid: $owner_pid, lock: $LOCK_DIR). Exiting." >&2
+    return 1
+  fi
+
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] Recovering stale rebuild lock (owner pid: ${owner_pid:-unknown})." >&2
+  rm -f "$LOCK_DIR/pid" 2>/dev/null || true
+  if ! rmdir "$LOCK_DIR" 2>/dev/null || ! mkdir "$LOCK_DIR" 2>/dev/null; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Could not recover rebuild lock: $LOCK_DIR" >&2
+    return 1
+  fi
+  printf '%s\n' "$$" >"$LOCK_DIR/pid"
+}
+
+if ! acquire_lock; then
   exit 1
 fi
 cleanup() {
+  rm -f "$LOCK_DIR/pid" 2>/dev/null || true
   rmdir "$LOCK_DIR" 2>/dev/null || true
   rotate_logs
 }
