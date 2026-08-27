@@ -2,6 +2,13 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.5.1
+
+### Fixed
+
+- Use the published `@quartz-community/types` package so clean release-CI
+  installs can typecheck without relying on an unbuilt mutable Git source.
+
 ## 0.5.0
 
 ### Added

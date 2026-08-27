@@ -14,7 +14,7 @@ release tag:
 - source:
     repo: github:GoBeromsu/Quartaz
     subdir: plugins/graph-landing
-    ref: graph-landing-v0.5.0
+    ref: graph-landing-v0.5.1
     name: graph-landing
   enabled: true
 ```

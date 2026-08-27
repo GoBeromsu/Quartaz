@@ -1,6 +1,6 @@
 {
   "name": "graph-landing",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Locale home pageType that renders a full-viewport knowledge-graph constellation.",
   "keywords": [
     "quartz",
@@ -55,7 +55,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@quartz-community/types": "github:quartz-community/types",
+    "@quartz-community/types": "^0.3.0",
     "@types/hast": "^3.0.4",
     "@types/node": "^24.10.0",
     "preact": "^10.28.2",
@@ -71,7 +71,7 @@
     "category": [
       "pageType"
     ],
-    "version": "0.5.0",
+    "version": "0.5.1",
     "quartzVersion": ">=5.0.0",
     "dependencies": [],
     "defaultOrder": 55,
