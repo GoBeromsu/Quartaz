@@ -85,7 +85,7 @@ html:not([saved-theme="dark"]) body:has(.graph-landing) {
   background: color-mix(in srgb, var(--light) 78%, transparent);
   border: 1px solid var(--lightgray);
   border-radius: 14px;
-  bottom: calc(16px + 40px + 10px);
+  bottom: calc(16px + 48px + 10px);
   box-shadow: 0 12px 40px rgba(8, 10, 16, 0.18);
   box-sizing: border-box;
   display: flex;
@@ -160,51 +160,268 @@ html:not([saved-theme="dark"]) body:has(.graph-landing) {
   color: var(--dark);
   cursor: pointer;
   display: inline-flex;
-  height: 40px;
+  height: 48px;
   justify-content: center;
   left: 16px;
   pointer-events: auto;
   position: absolute;
-  width: 40px;
+  width: 48px;
   z-index: 5;
 }
 
 .graph-landing__rail-toggle:focus-visible,
-.graph-landing__audio-toggle:focus-visible {
+.graph-landing__audio-toggle:focus-visible,
+.graph-landing__music-library-toggle:focus-visible,
+.graph-landing__music-track:focus-visible {
   outline: 2px solid var(--secondary);
   outline-offset: 2px;
 }
 
-.graph-landing__audio-toggle {
+.graph-landing__music-dock {
   align-items: center;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
   background: color-mix(in srgb, var(--light) 78%, transparent);
   border: 1px solid var(--lightgray);
-  border-radius: 10px;
+  border-radius: 12px;
   bottom: 16px;
   box-shadow: 0 8px 24px rgba(8, 10, 16, 0.16);
-  color: var(--dark);
+  display: flex;
+  gap: 4px;
+  left: calc(16px + 48px + 8px);
+  padding: 3px;
+  pointer-events: auto;
+  position: absolute;
+  z-index: 5;
+}
+
+.graph-landing__audio-toggle {
+  align-items: center;
+  background: transparent;
+  border: 0;
   cursor: pointer;
   display: inline-flex;
   height: 40px;
   justify-content: center;
-  left: calc(16px + 40px + 8px);
-  pointer-events: auto;
-  position: absolute;
+  padding: 0;
   width: 40px;
-  z-index: 5;
 }
 
-.graph-landing__audio-toggle .graph-landing__icon--audio-on {
-  display: none;
+.graph-landing__audio-toggle:hover .graph-landing__turntable {
+  transform: translateY(-1px);
 }
 
-.graph-landing__audio-toggle[data-playing="true"] .graph-landing__icon--audio-on {
+.graph-landing__audio-toggle:active .graph-landing__turntable {
+  transform: scale(0.96);
+}
+
+.graph-landing__turntable {
   display: block;
+  height: 38px;
+  position: relative;
+  transition: transform 160ms ease;
+  width: 38px;
 }
 
-.graph-landing__audio-toggle[data-playing="true"] .graph-landing__icon--audio-off {
+.graph-landing__turntable-plinth {
+  background: linear-gradient(135deg, #d7c0a4, #8a6f54);
+  border: 1px solid color-mix(in srgb, var(--dark) 35%, transparent);
+  border-radius: 8px;
+  box-shadow:
+    0 6px 14px rgba(8, 10, 16, 0.25),
+    inset 0 1px rgba(255, 255, 255, 0.38);
+  display: block;
+  height: 100%;
+  position: relative;
+  width: 100%;
+}
+
+.graph-landing__turntable-record {
+  background:
+    repeating-radial-gradient(circle, transparent 0 2px, rgba(255, 255, 255, 0.09) 2.5px 3px),
+    radial-gradient(circle at 45% 42%, #3d4148, #101217 66%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 50%;
+  height: 30px;
+  left: 3px;
+  position: absolute;
+  top: 4px;
+  width: 30px;
+}
+
+.graph-landing__turntable-label {
+  background-color: #c78152;
+  background-image: var(--graph-music-artwork);
+  background-position: center;
+  background-size: cover;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  inset: 9px;
+  position: absolute;
+}
+
+.graph-landing__turntable-spindle {
+  background: #e9e1d5;
+  border: 1px solid #695846;
+  border-radius: 50%;
+  height: 4px;
+  left: 13px;
+  position: absolute;
+  top: 13px;
+  width: 4px;
+}
+
+.graph-landing__turntable-tonearm {
+  fill: #d7d8d6;
+  filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.45));
+  height: 26px;
+  position: absolute;
+  right: -1px;
+  stroke: #34363a;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.2;
+  top: 1px;
+  transform: rotate(-24deg);
+  transform-box: fill-box;
+  transform-origin: 78% 18%;
+  transition: transform 260ms ease;
+  width: 26px;
+}
+
+.graph-landing__audio-toggle[data-playing="true"] .graph-landing__turntable-record {
+  animation: graph-landing-record-spin 2.8s linear infinite;
+}
+
+.graph-landing__audio-toggle[data-playing="true"] .graph-landing__turntable-tonearm {
+  transform: rotate(4deg);
+}
+
+.graph-landing__music-library-toggle {
+  align-items: center;
+  background: color-mix(in srgb, var(--light) 66%, transparent);
+  border: 1px solid var(--lightgray);
+  border-radius: 8px;
+  color: var(--dark);
+  cursor: pointer;
+  display: inline-flex;
+  height: 38px;
+  justify-content: center;
+  padding: 0;
+  width: 38px;
+}
+
+.graph-landing__music-library-toggle:hover {
+  background: color-mix(in srgb, var(--secondary) 18%, var(--light));
+}
+
+.graph-landing__music-library {
+  backdrop-filter: blur(16px);
+  background: color-mix(in srgb, var(--light) 88%, transparent);
+  border: 1px solid var(--lightgray);
+  border-radius: 14px;
+  bottom: calc(100% + 10px);
+  box-shadow: 0 12px 40px rgba(8, 10, 16, 0.2);
+  box-sizing: border-box;
+  left: 0;
+  max-height: min(58dvh, 440px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 12px;
+  position: absolute;
+  width: min(420px, calc(100vw - 32px));
+}
+
+.graph-landing__music-library[hidden] {
   display: none;
+}
+
+.graph-landing__music-library-heading {
+  align-items: baseline;
+  color: var(--dark);
+  display: flex;
+  font-size: 0.78rem;
+  font-weight: 700;
+  gap: 8px;
+  justify-content: space-between;
+  letter-spacing: 0.04em;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.graph-landing__music-library-heading [data-graph-music-status] {
+  color: var(--gray);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: normal;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.graph-landing__music-track-list {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.graph-landing__music-track {
+  align-items: center;
+  background: color-mix(in srgb, var(--light) 62%, transparent);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: var(--dark);
+  cursor: pointer;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 48px minmax(0, 1fr);
+  min-height: 62px;
+  padding: 6px;
+  text-align: left;
+}
+
+.graph-landing__music-track:hover,
+.graph-landing__music-track[aria-current="true"] {
+  background: color-mix(in srgb, var(--secondary) 14%, var(--light));
+  border-color: color-mix(in srgb, var(--secondary) 55%, var(--lightgray));
+}
+
+.graph-landing__music-track-cover {
+  border-radius: 6px;
+  display: block;
+  height: 48px;
+  object-fit: cover;
+  width: 48px;
+}
+
+.graph-landing__music-track-copy {
+  min-width: 0;
+}
+
+.graph-landing__music-track-title,
+.graph-landing__music-track-artist {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.graph-landing__music-track-title {
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.graph-landing__music-track-artist {
+  color: var(--gray);
+  font-size: 0.7rem;
+  margin-top: 2px;
+}
+
+@keyframes graph-landing-record-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .graph-landing__audio,
@@ -837,6 +1054,13 @@ a.graph-landing__title:focus-visible {
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.38);
 }
 
+:root[saved-theme="dark"] .graph-landing__music-dock,
+:root[saved-theme="dark"] .graph-landing__music-library {
+  background: color-mix(in srgb, var(--light) 72%, transparent);
+  border-color: var(--lightgray);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.38);
+}
+
 @media (max-width: 700px) {
   .graph-landing__chrome {
     backdrop-filter: blur(10px);
@@ -871,18 +1095,33 @@ a.graph-landing__title:focus-visible {
   }
 
   .graph-landing__rail-toggle,
-  .graph-landing__audio-toggle {
+  .graph-landing__music-dock {
     bottom: max(16px, env(safe-area-inset-bottom));
-    height: 44px;
-    width: 44px;
   }
 
   .graph-landing__rail-toggle {
+    height: 48px;
     left: max(16px, env(safe-area-inset-left));
+    width: 48px;
   }
 
-  .graph-landing__audio-toggle {
-    left: calc(max(16px, env(safe-area-inset-left)) + 44px + 8px);
+  .graph-landing__music-dock {
+    left: calc(max(16px, env(safe-area-inset-left)) + 48px + 8px);
+  }
+
+  .graph-landing__music-library {
+    border-radius: 16px;
+    bottom: calc(max(16px, env(safe-area-inset-bottom)) + 48px + 12px);
+    left: max(16px, env(safe-area-inset-left));
+    max-height: min(52dvh, calc(100dvh - 8rem));
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    position: fixed;
+    right: max(16px, env(safe-area-inset-right));
+    width: auto;
+  }
+
+  .graph-landing__music-track-list {
+    grid-template-columns: 1fr;
   }
 
   .graph-landing__scrim {
@@ -900,7 +1139,7 @@ a.graph-landing__title:focus-visible {
   }
 
   .graph-landing__rail {
-    bottom: calc(max(16px, env(safe-area-inset-bottom)) + 44px + 10px);
+    bottom: calc(max(16px, env(safe-area-inset-bottom)) + 48px + 10px);
     left: max(16px, env(safe-area-inset-left));
     max-height: min(58dvh, calc(100dvh - 8rem));
     max-width: min(248px, calc(100vw - 32px));
@@ -925,5 +1164,15 @@ a.graph-landing__title:focus-visible {
   :root[saved-theme="dark"] .graph-landing__chrome {
     background: color-mix(in srgb, var(--light) 72%, transparent);
     border-bottom-color: var(--lightgray);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .graph-landing__turntable-record,
+  .graph-landing__turntable-tonearm,
+  .graph-landing__turntable,
+  .graph-landing__music-library {
+    animation: none;
+    transition: none;
   }
 }

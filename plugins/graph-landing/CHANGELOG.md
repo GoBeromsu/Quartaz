@@ -2,6 +2,60 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.5.0
+
+### Added
+
+- Added a persisted, real-time `Hub gravity` / `허브 인력` slider. Values
+  from 0–200 disable, preserve, or strengthen bounded degree-weighted
+  attraction while reheating the existing simulation immediately.
+
+### Changed
+
+- Hub-link distance and strength now share tested bounded scaling helpers;
+  co-occurrence and folder texture links remain unaffected.
+
+## 0.4.0
+
+### Added
+
+- Added a responsive album-like record collection with local title/artist
+  metadata, cover cards, current-track state, direct selection, and cyclic
+  playback.
+
+### Changed
+
+- Replaced `music.youtubeUrls` with structured `music.tracks`.
+- Consolidated the graph menu, compact turntable, and record-library button
+  onto one 48 px bottom baseline. The graph controls and record collection
+  now close each other instead of overlapping.
+
+## 0.3.0
+
+### Added
+
+- Replaced the speaker toggle with a compact, accessible CSS turntable
+  inspired by the MIT-licensed `Liotou/obsidian-vinyle` interaction.
+- Added `music.youtubeUrls` for locally configured YouTube URLs or video
+  ids, stable de-duplication, automatic track cycling, and current-track
+  artwork on the record label.
+
+### Changed
+
+- The record now spins and the tonearm lowers only during active playback;
+  reduced-motion preferences disable turntable animation.
+- Removed the single-track `ambientVideoId` option.
+
+## 0.2.0
+
+### Changed
+
+- Graph labels are transparent and outlined, nodes scale by degree, and hub
+  nodes exert stronger gravity in the layout.
+- Removed the `graphIndex` input and the `multilingual-content-index`
+  coupling. Graph landing now consumes only Quartz's generic
+  `fetchData`/`contentIndex` object.
+
 ## 0.1.1
 
 ### Added
@@ -13,8 +67,8 @@ All notable changes to this plugin are documented here.
 
 ## 0.1.0
 
-Initial local version: `indexSource`, `tagCooccurrence`, `maxRenderedNodes`,
-`expandHops`, `renderMode`, `layout`, and `lod` options.
+Initial local version: `tagCooccurrence`, `maxRenderedNodes`, `expandHops`,
+`renderMode`, `layout`, and `lod` options.
 
 ### Added
 

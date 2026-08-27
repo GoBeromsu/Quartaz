@@ -4,11 +4,16 @@ import {
   affectedFocusNodeIds,
   expandHopIds,
   getOrCreate,
+  hubGravityDistanceScale,
+  hubGravityStrengthScale,
+  linkDegreeWeight,
   lodLevelForDistance,
+  normalizedDegreeWeight,
   parseNonNegativeNumber,
-  sanitizeAmbientVideoId,
   seedExpandedNodePosition,
   selectRenderedSubset,
+  youtubeVideoId,
+  youtubeTracks,
   type GraphData,
   type GraphLink,
   type GraphNode,
@@ -36,6 +41,67 @@ function makeNode(id: string, degree: number): GraphNode {
 function makeLink(source: string, target: string, kind: GraphLink["kind"] = "wikilink"): GraphLink {
   return { source, target, kind }
 }
+
+describe("normalizedDegreeWeight", () => {
+  it("maps the degree range to bounded nonlinear weights", () => {
+    assert.equal(normalizedDegreeWeight(1, 1, 100), 0)
+    assert.equal(normalizedDegreeWeight(100, 1, 100), 1)
+    assert.ok(normalizedDegreeWeight(25, 1, 100) > 0.4)
+    assert.ok(normalizedDegreeWeight(25, 1, 100) < 0.5)
+  })
+
+  it("clamps out-of-range and invalid degrees", () => {
+    assert.equal(normalizedDegreeWeight(-10, 1, 9), 0)
+    assert.equal(normalizedDegreeWeight(100, 1, 9), 1)
+    assert.equal(normalizedDegreeWeight(Number.NaN, 0, 9), 0)
+  })
+
+  it("returns deterministic weights for equal ranges", () => {
+    assert.equal(normalizedDegreeWeight(0, 0, 0), 0)
+    assert.equal(normalizedDegreeWeight(4, 4, 4), 0.5)
+  })
+})
+
+describe("linkDegreeWeight", () => {
+  it("uses the heavier endpoint and remains bounded", () => {
+    assert.equal(linkDegreeWeight(0, 0, 16), 0)
+    assert.equal(linkDegreeWeight(1, 16, 16), 1)
+    assert.equal(linkDegreeWeight(64, 1, 16), 1)
+  })
+})
+
+describe("hub gravity scales", () => {
+  it("preserves the current degree-weighted behavior at default gravity", () => {
+    assert.equal(hubGravityDistanceScale(0, 1), 1)
+    assert.equal(hubGravityDistanceScale(1, 1), 0.76)
+    assert.equal(hubGravityStrengthScale(0, 1), 1)
+    assert.equal(hubGravityStrengthScale(1, 1), 1.3)
+  })
+
+  it("removes additional hub bias at zero gravity", () => {
+    assert.equal(hubGravityDistanceScale(1, 0), 1)
+    assert.equal(hubGravityStrengthScale(1, 0), 1)
+  })
+
+  it("applies the bounded maximum bias at maximum gravity", () => {
+    assert.equal(hubGravityDistanceScale(1, 2), 0.52)
+    assert.equal(hubGravityStrengthScale(1, 2), 1.6)
+  })
+
+  it("clamps invalid and out-of-range inputs", () => {
+    assert.equal(hubGravityDistanceScale(Number.NaN, Number.NaN), 1)
+    assert.equal(hubGravityStrengthScale(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY), 1)
+    assert.equal(hubGravityDistanceScale(2, 3), 0.52)
+    assert.equal(hubGravityStrengthScale(-1, -1), 1)
+  })
+
+  it("keeps degree-weight boundaries bounded", () => {
+    assert.equal(hubGravityDistanceScale(-1, 1), 1)
+    assert.equal(hubGravityDistanceScale(1, 1), 0.76)
+    assert.equal(hubGravityStrengthScale(-1, 1), 1)
+    assert.equal(hubGravityStrengthScale(1, 1), 1.3)
+  })
+})
 
 describe("selectRenderedSubset", () => {
   it("returns the exact same object reference when maxRenderedNodes is undefined", () => {
@@ -198,39 +264,113 @@ describe("lodLevelForDistance", () => {
   })
 })
 
-describe("sanitizeAmbientVideoId", () => {
+describe("youtubeVideoId", () => {
   it("returns undefined when unset", () => {
-    assert.equal(sanitizeAmbientVideoId(undefined), undefined)
-    assert.equal(sanitizeAmbientVideoId(null), undefined)
-    assert.equal(sanitizeAmbientVideoId(""), undefined)
+    assert.equal(youtubeVideoId(undefined), undefined)
+    assert.equal(youtubeVideoId(null), undefined)
+    assert.equal(youtubeVideoId(""), undefined)
+    assert.equal(youtubeVideoId("   "), undefined)
   })
 
-  it("returns undefined for whitespace-only input", () => {
-    assert.equal(sanitizeAmbientVideoId("   "), undefined)
+  it("accepts trimmed bare IDs", () => {
+    assert.equal(youtubeVideoId("  o6HpCFhNcnQ  "), "o6HpCFhNcnQ")
+    assert.equal(youtubeVideoId("abc-DEF_123"), "abc-DEF_123")
   })
 
-  it("trims surrounding whitespace on an otherwise valid id", () => {
-    assert.equal(sanitizeAmbientVideoId("  o6HpCFhNcnQ  "), "o6HpCFhNcnQ")
+  it("extracts IDs from trusted YouTube URL forms", () => {
+    assert.equal(youtubeVideoId("https://youtube.com/watch?v=o6HpCFhNcnQ"), "o6HpCFhNcnQ")
+    assert.equal(youtubeVideoId("https://music.youtube.com/watch?v=o6HpCFhNcnQ"), "o6HpCFhNcnQ")
+    assert.equal(youtubeVideoId("https://m.youtube.com/watch?v=o6HpCFhNcnQ"), "o6HpCFhNcnQ")
+    assert.equal(youtubeVideoId("https://youtu.be/o6HpCFhNcnQ"), "o6HpCFhNcnQ")
+    assert.equal(youtubeVideoId("https://www.youtube.com/shorts/o6HpCFhNcnQ"), "o6HpCFhNcnQ")
+    assert.equal(youtubeVideoId("https://www.youtube.com/embed/o6HpCFhNcnQ"), "o6HpCFhNcnQ")
   })
 
-  it("accepts a bare id of letters, digits, underscore, and hyphen", () => {
-    assert.equal(sanitizeAmbientVideoId("o6HpCFhNcnQ"), "o6HpCFhNcnQ")
-    assert.equal(sanitizeAmbientVideoId("abc-DEF_123"), "abc-DEF_123")
+  it("ignores unrelated watch URL parameters", () => {
+    assert.equal(
+      youtubeVideoId(
+        "https://www.youtube.com/watch?v=erKAm7HRw3c&list=RDerKAm7HRw3c&start_radio=1",
+      ),
+      "erKAm7HRw3c",
+    )
   })
 
-  it("rejects a full YouTube URL", () => {
-    assert.equal(sanitizeAmbientVideoId("https://www.youtube.com/watch?v=o6HpCFhNcnQ"), undefined)
-    assert.equal(sanitizeAmbientVideoId("youtu.be/o6HpCFhNcnQ"), undefined)
+  it("rejects hostile hosts and protocols", () => {
+    assert.equal(youtubeVideoId("https://youtube.com.evil.test/watch?v=o6HpCFhNcnQ"), undefined)
+    assert.equal(youtubeVideoId("https://evil.test/youtu.be/o6HpCFhNcnQ"), undefined)
+    assert.equal(youtubeVideoId("ftp://www.youtube.com/watch?v=o6HpCFhNcnQ"), undefined)
+    assert.equal(youtubeVideoId("https://www.youtube.com@evil.test/watch?v=o6HpCFhNcnQ"), undefined)
   })
 
-  it("rejects ids shorter than 6 or longer than 20 characters", () => {
-    assert.equal(sanitizeAmbientVideoId("abc12"), undefined)
-    assert.equal(sanitizeAmbientVideoId("a".repeat(21)), undefined)
+  it("rejects malformed IDs and URLs", () => {
+    assert.equal(youtubeVideoId("abc12"), undefined)
+    assert.equal(youtubeVideoId("a".repeat(21)), undefined)
+    assert.equal(youtubeVideoId("abc.def123"), undefined)
+    assert.equal(youtubeVideoId("youtu.be/o6HpCFhNcnQ"), undefined)
+    assert.equal(youtubeVideoId("https://www.youtube.com/watch?list=RDerKAm7HRw3c"), undefined)
+    assert.equal(youtubeVideoId("https://youtu.be/o6HpCFhNcnQ/extra"), undefined)
+  })
+})
+
+describe("youtubeTracks", () => {
+  it("returns multiple tracks for the exact requested YouTube URLs in configured order", () => {
+    assert.deepEqual(
+      youtubeTracks([
+        {
+          title: "First song",
+          artist: "First artist",
+          url: "https://www.youtube.com/watch?v=erKAm7HRw3c&list=RDerKAm7HRw3c",
+        },
+        {
+          title: "Second song",
+          url: "https://youtu.be/o6HpCFhNcnQ",
+        },
+        {
+          title: "Third song",
+          artist: "Third artist",
+          url: "https://www.youtube.com/shorts/abc-DEF_123",
+        },
+      ]),
+      [
+        { title: "First song", artist: "First artist", videoId: "erKAm7HRw3c" },
+        { title: "Second song", videoId: "o6HpCFhNcnQ" },
+        { title: "Third song", artist: "Third artist", videoId: "abc-DEF_123" },
+      ],
+    )
   })
 
-  it("rejects ids containing disallowed characters", () => {
-    assert.equal(sanitizeAmbientVideoId("abc def"), undefined)
-    assert.equal(sanitizeAmbientVideoId("abc.def123"), undefined)
+  it("omits invalid entries and duplicate video IDs while preserving the first track", () => {
+    assert.deepEqual(
+      youtubeTracks([
+        { title: "", url: "o6HpCFhNcnQ" },
+        { title: "Missing URL", url: "bad.id" },
+        { title: "First", url: "o6HpCFhNcnQ" },
+        { title: "Duplicate", url: "https://youtu.be/o6HpCFhNcnQ" },
+        { title: "Hostile URL", url: "https://evil.test/watch?v=erKAm7HRw3c" },
+        { title: "Last", url: "erKAm7HRw3c" },
+      ]),
+      [
+        { title: "First", videoId: "o6HpCFhNcnQ" },
+        { title: "Last", videoId: "erKAm7HRw3c" },
+      ],
+    )
+  })
+
+  it("trims metadata and omits blank artists", () => {
+    assert.deepEqual(
+      youtubeTracks([
+        {
+          title: "  Trimmed title  ",
+          artist: "  Trimmed artist  ",
+          url: "  o6HpCFhNcnQ  ",
+        },
+        { title: "No artist", artist: "   ", url: "erKAm7HRw3c" },
+      ]),
+      [
+        { title: "Trimmed title", artist: "Trimmed artist", videoId: "o6HpCFhNcnQ" },
+        { title: "No artist", videoId: "erKAm7HRw3c" },
+      ],
+    )
   })
 })
 

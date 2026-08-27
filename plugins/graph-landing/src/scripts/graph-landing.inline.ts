@@ -22,16 +22,22 @@ import {
   affectedFocusNodeIds,
   expandHopIds,
   getOrCreate,
+  hubGravityDistanceScale,
+  hubGravityStrengthScale,
+  linkDegreeWeight,
   linkEndpointId,
   lodLevelForDistance,
+  normalizedDegreeWeight,
   parseNonNegativeNumber,
-  sanitizeAmbientVideoId,
   seedExpandedNodePosition,
   selectRenderedSubset,
+  youtubeTracks,
   type GraphData,
   type GraphLink,
   type GraphNode,
   type LinkKind,
+  type MusicTrackInput,
+  type YoutubeTrack,
 } from "./graph-landing-pure"
 
 interface ThemeTokens {
@@ -158,10 +164,17 @@ interface ForceGraphFactory {
 
 interface SpriteTextInstance {
   color: string
+  backgroundColor: string | false
   textHeight: number
   fontWeight: string
   strokeWidth: number
   strokeColor: string
+  material: {
+    transparent: boolean
+    depthWrite: boolean
+    alphaTest: number
+    toneMapped: boolean
+  }
   position: { x: number; y: number }
   center: { set: (x: number, y: number) => void }
   visible: boolean
@@ -255,7 +268,7 @@ const HUB_COUNT = 8
 const LABEL_HUB_COUNT = 14
 const HUB_EGO_N = 6
 const MIN_NODE_VAL = 1
-const MAX_NODE_VAL = 3.5
+const MAX_NODE_VAL = 6
 const CENTER_STRENGTH = 0.05
 const NODE_REL_SIZE = 2.6
 const NODE_OPACITY = 1
@@ -291,7 +304,7 @@ const FOG_FAR_FACTOR = 1600 / INITIAL_CAMERA_DISTANCE
 // Bloom stays tight (low radius, mid threshold) so the night-sky background
 // keeps its near-black depth instead of washing into gray fog.
 const NODE_RADIUS_MIN = 1.3
-const NODE_RADIUS_MAX = 3.2
+const NODE_RADIUS_MAX = 7.5
 // Threshold sits below the emissive star cores (>1 HDR) but above label
 // pixels, so text stays crisp while stars glow. Tight halo: the star reads
 // as a bright point, not a blob.
@@ -362,15 +375,7 @@ function parseContentIndex(raw: Record<string, unknown>): ContentEntry[] {
       links: asStringArray(record.links),
       tags: asStringArray(record.tags),
       externalLinks: asStringArray(record.externalLinks),
-      // graphIndex.json entries carry a pre-truncated `excerpt` instead of
-      // full `content`; prefer it when present so the graph index path and
-      // the contentIndex path both populate ContentEntry.content correctly.
-      content:
-        typeof record.excerpt === "string"
-          ? record.excerpt
-          : typeof record.content === "string"
-            ? record.content
-            : "",
+      content: typeof record.content === "string" ? record.content : "",
       multilingual,
     })
   }
@@ -779,15 +784,8 @@ function buildGraphData(
   const maxDegree = rawDegrees.length > 0 ? Math.max(...rawDegrees) : 0
 
   const nodeVal = (id: string): number => {
-    const current = degree.get(id) ?? 0
-    const scaled = Math.sqrt(current)
-    const minScaled = Math.sqrt(minDegree)
-    const maxScaled = Math.sqrt(maxDegree)
-    const scaledSpan = maxScaled - minScaled
-    if (scaledSpan === 0) {
-      return (MIN_NODE_VAL + MAX_NODE_VAL) / 2
-    }
-    return MIN_NODE_VAL + ((scaled - minScaled) / scaledSpan) * (MAX_NODE_VAL - MIN_NODE_VAL)
+    const weight = normalizedDegreeWeight(degree.get(id) ?? 0, minDegree, maxDegree)
+    return MIN_NODE_VAL + weight * (MAX_NODE_VAL - MIN_NODE_VAL)
   }
 
   const rankedNotes = [...notes].sort(
@@ -1087,6 +1085,7 @@ interface TuneState {
   edgeScale: number
   zoom: number
   spread: number
+  hubGravity: number
 }
 
 function readStoredLens(): Lens {
@@ -1105,7 +1104,7 @@ function readStoredLens(): Lens {
 }
 
 function readStoredTune(): TuneState {
-  const fallback: TuneState = { nodeScale: 0.7, edgeScale: 1, zoom: 1, spread: 1 }
+  const fallback: TuneState = { nodeScale: 0.7, edgeScale: 1, zoom: 1, spread: 1, hubGravity: 1 }
   try {
     const raw = sessionStorage.getItem(TUNE_STORAGE_KEY)
     if (!raw) {
@@ -1116,7 +1115,11 @@ function readStoredTune(): TuneState {
     const edgeScale = typeof parsed.edgeScale === "number" ? parsed.edgeScale : fallback.edgeScale
     const zoom = typeof parsed.zoom === "number" ? parsed.zoom : fallback.zoom
     const spread = typeof parsed.spread === "number" ? parsed.spread : fallback.spread
-    return { nodeScale, edgeScale, zoom, spread }
+    const hubGravity =
+      typeof parsed.hubGravity === "number" && Number.isFinite(parsed.hubGravity)
+        ? Math.min(2, Math.max(0, parsed.hubGravity))
+        : fallback.hubGravity
+    return { nodeScale, edgeScale, zoom, spread, hubGravity }
   } catch (error) {
     console.error("[graph-landing] sessionStorage unavailable for tune persistence", error)
     return fallback
@@ -1409,7 +1412,8 @@ function bindGraph(
   }
 
   const nodeWorldRadius = (node: GraphNode): number => {
-    const t = clamp((nodeValue(node) - MIN_NODE_VAL) / 5, 0, 1)
+    const maxValue = MAX_NODE_VAL * HUB_VAL_SCALE
+    const t = clamp((nodeValue(node) - MIN_NODE_VAL) / (maxValue - MIN_NODE_VAL), 0, 1)
     return (NODE_RADIUS_MIN + t * (NODE_RADIUS_MAX - NODE_RADIUS_MIN)) * tune.nodeScale
   }
 
@@ -1543,10 +1547,15 @@ function bindGraph(
   // applyFocusChange (the incremental-repaint path) can recompute a single
   // node's label color without re-running the full label repaint.
   const labelColorFor = (node: GraphNode): string => {
-    const labelInk = isDarkTheme()
-      ? "rgba(255, 255, 255, 0.85)"
-      : withAlpha(theme.current.ink, 0.88)
+    const labelInk = isDarkTheme() ? "rgba(255, 255, 255, 1)" : withAlpha(theme.current.ink, 0.88)
     return isActive(node.id) ? labelInk : withAlpha(labelInk, DIM_ALPHA)
+  }
+
+  const labelStrokeColorFor = (node: GraphNode): string => {
+    if (!isDarkTheme()) {
+      return "rgba(0, 0, 0, 0)"
+    }
+    return isActive(node.id) ? "rgba(0, 0, 0, 0.95)" : "rgba(0, 0, 0, 0.3)"
   }
 
   // Shared by applyZoom (needs direction + length) and updateFog (needs only
@@ -1597,6 +1606,14 @@ function bindGraph(
     const t = spreadT(tune.spread)
     const chargeStrength = SPREAD_CHARGE.min + t * (SPREAD_CHARGE.max - SPREAD_CHARGE.min)
     const linkDistance = SPREAD_DISTANCE.min + t * (SPREAD_DISTANCE.max - SPREAD_DISTANCE.min)
+    const degreeById = new Map(data.nodes.map((node) => [node.id, node.degree]))
+    const maxDegree = Math.max(0, ...degreeById.values())
+    const edgeWeight = (edge: GraphLink): number =>
+      linkDegreeWeight(
+        degreeById.get(linkEndpointId(edge.source)) ?? 0,
+        degreeById.get(linkEndpointId(edge.target)) ?? 0,
+        maxDegree,
+      )
     const charge = graph.d3Force("charge")
     if (charge?.strength) {
       charge.strength(chargeStrength)
@@ -1607,10 +1624,14 @@ function bindGraph(
     const link = graph.d3Force("link")
     if (link?.distance) {
       link.distance((edge) => {
+        const gravityScale = hubGravityDistanceScale(edgeWeight(edge), tune.hubGravity)
         if (state.lens === "tag" && edge.kind === "tag") {
-          return linkDistance * 0.72
+          return linkDistance * 0.72 * gravityScale
         }
-        return linkDistance
+        if (edge.kind === "cooc" || edge.kind === "folder") {
+          return linkDistance
+        }
+        return linkDistance * gravityScale
       })
     }
     if (link?.strength) {
@@ -1620,20 +1641,21 @@ function bindGraph(
         if (edge.kind === "cooc" || edge.kind === "folder") {
           return 0.04
         }
+        const gravityScale = hubGravityStrengthScale(edgeWeight(edge), tune.hubGravity)
         if (state.lens === "tag" && edge.kind === "tag") {
-          return 0.95
+          return Math.min(1, 0.95 * gravityScale)
         }
         if (state.lens === "folder") {
           const sourceFolder = noteFolderById(data.nodes, edge.source)
           const targetFolder = noteFolderById(data.nodes, edge.target)
           if (sourceFolder !== null && sourceFolder === targetFolder) {
-            return 0.72
+            return Math.min(1, 0.72 * gravityScale)
           }
         }
         if (edge.kind === "tag") {
-          return 0.65
+          return Math.min(1, 0.65 * gravityScale)
         }
-        return 0.8
+        return Math.min(1, 0.8 * gravityScale)
       })
     }
     const center = graph.d3Force("center")
@@ -1842,8 +1864,17 @@ function bindGraph(
       // Alex-style label: small, no stroke bubble, floating beside the star.
       const sprite = new SpriteText(node.name)
       sprite.color = labelColorFor(node)
+      sprite.backgroundColor = false
       sprite.fontWeight = "400"
-      sprite.strokeWidth = 0
+      sprite.strokeWidth = isDarkTheme() ? 0.35 : 0
+      sprite.strokeColor = labelStrokeColorFor(node)
+      // UnrealBloomPass does not preserve transparent sprite pixels cleanly
+      // unless the empty texels are discarded. Without alphaTest, the label
+      // quad can appear as a tinted rectangle even with backgroundColor=false.
+      sprite.material.transparent = true
+      sprite.material.depthWrite = false
+      sprite.material.alphaTest = 0.01
+      sprite.material.toneMapped = false
       sprite.textHeight = labeledHubIds.has(node.id) ? 6.5 : 5.5
       sprite.center.set(0, 0.5)
       sprite.position.x = radius + 2
@@ -2006,6 +2037,8 @@ function bindGraph(
       const label = labelSprites.get(id)
       if (label) {
         label.sprite.color = labelColorFor(node)
+        label.sprite.strokeColor = labelStrokeColorFor(node)
+        label.sprite.strokeWidth = isDarkTheme() ? 0.35 : 0
         label.sprite.visible = showNodeLabel(node)
       }
       for (const link of linksByNode.get(id) ?? []) {
@@ -2934,6 +2967,19 @@ function bindGraph(
     edgeScaleInput.addEventListener("input", onEdgeScale)
     window.addCleanup(() => edgeScaleInput.removeEventListener("input", onEdgeScale))
   }
+  const hubGravityInput = options.root.querySelector("[data-graph-hub-gravity]")
+  if (hubGravityInput instanceof HTMLInputElement) {
+    hubGravityInput.value = String(Math.round(tune.hubGravity * 100))
+    const onHubGravity = (): void => {
+      const value = Number(hubGravityInput.value) / 100
+      tune.hubGravity = Number.isFinite(value) ? Math.min(2, Math.max(0, value)) : 1
+      persistTune(tune)
+      applyForces()
+      graph.d3ReheatSimulation()
+    }
+    hubGravityInput.addEventListener("input", onHubGravity)
+    window.addCleanup(() => hubGravityInput.removeEventListener("input", onHubGravity))
+  }
   const zoomInput = options.root.querySelector("[data-graph-zoom]")
   if (zoomInput instanceof HTMLInputElement) {
     zoomInput.value = String(Math.round(tune.zoom * 100))
@@ -2977,6 +3023,7 @@ function bindGraph(
 
 interface YoutubePlayer {
   playVideo: () => void
+  loadVideoById: (videoId: string) => void
   pauseVideo: () => void
   mute: () => void
   unMute: () => void
@@ -3106,12 +3153,10 @@ function createYoutubePlayer(args: {
       disablekb: 1,
       fs: 0,
       iv_load_policy: 3,
-      loop: 1,
       modestbranding: 1,
       mute: 1,
       origin: window.location.origin,
       playsinline: 1,
-      playlist: args.videoId,
       rel: 0,
     },
     events: {
@@ -3133,22 +3178,116 @@ function createYoutubePlayer(args: {
 function bindAmbientAudio(root: HTMLElement): void {
   const button = root.querySelector("[data-graph-audio-toggle]")
   const host = root.querySelector("[data-graph-audio-host]")
-  if (!(button instanceof HTMLButtonElement) || !(host instanceof HTMLElement)) {
+  const libraryToggle = root.querySelector("[data-graph-music-library-toggle]")
+  const library = root.querySelector("[data-graph-music-library]")
+  const trackList = root.querySelector("[data-graph-music-track-list]")
+  const status = root.querySelector("[data-graph-music-status]")
+  if (
+    !(button instanceof HTMLButtonElement) ||
+    !(host instanceof HTMLElement) ||
+    !(libraryToggle instanceof HTMLButtonElement) ||
+    !(library instanceof HTMLElement) ||
+    !(trackList instanceof HTMLElement) ||
+    !(status instanceof HTMLElement)
+  ) {
     return
   }
 
   const stopLabel = root.dataset.audioStop ?? "Stop music"
   const playLabel = root.dataset.audioPlay ?? "Play music"
-  // Falls back to the built-in track whenever ambientVideoId is unset or
-  // fails validation (see sanitizeAmbientVideoId), so an absent/invalid
-  // option reproduces today's behavior byte for byte.
-  const ambientVideoId =
-    sanitizeAmbientVideoId(root.dataset.graphAmbientVideoId) ?? AMBIENT_VIDEO_ID
+  const libraryOpenLabel = root.dataset.musicLibraryOpen ?? "Open record collection"
+  const libraryCloseLabel = root.dataset.musicLibraryClose ?? "Close record collection"
+  const currentTrackLabel = root.dataset.musicCurrentTrack ?? "Current track"
+  const configuredTracks: MusicTrackInput[] = []
+  try {
+    const parsed = JSON.parse(root.dataset.graphMusicTracks ?? "[]")
+    if (Array.isArray(parsed)) {
+      for (const value of parsed) {
+        if (!value || typeof value !== "object") {
+          continue
+        }
+        const candidate = value as Record<string, unknown>
+        if (typeof candidate.title !== "string" || typeof candidate.url !== "string") {
+          continue
+        }
+        if (candidate.artist !== undefined && typeof candidate.artist !== "string") {
+          continue
+        }
+        configuredTracks.push({
+          title: candidate.title,
+          ...(typeof candidate.artist === "string" ? { artist: candidate.artist } : {}),
+          url: candidate.url,
+        })
+      }
+    }
+  } catch {
+    // Invalid markup must retain the built-in ambient track.
+  }
+  const tracks: YoutubeTrack[] = youtubeTracks(configuredTracks)
+  if (tracks.length === 0) {
+    tracks.push({ title: "Ambient track", videoId: AMBIENT_VIDEO_ID })
+  }
+  let currentVideoIndex = 0
   let player: YoutubePlayer | null = null
   let playerReady = false
   let cancelFade: (() => void) | null = null
   let wanted = !readAmbientStopped()
   let started = false
+  let userActivated = false
+
+  const currentTrack = (): YoutubeTrack =>
+    tracks[currentVideoIndex] ?? tracks[0] ?? { title: "Ambient track", videoId: AMBIENT_VIDEO_ID }
+
+  const setRecordArtwork = (videoId: string): void => {
+    button.style.setProperty(
+      "--graph-music-artwork",
+      `url("https://i.ytimg.com/vi/${videoId}/hqdefault.jpg")`,
+    )
+  }
+
+  const currentVideoId = (): string => currentTrack().videoId
+
+  const renderTracks = (): void => {
+    trackList.replaceChildren()
+    tracks.forEach((track, index) => {
+      const trackButton = document.createElement("button")
+      trackButton.type = "button"
+      trackButton.className = "graph-landing__music-track"
+      trackButton.dataset.graphMusicTrackIndex = String(index)
+      trackButton.setAttribute("aria-current", index === currentVideoIndex ? "true" : "false")
+
+      const cover = document.createElement("img")
+      cover.className = "graph-landing__music-track-cover"
+      cover.src = `https://i.ytimg.com/vi/${track.videoId}/hqdefault.jpg`
+      cover.alt = ""
+      cover.loading = "lazy"
+
+      const copy = document.createElement("span")
+      copy.className = "graph-landing__music-track-copy"
+      const title = document.createElement("span")
+      title.className = "graph-landing__music-track-title"
+      title.textContent = track.title
+      copy.appendChild(title)
+      if (track.artist) {
+        const artist = document.createElement("span")
+        artist.className = "graph-landing__music-track-artist"
+        artist.textContent = track.artist
+        copy.appendChild(artist)
+      }
+      trackButton.append(cover, copy)
+      trackList.appendChild(trackButton)
+    })
+    status.textContent = `${currentTrackLabel}: ${currentTrack().title}`
+  }
+
+  const setLibraryOpen = (open: boolean): void => {
+    root.dataset.musicLibraryOpen = open ? "true" : "false"
+    library.hidden = !open
+    library.setAttribute("aria-hidden", open ? "false" : "true")
+    libraryToggle.setAttribute("aria-expanded", open ? "true" : "false")
+    libraryToggle.setAttribute("aria-label", open ? libraryCloseLabel : libraryOpenLabel)
+    libraryToggle.title = open ? libraryCloseLabel : libraryOpenLabel
+  }
 
   const setButton = (playing: boolean): void => {
     button.setAttribute("aria-pressed", playing ? "true" : "false")
@@ -3214,20 +3353,27 @@ function bindAmbientAudio(root: HTMLElement): void {
       player = createYoutubePlayer({
         api,
         host,
-        videoId: ambientVideoId,
+        videoId: currentVideoId(),
         onReady: (readyPlayer) => {
           playerReady = true
           readyPlayer.mute()
           applyVolume(0)
           // Muted start is allowed without a gesture; unmute waits for a tap.
           readyPlayer.playVideo()
+          if (wanted && userActivated) {
+            beginPlayback(readyPlayer)
+          }
         },
         onEnded: (endedPlayer) => {
           if (!wanted) {
             return
           }
-          endedPlayer.playVideo()
-          applyVolume(AMBIENT_MAX_VOLUME)
+          currentVideoIndex = (currentVideoIndex + 1) % tracks.length
+          const nextVideoId = currentVideoId()
+          setRecordArtwork(nextVideoId)
+          renderTracks()
+          endedPlayer.loadVideoById(nextVideoId)
+          applyVolume(started ? AMBIENT_MAX_VOLUME : 0)
         },
       })
     } catch (error) {
@@ -3237,12 +3383,18 @@ function bindAmbientAudio(root: HTMLElement): void {
 
   const unlock = (event: Event): void => {
     const target = event.target
-    if (target instanceof Element && target.closest("[data-graph-audio-toggle]")) {
+    if (
+      target instanceof Element &&
+      target.closest(
+        "[data-graph-audio-toggle], [data-graph-music-library-toggle], [data-graph-music-track-index]",
+      )
+    ) {
       return
     }
     if (!wanted || started || prefersReducedData()) {
       return
     }
+    userActivated = true
     if (playerReady && player) {
       beginPlayback(player)
       return
@@ -3255,6 +3407,7 @@ function bindAmbientAudio(root: HTMLElement): void {
       pauseAmbient()
       return
     }
+    userActivated = true
     wanted = true
     writeAmbientStopped(false)
     if (playerReady && player) {
@@ -3262,6 +3415,80 @@ function bindAmbientAudio(root: HTMLElement): void {
       return
     }
     void primePlayer()
+  }
+
+  const selectTrack = (index: number): void => {
+    if (!Number.isInteger(index) || index < 0 || index >= tracks.length) {
+      return
+    }
+    currentVideoIndex = index
+    setRecordArtwork(currentVideoId())
+    renderTracks()
+    setLibraryOpen(false)
+    wanted = true
+    userActivated = true
+    writeAmbientStopped(false)
+    if (playerReady && player) {
+      player.loadVideoById(currentVideoId())
+      if (started) {
+        player.unMute()
+        player.playVideo()
+        applyVolume(AMBIENT_MAX_VOLUME)
+      } else {
+        beginPlayback(player)
+      }
+      return
+    }
+    void primePlayer()
+  }
+
+  const onLibraryToggle = (): void => {
+    const open = root.dataset.musicLibraryOpen !== "true"
+    if (open) {
+      root.dataset.railOpen = "false"
+      const railToggle = root.querySelector("[data-graph-rail-toggle]")
+      const rail = root.querySelector("#graph-landing-rail")
+      const railScrim = root.querySelector("[data-graph-rail-scrim]")
+      if (railToggle instanceof HTMLButtonElement) {
+        railToggle.setAttribute("aria-expanded", "false")
+      }
+      if (rail instanceof HTMLElement) {
+        rail.setAttribute("aria-hidden", "true")
+      }
+      if (railScrim instanceof HTMLElement) {
+        railScrim.hidden = true
+      }
+    }
+    setLibraryOpen(open)
+  }
+
+  const onTrackClick = (event: Event): void => {
+    const target = event.target
+    if (!(target instanceof Element)) {
+      return
+    }
+    const trackButton = target.closest("[data-graph-music-track-index]")
+    if (!(trackButton instanceof HTMLButtonElement)) {
+      return
+    }
+    selectTrack(Number(trackButton.dataset.graphMusicTrackIndex))
+  }
+
+  const onRootClick = (event: Event): void => {
+    if (root.dataset.musicLibraryOpen !== "true") {
+      return
+    }
+    const target = event.target
+    if (!(target instanceof Element) || !target.closest(".graph-landing__music-dock")) {
+      setLibraryOpen(false)
+    }
+  }
+
+  const onKeyDown = (event: KeyboardEvent): void => {
+    if (event.key === "Escape" && root.dataset.musicLibraryOpen === "true") {
+      setLibraryOpen(false)
+      event.stopImmediatePropagation()
+    }
   }
 
   const onVisibility = (): void => {
@@ -3279,17 +3506,28 @@ function bindAmbientAudio(root: HTMLElement): void {
     }
   }
 
-  setButton(wanted)
+  setRecordArtwork(currentVideoId())
+  setButton(false)
+  renderTracks()
+  setLibraryOpen(false)
   void primePlayer()
   button.addEventListener("click", onToggle)
+  libraryToggle.addEventListener("click", onLibraryToggle)
+  trackList.addEventListener("click", onTrackClick)
+  root.addEventListener("click", onRootClick)
   root.addEventListener("pointerdown", unlock, true)
   root.addEventListener("touchstart", unlock, { capture: true, passive: true })
   document.addEventListener("visibilitychange", onVisibility)
+  window.addEventListener("keydown", onKeyDown)
   window.addCleanup(() => {
     button.removeEventListener("click", onToggle)
+    libraryToggle.removeEventListener("click", onLibraryToggle)
+    trackList.removeEventListener("click", onTrackClick)
+    root.removeEventListener("click", onRootClick)
     root.removeEventListener("pointerdown", unlock, true)
     root.removeEventListener("touchstart", unlock, true)
     document.removeEventListener("visibilitychange", onVisibility)
+    window.removeEventListener("keydown", onKeyDown)
     stopFade()
     if (player) {
       player.pauseVideo()
@@ -3328,8 +3566,6 @@ async function initGraphLanding(): Promise<void> {
     .map((prefix) => prefix.trim())
     .filter((prefix) => prefix.length > 0)
   const countsTemplate = root.dataset.countsTemplate ?? "{n} nodes · {m} edges"
-  const indexSource = root.dataset.indexSource === "graphIndex" ? "graphIndex" : "contentIndex"
-  const graphIndexPath = root.dataset.graphIndexPath ?? ""
   // A malformed/negative dataset value (or a non-finite Number.parseInt
   // result, e.g. "abc" → NaN) must fall back to "render all" / "1 hop"
   // rather than reaching selectRenderedSubset/expandFromNode as NaN, which
@@ -3451,14 +3687,7 @@ async function initGraphLanding(): Promise<void> {
 
   let indexRaw: Record<string, unknown>
   try {
-    // graphIndex.json is a lighter, graph-only projection served alongside
-    // contentIndex.json; it is fetched independently here (rather than via
-    // the page-global `fetchData`) so the shared core fetch used by other
-    // scripts on the page (e.g. search) is left untouched.
-    indexRaw =
-      indexSource === "graphIndex"
-        ? asRecord(await fetch(graphIndexPath).then((response) => response.json()))
-        : asRecord(await fetchData)
+    indexRaw = asRecord(await fetchData)
   } catch (error) {
     showLoadError(canvas, "Graph could not load content index.")
     throw error

@@ -1,6 +1,6 @@
 {
   "name": "graph-landing",
-  "version": "0.1.1",
+  "version": "0.5.0",
   "description": "Locale home pageType that renders a full-viewport knowledge-graph constellation.",
   "keywords": [
     "quartz",
@@ -10,13 +10,14 @@
     "3d",
     "visualization"
   ],
-  "homepage": "https://github.com/GoBeromsu/quartz-graph-landing#readme",
+  "homepage": "https://github.com/GoBeromsu/Quartaz/tree/v5/plugins/graph-landing#readme",
   "bugs": {
-    "url": "https://github.com/GoBeromsu/quartz-graph-landing/issues"
+    "url": "https://github.com/GoBeromsu/Quartaz/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/GoBeromsu/quartz-graph-landing"
+    "url": "https://github.com/GoBeromsu/Quartaz.git",
+    "directory": "plugins/graph-landing"
   },
   "author": "GoBeromsu",
   "type": "module",
@@ -40,7 +41,9 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test src/scripts/graph-landing.inline.test.ts",
+    "prepack": "npm test && npm run typecheck && npm run build"
   },
   "peerDependencies": {
     "preact": "^10.0.0"
@@ -50,15 +53,14 @@
       "optional": false
     }
   },
-  "dependencies": {
-    "@quartz-community/types": "github:quartz-community/types",
-    "hast-util-to-jsx-runtime": "^2.3.6"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "@quartz-community/types": "github:quartz-community/types",
     "@types/hast": "^3.0.4",
     "@types/node": "^24.10.0",
     "preact": "^10.28.2",
     "sass": "^1.97.3",
+    "tsx": "^4.23.12",
     "tsup": "^8.5.0",
     "typescript": "^5.9.3"
   },
@@ -69,18 +71,12 @@
     "category": [
       "pageType"
     ],
-    "version": "0.1.1",
+    "version": "0.5.0",
     "quartzVersion": ">=5.0.0",
     "dependencies": [],
     "defaultOrder": 55,
     "defaultEnabled": true,
-    "defaultOptions": {
-      "indexSource": "contentIndex"
-    },
     "configSchema": {
-      "indexSource": {
-        "type": "string"
-      },
       "tagCooccurrence": {
         "type": "object"
       },
@@ -99,8 +95,8 @@
       "lod": {
         "type": "object"
       },
-      "ambientVideoId": {
-        "type": "string"
+      "music": {
+        "type": "object"
       },
       "defaultLocale": {
         "type": "string"
@@ -110,5 +106,6 @@
   "engines": {
     "node": ">=22",
     "npm": ">=10.9.2"
-  }
+  },
+  "packageManager": "npm@10.9.2"
 }

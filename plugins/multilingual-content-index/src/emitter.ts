@@ -39,17 +39,6 @@ export type ContentDetails = {
   multilingual?: ContentTranslationDetails
 }
 
-/** Lightweight, graph-only projection of ContentDetails emitted to static/graphIndex.json. */
-export type GraphIndexEntry = {
-  slug: FullSlug
-  title: string
-  links: SimpleSlug[]
-  tags: string[]
-  externalLinks: string[]
-  excerpt: string
-  multilingual?: ContentTranslationDetails
-}
-
 interface Options {
   enableSiteMap: boolean
   enableRSS: boolean
@@ -73,8 +62,6 @@ interface Options {
    * search matters more than payload size.
    */
   contentMaxChars?: number
-  /** When true, additionally emit a lightweight static/graphIndex.json containing only graph-needed fields with a pre-truncated `excerpt` instead of full `content`. Default: false. */
-  emitGraphIndex: boolean
 }
 
 const defaultOptions: Options = {
@@ -86,11 +73,7 @@ const defaultOptions: Options = {
   includeEmptyFiles: true,
   rssRecentNotesText: "Recent notes",
   rssLastFewNotesText: (count) => `Last ${count} notes`,
-  emitGraphIndex: false,
 }
-
-/** Matches graph-landing's client-side EXCERPT_LENGTH constant. */
-const GRAPH_EXCERPT_LENGTH = 220
 
 /** Exported for direct unit testing of the surrogate-pair-safe cut behavior. */
 export function truncateText(text: string, maxChars: number): string {
@@ -284,26 +267,11 @@ export const ContentIndex: QuartzEmitterPlugin<Partial<Options>> = (opts) => {
     }
 
     const fp = joinSegments("static", "contentIndex") as unknown as FullSlug
-    const graphIndexEntries: Record<string, GraphIndexEntry> | undefined = options.emitGraphIndex
-      ? {}
-      : undefined
 
     const simplifiedIndex = Object.fromEntries(
       Array.from(linkIndex).map(([slug, content]) => {
         delete content.description
         delete content.date
-
-        if (graphIndexEntries) {
-          graphIndexEntries[slug] = {
-            slug: content.slug,
-            title: content.title,
-            links: content.links,
-            tags: content.tags,
-            externalLinks: content.externalLinks,
-            excerpt: truncateText(content.content, GRAPH_EXCERPT_LENGTH),
-            multilingual: content.multilingual,
-          }
-        }
 
         if (options.contentMaxChars !== undefined) {
           // Clamp negative caps to 0 rather than passing them straight to
@@ -328,17 +296,6 @@ export const ContentIndex: QuartzEmitterPlugin<Partial<Options>> = (opts) => {
         ext: ".json",
       }),
     )
-
-    if (graphIndexEntries) {
-      outputs.push(
-        await write({
-          ctx,
-          content: JSON.stringify(graphIndexEntries),
-          slug: joinSegments("static", "graphIndex") as unknown as FullSlug,
-          ext: ".json",
-        }),
-      )
-    }
 
     return outputs
   }

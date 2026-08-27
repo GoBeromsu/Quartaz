@@ -160,6 +160,33 @@ plugins:
       enableRSS: true
   - source: ./plugins/graph-landing
     enabled: true
+    options:
+      maxRenderedNodes: 1500
+      expandHops: 1
+      tagCooccurrence:
+        maxTagsPerNote: 6
+        maxEdges: 5000
+      renderMode: "3d"
+      layout:
+        freezeAfterWarmup: true
+        incrementalWarmup: true
+      interaction:
+        incrementalRepaint: true
+      lod:
+        labelDistance: 800
+        dotDistance: 1200
+        cullDistance: 1600
+        fog: true
+        nodeResolution: 8
+        linkResolution: 3
+        shareLinkResources: true
+      music:
+        tracks:
+          - title: "EVERYTHING"
+            artist: "Paikon's Piano Cover"
+            url: "https://www.youtube.com/watch?v=erKAm7HRw3c&list=RDerKAm7HRw3c&start_radio=1"
+          - title: "Ambient Constellation"
+            url: "https://www.youtube.com/watch?v=o6HpCFhNcnQ"
   - source: ./plugins/blog-chrome
     enabled: true
   - source: ./plugins/blog-home

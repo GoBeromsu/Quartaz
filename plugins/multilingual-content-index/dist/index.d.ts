@@ -25,16 +25,6 @@ type ContentDetails = {
     description?: string;
     multilingual?: ContentTranslationDetails;
 };
-/** Lightweight, graph-only projection of ContentDetails emitted to static/graphIndex.json. */
-type GraphIndexEntry = {
-    slug: FullSlug;
-    title: string;
-    links: SimpleSlug[];
-    tags: string[];
-    externalLinks: string[];
-    excerpt: string;
-    multilingual?: ContentTranslationDetails;
-};
 interface Options {
     enableSiteMap: boolean;
     enableRSS: boolean;
@@ -58,9 +48,7 @@ interface Options {
      * search matters more than payload size.
      */
     contentMaxChars?: number;
-    /** When true, additionally emit a lightweight static/graphIndex.json containing only graph-needed fields with a pre-truncated `excerpt` instead of full `content`. Default: false. */
-    emitGraphIndex: boolean;
 }
 declare const ContentIndex: QuartzEmitterPlugin<Partial<Options>>;
 
-export { type ContentDetails, ContentIndex, type ContentIndexMap, type GraphIndexEntry };
+export { type ContentDetails, ContentIndex, type ContentIndexMap };
