@@ -477,21 +477,21 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
                     />
                   </svg>
                 </button>
-                <section
-                  class="graph-landing__music-library"
-                  id="graph-landing-music-library"
-                  data-graph-music-library
-                  aria-label={copy.musicLibraryTitle}
-                  aria-hidden="true"
-                  hidden
-                >
-                  <div class="graph-landing__music-library-heading">
-                    <span>{copy.musicLibraryTitle}</span>
-                    <span data-graph-music-status aria-live="polite"></span>
-                  </div>
-                  <div class="graph-landing__music-track-list" data-graph-music-track-list></div>
-                </section>
               </div>
+              <section
+                class="graph-landing__music-library"
+                id="graph-landing-music-library"
+                data-graph-music-library
+                aria-label={copy.musicLibraryTitle}
+                aria-hidden="true"
+                hidden
+              >
+                <div class="graph-landing__music-library-heading">
+                  <span>{copy.musicLibraryTitle}</span>
+                  <span data-graph-music-status aria-live="polite"></span>
+                </div>
+                <div class="graph-landing__music-track-list" data-graph-music-track-list></div>
+              </section>
               <div class="graph-landing__audio" data-graph-audio-host aria-hidden="true"></div>
               <div
                 class="graph-landing__rail"

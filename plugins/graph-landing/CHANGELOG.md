@@ -2,6 +2,15 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.5.3
+
+### Fixed
+
+- Move the record collection outside the backdrop-filtered music dock so
+  its mobile fixed-position bottom sheet uses the viewport instead of the
+  dock as its containing block. The collection now fills the intended
+  safe-area-bounded width instead of collapsing into a narrow column.
+
 ## 0.5.2
 
 ### Fixed

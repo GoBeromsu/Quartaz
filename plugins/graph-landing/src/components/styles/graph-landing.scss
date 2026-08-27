@@ -319,16 +319,18 @@ html:not([saved-theme="dark"]) body:has(.graph-landing) {
   background: color-mix(in srgb, var(--light) 88%, transparent);
   border: 1px solid var(--lightgray);
   border-radius: 14px;
-  bottom: calc(100% + 10px);
+  bottom: calc(16px + 48px + 10px);
   box-shadow: 0 12px 40px rgba(8, 10, 16, 0.2);
   box-sizing: border-box;
-  left: 0;
+  left: calc(16px + 48px + 8px);
   max-height: min(58dvh, 440px);
   overflow: auto;
   overscroll-behavior: contain;
   padding: 12px;
+  pointer-events: auto;
   position: absolute;
   width: min(420px, calc(100vw - 32px));
+  z-index: 5;
 }
 
 .graph-landing__music-library[hidden] {

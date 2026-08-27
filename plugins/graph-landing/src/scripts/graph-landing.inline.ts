@@ -3483,7 +3483,10 @@ function bindAmbientAudio(root: HTMLElement): void {
       return
     }
     const target = event.target
-    if (!(target instanceof Element) || !target.closest(".graph-landing__music-dock")) {
+    if (
+      !(target instanceof Element) ||
+      !target.closest(".graph-landing__music-dock, .graph-landing__music-library")
+    ) {
       setLibraryOpen(false)
     }
   }
