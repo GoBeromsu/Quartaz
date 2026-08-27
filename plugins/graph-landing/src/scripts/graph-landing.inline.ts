@@ -24,6 +24,7 @@ import {
   getOrCreate,
   hubGravityDistanceScale,
   hubGravityStrengthScale,
+  isMarkdownFilePath,
   linkDegreeWeight,
   linkEndpointId,
   lodLevelForDistance,
@@ -360,6 +361,9 @@ function parseContentIndex(raw: Record<string, unknown>): ContentEntry[] {
   const entries: ContentEntry[] = []
   for (const value of Object.values(raw)) {
     const record = asRecord(value)
+    if (!isMarkdownFilePath(record.filePath)) {
+      continue
+    }
     const slug = typeof record.slug === "string" ? record.slug : ""
     if (slug.length === 0) {
       continue

@@ -2,6 +2,15 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.5.2
+
+### Fixed
+
+- Restrict source-file-backed note nodes to content-index entries with a
+  `.md` `filePath`. Python, TypeScript, MDX, and other non-Markdown files
+  are excluded while virtual tag, external, folder, and co-occurrence
+  layers remain intact.
+
 ## 0.5.1
 
 ### Fixed

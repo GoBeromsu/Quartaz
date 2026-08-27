@@ -6,6 +6,7 @@ import {
   getOrCreate,
   hubGravityDistanceScale,
   hubGravityStrengthScale,
+  isMarkdownFilePath,
   linkDegreeWeight,
   lodLevelForDistance,
   normalizedDegreeWeight,
@@ -18,6 +19,32 @@ import {
   type GraphLink,
   type GraphNode,
 } from "./graph-landing-pure"
+
+describe("isMarkdownFilePath", () => {
+  it("accepts Markdown paths case-insensitively after trimming", () => {
+    assert.equal(isMarkdownFilePath("notes/example.md"), true)
+    assert.equal(isMarkdownFilePath("notes/EXAMPLE.MD"), true)
+    assert.equal(isMarkdownFilePath("  notes/example.md  "), true)
+  })
+
+  it("rejects non-Markdown, extensionless, and misleading paths", () => {
+    assert.equal(isMarkdownFilePath("scripts/example.py"), false)
+    assert.equal(isMarkdownFilePath("scripts/example.ts"), false)
+    assert.equal(isMarkdownFilePath("notes/example"), false)
+    assert.equal(isMarkdownFilePath("notes/example.mdx"), false)
+    assert.equal(isMarkdownFilePath("notes/example.markdown"), false)
+    assert.equal(isMarkdownFilePath("notes/example.md.py"), false)
+  })
+
+  it("rejects missing and non-string paths", () => {
+    assert.equal(isMarkdownFilePath(undefined), false)
+    assert.equal(isMarkdownFilePath(null), false)
+    assert.equal(isMarkdownFilePath(""), false)
+    assert.equal(isMarkdownFilePath("   "), false)
+    assert.equal(isMarkdownFilePath(42), false)
+    assert.equal(isMarkdownFilePath({ filePath: "notes/example.md" }), false)
+  })
+})
 
 function makeNode(id: string, degree: number): GraphNode {
   return {

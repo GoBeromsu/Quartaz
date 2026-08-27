@@ -14,7 +14,7 @@ release tag:
 - source:
     repo: github:GoBeromsu/Quartaz
     subdir: plugins/graph-landing
-    ref: graph-landing-v0.5.1
+    ref: graph-landing-v0.5.2
     name: graph-landing
   enabled: true
 ```
@@ -28,8 +28,12 @@ npx quartz plugin install --from-config
 ## Data contract
 
 Stock Quartz's generic `fetchData`/`contentIndex` object is this plugin's
-sole data input. The client reads each entry's `slug`, `title`, `links`,
-`tags`, `externalLinks`, and `content` fields.
+sole data input. The client reads each entry's `filePath`, `slug`, `title`,
+`links`, `tags`, `externalLinks`, and `content` fields. Only entries whose
+trimmed `filePath` ends in `.md` (case-insensitive) become note nodes.
+Code files and other non-Markdown sources are excluded; virtual tag,
+external-link, folder, and co-occurrence nodes remain derived from the
+accepted Markdown notes.
 
 ## Options
 

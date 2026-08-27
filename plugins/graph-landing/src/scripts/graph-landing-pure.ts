@@ -46,6 +46,10 @@ export interface GraphData {
   links: GraphLink[]
 }
 
+export function isMarkdownFilePath(value: unknown): boolean {
+  return typeof value === "string" && value.trim().toLowerCase().endsWith(".md")
+}
+
 /**
  * Maps a node degree into a bounded 0..1 visual mass. Square-root scaling
  * preserves visible differences between ordinary notes without letting a
