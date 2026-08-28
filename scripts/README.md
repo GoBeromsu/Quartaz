@@ -6,10 +6,11 @@ only (never 0.0.0.0/localhost).
 ## Primary build mode: resident watch build
 
 `scripts/watch.sh` runs a long-lived `quartz build --watch` process that
-rebuilds `public-watch/` incrementally whenever the vault changes (each
-change typically emits in ~4 min, due to `emitAll`). This is now the
-operational build for the site — `scripts/rebuild.sh` (full periodic
-rebuild into `public`) is kept only as a manual fallback.
+rebuilds `public-watch/` incrementally whenever the vault changes. Changed
+notes invalidate only their own pages, ancestor folder pages, tag pages,
+translation siblings, and locale home/writing listings; content indexes keep
+an in-memory entry cache. This is now the operational build for the site —
+`scripts/rebuild.sh` is kept only as a manual fallback.
 
 ```sh
 scripts/watch.sh   # foreground; run under nohup/pm2/launchd to keep it resident
@@ -25,7 +26,7 @@ nohup scripts/watch.sh >> logs/watch-build.log 2>&1 &
 Caveats (see comments at the top of `scripts/watch.sh`):
 
 - `--watch` **cleans `OUT_DIR` on startup**, then does a full initial build
-  before the site is servable again — on this vault that takes ~9-10 min.
+  before the site is servable again — with 21k+ notes that takes ~35-40 min.
   Its dedicated `public-watch/` output keeps the previous `public-live/`
   fallback intact during bootstrap and recovery.
 - It refuses to start a second instance for this repo (checks
