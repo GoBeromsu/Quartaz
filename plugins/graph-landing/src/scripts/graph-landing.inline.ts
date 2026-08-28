@@ -3763,8 +3763,8 @@ async function initGraphLanding(): Promise<void> {
   const data = selectRenderedSubset(fullData, maxRenderedNodes)
 
   const countText = countsTemplate
-    .replace("{n}", String(data.nodes.length))
-    .replace("{m}", String(data.links.length))
+    .replace("{n}", String(fullData.nodes.length))
+    .replace("{m}", String(fullData.links.length))
   for (const el of countEls) {
     el.textContent = countText
   }
