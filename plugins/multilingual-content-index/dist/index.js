@@ -2449,10 +2449,8 @@ var defaultOptions = {
   rssSlug: "index",
   includeEmptyFiles: true,
   rssRecentNotesText: "Recent notes",
-  rssLastFewNotesText: (count) => `Last ${count} notes`,
-  emitGraphIndex: false
+  rssLastFewNotesText: (count) => `Last ${count} notes`
 };
-var GRAPH_EXCERPT_LENGTH = 220;
 function truncateText(text2, maxChars) {
   if (text2.length <= maxChars) return text2;
   let cut = maxChars;
@@ -2547,34 +2545,37 @@ function generateRSSFeed(cfg, idx, options, limit) {
 }
 var ContentIndex = (opts) => {
   const options = { ...defaultOptions, ...opts };
-  const emitAll = async (ctx, content) => {
+  const entryByPath = /* @__PURE__ */ new Map();
+  let cacheInitialized = false;
+  const contentEntry = (ctx, [tree, file]) => {
     const cfg = ctx.cfg.configuration;
     const siteHosts = siteHostsForBlog(cfg.baseUrl ?? "");
-    const linkIndex = /* @__PURE__ */ new Map();
-    for (const [tree, file] of content) {
-      const data = file.data ?? {};
-      if (data.unlisted === true) continue;
-      const slug2 = data.slug;
-      const date = getDate(data) ?? /* @__PURE__ */ new Date();
-      const text2 = data.text;
-      if (options.includeEmptyFiles || text2 && text2 !== "") {
-        const frontmatter = data.frontmatter ?? {};
-        const isEncrypted = data.encrypted === true;
-        linkIndex.set(slug2, {
-          slug: slug2,
-          filePath: data.relativePath,
-          title: frontmatter.title ?? "",
-          links: data.links ?? [],
-          tags: frontmatter.tags ?? [],
-          externalLinks: collectExternalLinks({ tree, siteHosts }),
-          content: text2 ?? "",
-          richContent: options.rssFullHtml && !isEncrypted ? escapeHTML(toHtml(tree, { allowDangerousHtml: true })) : void 0,
-          date,
-          description: data.description ?? "",
-          multilingual: readTranslationDetails(data)
-        });
-      }
-    }
+    const data = file.data ?? {};
+    if (data.unlisted === true) return void 0;
+    const text2 = data.text;
+    if (!options.includeEmptyFiles && (!text2 || text2 === "")) return void 0;
+    const slug2 = data.slug;
+    const frontmatter = data.frontmatter ?? {};
+    const isEncrypted = data.encrypted === true;
+    return {
+      slug: slug2,
+      filePath: data.relativePath,
+      title: frontmatter.title ?? "",
+      links: data.links ?? [],
+      tags: frontmatter.tags ?? [],
+      externalLinks: collectExternalLinks({ tree, siteHosts }),
+      content: text2 ?? "",
+      richContent: options.rssFullHtml && !isEncrypted ? escapeHTML(toHtml(tree, { allowDangerousHtml: true })) : void 0,
+      date: getDate(data) ?? /* @__PURE__ */ new Date(),
+      description: data.description ?? "",
+      multilingual: readTranslationDetails(data)
+    };
+  };
+  const emitIndex = async (ctx) => {
+    const cfg = ctx.cfg.configuration;
+    const linkIndex = new Map(
+      Array.from(entryByPath.values(), (entry) => [entry.slug, entry])
+    );
     const outputs = [];
     if (options.enableSiteMap) {
       outputs.push(
@@ -2597,29 +2598,16 @@ var ContentIndex = (opts) => {
       );
     }
     const fp = joinSegments("static", "contentIndex");
-    const graphIndexEntries = options.emitGraphIndex ? {} : void 0;
     const simplifiedIndex = Object.fromEntries(
-      Array.from(linkIndex).map(([slug2, content2]) => {
-        delete content2.description;
-        delete content2.date;
-        if (graphIndexEntries) {
-          graphIndexEntries[slug2] = {
-            slug: content2.slug,
-            title: content2.title,
-            links: content2.links,
-            tags: content2.tags,
-            externalLinks: content2.externalLinks,
-            excerpt: truncateText(content2.content, GRAPH_EXCERPT_LENGTH),
-            multilingual: content2.multilingual
-          };
-        }
+      Array.from(linkIndex).map(([slug2, content]) => {
+        const { description: _description, date: _date, ...indexContent } = content;
         if (options.contentMaxChars !== void 0) {
           const cap2 = Math.max(0, options.contentMaxChars);
-          if (content2.content.length > cap2) {
-            content2.content = truncateText(content2.content, cap2);
+          if (indexContent.content.length > cap2) {
+            indexContent.content = truncateText(indexContent.content, cap2);
           }
         }
-        return [slug2, content2];
+        return [slug2, indexContent];
       })
     );
     outputs.push(
@@ -2630,23 +2618,54 @@ var ContentIndex = (opts) => {
         ext: ".json"
       })
     );
-    if (graphIndexEntries) {
-      outputs.push(
-        await write({
-          ctx,
-          content: JSON.stringify(graphIndexEntries),
-          slug: joinSegments("static", "graphIndex"),
-          ext: ".json"
-        })
-      );
-    }
     return outputs;
+  };
+  const emitAll = async (ctx, content) => {
+    entryByPath.clear();
+    for (const processed of content) {
+      const entry = contentEntry(ctx, processed);
+      const relativePath = processed[1].data.relativePath;
+      if (entry && relativePath) entryByPath.set(relativePath, entry);
+    }
+    cacheInitialized = true;
+    return emitIndex(ctx);
+  };
+  const emitChanged = async (ctx, content, changeEvents) => {
+    if (!cacheInitialized) return emitAll(ctx, content);
+    const changedPaths = new Set(changeEvents.map((event) => event.path));
+    const virtualPages = ctx.virtualPages ?? [];
+    const virtualPaths = new Set(
+      virtualPages.map(([, file]) => file.data.relativePath).filter((path2) => path2 !== void 0)
+    );
+    const currentByPath = /* @__PURE__ */ new Map();
+    for (const processed of content) {
+      const relativePath = processed[1].data.relativePath;
+      if (relativePath && (changedPaths.has(relativePath) || virtualPaths.has(relativePath))) {
+        currentByPath.set(relativePath, processed);
+      }
+    }
+    for (const event of changeEvents) {
+      entryByPath.delete(event.path);
+      if (event.type === "delete") continue;
+      const processed = currentByPath.get(event.path);
+      if (!processed) continue;
+      const entry = contentEntry(ctx, processed);
+      if (entry) entryByPath.set(event.path, entry);
+    }
+    for (const path2 of virtualPaths) {
+      entryByPath.delete(path2);
+      const processed = currentByPath.get(path2);
+      if (!processed) continue;
+      const entry = contentEntry(ctx, processed);
+      if (entry) entryByPath.set(path2, entry);
+    }
+    return emitIndex(ctx);
   };
   return {
     name: "ContentIndex",
     emit: (ctx, content) => emitAll(ctx, content),
     // RSS auto-discovery link tag should be added via a component plugin or manually in the layout.
-    partialEmit: (ctx, content) => emitAll(ctx, content)
+    partialEmit: (ctx, content, _resources, changeEvents) => emitChanged(ctx, content, changeEvents)
   };
 };
 

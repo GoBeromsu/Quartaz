@@ -5,59 +5,33 @@ optional and default to the plugin's original behavior — setting none of
 them reproduces the exact output of a plugin instance with no `options`
 block at all.
 
-## Install
+## Install or update
+
+Install the plugin from the Quartaz monorepo subdirectory and pin it to a
+release tag:
 
 ```yaml
-- source: github:GoBeromsu/quartz-graph-landing
+- source:
+    repo: github:GoBeromsu/Quartaz
+    subdir: plugins/graph-landing
+    ref: graph-landing-v0.5.3
+    name: graph-landing
   enabled: true
-  options:
-    indexSource: contentIndex
 ```
 
-## Requirements
+After changing `ref` to a newer `graph-landing-v<version>` release tag, run:
 
-- `indexSource: "contentIndex"` (the default) works out of the box with
-  stock Quartz v5's built-in content index emitter — no other plugin
-  required. The client fetches `static/contentIndex.json` and reads each
-  entry's `slug`, `title`, `links`, `tags`, `externalLinks`, and `content`
-  fields.
-- `indexSource: "graphIndex"` instead fetches a `static/graphIndex.json`
-  file, which nothing in stock Quartz v5 emits — you need a separate
-  emitter plugin that writes it (Quartaz's `multilingual-content-index`
-  plugin does this behind its own `emitGraphIndex: true` option). Any
-  emitter can supply it as long as the file matches the shape below; this
-  plugin does not import or depend on any specific emitter package.
-- Expected `graphIndex.json` shape: a JSON object whose values (any keys,
-  typically slugs) are entries of the form
-  ```ts
-  {
-    slug: string
-    title: string
-    links: string[] // outgoing wikilink slugs
-    tags: string[]
-    externalLinks: string[]
-    excerpt: string // short preview text, pre-truncated by the emitter
-    multilingual?: {
-      translationKey?: string
-      locale?: string
-    }
-  }
-  ```
-  `excerpt` takes the place of `contentIndex.json`'s full `content` field
-  and is shown as-is in the node preview/inspect panels, so emitters
-  should keep it short (this plugin's own client-side excerpt fallback for
-  `contentIndex.json` truncates to 220 characters). Any entry missing a
-  non-empty `slug` is skipped; missing `title`/`links`/`tags`/
-  `externalLinks`/`excerpt` fall back to the slug / empty array / empty
-  string respectively rather than erroring.
-- `skipContentIndexFetch` (an internal flag this plugin sets on its page
-  type instance, not a user-facing option) is a performance hint: when
-  `indexSource: "graphIndex"` is set, this page fetches its own
-  `graphIndex.json` directly, so the flag tells an aware engine it can skip
-  the separate global `contentIndex.json` fetch it would otherwise make for
-  every page. The Quartaz engine honors this hint. On engines that don't
-  read the flag, both fetches simply happen — content still loads
-  correctly, just via one extra (unused) network request.
+```sh
+npx quartz plugin install --from-config
+```
+
+## Data contract
+
+`indexSource: contentIndex` uses Quartz's generic `fetchData` object.
+`indexSource: graphIndex` fetches `static/graphIndex.json` directly and asks
+the engine to skip the unused global content-index fetch on graph pages.
+Both shapes read `filePath`, `slug`, `title`, `links`, and `tags`; graph
+indexes may supply a pre-truncated `excerpt` instead of `content`.
 
 ## Options
 
@@ -65,7 +39,7 @@ block at all.
 - source: ./plugins/graph-landing
   enabled: true
   options:
-    indexSource: contentIndex # or "graphIndex"
+    indexSource: graphIndex
     tagCooccurrence:
       maxTagsPerNote: 5
       maxEdges: 200
@@ -88,17 +62,15 @@ block at all.
       shareLinkResources: true
     interaction:
       incrementalRepaint: true
-    ambientVideoId: o6HpCFhNcnQ
+    music:
+      tracks:
+        - title: EVERYTHING
+          artist: Paikon's Piano Cover
+          url: "https://www.youtube.com/watch?v=erKAm7HRw3c&list=RDerKAm7HRw3c&start_radio=1"
+        - title: Ambient Constellation
+          url: "https://www.youtube.com/watch?v=o6HpCFhNcnQ"
     defaultLocale: en
 ```
-
-### `indexSource`
-
-`"contentIndex"` (default) or `"graphIndex"`. Controls which JSON file the
-client script fetches to build the graph. `"graphIndex"` requires the
-`multilingual-content-index` emitter's `emitGraphIndex: true` option, and
-fetches the lighter `static/graphIndex.json` instead of the full
-`static/contentIndex.json`.
 
 ### `tagCooccurrence`
 
@@ -257,24 +229,43 @@ leaving every other link sharing the old material untouched. When
 `shareLinkResources` is off, each link privately owns its material, so
 `incrementalRepaint` mutates it in place as before.
 
-### `ambientVideoId`
+### Live tune controls
 
-YouTube video id for the ambient audio track played behind the graph
-(toggled by the audio button in the controls rail).
+The controls rail applies visual and force parameters immediately and keeps
+them in `sessionStorage` for the current browser session.
 
-- Default: `undefined` — the plugin's built-in ambient track plays,
-  original behavior unchanged.
-- Takes a bare video id, not a URL — e.g. from
-  `https://www.youtube.com/watch?v=o6HpCFhNcnQ` the id is `o6HpCFhNcnQ`.
-- Validated client-side: trimmed, then must match `/^[A-Za-z0-9_-]{6,20}$/`.
-  An unset or invalid value (empty, too short/long, a full URL, disallowed
-  characters) is ignored and the built-in track plays instead.
+- `Hub gravity` / `허브 인력`: `0` disables the additional degree-weighted
+  pull, `100` preserves the default behavior, and `200` applies the maximum
+  bounded pull. Increasing it shortens and strengthens real links touching
+  highly connected nodes, then reheats the existing simulation without
+  rebuilding graph data.
+- Degree-weighted many-body repulsion counterbalances the extra links carried
+  by hubs, while a 3D sphere-collision force keeps rendered stars physically
+  separated. Link attraction stays deliberately weaker than both forces so
+  dense neighborhoods form readable constellations instead of a single glow.
+- Co-occurrence and folder texture links are intentionally unaffected.
+
+### `music.tracks`
+
+Locally curated records for the turntable's album selector. Every track has
+a `title`, an optional `artist`, and a YouTube `url`.
+
+- URLs may be full `youtube.com`/`youtu.be` links or bare video ids.
+- The selector presents two-column cover cards and marks the current record;
+  narrow screens use a bounded single-column bottom sheet.
+- Selecting a card loads and plays it immediately. Tracks retain configured
+  order and advance cyclically when one ends.
+- Duplicate video ids are removed with the first track metadata winning.
+- Playlist/radio query parameters are ignored; the selected video's `v` id
+  is played.
+- Invalid or empty collections fall back to the built-in ambient track.
+- The record spins only during audible playback and uses the current YouTube
+  thumbnail as its center label.
 
 ### `defaultLocale`
 
 Fallback locale id used when a page's locale can't be determined from its
-multilingual frontmatter/slug prefix, and when the site's multilingual
-config has no `sourceLocale` set.
+frontmatter/slug prefix, and when the site has no `sourceLocale` set.
 
 - Default: `undefined` — original behavior unchanged, falls back to `"ko"`.
 - Set this when publishing a site whose primary locale is not Korean (e.g.

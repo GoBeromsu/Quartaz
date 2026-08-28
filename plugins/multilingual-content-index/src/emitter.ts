@@ -5,6 +5,7 @@ import type {
   GlobalConfiguration,
   QuartzEmitterPlugin,
   BuildCtx,
+  ChangeEvent,
   FilePath,
   FullSlug,
   QuartzPluginData,
@@ -39,17 +40,6 @@ export type ContentDetails = {
   multilingual?: ContentTranslationDetails
 }
 
-/** Lightweight, graph-only projection of ContentDetails emitted to static/graphIndex.json. */
-export type GraphIndexEntry = {
-  slug: FullSlug
-  title: string
-  links: SimpleSlug[]
-  tags: string[]
-  externalLinks: string[]
-  excerpt: string
-  multilingual?: ContentTranslationDetails
-}
-
 interface Options {
   enableSiteMap: boolean
   enableRSS: boolean
@@ -73,8 +63,6 @@ interface Options {
    * search matters more than payload size.
    */
   contentMaxChars?: number
-  /** When true, additionally emit a lightweight static/graphIndex.json containing only graph-needed fields with a pre-truncated `excerpt` instead of full `content`. Default: false. */
-  emitGraphIndex: boolean
 }
 
 const defaultOptions: Options = {
@@ -86,11 +74,7 @@ const defaultOptions: Options = {
   includeEmptyFiles: true,
   rssRecentNotesText: "Recent notes",
   rssLastFewNotesText: (count) => `Last ${count} notes`,
-  emitGraphIndex: false,
 }
-
-/** Matches graph-landing's client-side EXCERPT_LENGTH constant. */
-const GRAPH_EXCERPT_LENGTH = 220
 
 /** Exported for direct unit testing of the surrogate-pair-safe cut behavior. */
 export function truncateText(text: string, maxChars: number): string {
@@ -228,38 +212,46 @@ function generateRSSFeed(
 
 export const ContentIndex: QuartzEmitterPlugin<Partial<Options>> = (opts) => {
   const options = { ...defaultOptions, ...opts }
-  const emitAll = async (ctx: BuildCtx, content: ProcessedContent[]): Promise<FilePath[]> => {
+  const entryByPath = new Map<FilePath, ContentDetails>()
+  let cacheInitialized = false
+
+  const contentEntry = (
+    ctx: BuildCtx,
+    [tree, file]: ProcessedContent,
+  ): ContentDetails | undefined => {
     const cfg = ctx.cfg.configuration
     const siteHosts = siteHostsForBlog(cfg.baseUrl ?? "")
-    const linkIndex: ContentIndexMap = new Map()
-    for (const [tree, file] of content) {
-      const data = (file.data as Record<string, unknown>) ?? {}
-      if (data.unlisted === true) continue
-      const slug = data.slug as FullSlug
-      const date = getDate(data as QuartzPluginData) ?? new Date()
-      const text = data.text as string | undefined
-      if (options.includeEmptyFiles || (text && text !== "")) {
-        const frontmatter = (data.frontmatter as Record<string, unknown> | undefined) ?? {}
-        const isEncrypted = data.encrypted === true
-        linkIndex.set(slug, {
-          slug,
-          filePath: data.relativePath as FilePath,
-          title: (frontmatter.title as string) ?? "",
-          links: (data.links as SimpleSlug[] | undefined) ?? [],
-          tags: (frontmatter.tags as string[] | undefined) ?? [],
-          externalLinks: collectExternalLinks({ tree: tree as Root, siteHosts }),
-          content: text ?? "",
-          richContent:
-            options.rssFullHtml && !isEncrypted
-              ? escapeHTML(toHtml(tree as Root, { allowDangerousHtml: true }))
-              : undefined,
-          date: date,
-          description: (data.description as string | undefined) ?? "",
-          multilingual: readTranslationDetails(data),
-        })
-      }
-    }
+    const data = (file.data as Record<string, unknown>) ?? {}
+    if (data.unlisted === true) return undefined
+    const text = data.text as string | undefined
+    if (!options.includeEmptyFiles && (!text || text === "")) return undefined
 
+    const slug = data.slug as FullSlug
+    const frontmatter = (data.frontmatter as Record<string, unknown> | undefined) ?? {}
+    const isEncrypted = data.encrypted === true
+    return {
+      slug,
+      filePath: data.relativePath as FilePath,
+      title: (frontmatter.title as string) ?? "",
+      links: (data.links as SimpleSlug[] | undefined) ?? [],
+      tags: (frontmatter.tags as string[] | undefined) ?? [],
+      externalLinks: collectExternalLinks({ tree: tree as Root, siteHosts }),
+      content: text ?? "",
+      richContent:
+        options.rssFullHtml && !isEncrypted
+          ? escapeHTML(toHtml(tree as Root, { allowDangerousHtml: true }))
+          : undefined,
+      date: getDate(data as QuartzPluginData) ?? new Date(),
+      description: (data.description as string | undefined) ?? "",
+      multilingual: readTranslationDetails(data),
+    }
+  }
+
+  const emitIndex = async (ctx: BuildCtx): Promise<FilePath[]> => {
+    const cfg = ctx.cfg.configuration
+    const linkIndex: ContentIndexMap = new Map(
+      Array.from(entryByPath.values(), (entry) => [entry.slug, entry]),
+    )
     const outputs: FilePath[] = []
     if (options.enableSiteMap) {
       outputs.push(
@@ -284,39 +276,22 @@ export const ContentIndex: QuartzEmitterPlugin<Partial<Options>> = (opts) => {
     }
 
     const fp = joinSegments("static", "contentIndex") as unknown as FullSlug
-    const graphIndexEntries: Record<string, GraphIndexEntry> | undefined = options.emitGraphIndex
-      ? {}
-      : undefined
 
     const simplifiedIndex = Object.fromEntries(
       Array.from(linkIndex).map(([slug, content]) => {
-        delete content.description
-        delete content.date
-
-        if (graphIndexEntries) {
-          graphIndexEntries[slug] = {
-            slug: content.slug,
-            title: content.title,
-            links: content.links,
-            tags: content.tags,
-            externalLinks: content.externalLinks,
-            excerpt: truncateText(content.content, GRAPH_EXCERPT_LENGTH),
-            multilingual: content.multilingual,
-          }
-        }
-
+        const { description: _description, date: _date, ...indexContent } = content
         if (options.contentMaxChars !== undefined) {
           // Clamp negative caps to 0 rather than passing them straight to
           // truncateText/slice, where a negative index counts from the end
           // of the string and would silently keep a surprising tail of
           // content instead of truncating it.
           const cap = Math.max(0, options.contentMaxChars)
-          if (content.content.length > cap) {
-            content.content = truncateText(content.content, cap)
+          if (indexContent.content.length > cap) {
+            indexContent.content = truncateText(indexContent.content, cap)
           }
         }
 
-        return [slug, content]
+        return [slug, indexContent]
       }),
     )
 
@@ -329,24 +304,68 @@ export const ContentIndex: QuartzEmitterPlugin<Partial<Options>> = (opts) => {
       }),
     )
 
-    if (graphIndexEntries) {
-      outputs.push(
-        await write({
-          ctx,
-          content: JSON.stringify(graphIndexEntries),
-          slug: joinSegments("static", "graphIndex") as unknown as FullSlug,
-          ext: ".json",
-        }),
-      )
+    return outputs
+  }
+
+  const emitAll = async (ctx: BuildCtx, content: ProcessedContent[]): Promise<FilePath[]> => {
+    entryByPath.clear()
+    for (const processed of content) {
+      const entry = contentEntry(ctx, processed)
+      const relativePath = processed[1].data.relativePath
+      if (entry && relativePath) entryByPath.set(relativePath, entry)
+    }
+    cacheInitialized = true
+    return emitIndex(ctx)
+  }
+
+  const emitChanged = async (
+    ctx: BuildCtx,
+    content: ProcessedContent[],
+    changeEvents: ChangeEvent[],
+  ): Promise<FilePath[]> => {
+    if (!cacheInitialized) return emitAll(ctx, content)
+
+    const changedPaths = new Set(changeEvents.map((event) => event.path))
+    const virtualPages =
+      (ctx as BuildCtx & { virtualPages?: ProcessedContent[] }).virtualPages ?? []
+    const virtualPaths = new Set<FilePath>(
+      virtualPages
+        .map(([, file]) => file.data.relativePath)
+        .filter((path): path is FilePath => path !== undefined),
+    )
+    const currentByPath = new Map<FilePath, ProcessedContent>()
+    for (const processed of content) {
+      const relativePath = processed[1].data.relativePath
+      if (relativePath && (changedPaths.has(relativePath) || virtualPaths.has(relativePath))) {
+        currentByPath.set(relativePath, processed)
+      }
     }
 
-    return outputs
+    for (const event of changeEvents) {
+      entryByPath.delete(event.path)
+      if (event.type === "delete") continue
+      const processed = currentByPath.get(event.path)
+      if (!processed) continue
+      const entry = contentEntry(ctx, processed)
+      if (entry) entryByPath.set(event.path, entry)
+    }
+
+    for (const path of virtualPaths) {
+      entryByPath.delete(path)
+      const processed = currentByPath.get(path)
+      if (!processed) continue
+      const entry = contentEntry(ctx, processed)
+      if (entry) entryByPath.set(path, entry)
+    }
+
+    return emitIndex(ctx)
   }
 
   return {
     name: "ContentIndex",
     emit: (ctx, content) => emitAll(ctx, content),
     // RSS auto-discovery link tag should be added via a component plugin or manually in the layout.
-    partialEmit: (ctx, content) => emitAll(ctx, content),
+    partialEmit: (ctx, content, _resources, changeEvents) =>
+      emitChanged(ctx, content, changeEvents),
   }
 }

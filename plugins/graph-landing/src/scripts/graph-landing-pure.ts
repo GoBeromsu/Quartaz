@@ -46,26 +46,176 @@ export interface GraphData {
   links: GraphLink[]
 }
 
-// Bare YouTube video id shape (11 chars in practice, but YT ids aren't
-// formally length-locked, so this stays a little wider); deliberately does
-// not accept a full youtube.com/youtu.be URL — callers must extract the id
-// themselves (see README's ambientVideoId docs).
-const AMBIENT_VIDEO_ID_PATTERN = /^[A-Za-z0-9_-]{6,20}$/
+export function isMarkdownFilePath(value: unknown): boolean {
+  return typeof value === "string" && value.trim().toLowerCase().endsWith(".md")
+}
 
 /**
- * Validates a user-supplied `ambientVideoId` option value read from the
- * `data-graph-ambient-video-id` attribute: trims whitespace and accepts
- * only a bare id matching `AMBIENT_VIDEO_ID_PATTERN`. Returns `undefined`
- * for anything else (unset, empty/whitespace-only, malformed, or a full
- * URL), so callers can fall back to the current hardcoded ambient track
- * unchanged when the option is absent or invalid.
+ * Maps a node degree into a bounded 0..1 visual mass. Square-root scaling
+ * preserves visible differences between ordinary notes without letting a
+ * single extreme hub dominate the graph.
  */
-export function sanitizeAmbientVideoId(value: string | undefined | null): string | undefined {
+export function normalizedDegreeWeight(
+  degree: number,
+  minDegree: number,
+  maxDegree: number,
+): number {
+  const current = Number.isFinite(degree) ? Math.max(0, degree) : 0
+  const min = Number.isFinite(minDegree) ? Math.max(0, minDegree) : 0
+  const max = Number.isFinite(maxDegree) ? Math.max(min, maxDegree) : min
+  if (max === min) {
+    return min > 0 ? 0.5 : 0
+  }
+  const clamped = Math.min(max, Math.max(min, current))
+  return (Math.sqrt(clamped) - Math.sqrt(min)) / (Math.sqrt(max) - Math.sqrt(min))
+}
+
+/**
+ * Uses the heavier endpoint as a link's gravitational mass. The result is
+ * bounded so force tuning cannot collapse around an unusually large hub.
+ */
+export function linkDegreeWeight(
+  sourceDegree: number,
+  targetDegree: number,
+  maxDegree: number,
+): number {
+  return normalizedDegreeWeight(Math.max(sourceDegree, targetDegree), 0, maxDegree)
+}
+
+function boundedFinite(value: number, min: number, max: number): number {
+  return Number.isFinite(value) ? Math.min(max, Math.max(min, value)) : min
+}
+
+/**
+ * Gives highly connected nodes proportionally more repulsive mass. This
+ * counterbalances their larger number of attractive links without allowing
+ * a single hub to fling the rest of the graph out of view.
+ */
+export function nodeRepulsionScale(degreeWeight: number): number {
+  return 1 + boundedFinite(degreeWeight, 0, 1) * 1.2
+}
+
+/**
+ * Scales real-link distance by the heavier endpoint's normalized degree.
+ * Gravity 1 preserves the original degree-weighted shortening.
+ */
+export function hubGravityDistanceScale(degreeWeight: number, gravity: number): number {
+  const weight = boundedFinite(degreeWeight, 0, 1)
+  const boundedGravity = boundedFinite(gravity, 0, 2)
+  return Math.max(0.5, 1 - weight * 0.24 * boundedGravity)
+}
+
+/**
+ * Scales real-link strength by the heavier endpoint's normalized degree.
+ * Gravity 1 preserves the original degree-weighted strengthening.
+ */
+export function hubGravityStrengthScale(degreeWeight: number, gravity: number): number {
+  const weight = boundedFinite(degreeWeight, 0, 1)
+  const boundedGravity = boundedFinite(gravity, 0, 2)
+  return Math.min(1.6, 1 + weight * 0.3 * boundedGravity)
+}
+
+// Bare YouTube video ids are 11 characters in practice, but YouTube does not
+// formally lock their length. Keep this permissive enough for valid IDs while
+// rejecting arbitrary URL fragments and malformed values.
+const YOUTUBE_VIDEO_ID_PATTERN = /^[A-Za-z0-9_-]{6,20}$/
+const YOUTUBE_WATCH_HOSTS = new Set([
+  "youtube.com",
+  "www.youtube.com",
+  "music.youtube.com",
+  "m.youtube.com",
+])
+const YOUTUBE_SHORT_HOSTS = new Set(["youtu.be", "www.youtu.be"])
+
+function validYoutubeVideoId(value: string | null | undefined): string | undefined {
+  return value && YOUTUBE_VIDEO_ID_PATTERN.test(value) ? value : undefined
+}
+
+/**
+ * Extracts a YouTube video ID from a bare ID or a trusted YouTube URL. URL
+ * inputs must use HTTP(S), have no credentials or custom port, and match one
+ * of the documented watch, short, embed, or shorts URL forms.
+ */
+export function youtubeVideoId(value: string | undefined | null): string | undefined {
   if (!value) {
     return undefined
   }
+
   const trimmed = value.trim()
-  return AMBIENT_VIDEO_ID_PATTERN.test(trimmed) ? trimmed : undefined
+  const bareId = validYoutubeVideoId(trimmed)
+  if (bareId) {
+    return bareId
+  }
+
+  let url: URL
+  try {
+    url = new URL(trimmed)
+  } catch {
+    return undefined
+  }
+
+  if (
+    (url.protocol !== "https:" && url.protocol !== "http:") ||
+    url.username ||
+    url.password ||
+    url.port
+  ) {
+    return undefined
+  }
+
+  if (YOUTUBE_WATCH_HOSTS.has(url.hostname)) {
+    if (url.pathname === "/watch") {
+      return validYoutubeVideoId(url.searchParams.get("v"))
+    }
+
+    const pathSegments = url.pathname.split("/").filter(Boolean)
+    if (
+      pathSegments.length === 2 &&
+      (pathSegments[0] === "shorts" || pathSegments[0] === "embed")
+    ) {
+      return validYoutubeVideoId(pathSegments[1])
+    }
+  }
+
+  if (YOUTUBE_SHORT_HOSTS.has(url.hostname)) {
+    const pathSegments = url.pathname.split("/").filter(Boolean)
+    if (pathSegments.length === 1) {
+      return validYoutubeVideoId(pathSegments[0])
+    }
+  }
+
+  return undefined
+}
+
+export type MusicTrackInput = { title: string; artist?: string; url: string }
+
+export type YoutubeTrack = { title: string; artist?: string; videoId: string }
+
+/**
+ * Returns valid, titled YouTube tracks in configured order, omitting invalid
+ * and duplicate videos. The first configured metadata wins for a video ID.
+ */
+export function youtubeTracks(values: readonly MusicTrackInput[]): YoutubeTrack[] {
+  const tracks: YoutubeTrack[] = []
+  const seen = new Set<string>()
+
+  for (const value of values) {
+    const title = value.title.trim()
+    const videoId = youtubeVideoId(value.url)
+    if (!title || !videoId || seen.has(videoId)) {
+      continue
+    }
+
+    seen.add(videoId)
+    const artist = value.artist?.trim()
+    if (artist) {
+      tracks.push({ title, artist, videoId })
+    } else {
+      tracks.push({ title, videoId })
+    }
+  }
+
+  return tracks
 }
 
 export function linkEndpointId(endpoint: string | GraphNode): string {

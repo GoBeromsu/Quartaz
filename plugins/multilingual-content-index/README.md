@@ -2,11 +2,9 @@
 
 Content index emitter for Quartz sites. Always writes
 `static/contentIndex.json` (the search/preview data source), and optionally
-writes `static/sitemap.xml`, an RSS feed, and a lighter
-`static/graphIndex.json` for the `graph-landing` page type. All options are
-optional and default to the plugin's original behavior — setting none of
-them reproduces the exact output of a plugin instance with no `options`
-block at all.
+writes `static/sitemap.xml` and an RSS feed. All options are optional and
+default to the plugin's original behavior — setting none of them reproduces
+the exact output of a plugin instance with no `options` block at all.
 
 ## Install
 
@@ -25,7 +23,6 @@ in this monorepo and is referenced by local path:
     includeEmptyFiles: true
     rssRecentNotesText: Recent notes
     contentMaxChars: 20000
-    emitGraphIndex: false
 ```
 
 ## Options
@@ -98,15 +95,6 @@ Caps the number of characters of a note's rendered content stored in
   unsearchable, so set this only as a deliberate payload-size/perf
   trade-off, not casually.
 
-### `emitGraphIndex`
-
-Additionally emit `static/graphIndex.json`, a lighter per-note projection
-used by the `graph-landing` page type when its `indexSource` option is set
-to `"graphIndex"` (see that plugin's README).
-
-- Default: `false` — no `graphIndex.json` is written, original behavior
-  unchanged.
-
 ## Output: `static/contentIndex.json`
 
 A map from slug to per-note details:
@@ -136,27 +124,3 @@ A map from slug to per-note details:
 Note: although the underlying type also declares `date` and `description`
 fields, both are stripped before the file is written — they never actually
 appear in the emitted JSON.
-
-## Output: `static/graphIndex.json`
-
-Only written when `emitGraphIndex: true`. A lighter, graph-only projection
-of the same per-note data, consumed by `graph-landing` when its
-`indexSource` option is `"graphIndex"`:
-
-```ts
-{
-  slug: string
-  title: string
-  links: string[]
-  tags: string[]
-  externalLinks: string[]
-  excerpt: string // pre-truncated, see below
-  multilingual?: { /* same shape as contentIndex.json above */ }
-}
-```
-
-`excerpt` replaces `content`/`richContent` and is pre-truncated server-side
-to 220 characters (surrogate-pair-safe, so multi-byte characters like emoji
-are never split mid-character) — this matches `graph-landing`'s own
-client-side `EXCERPT_LENGTH` constant, so the two stay in sync by
-construction rather than by convention.

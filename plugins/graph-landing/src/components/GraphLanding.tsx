@@ -3,7 +3,6 @@ import type {
   QuartzComponentConstructor,
   QuartzComponentProps,
 } from "@quartz-community/types"
-import { joinSegments } from "@quartz-community/types"
 import type { GraphLandingPageOptions } from "../pageType"
 // @ts-expect-error - inline script import handled by tsup inline-script-loader
 import graphLandingScript from "../scripts/graph-landing.inline.ts"
@@ -44,6 +43,10 @@ interface OverlayCopy {
   controls: string
   audioStop: string
   audioPlay: string
+  musicLibraryOpen: string
+  musicLibraryClose: string
+  musicLibraryTitle: string
+  musicCurrentTrack: string
   folderRoot: string
   previewHint: string
   previewTagTemplate: string
@@ -56,6 +59,7 @@ interface OverlayCopy {
   tune: string
   nodeSize: string
   edgeWidth: string
+  hubGravity: string
 }
 
 interface LocaleToggleLink {
@@ -87,6 +91,10 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
       controls: "Controls",
       audioStop: "노래 끄기",
       audioPlay: "노래 켜기",
+      musicLibraryOpen: "레코드 컬렉션 열기",
+      musicLibraryClose: "레코드 컬렉션 닫기",
+      musicLibraryTitle: "레코드",
+      musicCurrentTrack: "현재 트랙",
       folderRoot: "루트",
       previewHint: "클릭하면 연결이 열립니다",
       previewTagTemplate: "{n}개 노트",
@@ -99,6 +107,7 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
       tune: "Tune",
       nodeSize: "Node size",
       edgeWidth: "Edge width",
+      hubGravity: "허브 인력",
     }
   }
 
@@ -122,6 +131,10 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
     controls: "Controls",
     audioStop: "Stop music",
     audioPlay: "Play music",
+    musicLibraryOpen: "Open record collection",
+    musicLibraryClose: "Close record collection",
+    musicLibraryTitle: "Records",
+    musicCurrentTrack: "Current track",
     folderRoot: "Root",
     previewHint: "Click to inspect connections",
     previewTagTemplate: "{n} notes",
@@ -134,6 +147,7 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
     tune: "Tune",
     nodeSize: "Node size",
     edgeWidth: "Edge width",
+    hubGravity: "Hub gravity",
   }
 }
 
@@ -214,30 +228,18 @@ function localeToggleLink(
   }
 }
 
-/**
- * Minimal local reimplementation of @quartz-community/utils' pathToRoot, so
- * graph-landing does not need to add that package as a dependency just for
- * this one helper.
- */
 function pathToRoot(slug: string): string {
-  let rootPath = slug
+  const root = slug
     .split("/")
-    .filter((segment) => segment !== "")
+    .filter(Boolean)
     .slice(0, -1)
     .map(() => "..")
     .join("/")
-  if (rootPath.length === 0) {
-    rootPath = "."
-  }
-  return rootPath
-}
-
-const defaultComponentOptions: GraphLandingPageOptions = {
-  indexSource: "contentIndex",
+  return root || "."
 }
 
 export default ((pageOptions?: GraphLandingPageOptions) => {
-  const options = { ...defaultComponentOptions, ...pageOptions }
+  const options = pageOptions ?? {}
 
   // dispatcher.ts always calls `pageType.body(undefined)`, so any per-page
   // options must be closed over here, one level up, rather than threaded
@@ -264,7 +266,7 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
       const writingHref = writingSlug
         ? slugToAbsHref(writingSlug)
         : localePageHref(localeId, "writing")
-      const graphIndexPath = joinSegments(pathToRoot(slug), "static/graphIndex.json")
+      const graphIndexPath = `${pathToRoot(slug)}/static/graphIndex.json`
 
       return (
         <div
@@ -304,7 +306,7 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
           data-graph-interaction-incremental-repaint={
             options.interaction?.incrementalRepaint ? "true" : undefined
           }
-          data-graph-ambient-video-id={options.ambientVideoId}
+          data-graph-music-tracks={JSON.stringify(options.music?.tracks ?? [])}
           data-graph-default-locale={options.defaultLocale}
           data-counts-template={copy.countsTemplate}
           data-folder-root-label={copy.folderRoot}
@@ -317,6 +319,10 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
           data-inspect-open-external={copy.inspectOpenExternal}
           data-audio-stop={copy.audioStop}
           data-audio-play={copy.audioPlay}
+          data-music-library-open={copy.musicLibraryOpen}
+          data-music-library-close={copy.musicLibraryClose}
+          data-music-library-title={copy.musicLibraryTitle}
+          data-music-current-track={copy.musicCurrentTrack}
           data-inspect-connected={copy.inspectConnected}
           data-inspect-empty={copy.inspectEmpty}
         >
@@ -431,64 +437,74 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
                   />
                 </svg>
               </button>
-              <button
-                type="button"
-                class="graph-landing__audio-toggle"
-                data-graph-audio-toggle
-                data-playing="true"
-                aria-pressed="true"
-                aria-label={copy.audioStop}
-                title={copy.audioStop}
+              <div class="graph-landing__music-dock">
+                <button
+                  type="button"
+                  class="graph-landing__audio-toggle"
+                  data-graph-audio-toggle
+                  data-playing="false"
+                  aria-pressed="false"
+                  aria-label={copy.audioPlay}
+                  title={copy.audioPlay}
+                >
+                  <span class="graph-landing__turntable" aria-hidden="true">
+                    <span class="graph-landing__turntable-plinth">
+                      <span class="graph-landing__turntable-record">
+                        <span class="graph-landing__turntable-label"></span>
+                        <span class="graph-landing__turntable-spindle"></span>
+                      </span>
+                      <svg
+                        class="graph-landing__turntable-tonearm"
+                        viewBox="0 0 32 32"
+                        focusable="false"
+                      >
+                        <circle cx="25" cy="7" r="2.5" />
+                        <path d="M24.2 8.8 17.6 19.6 12.5 22.2" />
+                        <path d="m10.3 21.6 3.9 1.8-1.4 2.7-3.9-1.8Z" />
+                      </svg>
+                    </span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  class="graph-landing__music-library-toggle"
+                  data-graph-music-library-toggle
+                  aria-controls="graph-landing-music-library"
+                  aria-expanded="false"
+                  aria-label={copy.musicLibraryOpen}
+                  title={copy.musicLibraryOpen}
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path
+                      d="M5 5.5h14v13H5zM8 9h8M8 12h8M8 15h5"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-width="1.7"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <section
+                class="graph-landing__music-library"
+                id="graph-landing-music-library"
+                data-graph-music-library
+                aria-label={copy.musicLibraryTitle}
+                aria-hidden="true"
+                hidden
               >
-                <svg
-                  class="graph-landing__icon graph-landing__icon--audio-on"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.6"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M4.5 10v4h3.2L12 18.2V5.8L7.7 10H4.5Z"
-                  />
-                  <path
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.6"
-                    stroke-linecap="round"
-                    d="M15.2 9.2a3.4 3.4 0 0 1 0 5.6M17.6 7a6.2 6.2 0 0 1 0 10"
-                  />
-                </svg>
-                <svg
-                  class="graph-landing__icon graph-landing__icon--audio-off"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.6"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M4.5 10v4h3.2L12 18.2V5.8L7.7 10H4.5Z"
-                  />
-                  <path
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.6"
-                    stroke-linecap="round"
-                    d="M16 9.5 20 14.5M20 9.5 16 14.5"
-                  />
-                </svg>
-              </button>
+                <div class="graph-landing__music-library-heading">
+                  <span>{copy.musicLibraryTitle}</span>
+                  <span data-graph-music-status aria-live="polite"></span>
+                </div>
+                <div class="graph-landing__music-track-list" data-graph-music-track-list></div>
+              </section>
               <div class="graph-landing__audio" data-graph-audio-host aria-hidden="true"></div>
               <div
                 class="graph-landing__rail"
@@ -625,6 +641,17 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
                         value="100"
                         data-graph-spread
                         aria-label={copy.spacing}
+                      />
+                    </label>
+                    <label class="graph-landing__slider">
+                      <span>{copy.hubGravity}</span>
+                      <input
+                        type="range"
+                        min="0"
+                        max="200"
+                        value="100"
+                        data-graph-hub-gravity
+                        aria-label={copy.hubGravity}
                       />
                     </label>
                     <label class="graph-landing__slider">

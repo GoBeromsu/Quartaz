@@ -1,12 +1,7 @@
 import { QuartzPageTypePlugin } from '@quartz-community/types';
 
 interface GraphLandingPageOptions {
-    /**
-     * Where the graph page's client script loads its content data from.
-     * "contentIndex" (default) fetches static/contentIndex.json, same as before.
-     * "graphIndex" fetches the lighter static/graphIndex.json instead (requires
-     * the multilingual-content-index emitter's `emitGraphIndex: true` option).
-     */
+    /** Selects the generic content index or a lighter graph-only projection. */
     indexSource?: "contentIndex" | "graphIndex";
     /**
      * Caps the O(k^2) tag co-occurrence edge generation in the client graph
@@ -177,15 +172,20 @@ interface GraphLandingPageOptions {
         incrementalRepaint?: boolean;
     };
     /**
-     * YouTube video id for the ambient audio track played behind the graph.
-     * Must be a bare video id (not a URL) — e.g. from
-     * https://www.youtube.com/watch?v=o6HpCFhNcnQ the id is `o6HpCFhNcnQ`.
-     * Default: undefined — current behavior unchanged, the plugin's built-in
-     * ambient track plays. Validated client-side (trimmed, must match
-     * `/^[A-Za-z0-9_-]{6,20}$/`); an invalid value is ignored and the
-     * built-in track plays instead.
+     * Locally configured YouTube music for the graph turntable.
      */
-    ambientVideoId?: string;
+    music?: {
+        /**
+         * Curated tracks to cycle through. Each entry needs a title and a YouTube
+         * video ID or youtube.com/youtu.be URL; artist is optional display
+         * metadata.
+         */
+        tracks?: Array<{
+            title: string;
+            artist?: string;
+            url: string;
+        }>;
+    };
     /**
      * Fallback locale id used when a page's locale cannot be determined from
      * its multilingual frontmatter/slug prefix, and when the site's
