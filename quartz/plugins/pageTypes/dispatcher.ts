@@ -25,6 +25,7 @@ export type IncrementalPageState = {
   slug: string
   tags: string[]
   translationKey?: string
+  listingFingerprint: string
 }
 
 export function snapshotPageState(
@@ -37,10 +38,23 @@ export function snapshotPageState(
     if (!relativePath || !slug) continue
     const tags = file.data.frontmatter?.tags
     const multilingual = file.data.multilingual
+    const frontmatter = file.data.frontmatter as Record<string, unknown> | undefined
     snapshot.set(relativePath, {
       slug,
       tags: Array.isArray(tags) ? tags.filter((tag): tag is string => typeof tag === "string") : [],
       translationKey: isTranslationMetadata(multilingual) ? multilingual.translationKey : undefined,
+      listingFingerprint: JSON.stringify([
+        slug,
+        tags,
+        frontmatter?.title,
+        frontmatter?.description,
+        frontmatter?.date,
+        frontmatter?.created,
+        frontmatter?.modified,
+        file.data.description,
+        file.data.dates,
+        file.data.unlisted,
+      ]),
     })
   }
   return snapshot
@@ -72,7 +86,7 @@ export function affectedPageSlugs(
   previous: Map<FilePath, IncrementalPageState>,
   localeIds: string[],
 ): Set<string> {
-  const affected = new Set<string>(["index"])
+  const affected = new Set<string>()
   const translationsByKey = new Map<string, Set<string>>()
   for (const state of [...previous.values(), ...current.values()]) {
     if (!state.translationKey) continue
@@ -80,22 +94,34 @@ export function affectedPageSlugs(
     slugs.add(state.slug)
     translationsByKey.set(state.translationKey, slugs)
   }
-  for (const localeId of localeIds) {
-    affected.add(`${localeId}/index`)
-    affected.add(`${localeId}/writing`)
-  }
-
   for (const event of changeEvents) {
     const before = previous.get(event.path)
     const after = current.get(event.path)
+    const dependenciesChanged =
+      event.type !== "change" ||
+      !before ||
+      !after ||
+      before.slug !== after.slug ||
+      before.listingFingerprint !== after.listingFingerprint
+    const translationChanged =
+      event.type !== "change" || before?.translationKey !== after?.translationKey
+
     for (const state of [before, after]) {
       if (!state) continue
       affected.add(state.slug)
-      if (state.translationKey) {
+      if (translationChanged && state.translationKey) {
         for (const slug of translationsByKey.get(state.translationKey) ?? []) affected.add(slug)
       }
+      if (!dependenciesChanged) continue
       for (const slug of folderIndexSlugs(state.slug)) affected.add(slug)
       for (const slug of tagPageSlugs(state.tags)) affected.add(slug)
+    }
+    if (dependenciesChanged) {
+      affected.add("index")
+      for (const localeId of localeIds) {
+        affected.add(`${localeId}/index`)
+        affected.add(`${localeId}/writing`)
+      }
     }
   }
   return affected
