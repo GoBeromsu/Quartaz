@@ -30,6 +30,7 @@ describe("affectedPageSlugs", () => {
         {
           slug: "70.-collections/01-people/ada",
           tags: ["people/researcher"],
+          listingFingerprint: "ada-v1",
         },
       ],
     ])
@@ -56,8 +57,12 @@ describe("affectedPageSlugs", () => {
 
   test("uses previous state to invalidate deleted and retagged entries", () => {
     const path = "notes/example.md" as FilePath
-    const previous = new Map([[path, { slug: "notes/example", tags: ["old/nested"] }]])
-    const current = new Map([[path, { slug: "notes/example", tags: ["new"] }]])
+    const previous = new Map([
+      [path, { slug: "notes/example", tags: ["old/nested"], listingFingerprint: "old" }],
+    ])
+    const current = new Map([
+      [path, { slug: "notes/example", tags: ["new"], listingFingerprint: "new" }],
+    ])
 
     const affected = affectedPageSlugs([{ type: "change", path }], current, previous, [])
 
@@ -70,20 +75,63 @@ describe("affectedPageSlugs", () => {
   test("invalidates translation siblings when alternate links change", () => {
     const sourcePath = "notes/source.md" as FilePath
     const translatedPath = "en/notes/source.md" as FilePath
+    const previous = new Map([
+      [
+        sourcePath,
+        {
+          slug: "ko/notes/source",
+          tags: [],
+          translationKey: "notes/source",
+          listingFingerprint: "source-v1",
+        },
+      ],
+    ])
     const current = new Map([
-      [sourcePath, { slug: "ko/notes/source", tags: [], translationKey: "notes/source" }],
-      [translatedPath, { slug: "en/notes/source", tags: [], translationKey: "notes/source" }],
+      [
+        sourcePath,
+        {
+          slug: "ko/notes/source",
+          tags: [],
+          translationKey: "notes/source",
+          listingFingerprint: "source-v1",
+        },
+      ],
+      [
+        translatedPath,
+        {
+          slug: "en/notes/source",
+          tags: [],
+          translationKey: "notes/source",
+          listingFingerprint: "translation-v1",
+        },
+      ],
     ])
 
-    const affected = affectedPageSlugs(
-      [{ type: "change", path: translatedPath }],
-      current,
-      current,
-      ["ko", "en"],
-    )
+    const affected = affectedPageSlugs([{ type: "add", path: translatedPath }], current, previous, [
+      "ko",
+      "en",
+    ])
 
     assert.ok(affected.has("ko/notes/source"))
     assert.ok(affected.has("en/notes/source"))
+  })
+
+  test("body-only edits rebuild only the changed page", () => {
+    const path = "notes/example.md" as FilePath
+    const state = {
+      slug: "notes/example",
+      tags: ["stable"],
+      listingFingerprint: "stable-metadata",
+    }
+
+    const affected = affectedPageSlugs(
+      [{ type: "change", path }],
+      new Map([[path, state]]),
+      new Map([[path, state]]),
+      ["ko"],
+    )
+
+    assert.deepStrictEqual([...affected], ["notes/example"])
   })
 })
 
