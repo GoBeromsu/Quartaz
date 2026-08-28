@@ -147,8 +147,8 @@ plugins:
       enableRSS: true
       contentMaxChars: 120
       emitGraphIndex: true
-      graphIndexMaxNodes: 600
-      graphIndexMaxLinksPerNode: 4
+      graphIndexMaxNodes: 50000
+      graphIndexMaxLinksPerNode: 50000
   - source: ./plugins/graph-landing
     enabled: true
     options:
