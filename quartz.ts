@@ -118,6 +118,10 @@ const layout = await loadQuartzLayout({
           component: Component.External("content-meta"),
           condition: (props) => !isWritingPage(props.fileData),
         }),
+        Component.ConditionalRender({
+          component: Component.External("note-properties"),
+          condition: (props) => !isWritingPage(props.fileData),
+        }),
       ],
     },
     folder: {

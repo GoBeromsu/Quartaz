@@ -1,0 +1,72 @@
+{
+  "name": "incremental-content-index",
+  "version": "1.0.0",
+  "description": "Incremental capped content index emitter for large local Quartz vaults.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@quartz-community/types": "^0.3.0",
+    "@quartz-community/utils": "^0.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3"
+  },
+  "quartz": {
+    "name": "incremental-content-index",
+    "displayName": "Incremental Content Index",
+    "description": "Changed-entry cache with a bounded browser search payload.",
+    "category": "emitter",
+    "version": "1.0.0",
+    "quartzVersion": ">=5.0.0",
+    "dependencies": [],
+    "defaultOrder": 50,
+    "defaultEnabled": true,
+    "configSchema": {
+      "enableSiteMap": {
+        "type": "boolean"
+      },
+      "enableRSS": {
+        "type": "boolean"
+      },
+      "rssLimit": {
+        "type": "number"
+      },
+      "contentMaxChars": {
+        "type": "number"
+      },
+      "emitGraphIndex": {
+        "type": "boolean"
+      },
+      "graphIndexMaxNodes": {
+        "type": "number"
+      },
+      "graphIndexMaxLinksPerNode": {
+        "type": "number"
+      }
+    }
+  },
+  "engines": {
+    "node": ">=22",
+    "npm": ">=10.9.2"
+  }
+}

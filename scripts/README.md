@@ -6,7 +6,7 @@ only (never 0.0.0.0/localhost).
 ## Primary build mode: resident watch build
 
 `scripts/watch.sh` runs a long-lived `quartz build --watch` process that
-rebuilds `public-live/` incrementally whenever the vault changes (each
+rebuilds `public-watch/` incrementally whenever the vault changes (each
 change typically emits in ~4 min, due to `emitAll`). This is now the
 operational build for the site — `scripts/rebuild.sh` (full periodic
 rebuild into `public`) is kept only as a manual fallback.
@@ -26,8 +26,8 @@ Caveats (see comments at the top of `scripts/watch.sh`):
 
 - `--watch` **cleans `OUT_DIR` on startup**, then does a full initial build
   before the site is servable again — on this vault that takes ~9-10 min.
-  Avoid restarting it casually; `public-live/` is empty/incomplete for the
-  duration of a restart.
+  Its dedicated `public-watch/` output keeps the previous `public-live/`
+  fallback intact during bootstrap and recovery.
 - It refuses to start a second instance for this repo (checks
   `pgrep -f "bin/quartz build --watch"` first).
 - It never passes `--serve` to quartz — that would open quartz's own HTTP
@@ -37,14 +37,12 @@ Caveats (see comments at the top of `scripts/watch.sh`):
 ## Serving
 
 ```sh
-scripts/serve.sh   # serves ./${SITE_DIR:-public-live} on tcp://100.122.16.120:8090
+scripts/serve.sh   # serves ./${SITE_DIR:-public-watch} on tcp://100.122.16.120:8090
 ```
 
-`SITE_DIR` (env override, default `public-live`) selects which built
-directory to serve. `serve.sh` can be started once and left running; both
-`watch.sh` (continuously) and `rebuild.sh` (atomically, on each run) swap
-their output directory's contents on disk underneath it, so the server does
-not need to be restarted after a rebuild.
+`SITE_DIR` (env override, default `public-watch`) selects which built
+directory to serve. `serve.sh` can be started once and left running while
+`watch.sh` updates its output in place.
 
 ## Register with pm2 (example only)
 
@@ -109,7 +107,7 @@ hermes cron resume ataraxia-rebuild
 
 `rebuild.sh`'s atomic rotation (`public` -> `public-prev` -> `public`) only
 applies when using the paused `ataraxia-rebuild` fallback with `OUT_DIR=public`.
-The resident watch build has no rotation/rollback — it rebuilds `public-live`
+The resident watch build has no rotation/rollback — it rebuilds `public-watch`
 in place. To recover from a bad state there, stop the watch process and
 either wait out a fresh `--watch` startup rebuild or fall back to
 `scripts/rebuild.sh` and repoint `serve.sh`'s `SITE_DIR` at `public`.

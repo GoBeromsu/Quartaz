@@ -2,7 +2,7 @@
 // Review before use, then: pm2 start ecosystem.example.cjs
 //
 // The resident `quartz build --watch` process (scripts/watch.sh) is the
-// primary build mode: it rebuilds public-live/ incrementally as the vault
+// primary build mode: it rebuilds public-watch/ incrementally as the vault
 // changes. scripts/serve.sh serves that directory. A Hermes cron watchdog
 // job ("ataraxia-watch", see scripts/README.md) restarts the watch build
 // if it dies, so pm2 is not required — this file is an alternative example
@@ -25,7 +25,7 @@ module.exports = {
       env: {
         BIND_HOST: "100.122.16.120",
         PORT: "8090",
-        SITE_DIR: "public-live",
+        SITE_DIR: "public-watch",
       },
     },
     {
@@ -35,11 +35,11 @@ module.exports = {
       interpreter: "none",
       autorestart: true,
       // No cron_restart: this is a long-running resident process, not a
-      // periodic job. Restarting it clears public-live/ and takes ~9 min
+      // periodic job. Restarting it clears public-watch/ and takes ~9 min
       // to rebuild, so pm2 should only restart it on crash, not on a timer.
       env: {
         VAULT_DIR: "/Users/beomsu/Obsidian/Ataraxia",
-        OUT_DIR: "public-live",
+        OUT_DIR: "public-watch",
       },
     },
   ],

@@ -2,7 +2,7 @@
 #
 # watch.sh — resident Quartz build in --watch mode (foreground, primary
 # build mode for the local Ataraxia site). Rebuilds incrementally on vault
-# changes into OUT_DIR (default: public-live) and stays running.
+# changes into OUT_DIR (default: public-watch) and stays running.
 #
 # IMPORTANT CAVEATS:
 #  - `quartz build --watch` CLEANS OUT_DIR on startup, then does a full
@@ -16,7 +16,7 @@
 #
 # Env overrides:
 #   VAULT_DIR     - Obsidian vault to build from (default: /Users/beomsu/Obsidian/Ataraxia)
-#   OUT_DIR        - directory watch-builds into, relative to repo root (default: public-live)
+#   OUT_DIR        - directory watch-builds into, relative to repo root (default: public-watch)
 #   NODE_HEAP_MB   - Node --max-old-space-size in MB (default: 8192)
 #
 set -euo pipefail
@@ -28,7 +28,7 @@ REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 export PATH="/opt/homebrew/opt/node@24/bin:$PATH"
 
 VAULT_DIR="${VAULT_DIR:-/Users/beomsu/Obsidian/Ataraxia}"
-OUT_DIR="${OUT_DIR:-public-live}"
+OUT_DIR="${OUT_DIR:-public-watch}"
 NODE_HEAP_MB="${NODE_HEAP_MB:-8192}"
 
 # Refuse to start a second resident watch build for this repo.

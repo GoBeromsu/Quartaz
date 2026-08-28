@@ -9,7 +9,7 @@
 #               empty, 0.0.0.0, localhost, or 127.0.0.1.
 #   PORT      - port to bind (default: 8090)
 #   SITE_DIR  - directory (relative to repo root) to serve (default:
-#               public-live, the resident watch build's output).
+#               public-watch, the resident watch build's output).
 #
 set -euo pipefail
 
@@ -24,7 +24,7 @@ export PATH="/opt/homebrew/opt/node@24/bin:$PATH"
 # caught by the guard below.
 BIND_HOST="${BIND_HOST-100.122.16.120}"
 PORT="${PORT:-8090}"
-SITE_DIR="${SITE_DIR:-public-live}"
+SITE_DIR="${SITE_DIR:-public-watch}"
 
 case "$BIND_HOST" in
   ""|0.0.0.0|localhost|127.0.0.1)

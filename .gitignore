@@ -7,6 +7,7 @@ tsconfig.tsbuildinfo
 .quartz-cache
 public/
 public-live/
+public-watch/
 public-next/
 public-prev*/
 logs/
