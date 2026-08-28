@@ -27,13 +27,11 @@ npx quartz plugin install --from-config
 
 ## Data contract
 
-Stock Quartz's generic `fetchData`/`contentIndex` object is this plugin's
-sole data input. The client reads each entry's `filePath`, `slug`, `title`,
-`links`, `tags`, `externalLinks`, and `content` fields. Only entries whose
-trimmed `filePath` ends in `.md` (case-insensitive) become note nodes.
-Code files and other non-Markdown sources are excluded; virtual tag,
-external-link, folder, and co-occurrence nodes remain derived from the
-accepted Markdown notes.
+`indexSource: contentIndex` uses Quartz's generic `fetchData` object.
+`indexSource: graphIndex` fetches `static/graphIndex.json` directly and asks
+the engine to skip the unused global content-index fetch on graph pages.
+Both shapes read `filePath`, `slug`, `title`, `links`, and `tags`; graph
+indexes may supply a pre-truncated `excerpt` instead of `content`.
 
 ## Options
 
@@ -41,6 +39,7 @@ accepted Markdown notes.
 - source: ./plugins/graph-landing
   enabled: true
   options:
+    indexSource: graphIndex
     tagCooccurrence:
       maxTagsPerNote: 5
       maxEdges: 200
@@ -240,6 +239,10 @@ them in `sessionStorage` for the current browser session.
   bounded pull. Increasing it shortens and strengthens real links touching
   highly connected nodes, then reheats the existing simulation without
   rebuilding graph data.
+- Degree-weighted many-body repulsion counterbalances the extra links carried
+  by hubs, while a 3D sphere-collision force keeps rendered stars physically
+  separated. Link attraction stays deliberately weaker than both forces so
+  dense neighborhoods form readable constellations instead of a single glow.
 - Co-occurrence and folder texture links are intentionally unaffected.
 
 ### `music.tracks`

@@ -353,10 +353,10 @@ describe("BlogStyles Ataraxia contract", () => {
     assertIncludesAll(css, cssMarkers)
   })
 
-  test("prevents duplicate homepage dividers on locale homes", () => {
+  test("prevents duplicate homepage dividers without hiding folder indexes", () => {
     const css = componentCss(BlogStyles())
-    assert.ok(css.includes('body[data-slug="index"]'))
-    assert.ok(css.includes('body[data-slug$="/index"]'))
+    assert.ok(css.includes("body:has(.blog-latest)"))
+    assert.doesNotMatch(css, /data-slug/)
     assert.ok(css.includes(".center.full-width > hr"))
     assert.ok(css.includes(".page-listing"))
     assert.doesNotMatch(

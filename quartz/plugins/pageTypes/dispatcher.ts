@@ -1,4 +1,9 @@
-import { QuartzEmitterPlugin, QuartzPageTypePluginInstance, TreeTransform } from "../types"
+import {
+  ChangeEvent,
+  QuartzEmitterPlugin,
+  QuartzPageTypePluginInstance,
+  TreeTransform,
+} from "../types"
 import { QuartzComponent, QuartzComponentProps } from "../../components/types"
 import { pageResources, renderPage } from "../../components/renderPage"
 import { FullPageLayout } from "../../cfg"
@@ -15,6 +20,86 @@ import {
   isTranslationMetadata,
   localeEntryRedirectPayload,
 } from "../../util/multilingual"
+
+export type IncrementalPageState = {
+  slug: string
+  tags: string[]
+  translationKey?: string
+}
+
+export function snapshotPageState(
+  content: ProcessedContent[],
+): Map<FilePath, IncrementalPageState> {
+  const snapshot = new Map<FilePath, IncrementalPageState>()
+  for (const [, file] of content) {
+    const relativePath = file.data.relativePath
+    const slug = file.data.slug
+    if (!relativePath || !slug) continue
+    const tags = file.data.frontmatter?.tags
+    const multilingual = file.data.multilingual
+    snapshot.set(relativePath, {
+      slug,
+      tags: Array.isArray(tags) ? tags.filter((tag): tag is string => typeof tag === "string") : [],
+      translationKey: isTranslationMetadata(multilingual) ? multilingual.translationKey : undefined,
+    })
+  }
+  return snapshot
+}
+
+function folderIndexSlugs(slug: string): string[] {
+  const parts = slug.split("/").filter(Boolean)
+  const result: string[] = []
+  for (let length = 1; length < parts.length; length += 1) {
+    result.push(`${parts.slice(0, length).join("/")}/index`)
+  }
+  return result
+}
+
+function tagPageSlugs(tags: string[]): string[] {
+  const result = new Set<string>(["tags/index"])
+  for (const tag of tags) {
+    const segments = tag.split("/").filter(Boolean)
+    for (let length = 1; length <= segments.length; length += 1) {
+      result.add(`tags/${segments.slice(0, length).join("/")}`)
+    }
+  }
+  return [...result]
+}
+
+export function affectedPageSlugs(
+  changeEvents: ChangeEvent[],
+  current: Map<FilePath, IncrementalPageState>,
+  previous: Map<FilePath, IncrementalPageState>,
+  localeIds: string[],
+): Set<string> {
+  const affected = new Set<string>(["index"])
+  const translationsByKey = new Map<string, Set<string>>()
+  for (const state of [...previous.values(), ...current.values()]) {
+    if (!state.translationKey) continue
+    const slugs = translationsByKey.get(state.translationKey) ?? new Set<string>()
+    slugs.add(state.slug)
+    translationsByKey.set(state.translationKey, slugs)
+  }
+  for (const localeId of localeIds) {
+    affected.add(`${localeId}/index`)
+    affected.add(`${localeId}/writing`)
+  }
+
+  for (const event of changeEvents) {
+    const before = previous.get(event.path)
+    const after = current.get(event.path)
+    for (const state of [before, after]) {
+      if (!state) continue
+      affected.add(state.slug)
+      if (state.translationKey) {
+        for (const slug of translationsByKey.get(state.translationKey) ?? []) affected.add(slug)
+      }
+      for (const slug of folderIndexSlugs(state.slug)) affected.add(slug)
+      for (const slug of tagPageSlugs(state.tags)) affected.add(slug)
+    }
+  }
+  return affected
+}
 
 function escapeHtmlAttribute(value: string): string {
   return value
@@ -153,6 +238,13 @@ interface DispatcherOptions {
   byPageType: Record<string, Partial<FullPageLayout>>
 }
 
+// Per-page emit failures (e.g. malformed pasted HTML that trips up the
+// hast-util-to-html renderer) must not abort the whole emit phase. State is
+// module-level since emitPage() is a shared helper invoked from multiple
+// loops within a single emit()/partialEmit() call; each of those resets it.
+let emitSkipCount = 0
+const emitSkippedSlugs: string[] = []
+
 async function emitPage(
   ctx: BuildCtx,
   slug: FullSlug,
@@ -162,36 +254,43 @@ async function emitPage(
   layout: FullPageLayout,
   resources: StaticResources,
   treeTransforms?: TreeTransform[],
-) {
+): Promise<FilePath | undefined> {
   const cfg = ctx.cfg.configuration
-  // For the 404 page, use an absolute base path so assets resolve correctly
-  // when the hosting provider serves 404.html from any URL depth.
-  // During local dev (--serve), the dev server strips baseDir itself and
-  // serves files from root, so the 404 page must use "/" to avoid requesting
-  // assets under a path prefix that the dev server doesn't serve.
-  const baseDir =
-    slug === "404"
-      ? ((ctx.argv.serve
-          ? "/"
-          : new URL(`https://${cfg.baseUrl ?? "example.com"}`).pathname) as FullSlug)
-      : pathToRoot(slug)
-  const externalResources = pageResources(baseDir, resources, ctx, layout.skipContentIndexFetch)
-  const componentData: QuartzComponentProps = {
-    ctx,
-    fileData,
-    externalResources,
-    cfg,
-    children: [],
-    tree,
-    allFiles,
-  }
+  try {
+    // For the 404 page, use an absolute base path so assets resolve correctly
+    // when the hosting provider serves 404.html from any URL depth.
+    // During local dev (--serve), the dev server strips baseDir itself and
+    // serves files from root, so the 404 page must use "/" to avoid requesting
+    // assets under a path prefix that the dev server doesn't serve.
+    const baseDir =
+      slug === "404"
+        ? ((ctx.argv.serve
+            ? "/"
+            : new URL(`https://${cfg.baseUrl ?? "example.com"}`).pathname) as FullSlug)
+        : pathToRoot(slug)
+    const externalResources = pageResources(baseDir, resources, ctx, layout.skipContentIndexFetch)
+    const componentData: QuartzComponentProps = {
+      ctx,
+      fileData,
+      externalResources,
+      cfg,
+      children: [],
+      tree,
+      allFiles,
+    }
 
-  return write({
-    ctx,
-    content: renderPage(cfg, slug, componentData, layout, externalResources, treeTransforms),
-    slug,
-    ext: ".html",
-  })
+    return await write({
+      ctx,
+      content: renderPage(cfg, slug, componentData, layout, externalResources, treeTransforms),
+      slug,
+      ext: ".html",
+    })
+  } catch (err) {
+    emitSkipCount++
+    emitSkippedSlugs.push(slug)
+    console.warn(`[emit] Skipping ${slug}: ${(err as Error).message}`)
+    return undefined
+  }
 }
 
 async function* emitMultilingualLegacyRedirects(
@@ -286,6 +385,7 @@ function populateVirtualPageHtmlAst(
 export const PageTypeDispatcher: QuartzEmitterPlugin<Partial<DispatcherOptions>> = (userOpts) => {
   const defaults = userOpts?.defaults ?? {}
   const byPageType = userOpts?.byPageType ?? {}
+  let previousFileState = new Map<FilePath, IncrementalPageState>()
 
   return {
     name: "PageTypeDispatcher",
@@ -294,6 +394,8 @@ export const PageTypeDispatcher: QuartzEmitterPlugin<Partial<DispatcherOptions>>
       return collectComponents(pageTypes, defaults, byPageType)
     },
     async *emit(ctx, content, resources) {
+      emitSkipCount = 0
+      emitSkippedSlugs.length = 0
       const pageTypes = [...getPageTypes(ctx)].sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0))
       const cfg = ctx.cfg.configuration
       const allFiles = content.map((c) => c[1].data)
@@ -353,7 +455,7 @@ export const PageTypeDispatcher: QuartzEmitterPlugin<Partial<DispatcherOptions>>
         for (const pt of pageTypes) {
           if (pt.match({ slug, fileData, cfg })) {
             const layout = resolveLayout(pt, defaults, byPageType)
-            yield emitPage(
+            const written = await emitPage(
               ctx,
               slug,
               tree,
@@ -363,6 +465,7 @@ export const PageTypeDispatcher: QuartzEmitterPlugin<Partial<DispatcherOptions>>
               resources,
               treeTransforms,
             )
+            if (written) yield written
             break
           }
         }
@@ -374,7 +477,7 @@ export const PageTypeDispatcher: QuartzEmitterPlugin<Partial<DispatcherOptions>>
       // Phase 3: Emit virtual pages
       for (const ve of virtualEntries) {
         if (contentSlugs.has(ve.vpSlug)) continue
-        yield emitPage(
+        const written = await emitPage(
           ctx,
           ve.vpSlug,
           ve.tree,
@@ -384,13 +487,31 @@ export const PageTypeDispatcher: QuartzEmitterPlugin<Partial<DispatcherOptions>>
           resources,
           treeTransforms,
         )
+        if (written) yield written
       }
+
+      if (emitSkipCount > 0) {
+        console.warn(
+          `[emit] Skipped ${emitSkipCount} page(s) during emit due to per-page errors: ${emitSkippedSlugs.join(", ")}`,
+        )
+      }
+      previousFileState = snapshotPageState(content)
     },
     async *partialEmit(ctx, content, resources, changeEvents) {
+      emitSkipCount = 0
+      emitSkippedSlugs.length = 0
       const pageTypes = [...getPageTypes(ctx)].sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0))
       const cfg = ctx.cfg.configuration
       const allFiles = content.map((c) => c[1].data)
       const contentSlugs = new Set(allFiles.map((file) => file.slug).filter(Boolean))
+      const currentFileState = snapshotPageState(content)
+      const affectedSlugs = affectedPageSlugs(
+        changeEvents,
+        currentFileState,
+        previousFileState,
+        cfg.multilingual?.locales.map((locale) => locale.id) ?? [],
+      )
+      const emitAllVirtualPages = previousFileState.size === 0
 
       // Collect tree transforms from all page type plugins
       const treeTransforms: TreeTransform[] = pageTypes.flatMap(
@@ -405,6 +526,11 @@ export const PageTypeDispatcher: QuartzEmitterPlugin<Partial<DispatcherOptions>>
         if (!changeEvent.file) continue
         if (changeEvent.type === "add" || changeEvent.type === "change") {
           changedSlugs.add(changeEvent.file.data.slug!)
+        }
+      }
+      for (const slug of affectedSlugs) {
+        if (contentSlugs.has(slug as FullSlug)) {
+          changedSlugs.add(slug)
         }
       }
 
@@ -436,9 +562,13 @@ export const PageTypeDispatcher: QuartzEmitterPlugin<Partial<DispatcherOptions>>
       }
 
       const allFilesWithVirtual = [...allFiles, ...virtualEntries.map((ve) => ve.vfile.data)]
+      const affectedVirtualEntries = emitAllVirtualPages
+        ? virtualEntries
+        : virtualEntries.filter((entry) => affectedSlugs.has(entry.vpSlug))
 
-      // Render Body components to populate htmlAst for transclusion
-      populateVirtualPageHtmlAst(virtualEntries, ctx, allFilesWithVirtual, resources)
+      // Render only invalidated virtual bodies. Rendering every folder and
+      // tag page dominates large-vault rebuilds even when one note changed.
+      populateVirtualPageHtmlAst(affectedVirtualEntries, ctx, allFilesWithVirtual, resources)
 
       // Phase 2: Emit changed regular pages
       const emittedLegacyRedirects = new Set<string>()
@@ -450,7 +580,7 @@ export const PageTypeDispatcher: QuartzEmitterPlugin<Partial<DispatcherOptions>>
         for (const pt of pageTypes) {
           if (pt.match({ slug, fileData, cfg })) {
             const layout = resolveLayout(pt, defaults, byPageType)
-            yield emitPage(
+            const written = await emitPage(
               ctx,
               slug,
               tree,
@@ -460,6 +590,7 @@ export const PageTypeDispatcher: QuartzEmitterPlugin<Partial<DispatcherOptions>>
               resources,
               treeTransforms,
             )
+            if (written) yield written
             break
           }
         }
@@ -469,9 +600,9 @@ export const PageTypeDispatcher: QuartzEmitterPlugin<Partial<DispatcherOptions>>
       yield* emitMultilingualLegacyRedirects(ctx, allFilesWithVirtual, emittedLegacyRedirects)
 
       // Phase 3: Emit virtual pages
-      for (const ve of virtualEntries) {
+      for (const ve of affectedVirtualEntries) {
         if (contentSlugs.has(ve.vpSlug)) continue
-        yield emitPage(
+        const written = await emitPage(
           ctx,
           ve.vpSlug,
           ve.tree,
@@ -481,7 +612,15 @@ export const PageTypeDispatcher: QuartzEmitterPlugin<Partial<DispatcherOptions>>
           resources,
           treeTransforms,
         )
+        if (written) yield written
       }
+
+      if (emitSkipCount > 0) {
+        console.warn(
+          `[emit] Skipped ${emitSkipCount} page(s) during emit due to per-page errors: ${emitSkippedSlugs.join(", ")}`,
+        )
+      }
+      previousFileState = currentFileState
     },
   }
 }

@@ -1,6 +1,8 @@
 import { QuartzPageTypePlugin } from '@quartz-community/types';
 
 interface GraphLandingPageOptions {
+    /** Selects the generic content index or a lighter graph-only projection. */
+    indexSource?: "contentIndex" | "graphIndex";
     /**
      * Caps the O(k^2) tag co-occurrence edge generation in the client graph
      * builder. Default: undefined (unlimited, current behavior — every pair of

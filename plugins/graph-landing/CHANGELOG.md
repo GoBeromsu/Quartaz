@@ -2,6 +2,14 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.6.0
+
+### Changed
+
+- Added degree-weighted many-body repulsion and a 3D sphere-collision force,
+  weakened dense-link attraction, and tightened node bloom/size bounds so
+  highly connected hubs remain prominent without collapsing into a light blob.
+
 ## 0.5.3
 
 ### Fixed

@@ -161,7 +161,7 @@ plugins:
   - source: ./plugins/graph-landing
     enabled: true
     options:
-      maxRenderedNodes: 1500
+      maxRenderedNodes: 150
       expandHops: 1
       tagCooccurrence:
         maxTagsPerNote: 6

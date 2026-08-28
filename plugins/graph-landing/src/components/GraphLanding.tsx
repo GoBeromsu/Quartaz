@@ -228,6 +228,16 @@ function localeToggleLink(
   }
 }
 
+function pathToRoot(slug: string): string {
+  const root = slug
+    .split("/")
+    .filter(Boolean)
+    .slice(0, -1)
+    .map(() => "..")
+    .join("/")
+  return root || "."
+}
+
 export default ((pageOptions?: GraphLandingPageOptions) => {
   const options = pageOptions ?? {}
 
@@ -256,6 +266,7 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
       const writingHref = writingSlug
         ? slugToAbsHref(writingSlug)
         : localePageHref(localeId, "writing")
+      const graphIndexPath = `${pathToRoot(slug)}/static/graphIndex.json`
 
       return (
         <div
@@ -264,6 +275,8 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
           data-locale={localeId}
           data-source-locale={sourceLocale}
           data-locale-prefixes={localePrefixes}
+          data-index-source={options.indexSource}
+          data-graph-index-path={graphIndexPath}
           data-max-rendered-nodes={options.maxRenderedNodes}
           data-expand-hops={options.maxRenderedNodes !== undefined ? options.expandHops : undefined}
           data-tag-cooc-disabled={options.tagCooccurrence === false ? "true" : undefined}

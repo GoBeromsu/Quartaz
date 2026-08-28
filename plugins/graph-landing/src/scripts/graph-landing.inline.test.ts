@@ -9,6 +9,7 @@ import {
   isMarkdownFilePath,
   linkDegreeWeight,
   lodLevelForDistance,
+  nodeRepulsionScale,
   normalizedDegreeWeight,
   parseNonNegativeNumber,
   seedExpandedNodePosition,
@@ -94,6 +95,20 @@ describe("linkDegreeWeight", () => {
     assert.equal(linkDegreeWeight(0, 0, 16), 0)
     assert.equal(linkDegreeWeight(1, 16, 16), 1)
     assert.equal(linkDegreeWeight(64, 1, 16), 1)
+  })
+})
+
+describe("nodeRepulsionScale", () => {
+  it("gives hubs bounded additional repulsive mass", () => {
+    assert.equal(nodeRepulsionScale(0), 1)
+    assert.equal(nodeRepulsionScale(0.5), 1.6)
+    assert.equal(nodeRepulsionScale(1), 2.2)
+  })
+
+  it("clamps invalid and out-of-range weights", () => {
+    assert.equal(nodeRepulsionScale(-1), 1)
+    assert.equal(nodeRepulsionScale(2), 2.2)
+    assert.equal(nodeRepulsionScale(Number.NaN), 1)
   })
 })
 

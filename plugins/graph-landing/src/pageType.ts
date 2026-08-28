@@ -5,7 +5,13 @@ import type {
 } from "@quartz-community/types"
 import GraphLanding from "./components/GraphLanding"
 
+type EngineAwarePageTypeInstance = QuartzPageTypePluginInstance & {
+  skipContentIndexFetch?: boolean
+}
+
 export interface GraphLandingPageOptions {
+  /** Selects the generic content index or a lighter graph-only projection. */
+  indexSource?: "contentIndex" | "graphIndex"
   /**
    * Caps the O(k^2) tag co-occurrence edge generation in the client graph
    * builder. Default: undefined (unlimited, current behavior — every pair of
@@ -202,13 +208,14 @@ const graphPageMatcher: PageMatcher = ({ fileData }) => {
 
 const GraphLandingPage: QuartzPageTypePlugin<GraphLandingPageOptions> = (userOpts) => {
   const options = userOpts ?? {}
-  const instance: QuartzPageTypePluginInstance = {
+  const instance: EngineAwarePageTypeInstance = {
     name: "GraphLanding",
     priority: 20,
     match: graphPageMatcher,
     layout: "graph",
     frame: "minimal",
     body: GraphLanding(options),
+    skipContentIndexFetch: options.indexSource === "graphIndex",
   }
   return instance
 }

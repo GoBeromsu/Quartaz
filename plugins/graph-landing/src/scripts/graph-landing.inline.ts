@@ -28,6 +28,7 @@ import {
   linkDegreeWeight,
   linkEndpointId,
   lodLevelForDistance,
+  nodeRepulsionScale,
   normalizedDegreeWeight,
   parseNonNegativeNumber,
   seedExpandedNodePosition,
@@ -78,6 +79,13 @@ interface BloomPass {
   threshold: number
 }
 
+interface CollisionForce {
+  strength: (value: number) => CollisionForce
+  iterations: (value: number) => CollisionForce
+}
+
+type ForceCollideFactory = (radius: number | ((node: GraphNode) => number)) => CollisionForce
+
 interface ForceGraphInstance {
   graphData: (data: GraphData) => unknown
   backgroundColor: (color: string) => unknown
@@ -97,7 +105,9 @@ interface ForceGraphInstance {
     force?: unknown,
   ) =>
     | {
-        strength?: (value: number | ((link: GraphLink) => number)) => unknown
+        strength?: (
+          value: number | ((node: GraphNode) => number) | ((link: GraphLink) => number),
+        ) => unknown
         distance?: (value: number | ((link: GraphLink) => number)) => unknown
         theta?: (value: number) => unknown
       }
@@ -259,6 +269,7 @@ interface ThreeApi {
 const THREE_VERSION = "0.179.1"
 const FORCE_GRAPH_2D = "https://esm.sh/force-graph@1.51.4"
 const FORCE_GRAPH_3D = `https://esm.sh/3d-force-graph@1.80.0?deps=three@${THREE_VERSION}`
+const D3_FORCE_3D = "https://esm.sh/d3-force-3d@3.0.6"
 const SPRITE_TEXT = `https://esm.sh/three-spritetext@1.9.2?deps=three@${THREE_VERSION}`
 const THREE_CDN = `https://esm.sh/three@${THREE_VERSION}`
 const UNREAL_BLOOM = `https://esm.sh/three@${THREE_VERSION}/examples/jsm/postprocessing/UnrealBloomPass.js`
@@ -269,7 +280,7 @@ const HUB_COUNT = 8
 const LABEL_HUB_COUNT = 14
 const HUB_EGO_N = 6
 const MIN_NODE_VAL = 1
-const MAX_NODE_VAL = 6
+const MAX_NODE_VAL = 4
 const CENTER_STRENGTH = 0.05
 const NODE_REL_SIZE = 2.6
 const NODE_OPACITY = 1
@@ -283,7 +294,7 @@ const AMBIENT_MAX_VOLUME = 12
 const AMBIENT_FADE_MS = 28000
 const YOUTUBE_IFRAME_API = "https://www.youtube.com/iframe_api"
 const AUTO_ROTATE_SPEED = 0.18
-const HUB_VAL_SCALE = 1.4
+const HUB_VAL_SCALE = 1.25
 const TAG_LENS_VAL_SCALE = 1.25
 const FOCUS_TAG_VAL_SCALE = 1.15
 const EXTERNAL_VAL_SCALE = 0.55
@@ -305,13 +316,14 @@ const FOG_FAR_FACTOR = 1600 / INITIAL_CAMERA_DISTANCE
 // Bloom stays tight (low radius, mid threshold) so the night-sky background
 // keeps its near-black depth instead of washing into gray fog.
 const NODE_RADIUS_MIN = 1.3
-const NODE_RADIUS_MAX = 7.5
+const NODE_RADIUS_MAX = 4.8
 // Threshold sits below the emissive star cores (>1 HDR) but above label
 // pixels, so text stays crisp while stars glow. Tight halo: the star reads
 // as a bright point, not a blob.
-const BLOOM_STRENGTH = 1.05
-const BLOOM_RADIUS = 0.32
-const BLOOM_THRESHOLD = 0.28
+const BLOOM_STRENGTH = 0.78
+const BLOOM_RADIUS = 0.2
+const BLOOM_THRESHOLD = 0.48
+const COLLISION_PADDING = 2.4
 // Screen-space hairlines: closer camera makes the same world radius read
 // as a tube. Keep these just above the composer aliasing floor.
 const LINK_RADIUS: Record<LinkKind, number> = {
@@ -379,7 +391,12 @@ function parseContentIndex(raw: Record<string, unknown>): ContentEntry[] {
       links: asStringArray(record.links),
       tags: asStringArray(record.tags),
       externalLinks: asStringArray(record.externalLinks),
-      content: typeof record.content === "string" ? record.content : "",
+      content:
+        typeof record.excerpt === "string"
+          ? record.excerpt
+          : typeof record.content === "string"
+            ? record.content
+            : "",
       multilingual,
     })
   }
@@ -1258,6 +1275,7 @@ function bindGraph(
     spriteText: SpriteTextCtor | null
     bloomPass: BloomPass | null
     three: ThreeApi | null
+    forceCollide: ForceCollideFactory | null
     fullData: GraphData
     expandHops: number
     layout: {
@@ -1612,6 +1630,8 @@ function bindGraph(
     const linkDistance = SPREAD_DISTANCE.min + t * (SPREAD_DISTANCE.max - SPREAD_DISTANCE.min)
     const degreeById = new Map(data.nodes.map((node) => [node.id, node.degree]))
     const maxDegree = Math.max(0, ...degreeById.values())
+    const nodeDegreeWeight = (node: GraphNode): number =>
+      normalizedDegreeWeight(node.degree, 0, maxDegree)
     const edgeWeight = (edge: GraphLink): number =>
       linkDegreeWeight(
         degreeById.get(linkEndpointId(edge.source)) ?? 0,
@@ -1620,7 +1640,9 @@ function bindGraph(
       )
     const charge = graph.d3Force("charge")
     if (charge?.strength) {
-      charge.strength(chargeStrength)
+      charge.strength(
+        (node: GraphNode) => chargeStrength * nodeRepulsionScale(nodeDegreeWeight(node)),
+      )
     }
     if (charge?.theta && options.layout.chargeTheta !== undefined) {
       charge.theta(options.layout.chargeTheta)
@@ -1639,28 +1661,37 @@ function bindGraph(
       })
     }
     if (link?.strength) {
-      link.strength((edge) => {
+      link.strength((edge: GraphLink) => {
         // Faint texture layers barely pull: they draw web lines without
         // distorting the wikilink/tag layout.
         if (edge.kind === "cooc" || edge.kind === "folder") {
-          return 0.04
+          return 0.015
         }
         const gravityScale = hubGravityStrengthScale(edgeWeight(edge), tune.hubGravity)
         if (state.lens === "tag" && edge.kind === "tag") {
-          return Math.min(1, 0.95 * gravityScale)
+          return 0.3 * gravityScale
         }
         if (state.lens === "folder") {
           const sourceFolder = noteFolderById(data.nodes, edge.source)
           const targetFolder = noteFolderById(data.nodes, edge.target)
           if (sourceFolder !== null && sourceFolder === targetFolder) {
-            return Math.min(1, 0.72 * gravityScale)
+            return 0.16 * gravityScale
           }
         }
         if (edge.kind === "tag") {
-          return Math.min(1, 0.65 * gravityScale)
+          return 0.14 * gravityScale
         }
-        return Math.min(1, 0.8 * gravityScale)
+        return (edge.kind === "external" ? 0.16 : 0.24) * gravityScale
       })
+    }
+    if (options.forceCollide) {
+      graph.d3Force(
+        "collision",
+        options
+          .forceCollide((node) => nodeWorldRadius(node) + COLLISION_PADDING)
+          .strength(0.85)
+          .iterations(1),
+      )
     }
     const center = graph.d3Force("center")
     if (center?.strength) {
@@ -3573,6 +3604,8 @@ async function initGraphLanding(): Promise<void> {
     .map((prefix) => prefix.trim())
     .filter((prefix) => prefix.length > 0)
   const countsTemplate = root.dataset.countsTemplate ?? "{n} nodes · {m} edges"
+  const indexSource = root.dataset.indexSource === "graphIndex" ? "graphIndex" : "contentIndex"
+  const graphIndexPath = root.dataset.graphIndexPath ?? ""
   // A malformed/negative dataset value (or a non-finite Number.parseInt
   // result, e.g. "abc" → NaN) must fall back to "render all" / "1 hop"
   // rather than reaching selectRenderedSubset/expandFromNode as NaN, which
@@ -3688,15 +3721,26 @@ async function initGraphLanding(): Promise<void> {
           return null
         })
     : Promise.resolve(null)
+  const collisionPromise: Promise<ForceCollideFactory | null> = use3d
+    ? (import(D3_FORCE_3D) as Promise<{ forceCollide?: ForceCollideFactory }>)
+        .then((mod) => mod.forceCollide ?? null)
+        .catch((error: unknown) => {
+          console.error("[graph-landing] d3-force-3d collision force unavailable", error)
+          return null
+        })
+    : Promise.resolve(null)
   // Surface renderer failures via the canvas message; avoid unhandled
   // rejections while the index is still loading.
   rendererPromise.catch(() => undefined)
 
   let indexRaw: Record<string, unknown>
   try {
-    indexRaw = asRecord(await fetchData)
+    indexRaw =
+      indexSource === "graphIndex"
+        ? asRecord(await fetch(graphIndexPath).then((response) => response.json()))
+        : asRecord(await fetchData)
   } catch (error) {
-    showLoadError(canvas, "Graph could not load content index.")
+    showLoadError(canvas, "Graph could not load its index.")
     throw error
   }
 
@@ -3733,10 +3777,11 @@ async function initGraphLanding(): Promise<void> {
     throw error
   }
 
-  const [spriteText, three, bloomPass] = await Promise.all([
+  const [spriteText, three, bloomPass, forceCollide] = await Promise.all([
     spritePromise,
     threePromise,
     bloomPromise,
+    collisionPromise,
   ])
 
   if (cancelled) {
@@ -3754,6 +3799,7 @@ async function initGraphLanding(): Promise<void> {
     spriteText,
     bloomPass,
     three,
+    forceCollide,
     fullData,
     expandHops,
     layout: {

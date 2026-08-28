@@ -13,6 +13,12 @@ All notable changes to this plugin are documented here.
   not installed from a separate GitHub repo. `keywords`/`license` are kept
   for consistency even though the package isn't published.
 
+### Changed
+
+- `partialEmit` now keeps an in-memory path-keyed cache and recomputes only
+  changed source entries plus virtual pages before rewriting the global
+  sitemap, RSS, and content index artifacts.
+
 ## 0.1.0
 
 Initial local version: `enableSiteMap`, `enableRSS`, `rssLimit`,

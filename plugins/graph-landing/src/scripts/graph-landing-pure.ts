@@ -87,6 +87,15 @@ function boundedFinite(value: number, min: number, max: number): number {
 }
 
 /**
+ * Gives highly connected nodes proportionally more repulsive mass. This
+ * counterbalances their larger number of attractive links without allowing
+ * a single hub to fling the rest of the graph out of view.
+ */
+export function nodeRepulsionScale(degreeWeight: number): number {
+  return 1 + boundedFinite(degreeWeight, 0, 1) * 1.2
+}
+
+/**
  * Scales real-link distance by the heavier endpoint's normalized degree.
  * Gravity 1 preserves the original degree-weighted shortening.
  */
