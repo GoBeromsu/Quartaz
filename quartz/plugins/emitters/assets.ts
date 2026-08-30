@@ -61,7 +61,10 @@ export const Assets: QuartzEmitterPlugin = () => {
         } else if (changeEvent.type === "delete") {
           const name = slugifyFilePath(changeEvent.path)
           const dest = joinSegments(ctx.argv.output, name) as FilePath
-          await fs.promises.unlink(dest)
+          // An asset that was never copied (newly ignored, already pruned, or
+          // emitted under a different slug) has no output file. Deleting it must
+          // not abort the whole rebuild, so tolerate a missing destination.
+          await fs.promises.rm(dest, { force: true })
         }
       }
     },

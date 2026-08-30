@@ -357,6 +357,13 @@ async function rebuild(changes: ChangeEvent[], clientRefresh: () => void, buildD
     )
     console.log(styleText("green", `Done rebuilding in ${perf.timeSince()}`))
     changes.splice(0, numChangesInBuild)
+    // These deltas are now folded into contentMap and emitted. Keeping them
+    // would replay every past change on each later rebuild, so one failed
+    // delta would fail every future rebuild. Deltas are cleared only here, on
+    // success, so a failed rebuild still retries them next cycle.
+    for (const fp of Object.keys(changesSinceLastBuild)) {
+      delete changesSinceLastBuild[fp as FilePath]
+    }
     clientRefresh()
   } finally {
     release()
