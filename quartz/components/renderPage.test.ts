@@ -324,4 +324,38 @@ describe("pageResources", () => {
       `expected contentIndex fetch without /quartz/ prefix in serve mode, got: ${inlineJsServe.script}`,
     )
   })
+
+  test("skipContentIndexFetch defaults to the real unconditional fetch (identity preserved)", () => {
+    const withDefault = pageResources("/quartz" as FullSlug, emptyResources)
+    const withExplicitFalse = pageResources("/quartz" as FullSlug, emptyResources, undefined, false)
+    assert.deepStrictEqual(withExplicitFalse, withDefault)
+  })
+
+  test("skipContentIndexFetch omits the contentIndex.json fetch but still defines fetchData", () => {
+    const result = pageResources("/quartz" as FullSlug, emptyResources, undefined, true)
+    const inlineJs = result.js.find((j) => j.contentType === "inline" && "script" in j)
+    assert.ok(inlineJs && "script" in inlineJs)
+    assert.ok(
+      !inlineJs.script.includes("contentIndex.json"),
+      `expected no contentIndex.json reference, got: ${inlineJs.script}`,
+    )
+    assert.ok(
+      !inlineJs.script.includes("fetch("),
+      `expected no network fetch() call, got: ${inlineJs.script}`,
+    )
+    // Consumers elsewhere in the bundle (e.g. the search plugin's site-wide
+    // "nav" listener, which runs on every page regardless of whether that
+    // page renders Search) still reference the global `fetchData`
+    // unconditionally, so it must stay defined rather than being omitted —
+    // just resolved to a falsy value that those consumers already
+    // null-guard against.
+    assert.ok(
+      inlineJs.script.includes("fetchData"),
+      `expected fetchData to remain declared, got: ${inlineJs.script}`,
+    )
+    // js resource array shape (length/order) is unchanged from the default
+    // case — only the inline script content differs.
+    const withDefault = pageResources("/quartz" as FullSlug, emptyResources)
+    assert.strictEqual(result.js.length, withDefault.js.length)
+  })
 })

@@ -1,0 +1,57 @@
+name: Release graph-landing
+
+on:
+  push:
+    tags:
+      - "graph-landing-v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: graph-landing-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: plugins/graph-landing
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - name: Use npm 10.9.2
+        run: npm install --global npm@10.9.2
+      - name: Install graph-landing dependencies
+        run: npm install --no-audit --no-fund
+      - name: Verify release version
+        run: |
+          tag_version="${GITHUB_REF_NAME#graph-landing-v}"
+          package_version="$(node --input-type=module -e "import packageJson from './package.json' with { type: 'json' }; console.log(packageJson.version)")"
+          quartz_version="$(node --input-type=module -e "import packageJson from './package.json' with { type: 'json' }; console.log(packageJson.quartz.version)")"
+          test "$tag_version" = "$package_version"
+          test "$tag_version" = "$quartz_version"
+      - name: Test graph-landing
+        run: npm test
+      - name: Typecheck graph-landing
+        run: npm run typecheck
+      - name: Build graph-landing
+        run: npm run build
+      - name: Inspect package contents
+        run: npm pack --dry-run
+      - name: Create package tarball
+        run: npm pack --pack-destination "$RUNNER_TEMP"
+      - name: Upload package tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: graph-landing-${{ github.ref_name }}
+          path: ${{ runner.temp }}/graph-landing-*.tgz
+          if-no-files-found: error
+      - name: Create GitHub Release
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" "$RUNNER_TEMP"/graph-landing-*.tgz --generate-notes

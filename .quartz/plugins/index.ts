@@ -16,7 +16,6 @@ export type { NotePropertiesComponentOptions, NotePropertiesOptions } from "./no
 export type { ObsidianFlavoredMarkdownOptions } from "./obsidian-flavored-markdown"
 export type { ImageOptions, SocialImageFileData, SocialImageOptions, UserOpts } from "./og-image"
 export type { SearchField, SearchOptions } from "./search"
-export type { SyntaxHighlightingOptions } from "./syntax-highlighting"
 export type { TableOfContentsTransformerOptions, TocEntry } from "./table-of-contents"
 export type { TagPageOptions } from "./tag-page"
 export { ArticleTitle } from "./article-title"
@@ -32,7 +31,6 @@ export { NotePropertiesComponent } from "./note-properties"
 export { CustomOgImagesEmitterName } from "./og-image"
 export { PageTitle } from "./page-title"
 export { Search } from "./search"
-export { tokenClassifierTransformer } from "./syntax-highlighting"
 export { TableOfContents } from "./table-of-contents"
 export { TagList } from "./tag-list"
 export { TagPage, TagContent } from "./tag-page"
@@ -80,9 +78,6 @@ export const plugins: Record<string, Record<string, (...args: unknown[]) => void
   "remove-draft": {
     RemoveDrafts: (...args: unknown[]) => { componentRegistry.setOptionOverrides("remove-draft", args[0] as Record<string, unknown>); },
   },
-  "syntax-highlighting": {
-    SyntaxHighlighting: (...args: unknown[]) => { componentRegistry.setOptionOverrides("syntax-highlighting", args[0] as Record<string, unknown>); },
-  },
   "table-of-contents": {
     TableOfContentsTransformer: (...args: unknown[]) => { componentRegistry.setOptionOverrides("table-of-contents", args[0] as Record<string, unknown>); },
   },
@@ -105,6 +100,5 @@ export const NoteProperties = plugins["note-properties"].NoteProperties
 export const ObsidianFlavoredMarkdown = plugins["obsidian-flavored-markdown"].ObsidianFlavoredMarkdown
 export const CustomOgImages = plugins["og-image"].CustomOgImages
 export const RemoveDrafts = plugins["remove-draft"].RemoveDrafts
-export const SyntaxHighlighting = plugins["syntax-highlighting"].SyntaxHighlighting
 export const TableOfContentsTransformer = plugins["table-of-contents"].TableOfContentsTransformer
 export const UnlistedPages = plugins["unlisted-pages"].UnlistedPages

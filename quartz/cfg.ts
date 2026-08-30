@@ -138,6 +138,8 @@ export interface FullPageLayout {
   footer: QuartzComponent[]
   /** Page frame name (e.g. "default", "full-width", "minimal"). Defaults to "default". */
   frame?: string
+  /** See QuartzPageTypePluginInstance.skipContentIndexFetch. Defaults to false. */
+  skipContentIndexFetch?: boolean
 }
 
 export type PageLayout = Pick<FullPageLayout, "beforeBody" | "left" | "right">

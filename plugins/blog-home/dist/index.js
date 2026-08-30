@@ -707,24 +707,20 @@ article .block-language-mermaid,
   color: var(--blog-accent);
 }
 
-body[data-slug="index"] .page[data-frame="full-width"] .page-header,
-body[data-slug$="/index"] .page[data-frame="full-width"] .page-header {
+body:has(.blog-latest) .page[data-frame="full-width"] .page-header {
   margin-bottom: 0;
   padding-bottom: 0;
 }
 
-body[data-slug="index"] .page[data-frame="full-width"] .page-header .popover-hint,
-body[data-slug$="/index"] .page[data-frame="full-width"] .page-header .popover-hint {
+body:has(.blog-latest) .page[data-frame="full-width"] .page-header .popover-hint {
   display: none;
 }
 
-body[data-slug="index"] .page[data-frame="full-width"] .center.full-width > hr,
-body[data-slug$="/index"] .page[data-frame="full-width"] .center.full-width > hr {
+body:has(.blog-latest) .page[data-frame="full-width"] .center.full-width > hr {
   display: none;
 }
 
-body[data-slug="index"] .page-listing,
-body[data-slug$="/index"] .page-listing {
+body:has(.blog-latest) .page-listing {
   display: none;
 }
 

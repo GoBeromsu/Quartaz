@@ -5,18 +5,16 @@
   "type": "module",
   "license": "MIT",
   "author": "Quartz Community",
-  "homepage": "https://quartz.jzhao.xyz",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/quartz-community/content-index"
-  },
+  "private": true,
   "keywords": [
     "quartz",
     "quartz-plugin",
     "content-index",
     "emitter",
     "sitemap",
-    "rss"
+    "rss",
+    "multilingual",
+    "i18n"
   ],
   "files": [
     "dist",
@@ -88,7 +86,7 @@
       "rssSlug": "index",
       "includeEmptyFiles": true
     },
-    "optionSchema": {
+    "configSchema": {
       "enableSiteMap": {
         "type": "boolean"
       },
@@ -106,6 +104,9 @@
       },
       "includeEmptyFiles": {
         "type": "boolean"
+      },
+      "contentMaxChars": {
+        "type": "number"
       }
     }
   },

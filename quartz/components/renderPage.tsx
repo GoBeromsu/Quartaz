@@ -35,6 +35,7 @@ export function pageResources(
   baseDir: FullSlug | RelativeURL,
   staticResources: StaticResources,
   ctx?: BuildCtx,
+  skipContentIndexFetch?: boolean,
 ): StaticResources {
   const hashedNames = ctx?.hashedResourceNames
   const cssFile = hashedNames?.["index.css"] ?? "index.css"
@@ -73,7 +74,31 @@ export function pageResources(
   })
 
   const contentIndexPath = joinSegments(baseDir, "static/contentIndex.json")
-  const contentIndexScript = `const fetchData = fetch("${contentIndexPath}").then(data => data.json())`
+  // Pages that opt out (skipContentIndexFetch, e.g. graph-landing with
+  // indexSource: "graphIndex") fetch their own lighter index directly and
+  // never read the global `fetchData` for page content themselves. We still
+  // declare `fetchData` — as an already-resolved `undefined` — rather than
+  // omitting it entirely: the site-wide component bundle (postscript.js) is
+  // shared across all page types, so scripts belonging to components not
+  // even rendered on this page (e.g. the search plugin's `document`-level
+  // "nav" listener) still run here and read the global unconditionally.
+  // Known consumers (404's `typeof fetchData !== "undefined"` guard plus its
+  // own falsy/non-object `index` check, and search's own falsy-result guard)
+  // treat a falsy resolved value as "no index," so this avoids a
+  // ReferenceError/TypeError there while still eliminating the redundant
+  // contentIndex.json network request. Every other page — and the default
+  // when unset — keeps the real unconditional fetch, unchanged.
+  const contentIndexScript = skipContentIndexFetch
+    ? `const fetchData = Promise.resolve(undefined)`
+    : `const fetchData = fetch("${contentIndexPath}").then(data => data.json())`
+  const contentIndexResource: JSResource[] = [
+    {
+      loadTime: "beforeDOMReady",
+      contentType: "inline",
+      spaPreserve: true,
+      script: contentIndexScript,
+    },
+  ]
 
   const resources: StaticResources = {
     css: [
@@ -89,12 +114,7 @@ export function pageResources(
         loadTime: "beforeDOMReady",
         contentType: "external",
       },
-      {
-        loadTime: "beforeDOMReady",
-        contentType: "inline",
-        spaPreserve: true,
-        script: contentIndexScript,
-      },
+      ...contentIndexResource,
       ...resolvedJs,
     ],
     additionalHead: staticResources.additionalHead,

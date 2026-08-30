@@ -11,41 +11,36 @@ interface ContentEntry {
   }
 }
 
-interface GraphNode {
-  id: string
-  name: string
-  type: "note" | "tag" | "external"
-  val: number
-  degree: number
-  isHub: boolean
-  tag: string
-  slug: string
-  url: string
-  folder: string
-  tags: string[]
-  dominantTag: string
-  excerpt: string
-  phase: number
-  x?: number
-  y?: number
-  z?: number
-  vx?: number
-  vy?: number
-  vz?: number
-}
-
-type LinkKind = "wikilink" | "tag" | "cooc" | "folder" | "external"
-
-interface GraphLink {
-  source: string | GraphNode
-  target: string | GraphNode
-  kind: LinkKind
-}
-
-interface GraphData {
-  nodes: GraphNode[]
-  links: GraphLink[]
-}
+// GraphNode/LinkKind/GraphLink/GraphData and the pure selectRenderedSubset/
+// expandHopIds/linkEndpointId helpers live in ./graph-landing-pure (a file
+// with no top-level DOM side effects) so Node-based unit tests can import
+// them directly. esbuild's `bundle: true` nested build (see
+// tsup.config.ts's inlineScriptPlugin) inlines that module's code into the
+// final minified bundle exactly as before this split, so dist output is
+// unchanged.
+import {
+  affectedFocusNodeIds,
+  expandHopIds,
+  getOrCreate,
+  hubGravityDistanceScale,
+  hubGravityStrengthScale,
+  isMarkdownFilePath,
+  linkDegreeWeight,
+  linkEndpointId,
+  lodLevelForDistance,
+  nodeRepulsionScale,
+  normalizedDegreeWeight,
+  parseNonNegativeNumber,
+  seedExpandedNodePosition,
+  selectRenderedSubset,
+  youtubeTracks,
+  type GraphData,
+  type GraphLink,
+  type GraphNode,
+  type LinkKind,
+  type MusicTrackInput,
+  type YoutubeTrack,
+} from "./graph-landing-pure"
 
 interface ThemeTokens {
   bg: string
@@ -84,6 +79,13 @@ interface BloomPass {
   threshold: number
 }
 
+interface CollisionForce {
+  strength: (value: number) => CollisionForce
+  iterations: (value: number) => CollisionForce
+}
+
+type ForceCollideFactory = (radius: number | ((node: GraphNode) => number)) => CollisionForce
+
 interface ForceGraphInstance {
   graphData: (data: GraphData) => unknown
   backgroundColor: (color: string) => unknown
@@ -98,10 +100,16 @@ interface ForceGraphInstance {
   onNodeHover: (fn: (node: GraphNode | null) => void) => unknown
   onNodeClick: (fn: (node: GraphNode | null, event?: Event) => void) => unknown
   onBackgroundClick?: (fn: (event?: Event) => void) => unknown
-  d3Force: (name: string, force?: unknown) =>
+  d3Force: (
+    name: string,
+    force?: unknown,
+  ) =>
     | {
-        strength?: (value: number | ((link: GraphLink) => number)) => unknown
+        strength?: (
+          value: number | ((node: GraphNode) => number) | ((link: GraphLink) => number),
+        ) => unknown
         distance?: (value: number | ((link: GraphLink) => number)) => unknown
+        theta?: (value: number) => unknown
       }
     | undefined
   d3ReheatSimulation: () => unknown
@@ -124,7 +132,11 @@ interface ForceGraphInstance {
   nodeThreeObjectExtend?: (extend: boolean) => unknown
   nodeThreeObject?: (fn: (node: GraphNode) => unknown) => unknown
   cooldownTicks: (ticks: number) => unknown
-  warmupTicks: (ticks: number) => unknown
+  // Optional trailing arg supports the getter form (called with no
+  // arguments, returns the currently-set value) used by the
+  // layout.incrementalWarmup path to snapshot/restore the configured
+  // warmupTicks around an expand-triggered graphData() call.
+  warmupTicks: (ticks?: number) => unknown
   cameraPosition?: (pos?: Vec3, lookAt?: Vec3, ms?: number) => unknown
   centerAt?: (x: number, y: number, ms?: number) => unknown
   zoom?: (k: number, ms?: number) => unknown
@@ -133,15 +145,27 @@ interface ForceGraphInstance {
   linkThreeObject?: (fn: (link: GraphLink) => unknown) => unknown
   linkPositionUpdate?: (
     fn: (
-      obj: { position: Vec3; scale: Vec3; quaternion: { setFromUnitVectors: (a: unknown, b: unknown) => void } },
+      obj: {
+        position: Vec3
+        scale: Vec3
+        quaternion: { setFromUnitVectors: (a: unknown, b: unknown) => void }
+      },
       coords: { start: Vec3; end: Vec3 },
     ) => boolean | void,
   ) => unknown
   postProcessingComposer?: () => { addPass: (pass: unknown) => void }
+  scene?: () => { fog: unknown }
   linkDirectionalParticles?: (n: number | ((link: GraphLink) => number)) => unknown
   linkDirectionalParticleWidth?: (n: number) => unknown
   linkDirectionalParticleSpeed?: (n: number) => unknown
   linkDirectionalParticleColor?: (fn: (link: GraphLink) => string) => unknown
+  // three-forcegraph prop (triggerUpdate: false — setting it does not
+  // itself schedule a digest). Its callback runs synchronously at the end
+  // of the kapsule digest's updateFn, immediately after that digest's
+  // warmup for-loop completes. Used by layout.incrementalWarmup to restore
+  // warmupTicks after (not before) the debounced digest that actually
+  // reads it has run — see requestSkippedWarmup below.
+  onFinishUpdate?: (fn: () => void) => unknown
   _destructor: () => void
 }
 
@@ -151,15 +175,42 @@ interface ForceGraphFactory {
 
 interface SpriteTextInstance {
   color: string
+  backgroundColor: string | false
   textHeight: number
   fontWeight: string
   strokeWidth: number
   strokeColor: string
+  material: {
+    transparent: boolean
+    depthWrite: boolean
+    alphaTest: number
+    toneMapped: boolean
+  }
   position: { x: number; y: number }
   center: { set: (x: number, y: number) => void }
+  visible: boolean
 }
 
-interface EmissiveMaterial {
+// Settable color handle shared by node/link materials, used by the
+// incremental-repaint path (options.interaction.incrementalRepaint) to
+// mutate a material's color in place without re-setting a three-forcegraph
+// accessor (which would trigger a full mesh-recreation digest — see
+// applyFocusChange).
+interface ThreeColorHandle {
+  set: (value: string) => void
+}
+
+// Return type for `new three.MeshBasicMaterial(...)` and the base shape of
+// `new three.MeshLambertMaterial(...)` (see EmissiveMaterial below), used by
+// the incremental-repaint path to mutate a link/node material's color and
+// opacity directly.
+interface ThreeMaterialHandle {
+  color: ThreeColorHandle
+  opacity: number
+}
+
+interface EmissiveMaterial extends ThreeMaterialHandle {
+  emissive: ThreeColorHandle
   emissiveIntensity: number
 }
 
@@ -169,9 +220,25 @@ interface ThreeObject {
   add: (obj: unknown) => void
 }
 
+interface ThreeLOD extends ThreeObject {
+  addLevel: (object: unknown, distance?: number) => unknown
+}
+
+// Return type for `new three.Mesh(...)`, used by the link-distance-cull rAF
+// loop to read a link's current world position and toggle visibility without
+// an unsafe cast. Every existing Mesh call site (node star, node dot,
+// link cylinder) already treats the constructor's return value as
+// unknown-compatible, so widening from `unknown` to this shape is safe.
+interface ThreeMeshHandle {
+  visible: boolean
+  position: Vec3
+  material: ThreeMaterialHandle
+}
+
 interface ThreeApi {
   Group: new () => ThreeObject
-  Mesh: new (geo: unknown, mat: unknown) => unknown
+  LOD: new () => ThreeLOD
+  Mesh: new (geo: unknown, mat: unknown) => ThreeMeshHandle
   SphereGeometry: new (radius: number, width: number, height: number) => unknown
   CylinderGeometry: new (
     radiusTop: number,
@@ -185,12 +252,13 @@ interface ThreeApi {
     transparent?: boolean
     opacity?: number
     depthWrite?: boolean
-  }) => unknown
+  }) => ThreeMaterialHandle
   MeshLambertMaterial: new (params: {
     color: string
     emissive: string
     emissiveIntensity: number
   }) => EmissiveMaterial
+  Fog: new (color: string, near: number, far: number) => unknown
 }
 
 // Pinned esm.sh URLs. Keep THREE_VERSION identical across 3D imports
@@ -201,6 +269,7 @@ interface ThreeApi {
 const THREE_VERSION = "0.179.1"
 const FORCE_GRAPH_2D = "https://esm.sh/force-graph@1.51.4"
 const FORCE_GRAPH_3D = `https://esm.sh/3d-force-graph@1.80.0?deps=three@${THREE_VERSION}`
+const D3_FORCE_3D = "https://esm.sh/d3-force-3d@3.0.6"
 const SPRITE_TEXT = `https://esm.sh/three-spritetext@1.9.2?deps=three@${THREE_VERSION}`
 const THREE_CDN = `https://esm.sh/three@${THREE_VERSION}`
 const UNREAL_BLOOM = `https://esm.sh/three@${THREE_VERSION}/examples/jsm/postprocessing/UnrealBloomPass.js`
@@ -211,7 +280,7 @@ const HUB_COUNT = 8
 const LABEL_HUB_COUNT = 14
 const HUB_EGO_N = 6
 const MIN_NODE_VAL = 1
-const MAX_NODE_VAL = 3.5
+const MAX_NODE_VAL = 4
 const CENTER_STRENGTH = 0.05
 const NODE_REL_SIZE = 2.6
 const NODE_OPACITY = 1
@@ -225,23 +294,36 @@ const AMBIENT_MAX_VOLUME = 12
 const AMBIENT_FADE_MS = 28000
 const YOUTUBE_IFRAME_API = "https://www.youtube.com/iframe_api"
 const AUTO_ROTATE_SPEED = 0.18
-const HUB_VAL_SCALE = 1.4
+const HUB_VAL_SCALE = 1.25
 const TAG_LENS_VAL_SCALE = 1.25
 const FOCUS_TAG_VAL_SCALE = 1.15
 const EXTERNAL_VAL_SCALE = 0.55
 const INITIAL_CAMERA: Vec3 = { x: 330, y: 235, z: 565 }
 const INITIAL_LOOK_AT: Vec3 = { x: 0, y: 0, z: 0 }
+const INITIAL_CAMERA_DISTANCE = Math.hypot(INITIAL_CAMERA.x, INITIAL_CAMERA.y, INITIAL_CAMERA.z)
+// Fog range for `lod.fog`, expressed as multipliers of the *current* camera
+// distance (recomputed on every applyZoom/updateFog call) rather than fixed
+// world units. applyZoom clamps zoom to [0.4, 2.5], i.e. camera distance
+// ~0.4x-2.5x INITIAL_CAMERA_DISTANCE — fixed FOG_NEAR/FOG_FAR sized for the
+// default distance would sit entirely behind the camera at max zoom-in, or
+// entirely in front of it (washing out the whole graph) at max zoom-out.
+// Scaling with distance keeps the same relative depth-cue framing at every
+// zoom level: near sits inside the current view, far sits past the current
+// view's far edge.
+const FOG_NEAR_FACTOR = 300 / INITIAL_CAMERA_DISTANCE
+const FOG_FAR_FACTOR = 1600 / INITIAL_CAMERA_DISTANCE
 // Alex grammar: small bright cores with tight bloom halos, hairline edges.
 // Bloom stays tight (low radius, mid threshold) so the night-sky background
 // keeps its near-black depth instead of washing into gray fog.
 const NODE_RADIUS_MIN = 1.3
-const NODE_RADIUS_MAX = 3.2
+const NODE_RADIUS_MAX = 4.8
 // Threshold sits below the emissive star cores (>1 HDR) but above label
 // pixels, so text stays crisp while stars glow. Tight halo: the star reads
 // as a bright point, not a blob.
-const BLOOM_STRENGTH = 1.05
-const BLOOM_RADIUS = 0.32
-const BLOOM_THRESHOLD = 0.28
+const BLOOM_STRENGTH = 0.78
+const BLOOM_RADIUS = 0.2
+const BLOOM_THRESHOLD = 0.48
+const COLLISION_PADDING = 2.4
 // Screen-space hairlines: closer camera makes the same world radius read
 // as a tube. Keep these just above the composer aliasing floor.
 const LINK_RADIUS: Record<LinkKind, number> = {
@@ -291,6 +373,9 @@ function parseContentIndex(raw: Record<string, unknown>): ContentEntry[] {
   const entries: ContentEntry[] = []
   for (const value of Object.values(raw)) {
     const record = asRecord(value)
+    if (!isMarkdownFilePath(record.filePath)) {
+      continue
+    }
     const slug = typeof record.slug === "string" ? record.slug : ""
     if (slug.length === 0) {
       continue
@@ -306,7 +391,12 @@ function parseContentIndex(raw: Record<string, unknown>): ContentEntry[] {
       links: asStringArray(record.links),
       tags: asStringArray(record.tags),
       externalLinks: asStringArray(record.externalLinks),
-      content: typeof record.content === "string" ? record.content : "",
+      content:
+        typeof record.excerpt === "string"
+          ? record.excerpt
+          : typeof record.content === "string"
+            ? record.content
+            : "",
       multilingual,
     })
   }
@@ -390,21 +480,15 @@ function noteIdentity(entry: ContentEntry, prefixes: readonly string[]): string 
   return `slug:${stripKnownPrefix(entry.slug, prefixes).permalink}`
 }
 
-function pickPreferredNote(
-  members: readonly ContentEntry[],
-  context: LocaleContext,
-): ContentEntry | undefined {
-  const current = members.find((entry) => entryLocale(entry, context.prefixes) === context.localeId)
-  if (current) {
-    return current
-  }
-  if (context.localeId !== context.sourceLocale) {
-    return undefined
-  }
-  return (
+function pickPreferredNote(members: readonly ContentEntry[], context: LocaleContext): ContentEntry {
+  const picked =
+    members.find((entry) => entryLocale(entry, context.prefixes) === context.localeId) ??
     members.find((entry) => entryLocale(entry, context.prefixes) === context.sourceLocale) ??
     members.find((entry) => entryLocale(entry, context.prefixes) === undefined)
-  )
+  if (!picked) {
+    throw new Error("graph-landing: locale group had no notes to pick")
+  }
+  return picked
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -545,7 +629,13 @@ function dominantTagOf(noteTags: string[], tagCounts: Map<string, number>): stri
   return ranked[0] ?? ""
 }
 
-function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphData {
+type TagCooccurrenceOption = { maxTagsPerNote?: number; maxEdges?: number } | false | undefined
+
+function buildGraphData(
+  entries: ContentEntry[],
+  context: LocaleContext,
+  tagCooccurrence: TagCooccurrenceOption = undefined,
+): GraphData {
   const candidates = entries.filter((entry) => {
     return !isFolderIndex(entry.slug) && !isTagPage(entry.slug) && !isUtilityNote(entry)
   })
@@ -558,10 +648,7 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
   }
   const notes: ContentEntry[] = []
   for (const members of groups.values()) {
-    const picked = pickPreferredNote(members, context)
-    if (picked) {
-      notes.push(picked)
-    }
+    notes.push(pickPreferredNote(members, context))
   }
 
   const noteIds = new Set(notes.map((note) => note.slug))
@@ -582,10 +669,15 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
   // Faint layers (cooc/folder) render as web texture but must not inflate
   // node degrees, hub ranking, or sizes: those stay driven by real
   // wikilinks, external sites, and tag membership.
-  const addEdge = (source: string, target: string, kind: LinkKind, countsDegree: boolean): void => {
+  const addEdge = (
+    source: string,
+    target: string,
+    kind: LinkKind,
+    countsDegree: boolean,
+  ): boolean => {
     const key = edgeKey(source, target, kind)
     if (seenEdges.has(key)) {
-      return
+      return false
     }
     seenEdges.add(key)
     links.push({ source, target, kind })
@@ -593,6 +685,7 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
       bumpDegree(source)
       bumpDegree(target)
     }
+    return true
   }
 
   for (const note of notes) {
@@ -640,13 +733,31 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
   }
 
   // Tag co-occurrence: tags sharing at least one note get a faint tag-tag edge.
-  for (const note of notes) {
-    if (note.tags.length < 2) {
-      continue
-    }
-    for (let i = 0; i < note.tags.length; i += 1) {
-      for (let j = i + 1; j < note.tags.length; j += 1) {
-        addEdge(`tag:${note.tags[i]}`, `tag:${note.tags[j]}`, "cooc", false)
+  // `tagCooccurrence` caps this O(k^2)-per-note generation: `false` disables it
+  // entirely, `maxTagsPerNote` skips notes with too many tags (their pair count
+  // grows quadratically), and `maxEdges` stops once that many edges exist.
+  // Default (undefined) preserves the original unlimited behavior.
+  if (tagCooccurrence !== false) {
+    const maxTagsPerNote = tagCooccurrence?.maxTagsPerNote
+    const maxEdges = tagCooccurrence?.maxEdges
+    let coocEdgeCount = 0
+    noteLoop: for (const note of notes) {
+      if (note.tags.length < 2) {
+        continue
+      }
+      if (maxTagsPerNote !== undefined && note.tags.length > maxTagsPerNote) {
+        continue
+      }
+      for (let i = 0; i < note.tags.length; i += 1) {
+        for (let j = i + 1; j < note.tags.length; j += 1) {
+          if (maxEdges !== undefined && coocEdgeCount >= maxEdges) {
+            break noteLoop
+          }
+          const added = addEdge(`tag:${note.tags[i]}`, `tag:${note.tags[j]}`, "cooc", false)
+          if (added) {
+            coocEdgeCount += 1
+          }
+        }
       }
     }
   }
@@ -694,18 +805,13 @@ function buildGraphData(entries: ContentEntry[], context: LocaleContext): GraphD
   const maxDegree = rawDegrees.length > 0 ? Math.max(...rawDegrees) : 0
 
   const nodeVal = (id: string): number => {
-    const current = degree.get(id) ?? 0
-    const scaled = Math.sqrt(current)
-    const minScaled = Math.sqrt(minDegree)
-    const maxScaled = Math.sqrt(maxDegree)
-    const scaledSpan = maxScaled - minScaled
-    if (scaledSpan === 0) {
-      return (MIN_NODE_VAL + MAX_NODE_VAL) / 2
-    }
-    return MIN_NODE_VAL + ((scaled - minScaled) / scaledSpan) * (MAX_NODE_VAL - MIN_NODE_VAL)
+    const weight = normalizedDegreeWeight(degree.get(id) ?? 0, minDegree, maxDegree)
+    return MIN_NODE_VAL + weight * (MAX_NODE_VAL - MIN_NODE_VAL)
   }
 
-  const rankedNotes = [...notes].sort((a, b) => (degree.get(b.slug) ?? 0) - (degree.get(a.slug) ?? 0))
+  const rankedNotes = [...notes].sort(
+    (a, b) => (degree.get(b.slug) ?? 0) - (degree.get(a.slug) ?? 0),
+  )
   const hubIds = new Set(
     rankedNotes
       .filter((note) => (degree.get(note.slug) ?? 0) > 0)
@@ -809,13 +915,6 @@ function neighborMap(links: GraphLink[]): Map<string, Set<string>> {
     add(target, source)
   }
   return neighbors
-}
-
-function linkEndpointId(endpoint: string | GraphNode): string {
-  if (typeof endpoint === "string") {
-    return endpoint
-  }
-  return endpoint.id
 }
 
 function resolveCssColor(variableName: string, fallback: string): string {
@@ -1007,6 +1106,7 @@ interface TuneState {
   edgeScale: number
   zoom: number
   spread: number
+  hubGravity: number
 }
 
 function readStoredLens(): Lens {
@@ -1025,7 +1125,7 @@ function readStoredLens(): Lens {
 }
 
 function readStoredTune(): TuneState {
-  const fallback: TuneState = { nodeScale: 0.7, edgeScale: 1, zoom: 1, spread: 1 }
+  const fallback: TuneState = { nodeScale: 0.7, edgeScale: 1, zoom: 1, spread: 1, hubGravity: 1 }
   try {
     const raw = sessionStorage.getItem(TUNE_STORAGE_KEY)
     if (!raw) {
@@ -1036,7 +1136,11 @@ function readStoredTune(): TuneState {
     const edgeScale = typeof parsed.edgeScale === "number" ? parsed.edgeScale : fallback.edgeScale
     const zoom = typeof parsed.zoom === "number" ? parsed.zoom : fallback.zoom
     const spread = typeof parsed.spread === "number" ? parsed.spread : fallback.spread
-    return { nodeScale, edgeScale, zoom, spread }
+    const hubGravity =
+      typeof parsed.hubGravity === "number" && Number.isFinite(parsed.hubGravity)
+        ? Math.min(2, Math.max(0, parsed.hubGravity))
+        : fallback.hubGravity
+    return { nodeScale, edgeScale, zoom, spread, hubGravity }
   } catch (error) {
     console.error("[graph-landing] sessionStorage unavailable for tune persistence", error)
     return fallback
@@ -1086,7 +1190,9 @@ function noteFolderById(nodes: GraphNode[], endpoint: string | GraphNode): strin
 function clusterTargets(data: GraphData, lens: Lens, radius: number): Map<string, Vec3> {
   const targets = new Map<string, Vec3>()
   if (lens === "folder") {
-    const folders = [...new Set(data.nodes.filter((node) => node.type === "note").map((node) => node.folder))]
+    const folders = [
+      ...new Set(data.nodes.filter((node) => node.type === "note").map((node) => node.folder)),
+    ]
     folders.forEach((folder, index) => {
       const angle = (Math.PI * 2 * index) / Math.max(folders.length, 1)
       const point = { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius, z: 0 }
@@ -1169,9 +1275,119 @@ function bindGraph(
     spriteText: SpriteTextCtor | null
     bloomPass: BloomPass | null
     three: ThreeApi | null
+    forceCollide: ForceCollideFactory | null
+    fullData: GraphData
+    expandHops: number
+    layout: {
+      freezeAfterWarmup: boolean
+      warmupTicks: number | undefined
+      cooldownTicks: number | undefined
+      chargeTheta: number | undefined
+      incrementalWarmup: boolean
+    }
+    lod: {
+      labelDistance: number | undefined
+      dotDistance: number | undefined
+      cullDistance: number | undefined
+      fog: boolean
+      nodeResolution: number | undefined
+      linkResolution: number | undefined
+      shareLinkResources: boolean
+    }
+    interaction: {
+      incrementalRepaint: boolean
+    }
   },
 ): void {
-  const neighbors = neighborMap(data.links)
+  let neighbors = neighborMap(data.links)
+
+  // --- Lazy k-hop expansion (maxRenderedNodes) --------------------------
+  // `data` starts out as either the full index (maxRenderedNodes unset, in
+  // which case `options.fullData === data` and expansion is a no-op) or a
+  // top-N-by-degree subset. `data.nodes`/`data.links` are mutated in place
+  // (pushed into) on expansion so every existing closure over `data` in this
+  // function keeps working unchanged — no rewiring of `currentData()` or the
+  // rest of the view logic is needed.
+  //
+  // These structures are only needed by expandFromNode, which itself bails
+  // out immediately when `options.fullData === data` (maxRenderedNodes
+  // unset). Building them eagerly in that case would be pure wasted work at
+  // scale (e.g. 20k nodes), so they're only populated when expansion is
+  // actually possible.
+  const expandEdgeKey = (source: string, target: string, kind: LinkKind): string =>
+    source < target ? `${source}|${target}|${kind}` : `${target}|${source}|${kind}`
+  let fullNodeById: Map<string, GraphNode> = new Map()
+  // Same "real relationships only" definition used for hover highlighting
+  // (wikilink/tag/external) — cooc/folder texture edges do not drive expansion.
+  let fullAdjacency: Map<string, Set<string>> = new Map()
+  let renderedIds: Set<string> = new Set()
+  let renderedEdgeKeys: Set<string> = new Set()
+  if (options.fullData !== data) {
+    fullNodeById = new Map(options.fullData.nodes.map((node) => [node.id, node]))
+    fullAdjacency = neighborMap(options.fullData.links)
+    renderedIds = new Set(data.nodes.map((node) => node.id))
+    renderedEdgeKeys = new Set(
+      data.links.map((link) =>
+        expandEdgeKey(linkEndpointId(link.source), linkEndpointId(link.target), link.kind),
+      ),
+    )
+  }
+
+  /**
+   * BFS out from `nodeId` through the full index up to `options.expandHops`
+   * hops, pulling any not-yet-rendered nodes (and the edges that connect them
+   * to the rendered set) into `data`. Returns true when it actually added
+   * anything, so the caller only needs to refresh the view on a real change.
+   */
+  const expandFromNode = (nodeId: string): boolean => {
+    if (options.fullData === data) {
+      return false
+    }
+    const toAdd = expandHopIds(fullAdjacency, renderedIds, nodeId, options.expandHops)
+    if (toAdd.size === 0) {
+      return false
+    }
+    // layout.incrementalWarmup skips the simulation's post-graphData warmup
+    // pass for this expand (see requestSkippedWarmup below), so newly added
+    // nodes would otherwise never move off d3-force's unrelated default
+    // spiral placement. Seed them near the clicked node instead — only when
+    // the option is on, and only nodes that aren't already positioned
+    // (every id here comes from expandHopIds, which already excludes
+    // renderedIds, so this is always true in practice; the check is just
+    // defense in depth).
+    const seedSource = options.layout.incrementalWarmup ? fullNodeById.get(nodeId) : undefined
+    let seedIndex = 0
+    for (const id of toAdd) {
+      const node = fullNodeById.get(id)
+      if (!node) {
+        continue
+      }
+      if (seedSource && node.x === undefined) {
+        const seeded = seedExpandedNodePosition(seedSource, seedIndex, options.use3d)
+        node.x = seeded.x
+        node.y = seeded.y
+        node.z = seeded.z
+        seedIndex += 1
+      }
+      data.nodes.push(node)
+      renderedIds.add(id)
+    }
+    for (const link of options.fullData.links) {
+      const source = linkEndpointId(link.source)
+      const target = linkEndpointId(link.target)
+      if (!renderedIds.has(source) || !renderedIds.has(target)) {
+        continue
+      }
+      const key = expandEdgeKey(source, target, link.kind)
+      if (renderedEdgeKeys.has(key)) {
+        continue
+      }
+      renderedEdgeKeys.add(key)
+      data.links.push(link)
+    }
+    neighbors = neighborMap(data.links)
+    return true
+  }
   const state: ViewState = {
     lens: readStoredLens(),
     allLabels: false,
@@ -1218,7 +1434,8 @@ function bindGraph(
   }
 
   const nodeWorldRadius = (node: GraphNode): number => {
-    const t = clamp((nodeValue(node) - MIN_NODE_VAL) / 5, 0, 1)
+    const maxValue = MAX_NODE_VAL * HUB_VAL_SCALE
+    const t = clamp((nodeValue(node) - MIN_NODE_VAL) / (maxValue - MIN_NODE_VAL), 0, 1)
     return (NODE_RADIUS_MIN + t * (NODE_RADIUS_MAX - NODE_RADIUS_MIN)) * tune.nodeScale
   }
 
@@ -1348,18 +1565,29 @@ function bindGraph(
 
   const currentData = (): GraphData => data
 
-  // Zoom keeps the current orbit direction and only changes the camera's
-  // distance to the origin, so slider moves never snap the rotation back.
-  const applyZoom = (ms: number): void => {
-    if (options.use3d) {
-      if (typeof graph.cameraPosition !== "function") {
-        return
-      }
-      const base = Math.hypot(INITIAL_CAMERA.x, INITIAL_CAMERA.y, INITIAL_CAMERA.z)
-      const targetLen = base / clamp(tune.zoom, 0.4, 2.5)
+  // Extracted from paintLabels3d's inline sprite-color computation so
+  // applyFocusChange (the incremental-repaint path) can recompute a single
+  // node's label color without re-running the full label repaint.
+  const labelColorFor = (node: GraphNode): string => {
+    const labelInk = isDarkTheme() ? "rgba(255, 255, 255, 1)" : withAlpha(theme.current.ink, 0.88)
+    return isActive(node.id) ? labelInk : withAlpha(labelInk, DIM_ALPHA)
+  }
+
+  const labelStrokeColorFor = (node: GraphNode): string => {
+    if (!isDarkTheme()) {
+      return "rgba(0, 0, 0, 0)"
+    }
+    return isActive(node.id) ? "rgba(0, 0, 0, 0.95)" : "rgba(0, 0, 0, 0.3)"
+  }
+
+  // Shared by applyZoom (needs direction + length) and updateFog (needs only
+  // length, to scale FOG_NEAR_FACTOR/FOG_FAR_FACTOR to the live camera
+  // distance). Falls back to INITIAL_CAMERA/INITIAL_CAMERA_DISTANCE before
+  // the graph has a real camera position (or in 2D, where callers ignore
+  // dir/len anyway).
+  const currentCameraVector = (): { dir: Vec3; len: number } => {
+    if (typeof graph.cameraPosition === "function") {
       const current = graph.cameraPosition() as Partial<Vec3> | undefined
-      let dir: Vec3 = INITIAL_CAMERA
-      let dirLen = base
       if (
         current &&
         typeof current.x === "number" &&
@@ -1368,12 +1596,27 @@ function bindGraph(
       ) {
         const len = Math.hypot(current.x, current.y, current.z)
         if (len > 1) {
-          dir = { x: current.x, y: current.y, z: current.z }
-          dirLen = len
+          return { dir: { x: current.x, y: current.y, z: current.z }, len }
         }
       }
+    }
+    return { dir: INITIAL_CAMERA, len: INITIAL_CAMERA_DISTANCE }
+  }
+
+  // Zoom keeps the current orbit direction and only changes the camera's
+  // distance to the origin, so slider moves never snap the rotation back.
+  const applyZoom = (ms: number): void => {
+    if (options.use3d) {
+      if (typeof graph.cameraPosition !== "function") {
+        return
+      }
+      const targetLen = INITIAL_CAMERA_DISTANCE / clamp(tune.zoom, 0.4, 2.5)
+      const { dir, len: dirLen } = currentCameraVector()
       const k = targetLen / dirLen
       graph.cameraPosition({ x: dir.x * k, y: dir.y * k, z: dir.z * k }, INITIAL_LOOK_AT, ms)
+      // Fog range is distance-relative (see FOG_NEAR_FACTOR/FOG_FAR_FACTOR),
+      // so a zoom change must refresh it too. No-op when lod.fog is unset.
+      updateFog()
       return
     }
     if (typeof graph.zoom === "function") {
@@ -1385,41 +1628,70 @@ function bindGraph(
     const t = spreadT(tune.spread)
     const chargeStrength = SPREAD_CHARGE.min + t * (SPREAD_CHARGE.max - SPREAD_CHARGE.min)
     const linkDistance = SPREAD_DISTANCE.min + t * (SPREAD_DISTANCE.max - SPREAD_DISTANCE.min)
+    const degreeById = new Map(data.nodes.map((node) => [node.id, node.degree]))
+    const maxDegree = Math.max(0, ...degreeById.values())
+    const nodeDegreeWeight = (node: GraphNode): number =>
+      normalizedDegreeWeight(node.degree, 0, maxDegree)
+    const edgeWeight = (edge: GraphLink): number =>
+      linkDegreeWeight(
+        degreeById.get(linkEndpointId(edge.source)) ?? 0,
+        degreeById.get(linkEndpointId(edge.target)) ?? 0,
+        maxDegree,
+      )
     const charge = graph.d3Force("charge")
     if (charge?.strength) {
-      charge.strength(chargeStrength)
+      charge.strength(
+        (node: GraphNode) => chargeStrength * nodeRepulsionScale(nodeDegreeWeight(node)),
+      )
+    }
+    if (charge?.theta && options.layout.chargeTheta !== undefined) {
+      charge.theta(options.layout.chargeTheta)
     }
     const link = graph.d3Force("link")
     if (link?.distance) {
       link.distance((edge) => {
+        const gravityScale = hubGravityDistanceScale(edgeWeight(edge), tune.hubGravity)
         if (state.lens === "tag" && edge.kind === "tag") {
-          return linkDistance * 0.72
+          return linkDistance * 0.72 * gravityScale
         }
-        return linkDistance
+        if (edge.kind === "cooc" || edge.kind === "folder") {
+          return linkDistance
+        }
+        return linkDistance * gravityScale
       })
     }
     if (link?.strength) {
-      link.strength((edge) => {
+      link.strength((edge: GraphLink) => {
         // Faint texture layers barely pull: they draw web lines without
         // distorting the wikilink/tag layout.
         if (edge.kind === "cooc" || edge.kind === "folder") {
-          return 0.04
+          return 0.015
         }
+        const gravityScale = hubGravityStrengthScale(edgeWeight(edge), tune.hubGravity)
         if (state.lens === "tag" && edge.kind === "tag") {
-          return 0.95
+          return 0.3 * gravityScale
         }
         if (state.lens === "folder") {
           const sourceFolder = noteFolderById(data.nodes, edge.source)
           const targetFolder = noteFolderById(data.nodes, edge.target)
           if (sourceFolder !== null && sourceFolder === targetFolder) {
-            return 0.72
+            return 0.16 * gravityScale
           }
         }
         if (edge.kind === "tag") {
-          return 0.65
+          return 0.14 * gravityScale
         }
-        return 0.8
+        return (edge.kind === "external" ? 0.16 : 0.24) * gravityScale
       })
+    }
+    if (options.forceCollide) {
+      graph.d3Force(
+        "collision",
+        options
+          .forceCollide((node) => nodeWorldRadius(node) + COLLISION_PADDING)
+          .strength(0.85)
+          .iterations(1),
+      )
     }
     const center = graph.d3Force("center")
     if (center?.strength) {
@@ -1438,7 +1710,116 @@ function bindGraph(
     }
   }
 
-  const twinkleMaterials = new Map<string, { material: EmissiveMaterial; base: number; phase: number }>()
+  const twinkleMaterials = new Map<
+    string,
+    { material: EmissiveMaterial; base: number; phase: number }
+  >()
+
+  // Populated by paintLabels3d() whenever options.lod.labelDistance is set
+  // (consumed by the label-distance-fade rAF loop below) OR whenever
+  // options.interaction.incrementalRepaint is set (consumed by
+  // applyFocusChange, which needs a handle to every node's label sprite to
+  // mutate color/visibility in place on a focus change). Cleared/repopulated
+  // alongside twinkleMaterials on every repaint (theme change, tune change,
+  // etc.) so it never holds stale sprite references.
+  const labelSprites = new Map<string, { sprite: SpriteTextInstance; node: GraphNode }>()
+
+  // Populated by paintLinks3d() whenever options.lod.cullDistance is set
+  // (consumed by the link-distance-cull rAF loop below) OR whenever
+  // options.interaction.incrementalRepaint is set (consumed by
+  // applyFocusChange, which needs a handle to every link's mesh to mutate
+  // its material color/opacity in place on a focus change). Keyed by the
+  // link object itself (stable identity across repaints for a given data
+  // set) rather than a derived string key, avoiding an extra id-construction
+  // step per link on every animation frame.
+  const linkMeshes = new Map<GraphLink, ThreeMeshHandle>()
+
+  // The following three maps are populated only when
+  // options.interaction.incrementalRepaint is set; they back
+  // applyFocusChange's per-node/per-link mutation path and are otherwise
+  // left empty, costing nothing when the option is unset.
+
+  // Star-mesh material per node id (both theme branches), so a focus change
+  // can recolor a node without re-setting graph.nodeThreeObject. The shared
+  // low-detail "dot" LOD material (see dotResourceCache) is deliberately not
+  // tracked here — incremental repaint only recolors the full-detail star;
+  // a node currently showing its distance-culled dot keeps its dot color
+  // until the next full repaint (documented limitation).
+  const nodeMaterials = new Map<string, ThreeMaterialHandle>()
+
+  // Rendered GraphNode by id, rebuilt from `data.nodes` at the top of
+  // paintLabels3d — lets applyFocusChange resolve an affected node id back
+  // to the GraphNode the color/label accessors need, without a linear scan.
+  const renderedNodeById = new Map<string, GraphNode>()
+
+  // Links touching each rendered node id, rebuilt from `data.links` at the
+  // top of paintLinks3d — lets applyFocusChange find the links whose
+  // color/opacity depend on a given focus node without scanning every link.
+  const linksByNode = new Map<string, GraphLink[]>()
+
+  // Shared geometry/material cache for the low-detail "dot" LOD tier, keyed
+  // by a coarse radius bucket + fill color. Only ever populated when
+  // options.lod.dotDistance is set; a fresh Mesh instance is still created
+  // per node (cheap JS object), but many nodes share the same underlying
+  // Geometry/Material GL resources instead of each allocating its own —
+  // directly addressing the zero-sharing baseline (13,287 unique
+  // geometries/materials) measured before this option existed.
+  const dotResourceCache = new Map<string, { geometry: unknown; material: unknown }>()
+
+  const dotResourceFor = (
+    three: ThreeApi,
+    radius: number,
+    fill: string,
+  ): { geometry: unknown; material: unknown } => {
+    const key = `${Math.round(radius * 4)}|${fill}`
+    return getOrCreate(dotResourceCache, key, () => ({
+      geometry: new three.SphereGeometry(radius, 6, 6),
+      material: new three.MeshBasicMaterial({ color: fill }),
+    }))
+  }
+
+  // Shared link geometry/material caches for `lod.shareLinkResources`,
+  // following the dotResourceCache pattern above. Only populated/consumed
+  // when shareLinkResources is on; paintLinks3d clears both maps at the top
+  // of every call (mirroring dotResourceCache.clear()) WITHOUT disposing
+  // prior entries — per spec, shared resources are never disposed on
+  // repaint, only dropped from the cache so a fresh paint repopulates them
+  // from scratch. Geometry is safe to share across links regardless of
+  // on-screen length because paintLinks3d's own linkPositionUpdate callback
+  // (below) scales link length via the mesh's scale.y, never the geometry
+  // itself — every CylinderGeometry here is always built with unit height
+  // (see `new three.CylinderGeometry(radius, radius, 1, resolution)` below,
+  // matching the non-shared branch's `1` height argument).
+  const linkGeometryCache = new Map<string, unknown>()
+  const linkMaterialCache = new Map<string, ThreeMaterialHandle>()
+
+  const linkGeometryFor = (three: ThreeApi, radius: number, resolution: number): unknown => {
+    const key = `${radius}|${resolution}`
+    return getOrCreate(
+      linkGeometryCache,
+      key,
+      () => new three.CylinderGeometry(radius, radius, 1, resolution),
+    )
+  }
+
+  const linkMaterialFor = (
+    three: ThreeApi,
+    color: string,
+    opacity: number,
+  ): ThreeMaterialHandle => {
+    const key = `${color}|${opacity}`
+    return getOrCreate(
+      linkMaterialCache,
+      key,
+      () =>
+        new three.MeshBasicMaterial({
+          color,
+          transparent: true,
+          opacity,
+          depthWrite: false,
+        }),
+    )
+  }
 
   const paintLabels3d = (): void => {
     if (!options.use3d || typeof graph.nodeThreeObject !== "function") {
@@ -1446,7 +1827,19 @@ function bindGraph(
     }
     const SpriteText = options.spriteText
     const three = options.three
+    const dotDistance = options.lod.dotDistance
+    const nodeSegments = options.lod.nodeResolution ?? 14
+    const incremental = options.interaction.incrementalRepaint
     twinkleMaterials.clear()
+    labelSprites.clear()
+    dotResourceCache.clear()
+    nodeMaterials.clear()
+    renderedNodeById.clear()
+    if (incremental) {
+      for (const node of data.nodes) {
+        renderedNodeById.set(node.id, node)
+      }
+    }
     if (typeof graph.nodeThreeObjectExtend === "function") {
       graph.nodeThreeObjectExtend(three === null)
     }
@@ -1465,27 +1858,68 @@ function bindGraph(
             emissiveIntensity: base,
           })
           twinkleMaterials.set(node.id, { material, base, phase: node.phase })
-          star = new three.Mesh(new three.SphereGeometry(radius, 14, 14), material)
-        } else {
+          if (incremental) {
+            nodeMaterials.set(node.id, material)
+          }
           star = new three.Mesh(
-            new three.SphereGeometry(radius, 14, 14),
-            new three.MeshBasicMaterial({ color: fill }),
+            new three.SphereGeometry(radius, nodeSegments, nodeSegments),
+            material,
+          )
+        } else {
+          const material = new three.MeshBasicMaterial({ color: fill })
+          if (incremental) {
+            nodeMaterials.set(node.id, material)
+          }
+          star = new three.Mesh(
+            new three.SphereGeometry(radius, nodeSegments, nodeSegments),
+            material,
           )
         }
+        // Only wraps in THREE.LOD when dotDistance is explicitly set; with
+        // it unset `star` stays the plain full-detail Mesh built above,
+        // preserving current behavior byte for byte.
+        if (dotDistance !== undefined && star !== false) {
+          const dot = dotResourceFor(three, radius, fill)
+          const dotMesh = new three.Mesh(dot.geometry, dot.material)
+          const lod = new three.LOD()
+          lod.addLevel(star, 0)
+          lod.addLevel(dotMesh, dotDistance)
+          star = lod
+        }
       }
-      if (!showNodeLabel(node) || !SpriteText) {
+      const showLabel = showNodeLabel(node)
+      // With incremental unset this is exactly the original
+      // `!showNodeLabel(node) || !SpriteText` gate; with it set, every node
+      // always gets a sprite (needed so applyFocusChange can toggle
+      // visibility on a focus change without recreating anything), and
+      // `sprite.visible` below carries the show/hide decision instead.
+      if (!SpriteText || (!incremental && !showLabel)) {
         return star
       }
       // Alex-style label: small, no stroke bubble, floating beside the star.
       const sprite = new SpriteText(node.name)
-      const labelInk = isDarkTheme() ? "rgba(255, 255, 255, 0.85)" : withAlpha(theme.current.ink, 0.88)
-      sprite.color = isActive(node.id) ? labelInk : withAlpha(labelInk, DIM_ALPHA)
+      sprite.color = labelColorFor(node)
+      sprite.backgroundColor = false
       sprite.fontWeight = "400"
-      sprite.strokeWidth = 0
+      sprite.strokeWidth = isDarkTheme() ? 0.35 : 0
+      sprite.strokeColor = labelStrokeColorFor(node)
+      // UnrealBloomPass does not preserve transparent sprite pixels cleanly
+      // unless the empty texels are discarded. Without alphaTest, the label
+      // quad can appear as a tinted rectangle even with backgroundColor=false.
+      sprite.material.transparent = true
+      sprite.material.depthWrite = false
+      sprite.material.alphaTest = 0.01
+      sprite.material.toneMapped = false
       sprite.textHeight = labeledHubIds.has(node.id) ? 6.5 : 5.5
       sprite.center.set(0, 0.5)
       sprite.position.x = radius + 2
       sprite.position.y = 0
+      if (incremental) {
+        sprite.visible = showLabel
+        labelSprites.set(node.id, { sprite, node })
+      } else if (options.lod.labelDistance !== undefined) {
+        labelSprites.set(node.id, { sprite, node })
+      }
       if (!three || star === false) {
         return sprite
       }
@@ -1502,15 +1936,51 @@ function bindGraph(
       return
     }
     const up = new three.Vector3(0, 1, 0)
+    const linkSegments = options.lod.linkResolution ?? 5
+    const cullDistance = options.lod.cullDistance
+    const incremental = options.interaction.incrementalRepaint
+    const shareLinkResources = options.lod.shareLinkResources
+    linkMeshes.clear()
+    linksByNode.clear()
+    linkGeometryCache.clear()
+    linkMaterialCache.clear()
+    if (incremental) {
+      for (const link of data.links) {
+        const source = linkEndpointId(link.source)
+        const target = linkEndpointId(link.target)
+        for (const id of [source, target]) {
+          const existing = linksByNode.get(id)
+          if (existing) {
+            existing.push(link)
+          } else {
+            linksByNode.set(id, [link])
+          }
+        }
+      }
+    }
     graph.linkThreeObject((link) => {
       const radius = LINK_RADIUS[link.kind] * tune.edgeScale
-      const material = new three.MeshBasicMaterial({
-        color: edgeColor(link),
-        transparent: true,
-        opacity: edgeOpacity(link),
-        depthWrite: false,
-      })
-      return new three.Mesh(new three.CylinderGeometry(radius, radius, 1, 5), material)
+      const material = shareLinkResources
+        ? linkMaterialFor(three, edgeColor(link), edgeOpacity(link))
+        : new three.MeshBasicMaterial({
+            color: edgeColor(link),
+            transparent: true,
+            opacity: edgeOpacity(link),
+            depthWrite: false,
+          })
+      const geometry = shareLinkResources
+        ? linkGeometryFor(three, radius, linkSegments)
+        : new three.CylinderGeometry(radius, radius, 1, linkSegments)
+      const mesh = new three.Mesh(geometry, material)
+      // Tracked when cullDistance is set (consumed by the link-cull rAF loop
+      // below) or when incrementalRepaint is set (consumed by
+      // applyFocusChange). With both unset, linkMeshes stays empty and the
+      // link-cull rAF loop below never registers at all, preserving current
+      // behavior byte for byte.
+      if (cullDistance !== undefined || incremental) {
+        linkMeshes.set(link, mesh)
+      }
+      return mesh
     })
     if (typeof graph.linkPositionUpdate !== "function") {
       return
@@ -1570,6 +2040,88 @@ function bindGraph(
     paintLinks3d()
     if (!options.use3d) {
       graph.nodeCanvasObjectMode(() => "replace")
+    }
+  }
+
+  // Incremental counterpart to refreshAccessors() + paintLabels3d() for a
+  // focus (hover/select) change only. Used when
+  // options.interaction.incrementalRepaint is set, in place of the full
+  // repaint, to avoid re-setting graph.nodeThreeObject/linkThreeObject/
+  // linkWidth — which three-forcegraph/kapsule treat as a signal to
+  // destructively recreate every node/link mesh (see the tracer report this
+  // change is based on). Mutates only the previous and next focus nodes,
+  // their direct neighbors, and the links touching any of them, in place on
+  // the retained material/sprite/mesh handles populated by paintLabels3d()/
+  // paintLinks3d() when incrementalRepaint is on. Visually identical to the
+  // full-repaint path for the same focus state; node/link geometry (radius,
+  // width) never depends on focus, so no scale mutation is needed here.
+  const applyFocusChange = (previousFocus: string | null, nextFocus: string | null): void => {
+    const affected = affectedFocusNodeIds(neighbors, previousFocus, nextFocus)
+    const visitedLinks = new Set<GraphLink>()
+    for (const id of affected) {
+      const node = renderedNodeById.get(id)
+      if (!node) {
+        continue
+      }
+      const fill = nodeFill(node)
+      nodeMaterials.get(id)?.color.set(fill)
+      const twinkle = twinkleMaterials.get(id)
+      if (twinkle) {
+        twinkle.material.emissive.set(fill)
+      }
+      const label = labelSprites.get(id)
+      if (label) {
+        label.sprite.color = labelColorFor(node)
+        label.sprite.strokeColor = labelStrokeColorFor(node)
+        label.sprite.strokeWidth = isDarkTheme() ? 0.35 : 0
+        label.sprite.visible = showNodeLabel(node)
+      }
+      for (const link of linksByNode.get(id) ?? []) {
+        // `affected` contains the focus node + its neighbors, so a link
+        // between two affected nodes (e.g. the focus and one of its
+        // neighbors) is reachable via linksByNode from both endpoints.
+        // Track already-processed links so each is mutated exactly once.
+        if (visitedLinks.has(link)) {
+          continue
+        }
+        visitedLinks.add(link)
+        const mesh = linkMeshes.get(link)
+        if (!mesh) {
+          continue
+        }
+        // Shared materials (lod.shareLinkResources) are keyed by
+        // color+opacity and reused across many links, so mutating
+        // mesh.material in place here would repaint every other link
+        // sharing that same material instance. Swap the mesh's material
+        // reference to whichever cached shared material matches the new
+        // color/opacity instead (creating one on first use); unshared mode
+        // keeps the original in-place mutation, which is safe there because
+        // each link privately owns its material.
+        if (options.lod.shareLinkResources && options.three) {
+          mesh.material = linkMaterialFor(options.three, edgeColor(link), edgeOpacity(link))
+        } else {
+          mesh.material.color.set(edgeColor(link))
+          mesh.material.opacity = edgeOpacity(link)
+        }
+      }
+    }
+  }
+
+  // Shared focus-change repaint path used by onNodeHover/clearSelection/
+  // selectNode: incremental repaint (particles + affected-node/link colors)
+  // when incrementalRepaint+use3d are both on, otherwise a full accessor
+  // refresh (+ label repaint in 3d mode). Callers just invoke this and
+  // fall through to whatever they do next, exactly as the inlined block
+  // used to.
+  const repaintFocusChange = (previousFocus: string | null): void => {
+    if (options.interaction.incrementalRepaint && options.use3d) {
+      refreshParticles()
+      applyFocusChange(previousFocus, litId())
+      return
+    }
+    refreshAccessors()
+    if (options.use3d) {
+      paintLabels3d()
     }
   }
 
@@ -1690,6 +2242,53 @@ function bindGraph(
     )
   }
 
+  // layout.incrementalWarmup: skip the full re-warmup that graph.graphData()
+  // otherwise triggers on every applyView() call, for the expand-only path.
+  //
+  // three-forcegraph's kapsule digest is debounced 1ms (lodash debounce,
+  // trailing-edge only — see kapsule.mjs). `warmupTicks` has
+  // `triggerUpdate: false` (setting it does not itself schedule a digest),
+  // but the digest already scheduled by graphData()'s `triggerUpdate: true`
+  // still reads whatever `state.warmupTicks` is at the moment it eventually
+  // fires. That means a naive synchronous
+  // `warmupTicks(0); graphData(...); warmupTicks(prior)` is a no-op from the
+  // digest's point of view: all three calls happen before the debounced
+  // digest ever runs, so it only ever observes the final, already-restored
+  // value and still runs the full warmup loop.
+  //
+  // `onFinishUpdate` (triggerUpdate: false) is invoked synchronously inside
+  // that same debounced updateFn, immediately after its warmup loop
+  // completes. Restoring warmupTicks there — instead of synchronously right
+  // after graphData() — defers the restore until after the skip has already
+  // taken effect for this digest, while still putting the real value back in
+  // place before any later digest (e.g. a genuine setLens/setFocusTag/
+  // setFocusFolder full-restructure) needs it.
+  let pendingWarmupRestore: number | null = null
+  if (options.layout.incrementalWarmup && typeof graph.onFinishUpdate === "function") {
+    graph.onFinishUpdate(() => {
+      if (pendingWarmupRestore !== null) {
+        graph.warmupTicks(pendingWarmupRestore)
+        pendingWarmupRestore = null
+      }
+    })
+  }
+  // Called only from the expand branch of activateNode, right before
+  // applyView(). Guarded internally (rather than at each call site) so
+  // there's a single source of truth for whether the option is actually
+  // usable. The `pendingWarmupRestore === null` guard makes this safe
+  // against a second expand click landing before the first expand's
+  // debounced digest has fired: the *original* configured value is only
+  // ever captured once, never overwritten with an already-skipped `0`.
+  const requestSkippedWarmup = (): void => {
+    if (!options.layout.incrementalWarmup || typeof graph.onFinishUpdate !== "function") {
+      return
+    }
+    if (pendingWarmupRestore === null) {
+      pendingWarmupRestore = graph.warmupTicks() as number
+    }
+    graph.warmupTicks(0)
+  }
+
   const applyView = (): void => {
     graph.graphData(currentData())
     applyForces()
@@ -1735,6 +2334,26 @@ function bindGraph(
 
   const activeBackground = (): string =>
     options.use3d ? canvasBackground3d(theme.current) : canvasBackground(theme.current)
+
+  // Sets/refreshes the 3D scene's THREE.Fog to match the active theme
+  // background, giving distant geometry a depth cue instead of a hard
+  // edge. No-op (graph.scene() is never even called) unless both use3d
+  // and options.lod.fog are true, preserving current behavior byte for
+  // byte when the option is unset. near/far scale with the *current*
+  // camera distance (FOG_NEAR_FACTOR/FOG_FAR_FACTOR) rather than fixed
+  // world units, so the fog stays correctly framed across the full
+  // applyZoom range instead of washing out the graph at max zoom-out.
+  const updateFog = (): void => {
+    if (!options.use3d || !options.lod.fog || !options.three || typeof graph.scene !== "function") {
+      return
+    }
+    const cameraDistance = currentCameraVector().len
+    graph.scene().fog = new options.three.Fog(
+      activeBackground(),
+      cameraDistance * FOG_NEAR_FACTOR,
+      cameraDistance * FOG_FAR_FACTOR,
+    )
+  }
 
   graph.graphData(currentData())
   graph.backgroundColor(activeBackground())
@@ -1800,6 +2419,7 @@ function bindGraph(
   }
 
   graph.onNodeHover((node) => {
+    const previousFocus = litId()
     hoveredId = node ? node.id : null
     if (selectedId === null) {
       if (node) {
@@ -1808,10 +2428,7 @@ function bindGraph(
         hidePreview()
       }
     }
-    refreshAccessors()
-    if (options.use3d) {
-      paintLabels3d()
-    }
+    repaintFocusChange(previousFocus)
   })
 
   if (options.use3d) {
@@ -1832,8 +2449,10 @@ function bindGraph(
       }, 1600)
       window.addCleanup(() => window.clearTimeout(rotateTimer))
     }
-    graph.warmupTicks(50)
-    graph.cooldownTicks(200)
+    graph.warmupTicks(options.layout.warmupTicks ?? 50)
+    graph.cooldownTicks(
+      options.layout.freezeAfterWarmup ? 0 : (options.layout.cooldownTicks ?? 200),
+    )
     if (typeof graph.linkDirectionalParticleWidth === "function") {
       graph.linkDirectionalParticleWidth(1.1)
     }
@@ -1856,6 +2475,7 @@ function bindGraph(
       }
     }
     paintLabels3d()
+    updateFog()
     // Subtle emissive twinkle: rAF-driven sine per node, +-15%, dark only.
     if (!prefersReducedMotion()) {
       let twinkleFrame = 0
@@ -1870,9 +2490,70 @@ function bindGraph(
       twinkleFrame = window.requestAnimationFrame(twinkle)
       window.addCleanup(() => window.cancelAnimationFrame(twinkleFrame))
     }
+    // Label-distance fade + link-distance culling: merged into a single rAF
+    // loop that reads graph.cameraPosition() once per frame instead of
+    // twice, running the label-fade pass when options.lod.labelDistance is
+    // set and the link-cull pass when options.lod.cullDistance is set.
+    // Unlike twinkle above, these are functional/perf thresholds rather
+    // than decorative motion, so the loop runs regardless of
+    // prefersReducedMotion() — and it is entirely absent (no rAF loop
+    // registered at all) unless at least one of labelDistance/cullDistance
+    // is explicitly set, preserving current behavior when both are unset.
+    // Links touching the currently focused (hovered or selected) node
+    // always stay visible regardless of distance, same as before.
+    const labelDistance = options.lod.labelDistance
+    const cullDistance = options.lod.cullDistance
+    if (
+      (labelDistance !== undefined || cullDistance !== undefined) &&
+      typeof graph.cameraPosition === "function"
+    ) {
+      const getCameraPosition = graph.cameraPosition.bind(graph)
+      let lodFrame = 0
+      const updateLod = (): void => {
+        const cam = getCameraPosition() as Partial<Vec3> | undefined
+        if (
+          cam &&
+          typeof cam.x === "number" &&
+          typeof cam.y === "number" &&
+          typeof cam.z === "number"
+        ) {
+          if (labelDistance !== undefined) {
+            for (const entry of labelSprites.values()) {
+              const nx = entry.node.x ?? 0
+              const ny = entry.node.y ?? 0
+              const nz = entry.node.z ?? 0
+              const distance = Math.hypot(cam.x - nx, cam.y - ny, cam.z - nz)
+              entry.sprite.visible = lodLevelForDistance(distance, labelDistance) === "full"
+            }
+          }
+          if (cullDistance !== undefined) {
+            const focus = litId()
+            for (const [link, mesh] of linkMeshes) {
+              const sourceId = linkEndpointId(link.source)
+              const targetId = linkEndpointId(link.target)
+              if (focus !== null && (sourceId === focus || targetId === focus)) {
+                mesh.visible = true
+                continue
+              }
+              const distance = Math.hypot(
+                cam.x - mesh.position.x,
+                cam.y - mesh.position.y,
+                cam.z - mesh.position.z,
+              )
+              mesh.visible = !(lodLevelForDistance(distance, cullDistance) === "dot")
+            }
+          }
+        }
+        lodFrame = window.requestAnimationFrame(updateLod)
+      }
+      lodFrame = window.requestAnimationFrame(updateLod)
+      window.addCleanup(() => window.cancelAnimationFrame(lodFrame))
+    }
   } else {
-    graph.warmupTicks(60)
-    graph.cooldownTicks(180)
+    graph.warmupTicks(options.layout.warmupTicks ?? 60)
+    graph.cooldownTicks(
+      options.layout.freezeAfterWarmup ? 0 : (options.layout.cooldownTicks ?? 180),
+    )
     graph.nodeCanvasObject((node, ctx, globalScale) => {
       const radius = nodeWorldRadius(node)
       const x = node.x ?? 0
@@ -1883,14 +2564,18 @@ function bindGraph(
       ctx.fillStyle = nodeFill(node)
       ctx.fill()
       if (node.isHub) {
-        ctx.strokeStyle = isActive(node.id) ? theme.current.accent : withAlpha(theme.current.accent, DIM_ALPHA)
+        ctx.strokeStyle = isActive(node.id)
+          ? theme.current.accent
+          : withAlpha(theme.current.accent, DIM_ALPHA)
         ctx.lineWidth = 1.2 / globalScale
         ctx.stroke()
       }
       if (showNodeLabel(node)) {
         const fontSize = 11.5 / globalScale
         ctx.font = `${fontSize}px ${theme.current.font}`
-        ctx.fillStyle = isActive(node.id) ? theme.current.ink : withAlpha(theme.current.ink, DIM_ALPHA)
+        ctx.fillStyle = isActive(node.id)
+          ? theme.current.ink
+          : withAlpha(theme.current.ink, DIM_ALPHA)
         ctx.textAlign = "center"
         ctx.textBaseline = "bottom"
         ctx.fillText(node.name, x, y - radius - 6)
@@ -2004,7 +2689,11 @@ function bindGraph(
           button.className = "graph-landing__inspect-link"
           button.dataset.graphInspectId = neighbor.id
           const kind =
-            neighbor.type === "tag" ? tagsLabel : neighbor.type === "external" ? linksLabel : notesLabel
+            neighbor.type === "tag"
+              ? tagsLabel
+              : neighbor.type === "external"
+                ? linksLabel
+                : notesLabel
           const kindEl = document.createElement("span")
           kindEl.textContent = kind
           const nameEl = document.createElement("strong")
@@ -2042,16 +2731,14 @@ function bindGraph(
   }
 
   const clearSelection = (): void => {
+    const previousFocus = litId()
     selectedId = null
     if (inspectEl instanceof HTMLElement) {
       inspectEl.hidden = true
     }
     options.root.dataset.inspecting = "false"
     setAutoRotate(true)
-    refreshAccessors()
-    if (options.use3d) {
-      paintLabels3d()
-    }
+    repaintFocusChange(previousFocus)
   }
 
   const selectNode = (node: GraphNode): void => {
@@ -2063,16 +2750,21 @@ function bindGraph(
       openExternalUrl(node.url)
       return
     }
+    const previousFocus = litId()
     selectedId = node.id
     // Inspect/preview already shows the destination; keep the constellation spinning.
     fillInspect(node)
-    refreshAccessors()
-    if (options.use3d) {
-      paintLabels3d()
-    }
+    repaintFocusChange(previousFocus)
   }
 
   const activateNode = (node: GraphNode): void => {
+    // Lazily pull the clicked node's neighbors into the live simulation
+    // before selecting it, so `fillInspect`'s connectedNeighbors reflects the
+    // freshly-expanded set immediately. No-op when maxRenderedNodes is unset.
+    if (expandFromNode(node.id)) {
+      requestSkippedWarmup()
+      applyView()
+    }
     selectNode(node)
   }
 
@@ -2182,6 +2874,7 @@ function bindGraph(
   const onThemeChange = (): void => {
     theme.current = readTheme()
     graph.backgroundColor(activeBackground())
+    updateFog()
     if (options.bloomPass) {
       options.bloomPass.strength = isDarkTheme() ? BLOOM_STRENGTH : 0
       options.bloomPass.radius = BLOOM_RADIUS
@@ -2217,14 +2910,25 @@ function bindGraph(
     }
     const inspectLink = target.closest("[data-graph-inspect-id]")
     if (inspectLink instanceof HTMLElement && inspectLink.dataset.graphInspectId) {
-      const next = data.nodes.find((entry) => entry.id === inspectLink.dataset.graphInspectId)
+      // Look up in the full index, not just the currently-rendered subset —
+      // an inspect-panel neighbor link can point at a node that hasn't been
+      // pulled into `data` yet when maxRenderedNodes is set. Route through
+      // activateNode (same as a direct graph click) so that node is expanded
+      // into the live simulation before it's selected.
+      const next = options.fullData.nodes.find(
+        (entry) => entry.id === inspectLink.dataset.graphInspectId,
+      )
       if (next) {
-        selectNode(next)
+        activateNode(next)
       }
       return
     }
     const lensBtn = target.closest("[data-graph-lens]")
-    if (lensBtn instanceof HTMLElement && lensBtn.dataset.graphLens && isLens(lensBtn.dataset.graphLens)) {
+    if (
+      lensBtn instanceof HTMLElement &&
+      lensBtn.dataset.graphLens &&
+      isLens(lensBtn.dataset.graphLens)
+    ) {
       setLens(lensBtn.dataset.graphLens)
       return
     }
@@ -2298,6 +3002,19 @@ function bindGraph(
     edgeScaleInput.addEventListener("input", onEdgeScale)
     window.addCleanup(() => edgeScaleInput.removeEventListener("input", onEdgeScale))
   }
+  const hubGravityInput = options.root.querySelector("[data-graph-hub-gravity]")
+  if (hubGravityInput instanceof HTMLInputElement) {
+    hubGravityInput.value = String(Math.round(tune.hubGravity * 100))
+    const onHubGravity = (): void => {
+      const value = Number(hubGravityInput.value) / 100
+      tune.hubGravity = Number.isFinite(value) ? Math.min(2, Math.max(0, value)) : 1
+      persistTune(tune)
+      applyForces()
+      graph.d3ReheatSimulation()
+    }
+    hubGravityInput.addEventListener("input", onHubGravity)
+    window.addCleanup(() => hubGravityInput.removeEventListener("input", onHubGravity))
+  }
   const zoomInput = options.root.querySelector("[data-graph-zoom]")
   if (zoomInput instanceof HTMLInputElement) {
     zoomInput.value = String(Math.round(tune.zoom * 100))
@@ -2341,6 +3058,7 @@ function bindGraph(
 
 interface YoutubePlayer {
   playVideo: () => void
+  loadVideoById: (videoId: string) => void
   pauseVideo: () => void
   mute: () => void
   unMute: () => void
@@ -2456,11 +3174,12 @@ function loadYoutubeApi(): Promise<YoutubeNamespace> {
 function createYoutubePlayer(args: {
   api: YoutubeNamespace
   host: HTMLElement
+  videoId: string
   onReady: (player: YoutubePlayer) => void
   onEnded: (player: YoutubePlayer) => void
 }): YoutubePlayer {
   return new args.api.Player(args.host, {
-    videoId: AMBIENT_VIDEO_ID,
+    videoId: args.videoId,
     width: "200",
     height: "113",
     playerVars: {
@@ -2469,12 +3188,10 @@ function createYoutubePlayer(args: {
       disablekb: 1,
       fs: 0,
       iv_load_policy: 3,
-      loop: 1,
       modestbranding: 1,
       mute: 1,
       origin: window.location.origin,
       playsinline: 1,
-      playlist: AMBIENT_VIDEO_ID,
       rel: 0,
     },
     events: {
@@ -2496,17 +3213,116 @@ function createYoutubePlayer(args: {
 function bindAmbientAudio(root: HTMLElement): void {
   const button = root.querySelector("[data-graph-audio-toggle]")
   const host = root.querySelector("[data-graph-audio-host]")
-  if (!(button instanceof HTMLButtonElement) || !(host instanceof HTMLElement)) {
+  const libraryToggle = root.querySelector("[data-graph-music-library-toggle]")
+  const library = root.querySelector("[data-graph-music-library]")
+  const trackList = root.querySelector("[data-graph-music-track-list]")
+  const status = root.querySelector("[data-graph-music-status]")
+  if (
+    !(button instanceof HTMLButtonElement) ||
+    !(host instanceof HTMLElement) ||
+    !(libraryToggle instanceof HTMLButtonElement) ||
+    !(library instanceof HTMLElement) ||
+    !(trackList instanceof HTMLElement) ||
+    !(status instanceof HTMLElement)
+  ) {
     return
   }
 
   const stopLabel = root.dataset.audioStop ?? "Stop music"
   const playLabel = root.dataset.audioPlay ?? "Play music"
+  const libraryOpenLabel = root.dataset.musicLibraryOpen ?? "Open record collection"
+  const libraryCloseLabel = root.dataset.musicLibraryClose ?? "Close record collection"
+  const currentTrackLabel = root.dataset.musicCurrentTrack ?? "Current track"
+  const configuredTracks: MusicTrackInput[] = []
+  try {
+    const parsed = JSON.parse(root.dataset.graphMusicTracks ?? "[]")
+    if (Array.isArray(parsed)) {
+      for (const value of parsed) {
+        if (!value || typeof value !== "object") {
+          continue
+        }
+        const candidate = value as Record<string, unknown>
+        if (typeof candidate.title !== "string" || typeof candidate.url !== "string") {
+          continue
+        }
+        if (candidate.artist !== undefined && typeof candidate.artist !== "string") {
+          continue
+        }
+        configuredTracks.push({
+          title: candidate.title,
+          ...(typeof candidate.artist === "string" ? { artist: candidate.artist } : {}),
+          url: candidate.url,
+        })
+      }
+    }
+  } catch {
+    // Invalid markup must retain the built-in ambient track.
+  }
+  const tracks: YoutubeTrack[] = youtubeTracks(configuredTracks)
+  if (tracks.length === 0) {
+    tracks.push({ title: "Ambient track", videoId: AMBIENT_VIDEO_ID })
+  }
+  let currentVideoIndex = 0
   let player: YoutubePlayer | null = null
   let playerReady = false
   let cancelFade: (() => void) | null = null
   let wanted = !readAmbientStopped()
   let started = false
+  let userActivated = false
+
+  const currentTrack = (): YoutubeTrack =>
+    tracks[currentVideoIndex] ?? tracks[0] ?? { title: "Ambient track", videoId: AMBIENT_VIDEO_ID }
+
+  const setRecordArtwork = (videoId: string): void => {
+    button.style.setProperty(
+      "--graph-music-artwork",
+      `url("https://i.ytimg.com/vi/${videoId}/hqdefault.jpg")`,
+    )
+  }
+
+  const currentVideoId = (): string => currentTrack().videoId
+
+  const renderTracks = (): void => {
+    trackList.replaceChildren()
+    tracks.forEach((track, index) => {
+      const trackButton = document.createElement("button")
+      trackButton.type = "button"
+      trackButton.className = "graph-landing__music-track"
+      trackButton.dataset.graphMusicTrackIndex = String(index)
+      trackButton.setAttribute("aria-current", index === currentVideoIndex ? "true" : "false")
+
+      const cover = document.createElement("img")
+      cover.className = "graph-landing__music-track-cover"
+      cover.src = `https://i.ytimg.com/vi/${track.videoId}/hqdefault.jpg`
+      cover.alt = ""
+      cover.loading = "lazy"
+
+      const copy = document.createElement("span")
+      copy.className = "graph-landing__music-track-copy"
+      const title = document.createElement("span")
+      title.className = "graph-landing__music-track-title"
+      title.textContent = track.title
+      copy.appendChild(title)
+      if (track.artist) {
+        const artist = document.createElement("span")
+        artist.className = "graph-landing__music-track-artist"
+        artist.textContent = track.artist
+        copy.appendChild(artist)
+      }
+      trackButton.append(cover, copy)
+      trackList.appendChild(trackButton)
+    })
+    status.textContent = `${currentTrackLabel}: ${currentTrack().title}`
+  }
+
+  const setLibraryOpen = (open: boolean): void => {
+    root.dataset.musicLibraryOpen = open ? "true" : "false"
+    library.hidden = !open
+    library.setAttribute("aria-hidden", open ? "false" : "true")
+    libraryToggle.setAttribute("aria-expanded", open ? "true" : "false")
+    libraryToggle.setAttribute("aria-label", open ? libraryCloseLabel : libraryOpenLabel)
+    libraryToggle.title = open ? libraryCloseLabel : libraryOpenLabel
+  }
 
   const setButton = (playing: boolean): void => {
     button.setAttribute("aria-pressed", playing ? "true" : "false")
@@ -2572,19 +3388,27 @@ function bindAmbientAudio(root: HTMLElement): void {
       player = createYoutubePlayer({
         api,
         host,
+        videoId: currentVideoId(),
         onReady: (readyPlayer) => {
           playerReady = true
           readyPlayer.mute()
           applyVolume(0)
           // Muted start is allowed without a gesture; unmute waits for a tap.
           readyPlayer.playVideo()
+          if (wanted && userActivated) {
+            beginPlayback(readyPlayer)
+          }
         },
         onEnded: (endedPlayer) => {
           if (!wanted) {
             return
           }
-          endedPlayer.playVideo()
-          applyVolume(AMBIENT_MAX_VOLUME)
+          currentVideoIndex = (currentVideoIndex + 1) % tracks.length
+          const nextVideoId = currentVideoId()
+          setRecordArtwork(nextVideoId)
+          renderTracks()
+          endedPlayer.loadVideoById(nextVideoId)
+          applyVolume(started ? AMBIENT_MAX_VOLUME : 0)
         },
       })
     } catch (error) {
@@ -2594,12 +3418,18 @@ function bindAmbientAudio(root: HTMLElement): void {
 
   const unlock = (event: Event): void => {
     const target = event.target
-    if (target instanceof Element && target.closest("[data-graph-audio-toggle]")) {
+    if (
+      target instanceof Element &&
+      target.closest(
+        "[data-graph-audio-toggle], [data-graph-music-library-toggle], [data-graph-music-track-index]",
+      )
+    ) {
       return
     }
     if (!wanted || started || prefersReducedData()) {
       return
     }
+    userActivated = true
     if (playerReady && player) {
       beginPlayback(player)
       return
@@ -2612,6 +3442,7 @@ function bindAmbientAudio(root: HTMLElement): void {
       pauseAmbient()
       return
     }
+    userActivated = true
     wanted = true
     writeAmbientStopped(false)
     if (playerReady && player) {
@@ -2619,6 +3450,83 @@ function bindAmbientAudio(root: HTMLElement): void {
       return
     }
     void primePlayer()
+  }
+
+  const selectTrack = (index: number): void => {
+    if (!Number.isInteger(index) || index < 0 || index >= tracks.length) {
+      return
+    }
+    currentVideoIndex = index
+    setRecordArtwork(currentVideoId())
+    renderTracks()
+    setLibraryOpen(false)
+    wanted = true
+    userActivated = true
+    writeAmbientStopped(false)
+    if (playerReady && player) {
+      player.loadVideoById(currentVideoId())
+      if (started) {
+        player.unMute()
+        player.playVideo()
+        applyVolume(AMBIENT_MAX_VOLUME)
+      } else {
+        beginPlayback(player)
+      }
+      return
+    }
+    void primePlayer()
+  }
+
+  const onLibraryToggle = (): void => {
+    const open = root.dataset.musicLibraryOpen !== "true"
+    if (open) {
+      root.dataset.railOpen = "false"
+      const railToggle = root.querySelector("[data-graph-rail-toggle]")
+      const rail = root.querySelector("#graph-landing-rail")
+      const railScrim = root.querySelector("[data-graph-rail-scrim]")
+      if (railToggle instanceof HTMLButtonElement) {
+        railToggle.setAttribute("aria-expanded", "false")
+      }
+      if (rail instanceof HTMLElement) {
+        rail.setAttribute("aria-hidden", "true")
+      }
+      if (railScrim instanceof HTMLElement) {
+        railScrim.hidden = true
+      }
+    }
+    setLibraryOpen(open)
+  }
+
+  const onTrackClick = (event: Event): void => {
+    const target = event.target
+    if (!(target instanceof Element)) {
+      return
+    }
+    const trackButton = target.closest("[data-graph-music-track-index]")
+    if (!(trackButton instanceof HTMLButtonElement)) {
+      return
+    }
+    selectTrack(Number(trackButton.dataset.graphMusicTrackIndex))
+  }
+
+  const onRootClick = (event: Event): void => {
+    if (root.dataset.musicLibraryOpen !== "true") {
+      return
+    }
+    const target = event.target
+    if (
+      !(target instanceof Element) ||
+      !target.closest(".graph-landing__music-dock, .graph-landing__music-library")
+    ) {
+      setLibraryOpen(false)
+    }
+  }
+
+  const onKeyDown = (event: KeyboardEvent): void => {
+    if (event.key === "Escape" && root.dataset.musicLibraryOpen === "true") {
+      setLibraryOpen(false)
+      event.stopImmediatePropagation()
+    }
   }
 
   const onVisibility = (): void => {
@@ -2636,17 +3544,28 @@ function bindAmbientAudio(root: HTMLElement): void {
     }
   }
 
-  setButton(wanted)
+  setRecordArtwork(currentVideoId())
+  setButton(false)
+  renderTracks()
+  setLibraryOpen(false)
   void primePlayer()
   button.addEventListener("click", onToggle)
+  libraryToggle.addEventListener("click", onLibraryToggle)
+  trackList.addEventListener("click", onTrackClick)
+  root.addEventListener("click", onRootClick)
   root.addEventListener("pointerdown", unlock, true)
   root.addEventListener("touchstart", unlock, { capture: true, passive: true })
   document.addEventListener("visibilitychange", onVisibility)
+  window.addEventListener("keydown", onKeyDown)
   window.addCleanup(() => {
     button.removeEventListener("click", onToggle)
+    libraryToggle.removeEventListener("click", onLibraryToggle)
+    trackList.removeEventListener("click", onTrackClick)
+    root.removeEventListener("click", onRootClick)
     root.removeEventListener("pointerdown", unlock, true)
     root.removeEventListener("touchstart", unlock, true)
     document.removeEventListener("visibilitychange", onVisibility)
+    window.removeEventListener("keydown", onKeyDown)
     stopFade()
     if (player) {
       player.pauseVideo()
@@ -2673,13 +3592,82 @@ async function initGraphLanding(): Promise<void> {
   }
 
   const countEls = root.querySelectorAll("[data-graph-counts]")
-  const localeId = root.dataset.locale ?? "ko"
-  const sourceLocale = root.dataset.sourceLocale ?? "ko"
+  // data-locale/data-source-locale are always emitted by GraphLanding.tsx,
+  // so these fallbacks are defense-in-depth only (e.g. DOM built outside
+  // the real component). They still honor a configured defaultLocale
+  // before falling back to "ko", for consistency with the server-side
+  // resolution in GraphLanding.tsx.
+  const localeId = root.dataset.locale ?? root.dataset.graphDefaultLocale ?? "ko"
+  const sourceLocale = root.dataset.sourceLocale ?? root.dataset.graphDefaultLocale ?? "ko"
   const prefixes = (root.dataset.localePrefixes ?? "")
     .split(",")
     .map((prefix) => prefix.trim())
     .filter((prefix) => prefix.length > 0)
   const countsTemplate = root.dataset.countsTemplate ?? "{n} nodes · {m} edges"
+  const indexSource = root.dataset.indexSource === "graphIndex" ? "graphIndex" : "contentIndex"
+  const graphIndexPath = root.dataset.graphIndexPath ?? ""
+  // A malformed/negative dataset value (or a non-finite Number.parseInt
+  // result, e.g. "abc" → NaN) must fall back to "render all" / "1 hop"
+  // rather than reaching selectRenderedSubset/expandFromNode as NaN, which
+  // would otherwise produce an EMPTY rendered graph (ranked.slice(0, NaN)).
+  const maxRenderedNodes = parseNonNegativeNumber(root.dataset.maxRenderedNodes, (s) =>
+    Number.parseInt(s, 10),
+  )
+  const parsedExpandHops = root.dataset.expandHops
+    ? Number.parseInt(root.dataset.expandHops, 10)
+    : 1
+  const expandHops = Number.isFinite(parsedExpandHops) ? parsedExpandHops : 1
+  const tagCooccurrence: TagCooccurrenceOption =
+    root.dataset.tagCoocDisabled === "true"
+      ? false
+      : root.dataset.tagCoocMaxTagsPerNote || root.dataset.tagCoocMaxEdges
+        ? {
+            maxTagsPerNote: root.dataset.tagCoocMaxTagsPerNote
+              ? Number.parseInt(root.dataset.tagCoocMaxTagsPerNote, 10)
+              : undefined,
+            maxEdges: root.dataset.tagCoocMaxEdges
+              ? Number.parseInt(root.dataset.tagCoocMaxEdges, 10)
+              : undefined,
+          }
+        : undefined
+  const graphRenderMode: "auto" | "3d" = root.dataset.graphRenderMode === "3d" ? "3d" : "auto"
+  const layoutFreezeAfterWarmup = root.dataset.graphLayoutFreezeAfterWarmup === "true"
+  // Same NaN/negative-guarded parse pattern as maxRenderedNodes/expandHops
+  // above: a malformed dataset value falls back to "unset" (renderer
+  // default) rather than reaching warmupTicks/cooldownTicks/theta as NaN.
+  const layoutWarmupTicks = parseNonNegativeNumber(root.dataset.graphLayoutWarmupTicks, (s) =>
+    Number.parseInt(s, 10),
+  )
+  const layoutCooldownTicks = parseNonNegativeNumber(root.dataset.graphLayoutCooldownTicks, (s) =>
+    Number.parseInt(s, 10),
+  )
+  const layoutChargeTheta = parseNonNegativeNumber(
+    root.dataset.graphLayoutChargeTheta,
+    Number.parseFloat,
+  )
+  const layoutIncrementalWarmup = root.dataset.graphLayoutIncrementalWarmup === "true"
+  // Same NaN/negative-guarded parse pattern as the layout.* fields above: a
+  // malformed or absent dataset value falls back to "unset" (LOD entirely
+  // disabled — no THREE.LOD wrapping, no label-fade rAF loop), preserving
+  // current behavior byte for byte when the lod option is not configured.
+  const lodLabelDistance = parseNonNegativeNumber(
+    root.dataset.graphLodLabelDistance,
+    Number.parseFloat,
+  )
+  const lodDotDistance = parseNonNegativeNumber(root.dataset.graphLodDotDistance, Number.parseFloat)
+  const lodCullDistance = parseNonNegativeNumber(
+    root.dataset.graphLodCullDistance,
+    Number.parseFloat,
+  )
+  const lodFog = root.dataset.graphLodFog === "true"
+  const lodNodeResolution = parseNonNegativeNumber(root.dataset.graphLodNodeResolution, (s) =>
+    Number.parseInt(s, 10),
+  )
+  const lodLinkResolution = parseNonNegativeNumber(root.dataset.graphLodLinkResolution, (s) =>
+    Number.parseInt(s, 10),
+  )
+  const interactionIncrementalRepaint = root.dataset.graphInteractionIncrementalRepaint === "true"
+  const lodShareLinkResources = root.dataset.graphLodShareLinkResources === "true"
 
   let cancelled = false
   let graph: ForceGraphInstance | null = null
@@ -2697,7 +3685,16 @@ async function initGraphLanding(): Promise<void> {
 
   // Kick off every network dependency at once: content index, renderer,
   // and the three.js extras all race in parallel instead of a CDN waterfall.
-  const use3d = shouldUse3D()
+  // "auto" (unset, default): current behavior, WebGL+motion decide.
+  // "3d": never falls back to 2D — if WebGL is missing or reduced-motion is
+  // requested, show the existing canvas-message path instead of silently
+  // loading the 2D renderer.
+  const canRender3d = shouldUse3D()
+  if (graphRenderMode === "3d" && !canRender3d) {
+    showLoadError(canvas, "3D graph unavailable: WebGL is required and motion must be enabled.")
+    return
+  }
+  const use3d = graphRenderMode === "3d" || canRender3d
   const rendererPromise = loadRenderer(use3d)
   const spritePromise: Promise<SpriteTextCtor | null> = use3d
     ? (import(SPRITE_TEXT) as Promise<{ default?: SpriteTextCtor }>)
@@ -2717,7 +3714,18 @@ async function initGraphLanding(): Promise<void> {
     ? (import(UNREAL_BLOOM) as Promise<{ UnrealBloomPass?: new () => BloomPass }>)
         .then((mod) => (mod.UnrealBloomPass ? new mod.UnrealBloomPass() : null))
         .catch((error: unknown) => {
-          console.error("[graph-landing] UnrealBloomPass unavailable; dark-mode bloom disabled", error)
+          console.error(
+            "[graph-landing] UnrealBloomPass unavailable; dark-mode bloom disabled",
+            error,
+          )
+          return null
+        })
+    : Promise.resolve(null)
+  const collisionPromise: Promise<ForceCollideFactory | null> = use3d
+    ? (import(D3_FORCE_3D) as Promise<{ forceCollide?: ForceCollideFactory }>)
+        .then((mod) => mod.forceCollide ?? null)
+        .catch((error: unknown) => {
+          console.error("[graph-landing] d3-force-3d collision force unavailable", error)
           return null
         })
     : Promise.resolve(null)
@@ -2727,9 +3735,12 @@ async function initGraphLanding(): Promise<void> {
 
   let indexRaw: Record<string, unknown>
   try {
-    indexRaw = asRecord(await fetchData)
+    indexRaw =
+      indexSource === "graphIndex"
+        ? asRecord(await fetch(graphIndexPath).then((response) => response.json()))
+        : asRecord(await fetchData)
   } catch (error) {
-    showLoadError(canvas, "Graph could not load content index.")
+    showLoadError(canvas, "Graph could not load its index.")
     throw error
   }
 
@@ -2737,15 +3748,23 @@ async function initGraphLanding(): Promise<void> {
     return
   }
 
-  const data = buildGraphData(parseContentIndex(indexRaw), {
-    localeId,
-    sourceLocale,
-    prefixes,
-  })
+  const fullData = buildGraphData(
+    parseContentIndex(indexRaw),
+    {
+      localeId,
+      sourceLocale,
+      prefixes,
+    },
+    tagCooccurrence,
+  )
+  // When maxRenderedNodes is unset (or >= total nodes), selectRenderedSubset
+  // returns `fullData` itself (same reference) — the render/count/debug-handle
+  // path below is then byte-for-byte the same as before this option existed.
+  const data = selectRenderedSubset(fullData, maxRenderedNodes)
 
   const countText = countsTemplate
-    .replace("{n}", String(data.nodes.length))
-    .replace("{m}", String(data.links.length))
+    .replace("{n}", String(fullData.nodes.length))
+    .replace("{m}", String(fullData.links.length))
   for (const el of countEls) {
     el.textContent = countText
   }
@@ -2758,10 +3777,11 @@ async function initGraphLanding(): Promise<void> {
     throw error
   }
 
-  const [spriteText, three, bloomPass] = await Promise.all([
+  const [spriteText, three, bloomPass, forceCollide] = await Promise.all([
     spritePromise,
     threePromise,
     bloomPromise,
+    collisionPromise,
   ])
 
   if (cancelled) {
@@ -2773,7 +3793,35 @@ async function initGraphLanding(): Promise<void> {
   // Debug handle for browser QA (edge/kind breakdown, hover simulation).
   ;(canvas as HTMLElement & { __graphLanding?: ForceGraphInstance }).__graphLanding = graph
   ;(canvas as HTMLElement & { __graphData?: GraphData }).__graphData = data
-  bindGraph(graph, data, theme, { use3d, root, spriteText, bloomPass, three })
+  bindGraph(graph, data, theme, {
+    use3d,
+    root,
+    spriteText,
+    bloomPass,
+    three,
+    forceCollide,
+    fullData,
+    expandHops,
+    layout: {
+      freezeAfterWarmup: layoutFreezeAfterWarmup,
+      warmupTicks: layoutWarmupTicks,
+      cooldownTicks: layoutCooldownTicks,
+      chargeTheta: layoutChargeTheta,
+      incrementalWarmup: layoutIncrementalWarmup,
+    },
+    lod: {
+      labelDistance: lodLabelDistance,
+      dotDistance: lodDotDistance,
+      cullDistance: lodCullDistance,
+      fog: lodFog,
+      nodeResolution: lodNodeResolution,
+      linkResolution: lodLinkResolution,
+      shareLinkResources: lodShareLinkResources,
+    },
+    interaction: {
+      incrementalRepaint: interactionIncrementalRepaint,
+    },
+  })
 }
 
 const PREFERRED_LOCALE_STORAGE_KEY = "preferred-locale"

@@ -1,8 +1,9 @@
 import test, { describe } from "node:test"
 import assert from "node:assert"
-import { collectComponents, resolveLayout } from "./dispatcher"
+import { affectedPageSlugs, collectComponents, resolveLayout } from "./dispatcher"
 import { QuartzPageTypePluginInstance } from "../types"
 import { QuartzComponent } from "../../components/types"
+import { FilePath } from "../../util/path"
 
 const StubA: QuartzComponent = (() => null) as unknown as QuartzComponent
 const StubB: QuartzComponent = (() => null) as unknown as QuartzComponent
@@ -19,6 +20,120 @@ function makePageType(
     ...overrides,
   } as QuartzPageTypePluginInstance
 }
+
+describe("affectedPageSlugs", () => {
+  test("invalidates the changed note, ancestor folders, tag prefixes, and locale homes", () => {
+    const path = "70. Collections/01 People/Ada.md" as FilePath
+    const current = new Map([
+      [
+        path,
+        {
+          slug: "70.-collections/01-people/ada",
+          tags: ["people/researcher"],
+          listingFingerprint: "ada-v1",
+        },
+      ],
+    ])
+
+    const affected = affectedPageSlugs([{ type: "change", path }], current, new Map(), ["ko", "en"])
+
+    assert.deepStrictEqual(
+      [...affected].sort(),
+      [
+        "70.-collections/01-people/ada",
+        "70.-collections/01-people/index",
+        "70.-collections/index",
+        "en/index",
+        "en/writing",
+        "index",
+        "ko/index",
+        "ko/writing",
+        "tags/index",
+        "tags/people",
+        "tags/people/researcher",
+      ].sort(),
+    )
+  })
+
+  test("uses previous state to invalidate deleted and retagged entries", () => {
+    const path = "notes/example.md" as FilePath
+    const previous = new Map([
+      [path, { slug: "notes/example", tags: ["old/nested"], listingFingerprint: "old" }],
+    ])
+    const current = new Map([
+      [path, { slug: "notes/example", tags: ["new"], listingFingerprint: "new" }],
+    ])
+
+    const affected = affectedPageSlugs([{ type: "change", path }], current, previous, [])
+
+    assert.ok(affected.has("notes/index"))
+    assert.ok(affected.has("tags/old"))
+    assert.ok(affected.has("tags/old/nested"))
+    assert.ok(affected.has("tags/new"))
+  })
+
+  test("invalidates translation siblings when alternate links change", () => {
+    const sourcePath = "notes/source.md" as FilePath
+    const translatedPath = "en/notes/source.md" as FilePath
+    const previous = new Map([
+      [
+        sourcePath,
+        {
+          slug: "ko/notes/source",
+          tags: [],
+          translationKey: "notes/source",
+          listingFingerprint: "source-v1",
+        },
+      ],
+    ])
+    const current = new Map([
+      [
+        sourcePath,
+        {
+          slug: "ko/notes/source",
+          tags: [],
+          translationKey: "notes/source",
+          listingFingerprint: "source-v1",
+        },
+      ],
+      [
+        translatedPath,
+        {
+          slug: "en/notes/source",
+          tags: [],
+          translationKey: "notes/source",
+          listingFingerprint: "translation-v1",
+        },
+      ],
+    ])
+
+    const affected = affectedPageSlugs([{ type: "add", path: translatedPath }], current, previous, [
+      "ko",
+      "en",
+    ])
+
+    assert.ok(affected.has("ko/notes/source"))
+    assert.ok(affected.has("en/notes/source"))
+  })
+
+  test("body-only edits rebuild only the changed page", () => {
+    const path = "notes/example.md" as FilePath
+    const state = {
+      slug: "notes/example",
+      tags: ["stable"],
+      listingFingerprint: "stable-metadata",
+    }
+
+    const affected = affectedPageSlugs(
+      [{ type: "change", path }],
+      new Map([[path, state]]),
+      new Map([[path, state]]),
+      ["ko"],
+    )
+
+    assert.deepStrictEqual([...affected], ["notes/example"])
+  })
+})
 
 describe("resolveLayout", () => {
   test("footer defaults to [] when sharedDefaults omits footer", () => {
@@ -103,6 +218,36 @@ describe("resolveLayout frame resolution", () => {
   test("defaults to 'default' when byPageType entry exists but has no frame", () => {
     const result = resolveLayout(makePageType(), { head: StubHead }, { content: { left: [StubA] } })
     assert.strictEqual(result.frame, "default")
+  })
+})
+
+describe("resolveLayout skipContentIndexFetch resolution", () => {
+  test("defaults to false when unspecified", () => {
+    const result = resolveLayout(makePageType(), { head: StubHead }, {})
+    assert.strictEqual(result.skipContentIndexFetch, false)
+  })
+
+  test("page type value is used when no config override", () => {
+    const result = resolveLayout(
+      makePageType({ skipContentIndexFetch: true }),
+      { head: StubHead },
+      {},
+    )
+    assert.strictEqual(result.skipContentIndexFetch, true)
+  })
+
+  test("config override wins over page type value", () => {
+    const result = resolveLayout(
+      makePageType({ skipContentIndexFetch: true }),
+      { head: StubHead },
+      { content: { skipContentIndexFetch: false } },
+    )
+    assert.strictEqual(result.skipContentIndexFetch, false)
+  })
+
+  test("defaults to false when byPageType entry exists but omits the field", () => {
+    const result = resolveLayout(makePageType(), { head: StubHead }, { content: { left: [StubA] } })
+    assert.strictEqual(result.skipContentIndexFetch, false)
   })
 })
 
