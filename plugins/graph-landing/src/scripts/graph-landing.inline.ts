@@ -493,13 +493,13 @@ function pickPreferredNote(
   if (context.localeId !== context.sourceLocale) {
     return undefined
   }
-  const fallback =
+  // A group can legitimately hold only target-locale members (an en-only note whose
+  // Korean sibling was never written), so having nothing to pick is not an invariant
+  // violation — skip the group instead of throwing and killing the whole graph.
+  return (
     members.find((entry) => entryLocale(entry, context.prefixes) === context.sourceLocale) ??
     members.find((entry) => entryLocale(entry, context.prefixes) === undefined)
-  if (!fallback) {
-    throw new Error("graph-landing: locale group had no notes to pick")
-  }
-  return fallback
+  )
 }
 
 function clamp(value: number, min: number, max: number): number {
