@@ -199,7 +199,7 @@ function requiredTranslationStatus(
   throw new MultilingualContractError("unsupported-status", `unsupported status: ${value}`)
 }
 
-function isValidLocaleTag(value: string): value is ValidLocale {
+export function isValidLocaleTag(value: string): value is ValidLocale {
   return Object.hasOwn(TRANSLATIONS, value)
 }
 

@@ -11,8 +11,8 @@ import { FullSlug, RelativeURL, joinSegments, normalizeHastElement } from "../ut
 import { clone } from "../util/clone"
 import { Root, Element, ElementContent } from "hast"
 import { GlobalConfiguration } from "../cfg"
-import { i18n } from "../i18n"
-import { isTranslationMetadata } from "../util/multilingual"
+import { i18n, type ValidLocale } from "../i18n"
+import { isTranslationMetadata, isValidLocaleTag } from "../util/multilingual"
 import { styleText } from "util"
 import { resolveFrame } from "./frames"
 import type { TreeTransform } from "../plugins/types"
@@ -362,8 +362,14 @@ export function renderPage(
   const localeConfig = multilingualMetadata
     ? cfg.multilingual?.locales.find((locale) => locale.id === multilingualMetadata.locale)
     : undefined
-  const lang =
-    localeConfig?.locale ?? componentData.fileData.frontmatter?.lang ?? cfg.locale ?? "en-US"
+  const frontmatterLang = componentData.fileData.frontmatter?.lang
+  const lang: ValidLocale =
+    localeConfig?.locale ??
+    (frontmatterLang !== undefined && isValidLocaleTag(frontmatterLang)
+      ? frontmatterLang
+      : undefined) ??
+    cfg.locale ??
+    "en-US"
   const direction = multilingualMetadata?.direction ?? i18n(lang).direction ?? "ltr"
   if (lang !== cfg.locale) {
     componentData.cfg = { ...cfg, locale: lang }
