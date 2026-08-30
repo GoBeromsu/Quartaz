@@ -480,15 +480,26 @@ function noteIdentity(entry: ContentEntry, prefixes: readonly string[]): string 
   return `slug:${stripKnownPrefix(entry.slug, prefixes).permalink}`
 }
 
-function pickPreferredNote(members: readonly ContentEntry[], context: LocaleContext): ContentEntry {
-  const picked =
-    members.find((entry) => entryLocale(entry, context.prefixes) === context.localeId) ??
+function pickPreferredNote(
+  members: readonly ContentEntry[],
+  context: LocaleContext,
+): ContentEntry | undefined {
+  const current = members.find((entry) => entryLocale(entry, context.prefixes) === context.localeId)
+  if (current) {
+    return current
+  }
+  // Target locale graphs omit unpaired source notes instead of showing Korean titles on /en/,
+  // matching how blog-home and blog-chrome scope their listings.
+  if (context.localeId !== context.sourceLocale) {
+    return undefined
+  }
+  const fallback =
     members.find((entry) => entryLocale(entry, context.prefixes) === context.sourceLocale) ??
     members.find((entry) => entryLocale(entry, context.prefixes) === undefined)
-  if (!picked) {
+  if (!fallback) {
     throw new Error("graph-landing: locale group had no notes to pick")
   }
-  return picked
+  return fallback
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -648,7 +659,10 @@ function buildGraphData(
   }
   const notes: ContentEntry[] = []
   for (const members of groups.values()) {
-    notes.push(pickPreferredNote(members, context))
+    const picked = pickPreferredNote(members, context)
+    if (picked) {
+      notes.push(picked)
+    }
   }
 
   const noteIds = new Set(notes.map((note) => note.slug))
