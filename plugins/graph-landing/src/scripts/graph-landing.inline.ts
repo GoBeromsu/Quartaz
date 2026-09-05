@@ -1516,6 +1516,34 @@ function bindGraph(
     return node.type === "tag" ? theme.current.tertiary : theme.current.ink
   }
 
+  // Night-sky palette independent of focus state, shared by stars and the
+  // links between them so a connection carries the color of its endpoints.
+  const nightStarColor = (node: GraphNode, lensColor: string): string => {
+    if (node.type === "external") {
+      return STAR_EXTERNAL
+    }
+    if (node.type === "tag") {
+      return mixRgb(theme.current.tertiary, "#ffffff", 0.22)
+    }
+    if (state.lens !== "all") {
+      return mixRgb(lensColor, "#ffffff", 0.3)
+    }
+    if (node.isHub) {
+      return STAR_HUB
+    }
+    // Stellar magnitude: leaves cool blue-white, well-connected notes warm.
+    return mixRgb(STAR_COOL, STAR_WARM, Math.pow(degreeWeight(node), 0.7))
+  }
+
+  // Connection weight in the spirit of Butler's friendship map: brightness
+  // follows the log of the weaker endpoint, so hub-to-hub filaments glow and
+  // leaf threads stay faint without disappearing.
+  const linkWeight = (source: string, target: string): number => {
+    const a = fullNodeById.get(source)?.degree ?? 0
+    const b = fullNodeById.get(target)?.degree ?? 0
+    return Math.log1p(Math.min(a, b)) / Math.log1p(Math.max(1, currentMaxDegree))
+  }
+
   const nodeFill = (node: GraphNode): string => {
     const focus = litId()
     if (focus !== null && (focus === node.id || (neighbors.get(focus)?.has(node.id) ?? false))) {
@@ -1527,20 +1555,7 @@ function bindGraph(
       return mixRgb(color, canvasBackground(theme.current), 1 - DIM_ALPHA)
     }
     if (isDarkTheme()) {
-      if (node.type === "external") {
-        return STAR_EXTERNAL
-      }
-      if (node.type === "tag") {
-        return mixRgb(theme.current.tertiary, "#ffffff", 0.22)
-      }
-      if (state.lens !== "all") {
-        return mixRgb(color, "#ffffff", 0.3)
-      }
-      if (node.isHub) {
-        return STAR_HUB
-      }
-      // Stellar magnitude: leaves cool blue-white, well-connected notes warm.
-      return mixRgb(STAR_COOL, STAR_WARM, Math.pow(degreeWeight(node), 0.7))
+      return nightStarColor(node, color)
     }
     if (node.isHub) {
       return mixRgb(theme.current.ink, theme.current.accent, 0.22)
@@ -1576,12 +1591,13 @@ function bindGraph(
     if (focus !== null && (source === focus || target === focus)) {
       return isDarkTheme() ? 0.72 : 0.78
     }
+    const graded = edgeBaseOpacity(link.kind) * (0.45 + 0.55 * linkWeight(source, target))
     if (focus !== null || state.focusTag !== null || state.focusFolder !== null) {
       if (!isActive(source) || !isActive(target)) {
-        return edgeBaseOpacity(link.kind) * DIM_ALPHA
+        return graded * DIM_ALPHA
       }
     }
-    return edgeBaseOpacity(link.kind)
+    return graded
   }
 
   const edgeColor = (link: GraphLink): string => {
@@ -1591,6 +1607,13 @@ function bindGraph(
     const ink = isDarkTheme() ? EDGE_INK_DARK : theme.current.ink
     if (focus !== null && (source === focus || target === focus)) {
       return mixRgb(theme.current.accent, ink, 0.45)
+    }
+    if (isDarkTheme()) {
+      const a = fullNodeById.get(source)
+      const b = fullNodeById.get(target)
+      if (a && b) {
+        return mixRgb(nightStarColor(a, baseNodeColor(a)), nightStarColor(b, baseNodeColor(b)), 0.5)
+      }
     }
     return ink
   }
@@ -3363,6 +3386,10 @@ function bindAmbientAudio(root: HTMLElement): void {
   const library = root.querySelector("[data-graph-music-library]")
   const trackList = root.querySelector("[data-graph-music-track-list]")
   const status = root.querySelector("[data-graph-music-status]")
+  const dock = root.querySelector<HTMLElement>("[data-graph-music-dock]")
+  const sleeve = root.querySelector<HTMLElement>("[data-graph-music-now]")
+  const sleeveTitle = root.querySelector<HTMLElement>("[data-graph-music-now-title]")
+  const sleeveArtist = root.querySelector<HTMLElement>("[data-graph-music-now-artist]")
   if (
     !(button instanceof HTMLButtonElement) ||
     !(host instanceof HTMLElement) ||
@@ -3459,6 +3486,7 @@ function bindAmbientAudio(root: HTMLElement): void {
       trackList.appendChild(trackButton)
     })
     status.textContent = `${currentTrackLabel}: ${currentTrack().title}`
+    renderSleeve()
   }
 
   const setLibraryOpen = (open: boolean): void => {
@@ -3470,11 +3498,25 @@ function bindAmbientAudio(root: HTMLElement): void {
     libraryToggle.title = open ? libraryCloseLabel : libraryOpenLabel
   }
 
+  // The sleeve label shows the spinning record's title while audible.
+  const renderSleeve = (): void => {
+    const playing = button.dataset.playing === "true"
+    if (dock) dock.dataset.playing = playing ? "true" : "false"
+    if (sleeve) sleeve.hidden = !playing
+    const track = currentTrack()
+    if (sleeveTitle) sleeveTitle.textContent = track.title
+    if (sleeveArtist) {
+      sleeveArtist.textContent = track.artist ?? ""
+      sleeveArtist.hidden = !track.artist
+    }
+  }
+
   const setButton = (playing: boolean): void => {
     button.setAttribute("aria-pressed", playing ? "true" : "false")
     button.setAttribute("aria-label", playing ? stopLabel : playLabel)
     button.title = playing ? stopLabel : playLabel
     button.dataset.playing = playing ? "true" : "false"
+    renderSleeve()
   }
 
   const stopFade = (): void => {

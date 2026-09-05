@@ -16,8 +16,11 @@ hub attraction, and a slow automatic orbit. All configuration options are option
   Distance LOD retains label relevance and always keeps the focused title.
 - Stars are additive light points with degree-driven luminance and color
   temperature; a distant dust field gives parallax. Light theme renders a
-  star-chart of ink points. Real connections use visible strokes, while
-  folder/co-occurrence texture appears in its lens.
+  star-chart of ink points. Links blend their endpoints' star colors and
+  brighten with the log of the weaker endpoint's degree, so hub filaments glow
+  while leaf threads stay faint; folder/co-occurrence texture appears in its lens.
+- While music plays, a record-sleeve label beside the turntable shows the
+  current title and artist. Hover previews sit bottom-right, clear of the dock.
 
 ## Install or update
 
@@ -28,7 +31,7 @@ release tag:
 - source:
     repo: github:GoBeromsu/Quartaz
     subdir: plugins/graph-landing
-    ref: graph-landing-v0.7.0
+    ref: graph-landing-v0.7.1
     name: graph-landing
   enabled: true
 ```

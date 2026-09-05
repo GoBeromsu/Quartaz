@@ -2,6 +2,21 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.7.1
+
+### Added
+
+- A record-sleeve label slides out of the turntable dock while music is
+  audible, showing the current title and artist.
+
+### Changed
+
+- Links inherit the blended stellar color of their endpoints in the night
+  sky, and their brightness follows the log of the weaker endpoint's degree,
+  so hub-to-hub filaments glow while leaf threads stay faint.
+- The hover preview is anchored bottom-right so it never overlaps the
+  bottom-left controls.
+
 ## 0.7.0
 
 ### Added

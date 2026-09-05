@@ -435,7 +435,7 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
                   />
                 </svg>
               </button>
-              <div class="graph-landing__music-dock">
+              <div class="graph-landing__music-dock" data-graph-music-dock>
                 <button
                   type="button"
                   class="graph-landing__audio-toggle"
@@ -463,6 +463,15 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
                     </span>
                   </span>
                 </button>
+                <span
+                  class="graph-landing__music-now"
+                  data-graph-music-now
+                  hidden
+                  aria-live="polite"
+                >
+                  <span class="graph-landing__music-now-title" data-graph-music-now-title></span>
+                  <span class="graph-landing__music-now-artist" data-graph-music-now-artist></span>
+                </span>
                 <button
                   type="button"
                   class="graph-landing__music-library-toggle"

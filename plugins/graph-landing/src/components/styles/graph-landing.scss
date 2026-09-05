@@ -215,6 +215,78 @@ body:has(.graph-landing) {
   z-index: 5;
 }
 
+.graph-landing__music-now {
+  background: linear-gradient(
+    90deg,
+    var(--graph-surface),
+    color-mix(in srgb, var(--graph-surface) 92%, transparent)
+  );
+  border: 1px solid var(--graph-border);
+  border-radius: 8px;
+  box-sizing: border-box;
+  display: block;
+  flex: 0 1 auto;
+  max-width: 180px;
+  min-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  padding: 5px 10px 5px 12px;
+  position: relative;
+  transform: translateX(-6px);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease,
+    width 0.25s ease;
+  white-space: nowrap;
+  width: 0;
+}
+
+.graph-landing__music-now::before {
+  background: repeating-radial-gradient(
+    circle at left center,
+    color-mix(in srgb, var(--graph-text) 10%, transparent) 0 1px,
+    transparent 1px 3px
+  );
+  content: "";
+  inset: 0;
+  mask-image: linear-gradient(90deg, #000, transparent 56px);
+  pointer-events: none;
+  position: absolute;
+  -webkit-mask-image: linear-gradient(90deg, #000, transparent 56px);
+}
+
+.graph-landing__music-now[hidden] {
+  display: none;
+}
+
+.graph-landing__music-dock[data-playing="true"] .graph-landing__music-now:not([hidden]) {
+  opacity: 1;
+  transform: translateX(0);
+  width: 180px;
+}
+
+.graph-landing__music-now-title,
+.graph-landing__music-now-artist {
+  display: block;
+  overflow: hidden;
+  position: relative;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.graph-landing__music-now-title {
+  color: var(--graph-text);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.graph-landing__music-now-artist {
+  color: var(--graph-muted);
+  font-size: 10px;
+  line-height: 1.3;
+}
+
 .graph-landing__audio-toggle {
   align-items: center;
   background: transparent;
@@ -800,24 +872,24 @@ a.graph-landing__title:focus-visible {
   backdrop-filter: blur(14px);
   border: 1px solid var(--graph-border);
   border-radius: 14px;
-  bottom: 2rem;
-  left: 50%;
+  bottom: 1.5rem;
+  left: auto;
   margin: 0;
-  max-width: 560px;
   opacity: 0;
   padding: 1rem 1.3rem 0.9rem;
   pointer-events: none;
   position: absolute;
-  transform: translate(-58%, 6px);
+  right: 1.5rem;
+  transform: translateY(6px);
   transition:
     opacity 0.22s ease,
     transform 0.22s ease;
-  width: min(560px, calc(100% - 2.5rem));
+  width: min(400px, calc(100% - 3rem));
 }
 
 .graph-landing__preview[data-visible="true"] {
   opacity: 1;
-  transform: translate(-58%, 0);
+  transform: translateY(0);
 }
 
 .graph-landing__preview-chip {
@@ -1132,6 +1204,14 @@ a.graph-landing__title:focus-visible {
 
   .graph-landing__music-dock {
     left: calc(max(16px, env(safe-area-inset-left)) + 48px + 8px);
+  }
+
+  .graph-landing__music-now {
+    max-width: 120px;
+  }
+
+  .graph-landing__music-dock[data-playing="true"] .graph-landing__music-now:not([hidden]) {
+    width: min(120px, max(0px, calc(100vw - 180px)));
   }
 
   .graph-landing__music-library {
