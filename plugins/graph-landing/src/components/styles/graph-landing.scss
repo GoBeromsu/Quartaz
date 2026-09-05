@@ -43,6 +43,17 @@ body:has(.graph-landing) {
 
 /* Pinned to the viewport so host wrappers (page padding, header rows)
    can never crop the canvas. */
+/* Daytime sky: zenith at the top, brighter haze toward the horizon, a soft
+   sun glow upper-left, and faint high cirrus. The WebGL canvas clears to
+   transparent in light mode so this shows through. */
+:root:not([saved-theme="dark"]) .graph-landing__hero {
+  background:
+    radial-gradient(ellipse 60% 40% at 18% 8%, rgba(255, 255, 255, 0.85), transparent 70%),
+    radial-gradient(ellipse 90% 26% at 70% 34%, rgba(255, 255, 255, 0.35), transparent 75%),
+    radial-gradient(ellipse 70% 20% at 30% 58%, rgba(255, 255, 255, 0.28), transparent 75%),
+    linear-gradient(180deg, #bcd3ee 0%, #d6e4f4 42%, #eaf1f8 78%, #f7fafd 100%);
+}
+
 .graph-landing__hero {
   background: var(--graph-backdrop);
   height: 100svh;

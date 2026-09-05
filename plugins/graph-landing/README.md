@@ -14,9 +14,11 @@ hub attraction, and a slow automatic orbit. All configuration options are option
   reduced-motion preference pause decorative animation.
 - Up to six non-overlapping landmark titles appear at overview; focus reveals the connected neighborhood.
   Distance LOD retains label relevance and always keeps the focused title.
-- Stars are additive light points with degree-driven luminance and color
-  temperature; a distant dust field gives parallax. Light theme renders a
-  star-chart of ink points. Links blend their endpoints' star colors and
+- Two skies. Dark: stars are additive light points with degree-driven luminance
+  and color temperature, and a distant dust field gives parallax. Light: a
+  daytime sky gradient shows through the transparent canvas, with notes as ink
+  points and links as thin contrails. Links bow gently along bezier arcs (up to
+  2,500 links; larger graphs use straight cylinders). Links blend their endpoints' star colors and
   brighten with the log of the weaker endpoint's degree, so hub filaments glow
   while leaf threads stay faint; folder/co-occurrence texture appears in its lens.
 - While music plays, a record-sleeve label beside the turntable shows the
@@ -31,7 +33,7 @@ release tag:
 - source:
     repo: github:GoBeromsu/Quartaz
     subdir: plugins/graph-landing
-    ref: graph-landing-v0.7.1
+    ref: graph-landing-v0.8.0
     name: graph-landing
   enabled: true
 ```

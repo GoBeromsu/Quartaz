@@ -146,17 +146,25 @@ interface ForceGraphInstance {
   graph2ScreenCoords?: (x: number, y: number, z?: number) => { x: number; y: number }
   zoomToFit?: (ms: number, padding: number) => unknown
   linkThreeObject?: (fn: (link: GraphLink) => unknown) => unknown
+  linkCurvature?: (value: number) => unknown
+  linkCurveRotation?: (fn: (link: GraphLink) => number) => unknown
   linkPositionUpdate?: (
     fn: (
       obj: {
         position: Vec3
         scale: Vec3
         quaternion: { setFromUnitVectors: (a: unknown, b: unknown) => void }
+        geometry: { dispose: () => void }
       },
       coords: { start: Vec3; end: Vec3 },
+      link: GraphLink & { __curve?: unknown },
     ) => boolean | void,
   ) => unknown
-  postProcessingComposer?: () => { addPass: (pass: unknown) => void }
+  postProcessingComposer?: () => {
+    addPass: (pass: unknown) => void
+    removePass: (pass: unknown) => void
+    passes: unknown[]
+  }
   scene?: () => { fog: unknown; add: (object: unknown) => void; remove: (object: unknown) => void }
   linkDirectionalParticles?: (n: number | ((link: GraphLink) => number)) => unknown
   linkDirectionalParticleWidth?: (n: number) => unknown
@@ -269,6 +277,13 @@ interface ThreeApi {
     height: number,
     radialSegments: number,
   ) => unknown
+  TubeGeometry: new (
+    path: unknown,
+    tubularSegments: number,
+    radius: number,
+    radialSegments: number,
+    closed: boolean,
+  ) => { dispose: () => void }
   Vector3: new (x: number, y: number, z: number) => { normalize: () => unknown }
   MeshBasicMaterial: new (params: {
     color: string
@@ -344,6 +359,12 @@ const STAR_COOL = "#c9dcff"
 const STAR_WARM = "#ffe6bf"
 const STAR_HUB = "#fff1d4"
 const STAR_EXTERNAL = "#f0c48a"
+// Lombardi arcs: a gentle bow keeps links from reading as struts. Tubes are
+// rebuilt per link when endpoints move, so large graphs fall back to
+// straight shared cylinders.
+const LINK_CURVATURE = 0.16
+const CURVED_LINK_LIMIT = 2500
+const CURVE_TUBULAR_SEGMENTS = 12
 const DUST_COUNT = 1400
 const DUST_RADIUS = { min: 1300, max: 2800 }
 const BLOOM_STRENGTH = 0.55
@@ -1054,8 +1075,13 @@ function srgbCompensate(color: string): string {
   return `rgb(${invert(rgb.r)}, ${invert(rgb.g)}, ${invert(rgb.b)})`
 }
 
+// Daytime sky: the light theme clears the WebGL canvas to transparent so
+// the CSS sky gradient behind it shows through; fog fades toward its
+// mid-sky tone. Night keeps an opaque deepened clear color.
+const SKY_FOG = "#e4ecf6"
+
 function canvasBackground3d(theme: ThemeTokens): string {
-  return srgbCompensate(canvasBackground(theme))
+  return isDarkTheme() ? srgbCompensate(canvasBackground(theme)) : "rgba(0, 0, 0, 0)"
 }
 
 function hashPick(seed: string, palette: string[]): string {
@@ -2007,6 +2033,17 @@ function bindGraph(
     const cullDistance = options.lod.cullDistance
     const incremental = options.interaction.incrementalRepaint
     const shareLinkResources = options.lod.shareLinkResources
+    const curved = data.links.length <= CURVED_LINK_LIMIT
+    // Per-mesh curve state: link radius plus the last endpoint signature the
+    // tube was built for, so static frames after settling cost nothing.
+    const curveState = new WeakMap<object, { radius: number; key: string; owned: boolean }>()
+    graph.linkCurvature?.(curved ? LINK_CURVATURE : 0)
+    graph.linkCurveRotation?.((link) => {
+      const seed = `${linkEndpointId(link.source)}|${linkEndpointId(link.target)}`
+      let hash = 0
+      for (const char of seed) hash = (hash * 31 + char.charCodeAt(0)) >>> 0
+      return (hash % 360) * (Math.PI / 180)
+    })
     linkMeshes.clear()
     linksByNode.clear()
     linkGeometryCache.clear()
@@ -2040,6 +2077,7 @@ function bindGraph(
         ? linkGeometryFor(three, radius, linkSegments)
         : new three.CylinderGeometry(radius, radius, 1, linkSegments)
       const mesh = new three.Mesh(geometry, material)
+      if (curved) curveState.set(mesh, { radius, key: "", owned: false })
       // Tracked when cullDistance is set (consumed by the link-cull rAF loop
       // below) or when incrementalRepaint is set (consumed by
       // applyFocusChange). With both unset, linkMeshes stays empty and the
@@ -2053,7 +2091,40 @@ function bindGraph(
     if (typeof graph.linkPositionUpdate !== "function") {
       return
     }
-    graph.linkPositionUpdate((obj, coords) => {
+    graph.linkPositionUpdate((obj, coords, link) => {
+      const state = curveState.get(obj)
+      if (state && link.__curve) {
+        const key = [
+          coords.start.x,
+          coords.start.y,
+          coords.start.z,
+          coords.end.x,
+          coords.end.y,
+          coords.end.z,
+        ]
+          .map((value) => Math.round(value * 2))
+          .join(",")
+        if (key !== state.key) {
+          if (state.owned) obj.geometry.dispose()
+          obj.geometry = new three.TubeGeometry(
+            link.__curve,
+            CURVE_TUBULAR_SEGMENTS,
+            state.radius,
+            linkSegments,
+            false,
+          )
+          state.key = key
+          state.owned = true
+        }
+        // The bezier is in world space; the link-cull loop still reads the
+        // midpoint from position, so keep it while the geometry stays put.
+        obj.position.x = 0
+        obj.position.y = 0
+        obj.position.z = 0
+        obj.scale.x = obj.scale.y = obj.scale.z = 1
+        obj.quaternion.setFromUnitVectors(up, up)
+        return true
+      }
       const dx = coords.end.x - coords.start.x
       const dy = coords.end.y - coords.start.y
       const dz = coords.end.z - coords.start.z
@@ -2381,6 +2452,23 @@ function bindGraph(
     applyView()
   }
 
+  // Bloom runs through the post-processing composer, which flattens the
+  // transparent daytime clear color to black. Attach the pass only at night
+  // so the day sky renders straight to the alpha canvas.
+  const syncBloom = (): void => {
+    if (!options.bloomPass || typeof graph.postProcessingComposer !== "function") return
+    const composer = graph.postProcessingComposer()
+    const attached = composer.passes.includes(options.bloomPass)
+    if (isDarkTheme()) {
+      options.bloomPass.strength = BLOOM_STRENGTH
+      options.bloomPass.radius = BLOOM_RADIUS
+      options.bloomPass.threshold = BLOOM_THRESHOLD
+      if (!attached) composer.addPass(options.bloomPass)
+    } else if (attached) {
+      composer.removePass(options.bloomPass)
+    }
+  }
+
   const activeBackground = (): string =>
     options.use3d ? canvasBackground3d(theme.current) : canvasBackground(theme.current)
 
@@ -2398,7 +2486,7 @@ function bindGraph(
     }
     const cameraDistance = currentCameraVector().len
     graph.scene().fog = new options.three.Fog(
-      activeBackground(),
+      isDarkTheme() ? activeBackground() : SKY_FOG,
       cameraDistance * FOG_NEAR_FACTOR,
       cameraDistance * FOG_FAR_FACTOR,
     )
@@ -2529,10 +2617,12 @@ function bindGraph(
       window.addCleanup(() => graph.scene?.().remove(dust))
       updateDust = () => {
         const dark = isDarkTheme()
-        dustMaterial.color.set(dark ? "#dfe7ff" : "#8f8f8f")
-        dustMaterial.opacity = dark ? 0.42 : 0.22
-        dustMaterial.size = dark ? 1.4 : 1.3
-        dustMaterial.blending = dark ? three.AdditiveBlending : three.NormalBlending
+        // Stars vanish in daylight; the day sky relies on fog for depth.
+        dust.visible = dark
+        dustMaterial.color.set("#dfe7ff")
+        dustMaterial.opacity = 0.42
+        dustMaterial.size = 1.4
+        dustMaterial.blending = three.AdditiveBlending
         dustMaterial.needsUpdate = true
       }
       updateDust()
@@ -2550,12 +2640,7 @@ function bindGraph(
     if (typeof graph.linkDirectionalParticleColor === "function") {
       graph.linkDirectionalParticleColor(() => theme.current.accent)
     }
-    if (options.bloomPass && typeof graph.postProcessingComposer === "function") {
-      options.bloomPass.strength = isDarkTheme() ? BLOOM_STRENGTH : 0
-      options.bloomPass.radius = BLOOM_RADIUS
-      options.bloomPass.threshold = BLOOM_THRESHOLD
-      graph.postProcessingComposer().addPass(options.bloomPass)
-    }
+    syncBloom()
     if (typeof graph.cameraPosition === "function") {
       graph.cameraPosition(INITIAL_CAMERA, INITIAL_LOOK_AT)
       if (tune.zoom !== 1) {
@@ -2662,11 +2747,19 @@ function bindGraph(
                 mesh.visible = true
                 continue
               }
-              const distance = Math.hypot(
-                cam.x - mesh.position.x,
-                cam.y - mesh.position.y,
-                cam.z - mesh.position.z,
-              )
+              // Curved tubes live in world space at the origin, so measure
+              // from the link's actual midpoint rather than mesh.position.
+              const s = link.source as GraphNode | string
+              const t = link.target as GraphNode | string
+              const mid =
+                typeof s === "object" && typeof t === "object"
+                  ? {
+                      x: ((s.x ?? 0) + (t.x ?? 0)) / 2,
+                      y: ((s.y ?? 0) + (t.y ?? 0)) / 2,
+                      z: ((s.z ?? 0) + (t.z ?? 0)) / 2,
+                    }
+                  : mesh.position
+              const distance = Math.hypot(cam.x - mid.x, cam.y - mid.y, cam.z - mid.z)
               mesh.visible = !(lodLevelForDistance(distance, cullDistance) === "dot")
             }
           }
@@ -3042,11 +3135,7 @@ function bindGraph(
     graph.backgroundColor(activeBackground())
     updateFog()
     updateDust()
-    if (options.bloomPass) {
-      options.bloomPass.strength = isDarkTheme() ? BLOOM_STRENGTH : 0
-      options.bloomPass.radius = BLOOM_RADIUS
-      options.bloomPass.threshold = BLOOM_THRESHOLD
-    }
+    syncBloom()
     refreshAccessors()
     paintLabels3d()
     renderLegend()

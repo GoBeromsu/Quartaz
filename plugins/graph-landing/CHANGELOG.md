@@ -2,6 +2,19 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.8.0
+
+### Added
+
+- Daytime sky: the light theme clears the WebGL canvas to transparent over a
+  CSS sky gradient (zenith blue to bright horizon, soft sun glow, faint
+  cirrus). Notes read as ink points against the sky; the dust field and bloom
+  are night-only, so the day scene renders straight to the alpha canvas.
+- Curved links: real connections bow along the renderer's bezier curves as
+  per-link tubes (up to 2,500 links; larger graphs keep straight shared
+  cylinders), so constellations read as arcs rather than struts. Focus
+  particles follow the same curve.
+
 ## 0.7.1
 
 ### Added
