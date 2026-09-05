@@ -14,11 +14,15 @@ hub attraction, and a slow automatic orbit. All configuration options are option
   reduced-motion preference pause decorative animation.
 - Up to six non-overlapping landmark titles appear at overview; focus reveals the connected neighborhood.
   Distance LOD retains label relevance and always keeps the focused title.
-- Two skies. Dark: stars are additive light points with degree-driven luminance
-  and color temperature, and a distant dust field gives parallax. Light: a
+- Two skies. Dark: stars are soft white additive light points with degree-driven
+  luminance and subtly warm hubs; a neutral dust field gives parallax. Light: a
   clear blue sky with photographic white clouds shows through the transparent
   canvas. Connections are restrained straight lines at every graph size.
-  Base node radii span 3.3–9.6 world units before the size control multiplier.
+  The daytime photograph drifts diagonally on a 90-second alternating path;
+  overscan keeps its edges covered. Dragging, background tabs, and reduced-motion
+  preferences pause the drift. This moves the complete photograph, not individual clouds.
+  Base node radii span 5–14.4 world units before the size control multiplier.
+  Daylight connections use thicker navy strokes and a stronger opacity floor.
   Day nodes are slightly larger white beads outlined in navy, with colored
   outer rings for focus and lens context. Dark labels have a white halo;
   navy links strengthen around the hovered node. The cumulus photograph stays visible.
@@ -46,11 +50,14 @@ plugin code remains MIT-licensed.
 Install the plugin from the Quartaz monorepo subdirectory and pin it to a
 release tag:
 
+Visual defaults are bundled in the plugin. Page URLs require no `?v=` parameter;
+the `ref` below selects the installed plugin release.
+
 ```yaml
 - source:
     repo: github:GoBeromsu/Quartaz
     subdir: plugins/graph-landing
-    ref: graph-landing-v0.10.1
+    ref: graph-landing-v0.11.0
     name: graph-landing
   enabled: true
 ```

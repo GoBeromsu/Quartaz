@@ -2,6 +2,28 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.11.0
+
+### Added
+
+- Slow daytime background drift on a separate oversized layer behind the graph.
+  A 90-second alternating animation avoids loop jumps and uncovered edges.
+- Drift follows existing motion safety: paused during dragging, hidden tabs,
+  and reduced-motion preferences. The night sky remains unchanged.
+
+### Changed
+
+- Base node radii increase to 5–14.4 world units in both themes.
+- Night graph colors are restrained to soft white, subtly warm hubs, and white
+  focus highlights across lenses. Brightness provides hierarchy instead of hue.
+- Daylight connections are 1.8× thicker with a higher opacity floor and fully
+  opaque focus strokes. These are plugin defaults, independent of URL parameters.
+
+### Fixed
+
+- Disabled the renderer's redundant HTML title tooltip; hover previews and
+  the inspection panel retain the complete note title and Read note action.
+
 ## 0.10.1
 
 ### Changed

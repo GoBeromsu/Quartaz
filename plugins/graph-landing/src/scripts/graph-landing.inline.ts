@@ -338,17 +338,15 @@ const FOG_FAR_FACTOR = 1600 / INITIAL_CAMERA_DISTANCE
 // Alex grammar: small bright cores with tight bloom halos, hairline edges.
 // Bloom stays tight (low radius, mid threshold) so the night-sky background
 // keeps its near-black depth instead of washing into gray fog.
-const NODE_RADIUS_MIN = 3.3
-const NODE_RADIUS_MAX = 9.6
+const NODE_RADIUS_MIN = 5
+const NODE_RADIUS_MAX = 14.4
 // Star sprites carry HDR color (>1) so only their cores cross the bloom
 // threshold; white label pixels stay at 1 and remain crisp.
 const STAR_HDR = 1.6
 const STAR_SPRITE_SCALE_DARK = 6.2
 const STAR_SPRITE_SCALE_LIGHT = 2.5
-const STAR_COOL = "#c9dcff"
-const STAR_WARM = "#ffe6bf"
-const STAR_HUB = "#fff1d4"
-const STAR_EXTERNAL = "#f0c48a"
+const STAR_WHITE = "#f2f3f4"
+const STAR_HUB = "#fffaf0"
 const DAYLIGHT_NAVY = "#102a4c"
 const DUST_COUNT = 1400
 const DUST_RADIUS = { min: 1300, max: 2800 }
@@ -1528,22 +1526,7 @@ function bindGraph(
 
   // Night-sky palette independent of focus state, shared by stars and the
   // links between them so a connection carries the color of its endpoints.
-  const nightStarColor = (node: GraphNode, lensColor: string): string => {
-    if (node.type === "external") {
-      return STAR_EXTERNAL
-    }
-    if (node.type === "tag") {
-      return mixRgb(theme.current.tertiary, "#ffffff", 0.22)
-    }
-    if (state.lens !== "all") {
-      return mixRgb(lensColor, "#ffffff", 0.3)
-    }
-    if (node.isHub) {
-      return STAR_HUB
-    }
-    // Stellar magnitude: leaves cool blue-white, well-connected notes warm.
-    return mixRgb(STAR_COOL, STAR_WARM, Math.pow(degreeWeight(node), 0.7))
-  }
+  const nightStarColor = (node: GraphNode): string => (node.isHub ? STAR_HUB : STAR_WHITE)
 
   // Connection weight in the spirit of Butler's friendship map: brightness
   // follows the log of the weaker endpoint, so hub-to-hub filaments glow and
@@ -1557,15 +1540,15 @@ function bindGraph(
   const nodeFill = (node: GraphNode): string => {
     const focus = litId()
     if (focus !== null && (focus === node.id || (neighbors.get(focus)?.has(node.id) ?? false))) {
-      return theme.current.accent
+      return isDarkTheme() ? "#ffffff" : theme.current.accent
     }
-    const color = baseNodeColor(node)
+    const color = isDarkTheme() ? nightStarColor(node) : baseNodeColor(node)
     if (!isActive(node.id)) {
       // THREE.Color ignores rgba alpha; dim the star's actual color.
       return mixRgb(color, canvasBackground(theme.current), 1 - DIM_ALPHA)
     }
     if (isDarkTheme()) {
-      return nightStarColor(node, color)
+      return color
     }
     if (node.isHub) {
       return mixRgb(theme.current.ink, theme.current.accent, 0.22)
@@ -1597,13 +1580,13 @@ function bindGraph(
   const edgeBaseOpacity = (kind: LinkKind): number => {
     const dark = isDarkTheme()
     if (kind === "wikilink") {
-      return dark ? 0.52 : 0.64
+      return dark ? 0.52 : 0.9
     }
     if (kind === "external") {
-      return dark ? 0.42 : 0.56
+      return dark ? 0.42 : 0.84
     }
     if (kind === "tag") {
-      return dark ? 0.38 : 0.5
+      return dark ? 0.38 : 0.8
     }
     return 0
   }
@@ -1619,9 +1602,11 @@ function bindGraph(
     const target = linkEndpointId(link.target)
     const focus = litId()
     if (focus !== null && (source === focus || target === focus)) {
-      return isDarkTheme() ? 0.72 : 0.78
+      return isDarkTheme() ? 0.72 : 1
     }
-    const graded = edgeBaseOpacity(link.kind) * (0.45 + 0.55 * linkWeight(source, target))
+    const weight = linkWeight(source, target)
+    const graded =
+      edgeBaseOpacity(link.kind) * (isDarkTheme() ? 0.45 + 0.55 * weight : 0.85 + 0.15 * weight)
     if (focus !== null || state.focusTag !== null || state.focusFolder !== null) {
       if (!isActive(source) || !isActive(target)) {
         return graded * DIM_ALPHA
@@ -1636,13 +1621,13 @@ function bindGraph(
     const focus = litId()
     const ink = isDarkTheme() ? EDGE_INK_DARK : DAYLIGHT_NAVY
     if (focus !== null && (source === focus || target === focus)) {
-      return isDarkTheme() ? mixRgb(theme.current.accent, ink, 0.45) : DAYLIGHT_NAVY
+      return isDarkTheme() ? STAR_WHITE : DAYLIGHT_NAVY
     }
     if (isDarkTheme()) {
       const a = fullNodeById.get(source)
       const b = fullNodeById.get(target)
       if (a && b) {
-        return mixRgb(nightStarColor(a, baseNodeColor(a)), nightStarColor(b, baseNodeColor(b)), 0.5)
+        return mixRgb(nightStarColor(a), nightStarColor(b), 0.5)
       }
     }
     return ink
@@ -2082,7 +2067,7 @@ function bindGraph(
       }
     }
     graph.linkThreeObject((link) => {
-      const radius = LINK_RADIUS[link.kind] * tune.edgeScale
+      const radius = LINK_RADIUS[link.kind] * tune.edgeScale * (isDarkTheme() ? 1 : 1.8)
       const material = shareLinkResources
         ? linkMaterialFor(three, edgeColor(link), edgeOpacity(link))
         : new three.MeshBasicMaterial({
@@ -2148,7 +2133,7 @@ function bindGraph(
       const source = linkEndpointId(link.source)
       const target = linkEndpointId(link.target)
       const focus = litId()
-      const scale = tune.edgeScale
+      const scale = tune.edgeScale * (isDarkTheme() ? 1 : 1.8)
       if (focus !== null && (source === focus || target === focus)) {
         return 0.7 * scale
       }
@@ -2485,7 +2470,9 @@ function bindGraph(
 
   graph.graphData(currentData())
   graph.backgroundColor(activeBackground())
-  graph.nodeLabel((node) => node.name)
+  // The custom preview and inspection panel own node titles. Disable the
+  // renderer's duplicate HTML tooltip, which can remain visible after click.
+  graph.nodeLabel(() => "")
   graph.nodeRelSize(NODE_REL_SIZE)
   if (typeof graph.nodeOpacity === "function") {
     graph.nodeOpacity(NODE_OPACITY)
@@ -2610,7 +2597,7 @@ function bindGraph(
         const dark = isDarkTheme()
         // Stars vanish in daylight; the day sky relies on fog for depth.
         dust.visible = dark
-        dustMaterial.color.set("#dfe7ff")
+        dustMaterial.color.set(STAR_WHITE)
         dustMaterial.opacity = 0.42
         dustMaterial.size = 1.4
         dustMaterial.blending = three.AdditiveBlending
@@ -2629,7 +2616,7 @@ function bindGraph(
       graph.linkDirectionalParticleSpeed(0.004)
     }
     if (typeof graph.linkDirectionalParticleColor === "function") {
-      graph.linkDirectionalParticleColor(() => theme.current.accent)
+      graph.linkDirectionalParticleColor(() => (isDarkTheme() ? STAR_WHITE : theme.current.accent))
     }
     syncBloom()
     if (typeof graph.cameraPosition === "function") {
@@ -2783,9 +2770,7 @@ function bindGraph(
         ctx.lineWidth = 1.5 / globalScale
         ctx.stroke()
       } else if (node.isHub) {
-        ctx.strokeStyle = isActive(node.id)
-          ? theme.current.accent
-          : withAlpha(theme.current.accent, DIM_ALPHA)
+        ctx.strokeStyle = isActive(node.id) ? STAR_HUB : withAlpha(STAR_HUB, DIM_ALPHA)
         ctx.lineWidth = 1.2 / globalScale
         ctx.stroke()
       }
@@ -2849,6 +2834,7 @@ function bindGraph(
   const updateMotion = (): void => {
     const reduced = prefersReducedMotion()
     const active = !reduced && !document.hidden && !dragging
+    options.root.dataset.backgroundMoving = active ? "true" : "false"
     if (typeof graph.controls === "function") {
       graph.controls().autoRotate = active
     }
@@ -2863,6 +2849,7 @@ function bindGraph(
   window.addCleanup(() => {
     motionPreference.removeEventListener("change", updateMotion)
     document.removeEventListener("visibilitychange", updateMotion)
+    delete options.root.dataset.backgroundMoving
   })
   updateMotion()
 

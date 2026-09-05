@@ -46,9 +46,34 @@ body:has(.graph-landing) {
 /* Downward-looking cloudscape bundled into the plugin at build time. WebGL
    clears to transparent in light mode so the photograph remains visible. */
 :root:not([saved-theme="dark"]) .graph-landing__hero {
+  background: #168bc4;
+}
+
+:root:not([saved-theme="dark"]) .graph-landing__hero::before {
+  content: "";
+  position: absolute;
+  inset: -8%;
+  pointer-events: none;
   background:
     url("./graph-landing-day-sky.webp") center / cover no-repeat,
     #168bc4;
+  animation: graph-daylight-drift 90s ease-in-out infinite alternate;
+  animation-play-state: paused;
+}
+
+:root:not([saved-theme="dark"])
+  .graph-landing[data-background-moving="true"]
+  .graph-landing__hero::before {
+  animation-play-state: running;
+}
+
+@keyframes graph-daylight-drift {
+  from {
+    transform: translate(-2%, -2%);
+  }
+  to {
+    transform: translate(2%, 2%);
+  }
 }
 
 .graph-landing__sky-credit {
@@ -1138,7 +1163,7 @@ a.graph-landing__title:focus-visible {
 }
 
 @media (max-width: 700px) {
-  :root:not([saved-theme="dark"]) .graph-landing__hero {
+  :root:not([saved-theme="dark"]) .graph-landing__hero::before {
     background-position: 60% center;
   }
 
