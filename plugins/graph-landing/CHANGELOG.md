@@ -2,6 +2,16 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.9.1
+
+### Changed
+
+- Daytime framing looks down and forward across close cloud tops, with the
+  distant cloud line in the upper third. Mobile preserves the descending viewpoint.
+- Replaced the photograph with Gary Rockett's CC0 cloudscape, color-balanced
+  toward white clouds and blue sky, and removed the translucent haze overlay.
+- Night rendering and straight graph connections remain unchanged.
+
 ## 0.9.0
 
 ### Changed

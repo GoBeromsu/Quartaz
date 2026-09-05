@@ -43,12 +43,11 @@ body:has(.graph-landing) {
 
 /* Pinned to the viewport so host wrappers (page padding, header rows)
    can never crop the canvas. */
-/* High-altitude CC0 cloudscape by Luke Pamer, bundled into the plugin at
-   build time. WebGL clears to transparent in light mode so the photograph
-   remains visible; the open blue upper field leaves room for the graph. */
+/* Downward-looking CC0 cloudscape by Gary Rockett, bundled into the plugin
+   at build time. WebGL clears to transparent in light mode so the photograph
+   remains visible; the blue opening leaves room for the graph. */
 :root:not([saved-theme="dark"]) .graph-landing__hero {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04) 62%, transparent),
     url("./graph-landing-day-sky.webp") center / cover no-repeat,
     #168bc4;
 }
@@ -1118,6 +1117,10 @@ a.graph-landing__title:focus-visible {
 }
 
 @media (max-width: 700px) {
+  :root:not([saved-theme="dark"]) .graph-landing__hero {
+    background-position: 60% center;
+  }
+
   .graph-landing__preview {
     display: none;
   }

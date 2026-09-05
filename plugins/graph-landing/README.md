@@ -27,11 +27,13 @@ hub attraction, and a slow automatic orbit. All configuration options are option
 ## Daytime photograph
 
 The bundled 3840 × 2160 WebP uses
-[Luke Pamer's 2016 photograph](<https://commons.wikimedia.org/wiki/File:Luke_Pamer_2016_(Unsplash).jpg>),
+[Gary Rockett's 2014 photograph](<https://commons.wikimedia.org/wiki/File:Gary_Rockett_2014-10-08_(Unsplash).jpg>),
 published under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/).
-The image is cropped and color-balanced, then embedded during the plugin build;
-the deployed sky requires no third-party image request. Plugin code uses MIT;
-this photograph retains its CC0 dedication.
+The source's vertical 3264 × 1836 crop (y=500–2336) creates the
+downward-looking 16:9 frame; it is color-balanced and resized to 3840 × 2160
+before being embedded during the plugin build. The deployed sky requires no
+third-party image request. Plugin code uses MIT; this photograph retains its
+CC0 dedication.
 
 ## Install or update
 
@@ -42,7 +44,7 @@ release tag:
 - source:
     repo: github:GoBeromsu/Quartaz
     subdir: plugins/graph-landing
-    ref: graph-landing-v0.9.0
+    ref: graph-landing-v0.9.1
     name: graph-landing
   enabled: true
 ```
