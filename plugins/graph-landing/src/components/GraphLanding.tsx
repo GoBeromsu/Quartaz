@@ -60,6 +60,15 @@ interface OverlayCopy {
   nodeSize: string
   edgeWidth: string
   hubGravity: string
+  searchLabel: string
+  searchPlaceholder: string
+  searchEmpty: string
+  searchCount: string
+  motion: string
+  motionStart: string
+  motionStop: string
+  motionReduced: string
+  reset: string
 }
 
 interface LocaleToggleLink {
@@ -108,6 +117,15 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
       nodeSize: "Node size",
       edgeWidth: "Edge width",
       hubGravity: "허브 인력",
+      searchLabel: "전체 노트 검색",
+      searchPlaceholder: "노트 검색",
+      searchEmpty: "검색 결과가 없습니다",
+      searchCount: "{n}개 결과",
+      motion: "움직임",
+      motionStart: "움직임 시작",
+      motionStop: "움직임 멈춤",
+      motionReduced: "움직임은 기기의 모션 줄이기 설정을 따릅니다",
+      reset: "보기 초기화",
     }
   }
 
@@ -148,6 +166,15 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
     nodeSize: "Node size",
     edgeWidth: "Edge width",
     hubGravity: "Hub gravity",
+    searchLabel: "Search all notes",
+    searchPlaceholder: "Search notes",
+    searchEmpty: "No results found",
+    searchCount: "{n} results",
+    motion: "Motion",
+    motionStart: "Start motion",
+    motionStop: "Stop motion",
+    motionReduced: "Motion follows your reduced-motion preference",
+    reset: "Reset view",
   }
 }
 
@@ -325,6 +352,9 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
           data-music-current-track={copy.musicCurrentTrack}
           data-inspect-connected={copy.inspectConnected}
           data-inspect-empty={copy.inspectEmpty}
+          data-search-empty={copy.searchEmpty}
+          data-search-count={copy.searchCount}
+          data-motion-reduced={copy.motionReduced}
         >
           <link rel="preconnect" href="https://esm.sh" crossOrigin="anonymous" />
           <link rel="dns-prefetch" href="https://esm.sh" />
@@ -404,6 +434,45 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
                     </svg>
                   </button>
                 </nav>
+              </div>
+              <div class="graph-landing__search">
+                <label class="graph-landing__visually-hidden" for="graph-landing-search">
+                  {copy.searchLabel}
+                </label>
+                <input
+                  id="graph-landing-search"
+                  type="search"
+                  data-graph-search
+                  placeholder={copy.searchPlaceholder}
+                  aria-label={copy.searchLabel}
+                  aria-controls="graph-search-results"
+                  autoComplete="off"
+                />
+                <ul
+                  class="graph-landing__search-results"
+                  id="graph-search-results"
+                  data-graph-search-results
+                  hidden
+                ></ul>
+                <span
+                  class="graph-landing__search-status"
+                  data-graph-search-status
+                  aria-live="polite"
+                ></span>
+                <div class="graph-landing__navigation" role="group" aria-label={copy.controls}>
+                  <button
+                    type="button"
+                    data-graph-motion
+                    data-motion-start={copy.motionStart}
+                    data-motion-stop={copy.motionStop}
+                    aria-pressed="false"
+                  >
+                    {copy.motion}
+                  </button>
+                  <button type="button" data-graph-reset aria-label={copy.reset}>
+                    {copy.reset}
+                  </button>
+                </div>
               </div>
               <button
                 type="button"
@@ -518,7 +587,7 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
                     {copy.countsTemplate.replace("{n}", "–").replace("{m}", "–")}
                   </p>
                 </div>
-                <div class="graph-landing__lenses" role="tablist" aria-label="Graph lens">
+                <div class="graph-landing__lenses" role="group" aria-label="Graph lens">
                   <button
                     type="button"
                     class="graph-landing__chip"
@@ -649,7 +718,7 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
                         type="range"
                         min="0"
                         max="200"
-                        value="100"
+                        value="150"
                         data-graph-hub-gravity
                         aria-label={copy.hubGravity}
                       />
@@ -700,6 +769,7 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
               <aside
                 class="graph-landing__inspect"
                 data-graph-inspect
+                aria-labelledby="graph-inspect-title"
                 hidden
                 {...{ onwheel: "event.stopPropagation()" }}
               >
@@ -714,7 +784,11 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
                     {copy.inspectClose}
                   </button>
                 </div>
-                <h2 class="graph-landing__inspect-title" data-graph-inspect-title></h2>
+                <h2
+                  class="graph-landing__inspect-title"
+                  id="graph-inspect-title"
+                  data-graph-inspect-title
+                ></h2>
                 <p class="graph-landing__inspect-excerpt" data-graph-inspect-excerpt></p>
                 <ul class="graph-landing__inspect-tags" data-graph-inspect-tags></ul>
                 <p class="graph-landing__inspect-section" data-graph-inspect-connected-label>

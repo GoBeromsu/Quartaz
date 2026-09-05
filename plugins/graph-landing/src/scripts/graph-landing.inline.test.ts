@@ -4,6 +4,7 @@ import {
   affectedFocusNodeIds,
   expandHopIds,
   getOrCreate,
+  graphLabelVisible,
   hubGravityDistanceScale,
   hubGravityStrengthScale,
   isMarkdownFilePath,
@@ -13,6 +14,7 @@ import {
   normalizedDegreeWeight,
   parseNonNegativeNumber,
   seedExpandedNodePosition,
+  searchGraphNodes,
   selectRenderedSubset,
   youtubeVideoId,
   youtubeTracks,
@@ -424,34 +426,78 @@ describe("affectedFocusNodeIds", () => {
     ["d", new Set(["e"])],
     ["e", new Set(["d"])],
   ])
+  const allIds = ["a", "b", "c", "d", "e", "isolated"]
 
-  it("returns an empty set when both previous and next focus are null", () => {
-    assert.deepEqual(affectedFocusNodeIds(neighbors, null, null), new Set())
+  it("skips unchanged focus including the initial null state", () => {
+    assert.deepEqual(affectedFocusNodeIds(neighbors, null, null, allIds), new Set())
+    assert.deepEqual(affectedFocusNodeIds(neighbors, "a", "a", allIds), new Set())
   })
-
-  it("includes only the next focus node and its neighbors when previous is null", () => {
-    assert.deepEqual(affectedFocusNodeIds(neighbors, null, "a"), new Set(["a", "b", "c"]))
+  it("dims and restores all nodes, including isolates, across focus boundaries", () => {
+    assert.deepEqual(affectedFocusNodeIds(neighbors, null, "a", allIds), new Set(allIds))
+    assert.deepEqual(affectedFocusNodeIds(neighbors, "a", null, allIds), new Set(allIds))
   })
-
-  it("includes only the previous focus node and its neighbors when next is null", () => {
-    assert.deepEqual(affectedFocusNodeIds(neighbors, "a", null), new Set(["a", "b", "c"]))
+  it("unions disjoint neighborhoods when switching focus", () => {
+    assert.deepEqual(
+      affectedFocusNodeIds(neighbors, "a", "d", allIds),
+      new Set(["a", "b", "c", "d", "e"]),
+    )
   })
-
-  it("unions previous and next focus neighborhoods when both are set and disjoint", () => {
-    assert.deepEqual(affectedFocusNodeIds(neighbors, "a", "d"), new Set(["a", "b", "c", "d", "e"]))
+  it("deduplicates overlapping neighborhoods", () => {
+    assert.deepEqual(affectedFocusNodeIds(neighbors, "a", "b", allIds), new Set(["a", "b", "c"]))
   })
-
-  it("deduplicates overlapping previous and next focus neighborhoods", () => {
-    // "a" and "b" are neighbors of each other, so their neighborhoods overlap.
-    assert.deepEqual(affectedFocusNodeIds(neighbors, "a", "b"), new Set(["a", "b", "c"]))
+  it("includes isolated focus ids", () => {
+    assert.deepEqual(
+      affectedFocusNodeIds(neighbors, "z", "isolated", allIds),
+      new Set(["z", "isolated"]),
+    )
   })
+})
 
-  it("falls back to just the focus id when it has no recorded neighbors", () => {
-    assert.deepEqual(affectedFocusNodeIds(neighbors, "z", null), new Set(["z"]))
+describe("graphLabelVisible", () => {
+  it("keeps irrelevant nearby labels hidden", () => {
+    assert.equal(graphLabelVisible(false, false, 10, 800), false)
   })
+  it("combines relevance with the distance boundary", () => {
+    assert.equal(graphLabelVisible(true, false, 799, 800), true)
+    assert.equal(graphLabelVisible(true, false, 800, 800), false)
+    assert.equal(graphLabelVisible(true, false, 900, undefined), true)
+  })
+  it("retains focused titles beyond the distance threshold", () => {
+    assert.equal(graphLabelVisible(true, true, 1500, 800), true)
+  })
+})
 
-  it("returns the same focus node once when previous and next focus are identical", () => {
-    assert.deepEqual(affectedFocusNodeIds(neighbors, "a", "a"), new Set(["a", "b", "c"]))
+describe("searchGraphNodes", () => {
+  it("finds isolated notes outside the rendered subset", () => {
+    const nodes = [makeNode("hub", 100), makeNode("isolated", 0)]
+    assert.deepEqual(
+      selectRenderedSubset({ nodes, links: [] }, 1).nodes.map((n) => n.id),
+      ["hub"],
+    )
+    assert.deepEqual(
+      searchGraphNodes(nodes, "isolated").map((n) => n.id),
+      ["isolated"],
+    )
+  })
+  it("matches normalized Korean, case-insensitive titles and multiple tag terms", () => {
+    const node = { ...makeNode("note", 1), name: "밤하늘 Graph", tags: ["UX"] }
+    assert.deepEqual(searchGraphNodes([node], `${"밤하늘".normalize("NFD")} graph ux`), [node])
+    assert.deepEqual(searchGraphNodes([node], "graph missing"), [])
+  })
+  it("bounds and ranks results without mutating source order", () => {
+    const nodes = Array.from({ length: 12 }, (_, i) => makeNode(`note-${i}`, i))
+    assert.deepEqual(
+      searchGraphNodes(nodes, "note").map((n) => n.degree),
+      [11, 10, 9, 8, 7, 6, 5, 4],
+    )
+    assert.equal(nodes[0]?.degree, 0)
+    assert.deepEqual(searchGraphNodes(nodes, "  "), [])
+  })
+  it("searches note tags without returning tag or external graph objects", () => {
+    const note = { ...makeNode("note", 1), tags: ["design"] }
+    const tag: GraphNode = { ...makeNode("design-tag", 100), type: "tag" }
+    const external: GraphNode = { ...makeNode("design-external", 200), type: "external" }
+    assert.deepEqual(searchGraphNodes([tag, external, note], "design"), [note])
   })
 })
 

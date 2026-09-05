@@ -33,12 +33,9 @@ interface GraphLandingPageOptions {
     expandHops?: number;
     /**
      * Which client renderer to use. Default: undefined ("auto") — current
-     * behavior unchanged: 3D loads when WebGL is available and the user has
-     * not requested reduced motion, otherwise the 2D canvas renderer loads
-     * instead. Set to "3d" to require the 3D renderer: it never falls back to
-     * 2D — if WebGL is unavailable or reduced-motion is requested, the graph
-     * shows a short notice via the existing canvas-message path instead of
-     * silently loading 2D.
+     * 3D loads when WebGL is available, otherwise 2D canvas loads instead.
+     * Reduced motion disables decorative animation in either renderer.
+     * Set to "3d" to require WebGL and show a notice when it is unavailable.
      */
     renderMode?: "auto" | "3d";
     /**
@@ -52,7 +49,8 @@ interface GraphLandingPageOptions {
          * When true, forces cooldownTicks to 0 after the warmup pass runs so
          * the simulation freezes immediately instead of continuing to settle —
          * the maintainer-recommended pattern for a one-shot layout. Overrides
-         * any `cooldownTicks` value set alongside it. Default: false.
+         * any `cooldownTicks` value set alongside it. Explicit expansion and
+         * force adjustments receive 90 settling ticks, then stop. Default: false.
          */
         freezeAfterWarmup?: boolean;
         /** Overrides the renderer's default warmupTicks (3D: 50, 2D: 60). */
@@ -94,7 +92,9 @@ interface GraphLandingPageOptions {
     lod?: {
         /**
          * Camera distance (world units) beyond which a node's label sprite is
-         * hidden. Default: undefined (labels never hide based on distance;
+         * hidden, except the focused title and overview landmarks.
+         * Relevance and distance are combined.
+         * Default: undefined (labels never hide based on distance;
          * current behavior unchanged). Applies independently of `dotDistance`.
          */
         labelDistance?: number;
@@ -160,8 +160,9 @@ interface GraphLandingPageOptions {
      */
     interaction?: {
         /**
-         * When true, hovering or selecting a node mutates only the previous and
-         * next focus nodes/links/labels (and their direct neighbors) in place,
+         * When true, switching between focused nodes mutates their neighborhoods
+         * in place. Entering/leaving focus updates all retained materials to
+         * dim/restore unrelated nodes, including isolates,
          * instead of re-running the full node/link/label repaint on every
          * hover/click. Visually identical to the full-repaint path; avoids the
          * three-forcegraph/kapsule accessor system's destructive mesh recreation

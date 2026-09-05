@@ -35,8 +35,17 @@ html:not([saved-theme="dark"]) body:has(.graph-landing) {
 }
 
 .graph-landing {
-  background: var(--light);
-  color: var(--dark);
+  --graph-backdrop: #06101d;
+  --graph-surface: rgba(10, 24, 40, 0.82);
+  --graph-surface-strong: rgba(8, 20, 35, 0.94);
+  --graph-border: rgba(203, 220, 235, 0.2);
+  --graph-text: #f1f6fa;
+  --graph-muted: #aab9c6;
+  --graph-accent: #68d4e8;
+  --graph-accent-soft: rgba(104, 212, 232, 0.13);
+  --graph-external: #8abbd0;
+  background: var(--graph-backdrop);
+  color: var(--graph-text);
   font-family: var(--bodyFont);
   max-width: 100%;
   overflow-x: hidden;
@@ -45,8 +54,22 @@ html:not([saved-theme="dark"]) body:has(.graph-landing) {
 
 /* Pinned to the viewport so host wrappers (page padding, header rows)
    can never crop the canvas. */
+:root:not([saved-theme="dark"]) .graph-landing {
+  --graph-backdrop: #f5f8fc;
+  --graph-surface: rgba(250, 252, 255, 0.88);
+  --graph-surface-strong: rgba(250, 252, 255, 0.97);
+  --graph-border: rgba(32, 61, 83, 0.2);
+  --graph-text: #172c3d;
+  --graph-muted: #506777;
+  --graph-accent: #236779;
+  --graph-accent-soft: rgba(35, 103, 121, 0.1);
+  --graph-external: #356f85;
+}
+
 .graph-landing__hero {
-  background: var(--light);
+  background:
+    radial-gradient(circle at 50% 36%, rgba(25, 69, 102, 0.2), transparent 52%),
+    var(--graph-backdrop);
   height: 100svh;
   height: 100dvh;
   inset: 0;
@@ -82,8 +105,8 @@ html:not([saved-theme="dark"]) body:has(.graph-landing) {
 
 .graph-landing__rail {
   backdrop-filter: blur(16px);
-  background: color-mix(in srgb, var(--light) 78%, transparent);
-  border: 1px solid var(--lightgray);
+  background: var(--graph-surface);
+  border: 1px solid var(--graph-border);
   border-radius: 14px;
   bottom: calc(16px + 48px + 10px);
   box-shadow: 0 12px 40px rgba(8, 10, 16, 0.18);
@@ -138,6 +161,140 @@ html:not([saved-theme="dark"]) body:has(.graph-landing) {
   z-index: 3;
 }
 
+.graph-landing__visually-hidden {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.graph-landing__search {
+  backdrop-filter: blur(16px);
+  background: var(--graph-surface);
+  border: 1px solid var(--graph-border);
+  border-radius: 14px;
+  box-shadow: 0 12px 36px rgba(0, 5, 12, 0.3);
+  left: 50%;
+  pointer-events: auto;
+  position: absolute;
+  top: 4.75rem;
+  transform: translateX(-50%);
+  width: min(24rem, calc(100vw - 2rem));
+  z-index: 5;
+}
+
+.graph-landing__search input[type="search"] {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-radius: inherit;
+  box-sizing: border-box;
+  color: var(--graph-text);
+  font: inherit;
+  font-size: 0.875rem;
+  height: 44px;
+  outline: 0;
+  padding: 0 0.9rem;
+  width: 100%;
+}
+
+.graph-landing__search input[type="search"]::placeholder {
+  color: var(--graph-muted);
+  opacity: 0.9;
+}
+
+.graph-landing__search input[type="search"]:focus-visible {
+  box-shadow: 0 0 0 2px var(--graph-accent);
+}
+
+.graph-landing__search-results {
+  border-top: 1px solid var(--graph-border);
+  list-style: none;
+  margin: 0;
+  max-height: min(22rem, calc(100dvh - 15rem));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.35rem;
+}
+
+.graph-landing__search-results[hidden] {
+  display: none;
+}
+
+.graph-landing__search-result {
+  background: transparent;
+  border: 0;
+  border-radius: 9px;
+  color: var(--graph-text);
+  cursor: pointer;
+  display: block;
+  font: inherit;
+  font-size: 0.82rem;
+  min-height: 44px;
+  padding: 0.65rem 0.7rem;
+  text-align: left;
+  width: 100%;
+}
+
+.graph-landing__search-result:hover,
+.graph-landing__search-result:focus-visible {
+  background: var(--graph-accent-soft);
+  color: var(--graph-accent);
+  outline: none;
+}
+
+.graph-landing__search-result:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--graph-accent);
+}
+
+.graph-landing__search-status {
+  color: var(--graph-muted);
+  display: block;
+  font-size: 0.7rem;
+  min-height: 1px;
+  padding: 0 0.9rem;
+}
+
+.graph-landing__search-status:not(:empty) {
+  padding-bottom: 0.55rem;
+}
+
+.graph-landing__navigation {
+  border-top: 1px solid var(--graph-border);
+  display: flex;
+  gap: 6px;
+  padding: 0.35rem;
+}
+
+.graph-landing__navigation button {
+  background: transparent;
+  border: 1px solid var(--graph-border);
+  border-radius: 999px;
+  color: var(--graph-text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.75rem;
+  flex: 1 1 0;
+  min-height: 44px;
+  padding: 0 0.9rem;
+}
+
+.graph-landing__navigation button:hover,
+.graph-landing__navigation button:focus-visible,
+.graph-landing__navigation button[aria-pressed="true"] {
+  background: var(--graph-accent-soft);
+  border-color: color-mix(in srgb, var(--graph-accent) 60%, transparent);
+  color: var(--graph-accent);
+}
+
+.graph-landing__navigation button:focus-visible {
+  outline: 2px solid var(--graph-accent);
+  outline-offset: 2px;
+}
+
 .graph-landing__title-block--chrome {
   display: flex;
   flex: 1 1 auto;
@@ -152,12 +309,12 @@ html:not([saved-theme="dark"]) body:has(.graph-landing) {
 .graph-landing__rail-toggle {
   align-items: center;
   backdrop-filter: blur(10px);
-  background: color-mix(in srgb, var(--light) 78%, transparent);
-  border: 1px solid var(--lightgray);
+  background: var(--graph-surface);
+  border: 1px solid var(--graph-border);
   border-radius: 10px;
   bottom: 16px;
   box-shadow: 0 8px 24px rgba(8, 10, 16, 0.16);
-  color: var(--dark);
+  color: var(--graph-text);
   cursor: pointer;
   display: inline-flex;
   height: 48px;
@@ -173,7 +330,7 @@ html:not([saved-theme="dark"]) body:has(.graph-landing) {
 .graph-landing__audio-toggle:focus-visible,
 .graph-landing__music-library-toggle:focus-visible,
 .graph-landing__music-track:focus-visible {
-  outline: 2px solid var(--secondary);
+  outline: 2px solid var(--graph-accent);
   outline-offset: 2px;
 }
 
@@ -459,7 +616,7 @@ html:not([saved-theme="dark"]) body:has(.graph-landing) {
 }
 
 .graph-landing__title {
-  color: var(--dark);
+  color: var(--graph-text);
   font-family: var(--bodyFont);
   font-size: 16px;
   font-weight: 600;
@@ -471,11 +628,11 @@ html:not([saved-theme="dark"]) body:has(.graph-landing) {
 
 a.graph-landing__title:hover,
 a.graph-landing__title:focus-visible {
-  color: var(--secondary);
+  color: var(--graph-accent);
 }
 
 .graph-landing__counts {
-  color: var(--gray);
+  color: var(--graph-muted);
   cursor: default;
   font-family: var(--bodyFont);
   font-size: 12px;
@@ -493,7 +650,7 @@ a.graph-landing__title:focus-visible {
   background: transparent;
   border: 0;
   border-radius: 4px;
-  color: var(--gray);
+  color: var(--graph-muted);
   cursor: pointer;
   font-family: var(--bodyFont);
   font-size: 13px;
@@ -504,19 +661,19 @@ a.graph-landing__title:focus-visible {
 }
 
 .graph-landing__chip:hover {
-  background: color-mix(in srgb, var(--secondary) 8%, transparent);
-  color: var(--secondary);
+  background: var(--graph-accent-soft);
+  color: var(--graph-accent);
 }
 
 .graph-landing__chip:focus-visible {
-  background: color-mix(in srgb, var(--secondary) 8%, transparent);
-  color: var(--secondary);
-  outline: 2px solid var(--secondary);
+  background: var(--graph-accent-soft);
+  color: var(--graph-accent);
+  outline: 2px solid var(--graph-accent);
   outline-offset: 2px;
 }
 
 .graph-landing__chip[aria-pressed="true"] {
-  color: var(--secondary);
+  color: var(--graph-accent);
   font-weight: 500;
 }
 
@@ -532,7 +689,7 @@ a.graph-landing__title:focus-visible {
 }
 
 .graph-landing__section-label {
-  color: var(--gray);
+  color: var(--graph-muted);
   cursor: default;
   font-family: var(--bodyFont);
   font-size: 11px;
@@ -549,7 +706,7 @@ a.graph-landing__title:focus-visible {
   align-items: center;
   background: transparent;
   border: 0;
-  color: var(--gray);
+  color: var(--graph-muted);
   cursor: pointer;
   display: inline-flex;
   font-family: var(--bodyFont);
@@ -571,7 +728,7 @@ a.graph-landing__title:focus-visible {
 .graph-landing__icon-btn:focus-visible,
 .graph-landing__filters-toggle:hover,
 .graph-landing__filters-toggle:focus-visible {
-  color: var(--secondary);
+  color: var(--graph-accent);
   outline: none;
 }
 
@@ -579,13 +736,13 @@ a.graph-landing__title:focus-visible {
 .graph-landing__locale-toggle:focus-visible,
 .graph-landing__icon-btn:focus-visible,
 .graph-landing__filters-toggle:focus-visible {
-  outline: 2px solid var(--secondary);
+  outline: 2px solid var(--graph-accent);
   outline-offset: 2px;
 }
 
 .graph-landing__nav-link,
 .graph-landing__locale-toggle {
-  color: var(--dark);
+  color: var(--graph-text);
 }
 
 .graph-landing__icon-btn {
@@ -626,7 +783,7 @@ a.graph-landing__title:focus-visible {
   background: transparent;
   border: 0;
   border-radius: 4px;
-  color: var(--gray);
+  color: var(--graph-muted);
   cursor: pointer;
   display: flex;
   font-family: var(--bodyFont);
@@ -641,19 +798,19 @@ a.graph-landing__title:focus-visible {
 }
 
 .graph-landing__tag-item:hover {
-  background: color-mix(in srgb, var(--secondary) 8%, transparent);
-  color: var(--secondary);
+  background: var(--graph-accent-soft);
+  color: var(--graph-accent);
 }
 
 .graph-landing__tag-item:focus-visible {
-  background: color-mix(in srgb, var(--secondary) 8%, transparent);
-  color: var(--secondary);
-  outline: 2px solid var(--secondary);
+  background: var(--graph-accent-soft);
+  color: var(--graph-accent);
+  outline: 2px solid var(--graph-accent);
   outline-offset: 2px;
 }
 
 .graph-landing__tag-item[aria-pressed="true"] {
-  color: var(--secondary);
+  color: var(--graph-accent);
   font-weight: 500;
 }
 
@@ -664,12 +821,12 @@ a.graph-landing__title:focus-visible {
 }
 
 .graph-landing__tag-count {
-  color: var(--gray);
+  color: var(--graph-muted);
   font-variant-numeric: tabular-nums;
 }
 
 .graph-landing__utils {
-  border-top: 1px solid var(--lightgray);
+  border-top: 1px solid var(--graph-border);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -698,27 +855,27 @@ a.graph-landing__title:focus-visible {
   background: transparent;
   border: 0;
   border-radius: 6px;
-  color: var(--gray);
+  color: var(--graph-muted);
   cursor: pointer;
   display: inline-flex;
-  height: 28px;
+  height: 44px;
   justify-content: center;
-  width: 28px;
+  width: 44px;
 }
 
 .graph-landing__tool:hover {
-  background: color-mix(in srgb, var(--secondary) 8%, transparent);
-  color: var(--secondary);
+  background: var(--graph-accent-soft);
+  color: var(--graph-accent);
 }
 
 .graph-landing__tool:focus-visible {
-  outline: 2px solid var(--secondary);
+  outline: 2px solid var(--graph-accent);
   outline-offset: 2px;
 }
 
 .graph-landing__tool[aria-pressed="true"] {
-  background: color-mix(in srgb, var(--secondary) 12%, transparent);
-  color: var(--secondary);
+  background: var(--graph-accent-soft);
+  color: var(--graph-accent);
 }
 
 .graph-landing__slider {
@@ -728,19 +885,19 @@ a.graph-landing__title:focus-visible {
 }
 
 .graph-landing__slider span {
-  color: var(--gray);
+  color: var(--graph-muted);
   font-size: 11px;
 }
 
 .graph-landing__slider input[type="range"] {
-  accent-color: var(--secondary);
+  accent-color: var(--graph-accent);
   cursor: pointer;
   width: 100%;
 }
 
 .graph-landing__legend {
   align-items: center;
-  color: var(--gray);
+  color: var(--graph-muted);
   cursor: default;
   display: flex;
   flex-wrap: wrap;
@@ -763,11 +920,11 @@ a.graph-landing__title:focus-visible {
 }
 
 .graph-landing__dot--note {
-  background: var(--darkgray);
+  background: #d5dee6;
 }
 
 .graph-landing__dot--tag {
-  background: var(--tertiary);
+  background: var(--graph-accent);
 }
 
 .graph-landing__dot--external {
@@ -775,9 +932,9 @@ a.graph-landing__title:focus-visible {
 }
 
 .graph-landing__preview {
-  background: color-mix(in srgb, var(--light) 88%, transparent);
+  background: var(--graph-surface);
   backdrop-filter: blur(14px);
-  border: 1px solid color-mix(in srgb, var(--lightgray) 70%, transparent);
+  border: 1px solid var(--graph-border);
   border-radius: 14px;
   bottom: 2rem;
   left: 50%;
@@ -800,7 +957,7 @@ a.graph-landing__title:focus-visible {
 }
 
 .graph-landing__preview-chip {
-  color: var(--gray);
+  color: var(--graph-muted);
   font-size: 10px;
   letter-spacing: 0.14em;
   margin: 0 0 0.35rem;
@@ -808,7 +965,7 @@ a.graph-landing__title:focus-visible {
 }
 
 .graph-landing__preview-title {
-  color: var(--dark);
+  color: var(--graph-text);
   font-size: 15px;
   font-weight: 600;
   line-height: 1.35;
@@ -816,7 +973,7 @@ a.graph-landing__title:focus-visible {
 }
 
 .graph-landing__preview-excerpt {
-  color: var(--darkgray);
+  color: var(--graph-muted);
   display: -webkit-box;
   font-size: 13px;
   line-height: 1.5;
@@ -827,7 +984,7 @@ a.graph-landing__title:focus-visible {
 }
 
 .graph-landing__preview-hint {
-  color: var(--gray);
+  color: var(--graph-muted);
   font-size: 10px;
   letter-spacing: 0.12em;
   margin: 0;
@@ -848,9 +1005,9 @@ a.graph-landing__title:focus-visible {
 }
 
 .graph-landing__inspect {
-  background: color-mix(in srgb, var(--light) 90%, transparent);
+  background: var(--graph-surface-strong);
   backdrop-filter: blur(16px);
-  border-left: 1px solid var(--lightgray);
+  border-left: 1px solid var(--graph-border);
   bottom: 0;
   box-sizing: border-box;
   display: flex;
@@ -866,6 +1023,7 @@ a.graph-landing__title:focus-visible {
   right: 0;
   top: 4.5rem;
   width: min(22rem, calc(100% - 15rem));
+  z-index: 6;
 }
 
 .graph-landing__inspect[hidden] {
@@ -879,7 +1037,7 @@ a.graph-landing__title:focus-visible {
 }
 
 .graph-landing__inspect-chip {
-  color: var(--gray);
+  color: var(--graph-muted);
   font-size: 10px;
   letter-spacing: 0.14em;
   margin: 0;
@@ -889,16 +1047,28 @@ a.graph-landing__title:focus-visible {
 .graph-landing__inspect-close {
   background: transparent;
   border: 0;
-  color: var(--gray);
+  border-radius: 8px;
+  color: var(--graph-muted);
   cursor: pointer;
   font-family: var(--bodyFont);
   font-size: 12px;
-  min-height: 32px;
-  padding: 0 4px;
+  min-height: 44px;
+  padding: 0 10px;
+}
+
+.graph-landing__inspect-close:hover,
+.graph-landing__inspect-close:focus-visible {
+  background: var(--graph-accent-soft);
+  color: var(--graph-accent);
+}
+
+.graph-landing__inspect-close:focus-visible {
+  outline: 2px solid var(--graph-accent);
+  outline-offset: 2px;
 }
 
 .graph-landing__inspect-title {
-  color: var(--dark);
+  color: var(--graph-text);
   font-size: 1.05rem;
   font-weight: 600;
   line-height: 1.35;
@@ -906,7 +1076,7 @@ a.graph-landing__title:focus-visible {
 }
 
 .graph-landing__inspect-excerpt {
-  color: var(--darkgray);
+  color: var(--graph-muted);
   font-size: 13px;
   line-height: 1.55;
   margin: 0;
@@ -922,15 +1092,15 @@ a.graph-landing__title:focus-visible {
 }
 
 .graph-landing__inspect-tags li {
-  border: 1px solid var(--lightgray);
+  border: 1px solid var(--graph-border);
   border-radius: 999px;
-  color: var(--gray);
+  color: var(--graph-muted);
   font-size: 11px;
   padding: 2px 8px;
 }
 
 .graph-landing__inspect-section {
-  color: var(--gray);
+  color: var(--graph-muted);
   font-size: 10px;
   letter-spacing: 0.14em;
   margin: 6px 0 0;
@@ -951,7 +1121,7 @@ a.graph-landing__title:focus-visible {
   background: transparent;
   border: 0;
   border-radius: 4px;
-  color: var(--dark);
+  color: var(--graph-text);
   cursor: pointer;
   display: flex;
   font-family: var(--bodyFont);
@@ -963,7 +1133,7 @@ a.graph-landing__title:focus-visible {
 }
 
 .graph-landing__inspect-link span {
-  color: var(--gray);
+  color: var(--graph-muted);
   flex: 0 0 3.2rem;
   font-size: 10px;
   letter-spacing: 0.08em;
@@ -976,14 +1146,14 @@ a.graph-landing__title:focus-visible {
 }
 
 .graph-landing__inspect-empty {
-  color: var(--gray);
+  color: var(--graph-muted);
   font-size: 12px;
   padding: 4px 0;
 }
 
 .graph-landing__inspect-open {
   align-self: flex-start;
-  color: var(--secondary);
+  color: var(--graph-accent);
   font-size: 13px;
   font-weight: 500;
   margin-top: 8px;
@@ -1018,7 +1188,7 @@ a.graph-landing__title:focus-visible {
   .graph-landing__inspect {
     border-left: 0;
     border-radius: 16px 16px 0 0;
-    border-top: 1px solid var(--lightgray);
+    border-top: 1px solid var(--graph-border);
     bottom: 0;
     left: 0;
     max-height: min(52dvh, calc(100dvh - 4.5rem));
@@ -1032,7 +1202,7 @@ a.graph-landing__title:focus-visible {
 
 .graph-landing__error {
   align-items: center;
-  color: var(--gray);
+  color: var(--graph-muted);
   display: flex;
   font-size: 0.9rem;
   height: 100%;
@@ -1042,17 +1212,17 @@ a.graph-landing__title:focus-visible {
 }
 
 :root[saved-theme="dark"] .graph-landing {
-  background: var(--light);
+  background: var(--graph-backdrop);
 }
 
 :root[saved-theme="dark"] .graph-landing__hero,
 :root[saved-theme="dark"] .graph-landing__canvas {
-  background: color-mix(in srgb, var(--light) 12%, #05070f);
+  background-color: var(--graph-backdrop);
 }
 
 :root[saved-theme="dark"] .graph-landing__rail {
-  background: color-mix(in srgb, var(--light) 72%, transparent);
-  border-color: var(--lightgray);
+  background: var(--graph-surface);
+  border-color: var(--graph-border);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.38);
 }
 
@@ -1066,12 +1236,21 @@ a.graph-landing__title:focus-visible {
 @media (max-width: 700px) {
   .graph-landing__chrome {
     backdrop-filter: blur(10px);
-    background: color-mix(in srgb, var(--light) 78%, transparent);
-    border-bottom: 1px solid var(--lightgray);
+    background: var(--graph-surface);
+    border-bottom: 1px solid var(--graph-border);
     gap: 6px;
     justify-content: flex-start;
     padding: max(8px, env(safe-area-inset-top)) 10px 8px 12px;
     pointer-events: auto;
+  }
+
+  .graph-landing__search {
+    top: calc(max(8px, env(safe-area-inset-top)) + 3.75rem);
+    width: calc(100vw - 1.5rem);
+  }
+
+  .graph-landing__search-results {
+    max-height: min(38dvh, calc(100dvh - 15rem));
   }
 
   .graph-landing__title-block--rail {
@@ -1092,8 +1271,8 @@ a.graph-landing__title:focus-visible {
   .graph-landing__nav-link,
   .graph-landing__locale-toggle {
     font-size: 12px;
-    height: 40px;
-    min-height: 40px;
+    height: 44px;
+    min-height: 44px;
   }
 
   .graph-landing__rail-toggle,
@@ -1164,17 +1343,17 @@ a.graph-landing__title:focus-visible {
   }
 
   :root[saved-theme="dark"] .graph-landing__chrome {
-    background: color-mix(in srgb, var(--light) 72%, transparent);
-    border-bottom-color: var(--lightgray);
+    background: var(--graph-surface);
+    border-bottom-color: var(--graph-border);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .graph-landing__turntable-record,
-  .graph-landing__turntable-tonearm,
-  .graph-landing__turntable,
-  .graph-landing__music-library {
-    animation: none;
-    transition: none;
+  .graph-landing *,
+  .graph-landing *::before,
+  .graph-landing *::after {
+    animation: none !important;
+    scroll-behavior: auto !important;
+    transition: none !important;
   }
 }

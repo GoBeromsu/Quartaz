@@ -1,9 +1,20 @@
 # graph-landing
 
-Full-viewport knowledge-graph constellation page type. All options are
-optional and default to the plugin's original behavior — setting none of
-them reproduces the exact output of a plugin instance with no `options`
-block at all.
+Full-viewport knowledge-graph constellation with luminous stars, degree-weighted
+hub attraction, and a calm initial camera. All configuration options are optional.
+
+## Exploring the constellation
+
+- Search matches the full index, including isolated notes outside the initial
+  render limit. Use `Cmd/Ctrl+K`, type a title or tag, then Enter or Tab to a result.
+- Click or tap a star to inspect it. The explicit **Read note** action opens it.
+- **Enable motion** opts into slow orbit and subtle twinkle. Inspection and
+  background tabs pause motion. Reduced-motion preferences keep the graph usable
+  with decorative motion disabled.
+- **Reset view** restores the overview camera and clears the active lens/filter.
+- Six landmark titles appear at overview; focus reveals the connected neighborhood.
+  Distance LOD retains label relevance and always keeps the focused title.
+- Real links use quiet hairlines; folder/co-occurrence texture appears in its lens.
 
 ## Install or update
 
@@ -115,13 +126,11 @@ clicked and `maxRenderedNodes` is set.
 
 Which client renderer to use.
 
-- Default: `undefined` (`"auto"`) — original behavior: 3D loads when WebGL
-  is available and the user has not requested reduced motion, otherwise
-  the 2D canvas renderer loads instead.
-- `"3d"` — always use the 3D renderer, never fall back to 2D. If WebGL is
-  unavailable or reduced-motion is requested, the graph shows a short
-  notice via the existing canvas-message path instead of silently
-  loading 2D.
+- Default: `undefined` (`"auto"`) — 3D loads when WebGL is available;
+  otherwise the 2D canvas renderer loads.
+- `"3d"` — requires WebGL and shows a notice when it is unavailable.
+- Reduced motion disables decorative animation while retaining the renderer,
+  search, selection, and note navigation.
 
 ### `layout`
 
@@ -134,7 +143,8 @@ d3-force's built-in default).
   warmup pass runs so the simulation freezes immediately instead of
   continuing to settle (the 3d-force-graph maintainer-recommended pattern
   for a one-shot layout). Overrides any `cooldownTicks` value set
-  alongside it. Default: `false`.
+  alongside it. Explicit expansion, re-layout and force adjustments receive
+  90 settling ticks before stopping again. Default: `false`.
 - `warmupTicks` — overrides the renderer's default warmup tick count.
 - `cooldownTicks` — overrides the renderer's default cooldown tick count.
   Ignored when `freezeAfterWarmup` is `true`.
@@ -161,12 +171,14 @@ full detail regardless of camera distance, no THREE.LOD wrapping, no
 fog). Has no effect when the 2D renderer is active.
 
 - `labelDistance` — camera distance (world units) beyond which a node's
-  label sprite is hidden. Default: `undefined` (labels never hide based
+  label sprite is hidden, with exceptions for the focused title and six
+  overview landmarks. Default: `undefined` (labels never hide based
   on distance). Applies independently of `dotDistance`.
 - `dotDistance` — camera distance beyond which a node's full-detail
   sphere mesh is swapped for a cheap, shared low-poly "dot" mesh via
   `THREE.LOD`. Default: `undefined` (every node always renders full
-  detail; no `THREE.LOD` wrapping at all).
+  detail; no `THREE.LOD` wrapping at all). Distant dots retain a minimum
+  screen-scale size and dark-theme glow, including on narrow viewports.
 - `cullDistance` — camera distance beyond which a link's cylinder mesh is
   hidden (`mesh.visible = false`), except links touching the currently
   focused (hovered/selected) node, which always stay visible regardless
@@ -206,9 +218,10 @@ Interaction-driven repaint tuning for the 3D renderer. Default: `undefined`
 repaint of every node/link/label). Has no effect when the 2D renderer is
 active.
 
-- `incrementalRepaint` — when `true`, hovering or selecting a node mutates
-  only the previous and next focus nodes/links/labels (and their direct
-  neighbors) in place, instead of re-running the full node/link/label
+- `incrementalRepaint` — when `true`, switching between focused nodes updates
+  their neighborhoods in place. Entering/leaving focus updates all retained
+  materials so unrelated nodes and isolates dim/restore correctly. This avoids
+  re-running the full node/link/label
   repaint on every hover/click. Visually identical to the full-repaint
   path; avoids the three-forcegraph/kapsule accessor system's destructive
   mesh recreation that a plain click/hover otherwise triggers (re-setting
@@ -235,10 +248,11 @@ The controls rail applies visual and force parameters immediately and keeps
 them in `sessionStorage` for the current browser session.
 
 - `Hub gravity` / `허브 인력`: `0` disables the additional degree-weighted
-  pull, `100` preserves the default behavior, and `200` applies the maximum
+  pull, `150` is the initial setting, and `200` applies the maximum
   bounded pull. Increasing it shortens and strengthens real links touching
-  highly connected nodes, then reheats the existing simulation without
-  rebuilding graph data.
+  highly connected nodes, then settles the existing simulation without
+  rebuilding graph data. At `150`, a maximum-degree endpoint scales the
+  link's target distance to `0.64` and strength to `1.45` of its base value.
 - Degree-weighted many-body repulsion counterbalances the extra links carried
   by hubs, while a 3D sphere-collision force keeps rendered stars physically
   separated. Link attraction stays deliberately weaker than both forces so

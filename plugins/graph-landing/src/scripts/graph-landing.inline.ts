@@ -22,6 +22,7 @@ import {
   affectedFocusNodeIds,
   expandHopIds,
   getOrCreate,
+  graphLabelVisible,
   hubGravityDistanceScale,
   hubGravityStrengthScale,
   isMarkdownFilePath,
@@ -32,6 +33,7 @@ import {
   normalizedDegreeWeight,
   parseNonNegativeNumber,
   seedExpandedNodePosition,
+  searchGraphNodes,
   selectRenderedSubset,
   youtubeTracks,
   type GraphData,
@@ -88,6 +90,8 @@ type ForceCollideFactory = (radius: number | ((node: GraphNode) => number)) => C
 
 interface ForceGraphInstance {
   graphData: (data: GraphData) => unknown
+  width: (width: number) => unknown
+  height: (height: number) => unknown
   backgroundColor: (color: string) => unknown
   nodeLabel: (accessor: string | ((node: GraphNode) => string)) => unknown
   nodeVal: (accessor: string | ((node: GraphNode) => number)) => unknown
@@ -116,7 +120,7 @@ interface ForceGraphInstance {
   showNavInfo?: (show: boolean) => unknown
   enableNodeDrag: (enable: boolean) => unknown
   enableNavigationControls?: (enable: boolean) => unknown
-  controls?: () => { autoRotate: boolean; autoRotateSpeed: number }
+  controls?: () => { autoRotate: boolean; autoRotateSpeed: number; target?: Vec3 }
   nodeCanvasObjectMode: (fn: (node: GraphNode) => string | undefined) => unknown
   nodeCanvasObject: (
     fn: (node: GraphNode, ctx: CanvasRenderingContext2D, globalScale: number) => void,
@@ -159,13 +163,7 @@ interface ForceGraphInstance {
   linkDirectionalParticleWidth?: (n: number) => unknown
   linkDirectionalParticleSpeed?: (n: number) => unknown
   linkDirectionalParticleColor?: (fn: (link: GraphLink) => string) => unknown
-  // three-forcegraph prop (triggerUpdate: false — setting it does not
-  // itself schedule a digest). Its callback runs synchronously at the end
-  // of the kapsule digest's updateFn, immediately after that digest's
-  // warmup for-loop completes. Used by layout.incrementalWarmup to restore
-  // warmupTicks after (not before) the debounced digest that actually
-  // reads it has run — see requestSkippedWarmup below.
-  onFinishUpdate?: (fn: () => void) => unknown
+  onEngineStop: (fn: () => void) => unknown
   _destructor: () => void
 }
 
@@ -177,6 +175,7 @@ interface SpriteTextInstance {
   color: string
   backgroundColor: string | false
   textHeight: number
+  text: string
   fontWeight: string
   strokeWidth: number
   strokeColor: string
@@ -198,6 +197,7 @@ interface SpriteTextInstance {
 // applyFocusChange).
 interface ThreeColorHandle {
   set: (value: string) => void
+  multiplyScalar: (value: number) => unknown
 }
 
 // Return type for `new three.MeshBasicMaterial(...)` and the base shape of
@@ -232,6 +232,7 @@ interface ThreeLOD extends ThreeObject {
 interface ThreeMeshHandle {
   visible: boolean
   position: Vec3
+  scale: Vec3
   material: ThreeMaterialHandle
 }
 
@@ -275,9 +276,8 @@ const THREE_CDN = `https://esm.sh/three@${THREE_VERSION}`
 const UNREAL_BLOOM = `https://esm.sh/three@${THREE_VERSION}/examples/jsm/postprocessing/UnrealBloomPass.js`
 
 const HUB_COUNT = 8
-// Alex grammar: titles are the wayfinding layer, so a generous set of
-// well-connected notes keeps their labels visible at rest.
-const LABEL_HUB_COUNT = 14
+// Landmark titles leave space for the stars at overview scale.
+const LABEL_HUB_COUNT = 6
 const HUB_EGO_N = 6
 const MIN_NODE_VAL = 1
 const MAX_NODE_VAL = 4
@@ -320,18 +320,18 @@ const NODE_RADIUS_MAX = 4.8
 // Threshold sits below the emissive star cores (>1 HDR) but above label
 // pixels, so text stays crisp while stars glow. Tight halo: the star reads
 // as a bright point, not a blob.
-const BLOOM_STRENGTH = 0.78
-const BLOOM_RADIUS = 0.2
-const BLOOM_THRESHOLD = 0.48
+const BLOOM_STRENGTH = 0.62
+const BLOOM_RADIUS = 0.16
+const BLOOM_THRESHOLD = 1
 const COLLISION_PADDING = 2.4
 // Screen-space hairlines: closer camera makes the same world radius read
 // as a tube. Keep these just above the composer aliasing floor.
 const LINK_RADIUS: Record<LinkKind, number> = {
-  wikilink: 0.3,
-  tag: 0.22,
-  external: 0.28,
-  cooc: 0.16,
-  folder: 0.16,
+  wikilink: 0.16,
+  tag: 0.1,
+  external: 0.12,
+  cooc: 0.08,
+  folder: 0.08,
 }
 const EDGE_INK_DARK = "#a8b0c2"
 const EDGE_INK_LIGHT = "#2a3348"
@@ -341,7 +341,7 @@ const CLOUD_EXTERNAL = { min: 160, max: 280 }
 const CLOUD_TAG = { min: 90, max: 170 }
 const EXCERPT_LENGTH = 220
 const FOLDER_RING_SKIP = 2
-const TWINKLE_AMPLITUDE = 0.15
+const TWINKLE_AMPLITUDE = 0.06
 const TWINKLE_SPEED = 0.8
 const PREVIEW_HIDE_DELAY_MS = 350
 
@@ -936,7 +936,7 @@ function resolveCssColor(variableName: string, fallback: string): string {
   probe.style.color = `var(${variableName})`
   probe.style.position = "absolute"
   probe.style.visibility = "hidden"
-  document.body.appendChild(probe)
+  ;(document.querySelector(".graph-landing") ?? document.body).appendChild(probe)
   const resolved = getComputedStyle(probe).color
   probe.remove()
   return resolved || fallback
@@ -945,11 +945,11 @@ function resolveCssColor(variableName: string, fallback: string): string {
 function readTheme(): ThemeTokens {
   const font = getComputedStyle(document.documentElement).getPropertyValue("--bodyFont").trim()
   return {
-    bg: resolveCssColor("--light", "#ffffff"),
-    ink: resolveCssColor("--darkgray", "#0f0f0f"),
-    accent: resolveCssColor("--secondary", "#a52142"),
-    tertiary: resolveCssColor("--tertiary", "#c75b75"),
-    gray: resolveCssColor("--gray", "#737373"),
+    bg: resolveCssColor("--graph-backdrop", "#ffffff"),
+    ink: resolveCssColor("--graph-text", "#0f0f0f"),
+    accent: resolveCssColor("--graph-accent", "#27798c"),
+    tertiary: resolveCssColor("--graph-external", "#3f6f8c"),
+    gray: resolveCssColor("--graph-muted", "#737373"),
     external: resolveCssColor("--graph-external", "#3f6f8c"),
     font: font.length > 0 ? font : "Inter, sans-serif",
   }
@@ -965,10 +965,9 @@ function hasWebGL(): boolean {
   return gl !== null
 }
 
-// Mobile gets the same 3D constellation as desktop (orbit controls handle
-// touch). 2D stays only as the no-WebGL / reduced-motion fallback.
+// Reduced motion controls animation independently of rendering capability.
 function shouldUse3D(): boolean {
-  return hasWebGL() && !prefersReducedMotion()
+  return hasWebGL()
 }
 
 function isDarkTheme(): boolean {
@@ -1026,8 +1025,10 @@ function srgbCompensate(color: string): string {
   const invert = (channel: number): number => {
     const c = channel / 255
     const linear = c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
-    return Math.round(linear * 255)
+    return Math.ceil(linear * 255)
   }
+  // The renderer's color parser requires integer RGB. Round upwards so
+  // the near-black red channel survives and the sky retains its blue hue.
   return `rgb(${invert(rgb.r)}, ${invert(rgb.g)}, ${invert(rgb.b)})`
 }
 
@@ -1077,22 +1078,6 @@ function resolveNoteUrl(slug: string): URL {
   return new URL(path, window.location.origin)
 }
 
-function navigateToSlug(slug: string): void {
-  if (slug.length === 0) {
-    throw new Error("graph-landing: cannot navigate a node without a slug")
-  }
-  const url = resolveNoteUrl(slug)
-  // Full assign is the reliable path: Quartz SPA only hijacks <a> clicks.
-  window.location.assign(url.toString())
-}
-
-function openExternalUrl(url: string): void {
-  if (url.length === 0) {
-    throw new Error("graph-landing: cannot open an empty external url")
-  }
-  window.open(url, "_blank", "noopener,noreferrer")
-}
-
 function factoryFromModule(mod: ForceGraphFactory): (el: HTMLElement) => ForceGraphInstance {
   const factory = mod.default
   if (typeof factory !== "function") {
@@ -1139,7 +1124,7 @@ function readStoredLens(): Lens {
 }
 
 function readStoredTune(): TuneState {
-  const fallback: TuneState = { nodeScale: 0.7, edgeScale: 1, zoom: 1, spread: 1, hubGravity: 1 }
+  const fallback: TuneState = { nodeScale: 0.7, edgeScale: 1, zoom: 1, spread: 1, hubGravity: 1.5 }
   try {
     const raw = sessionStorage.getItem(TUNE_STORAGE_KEY)
     if (!raw) {
@@ -1318,26 +1303,20 @@ function bindGraph(
   // --- Lazy k-hop expansion (maxRenderedNodes) --------------------------
   // `data` starts out as either the full index (maxRenderedNodes unset, in
   // which case `options.fullData === data` and expansion is a no-op) or a
-  // top-N-by-degree subset. `data.nodes`/`data.links` are mutated in place
-  // (pushed into) on expansion so every existing closure over `data` in this
-  // function keeps working unchanged — no rewiring of `currentData()` or the
-  // rest of the view logic is needed.
+  // top-N-by-degree subset. New arrays leave the running simulation's
+  // resolved endpoints intact until the renderer's asynchronous digest.
   //
-  // These structures are only needed by expandFromNode, which itself bails
-  // out immediately when `options.fullData === data` (maxRenderedNodes
-  // unset). Building them eagerly in that case would be pure wasted work at
-  // scale (e.g. 20k nodes), so they're only populated when expansion is
-  // actually possible.
+  // Search resolves every node. Expansion-only adjacency and edge sets
+  // are allocated only when the initial render is capped.
   const expandEdgeKey = (source: string, target: string, kind: LinkKind): string =>
     source < target ? `${source}|${target}|${kind}` : `${target}|${source}|${kind}`
-  let fullNodeById: Map<string, GraphNode> = new Map()
+  const fullNodeById = new Map(options.fullData.nodes.map((node) => [node.id, node]))
   // Same "real relationships only" definition used for hover highlighting
   // (wikilink/tag/external) — cooc/folder texture edges do not drive expansion.
   let fullAdjacency: Map<string, Set<string>> = new Map()
   let renderedIds: Set<string> = new Set()
   let renderedEdgeKeys: Set<string> = new Set()
   if (options.fullData !== data) {
-    fullNodeById = new Map(options.fullData.nodes.map((node) => [node.id, node]))
     fullAdjacency = neighborMap(options.fullData.links)
     renderedIds = new Set(data.nodes.map((node) => node.id))
     renderedEdgeKeys = new Set(
@@ -1358,17 +1337,14 @@ function bindGraph(
       return false
     }
     const toAdd = expandHopIds(fullAdjacency, renderedIds, nodeId, options.expandHops)
+    if (!renderedIds.has(nodeId) && fullNodeById.has(nodeId)) toAdd.add(nodeId)
     if (toAdd.size === 0) {
       return false
     }
-    // layout.incrementalWarmup skips the simulation's post-graphData warmup
-    // pass for this expand (see requestSkippedWarmup below), so newly added
-    // nodes would otherwise never move off d3-force's unrelated default
-    // spiral placement. Seed them near the clicked node instead — only when
-    // the option is on, and only nodes that aren't already positioned
-    // (every id here comes from expandHopIds, which already excludes
-    // renderedIds, so this is always true in practice; the check is just
-    // defense in depth).
+    data.nodes = [...data.nodes]
+    data.links = [...data.links]
+    // Full-index nodes have cloud coordinates already. Replace those for
+    // newly revealed neighbors so they settle beside the selected star.
     const seedSource = options.layout.incrementalWarmup ? fullNodeById.get(nodeId) : undefined
     let seedIndex = 0
     for (const id of toAdd) {
@@ -1376,11 +1352,12 @@ function bindGraph(
       if (!node) {
         continue
       }
-      if (seedSource && node.x === undefined) {
+      if (seedSource && node.id !== seedSource.id) {
         const seeded = seedExpandedNodePosition(seedSource, seedIndex, options.use3d)
         node.x = seeded.x
         node.y = seeded.y
         node.z = seeded.z
+        node.vx = node.vy = node.vz = 0
         seedIndex += 1
       }
       data.nodes.push(node)
@@ -1411,6 +1388,18 @@ function bindGraph(
   let hoveredId: string | null = null
   let selectedId: string | null = null
   const tune = readStoredTune()
+  let motionEnabled = false
+  let dragging = false
+  let cameraTarget = INITIAL_LOOK_AT
+  let zoomBaseDistance = INITIAL_CAMERA_DISTANCE
+
+  const settleLayout = (): void => {
+    // Reheating with cooldownTicks=0 never advances the simulation.
+    graph.cooldownTicks(
+      options.layout.freezeAfterWarmup ? 90 : (options.layout.cooldownTicks ?? 200),
+    )
+    graph.d3ReheatSimulation()
+  }
 
   const litId = (): string | null => selectedId ?? hoveredId
 
@@ -1438,13 +1427,13 @@ function bindGraph(
 
   const showNodeLabel = (node: GraphNode): boolean => {
     const focus = litId()
-    if (state.allLabels || focus === node.id) {
+    if (focus === node.id) {
       return true
     }
-    if (focus !== null && (neighbors.get(focus)?.has(node.id) ?? false)) {
-      return true
+    if (focus !== null) {
+      return neighbors.get(focus)?.has(node.id) ?? false
     }
-    return labeledHubIds.has(node.id)
+    return state.allLabels || labeledHubIds.has(node.id)
   }
 
   const nodeWorldRadius = (node: GraphNode): number => {
@@ -1503,7 +1492,8 @@ function bindGraph(
     }
     const color = baseNodeColor(node)
     if (!isActive(node.id)) {
-      return withAlpha(color, DIM_ALPHA)
+      // THREE.Color ignores rgba alpha; dim the star's actual color.
+      return mixRgb(color, canvasBackground(theme.current), 1 - DIM_ALPHA)
     }
     if (isDarkTheme()) {
       if (node.type === "external") {
@@ -1536,18 +1526,24 @@ function bindGraph(
   const edgeBaseOpacity = (kind: LinkKind): number => {
     const dark = isDarkTheme()
     if (kind === "wikilink") {
-      return dark ? 0.34 : 0.52
+      return dark ? 0.16 : 0.36
     }
     if (kind === "external") {
-      return dark ? 0.3 : 0.44
+      return dark ? 0.12 : 0.3
     }
     if (kind === "tag") {
-      return dark ? 0.22 : 0.32
+      return dark ? 0.1 : 0.24
     }
-    return dark ? 0.12 : 0.2
+    return 0
   }
 
   const edgeOpacity = (link: GraphLink): number => {
+    if (link.kind === "cooc" || link.kind === "folder") {
+      return (link.kind === "cooc" && state.lens === "tag") ||
+        (link.kind === "folder" && state.lens === "folder")
+        ? 0.06
+        : 0
+    }
     const source = linkEndpointId(link.source)
     const target = linkEndpointId(link.target)
     const focus = litId()
@@ -1577,7 +1573,7 @@ function bindGraph(
     return withAlpha(edgeColor(link), edgeOpacity(link))
   }
 
-  const currentData = (): GraphData => data
+  const currentData = (): GraphData => ({ nodes: data.nodes, links: data.links })
 
   // Extracted from paintLabels3d's inline sprite-color computation so
   // applyFocusChange (the incremental-repaint path) can recompute a single
@@ -1600,6 +1596,8 @@ function bindGraph(
   // the graph has a real camera position (or in 2D, where callers ignore
   // dir/len anyway).
   const currentCameraVector = (): { dir: Vec3; len: number } => {
+    const target = graph.controls?.().target
+    if (target) cameraTarget = { x: target.x, y: target.y, z: target.z }
     if (typeof graph.cameraPosition === "function") {
       const current = graph.cameraPosition() as Partial<Vec3> | undefined
       if (
@@ -1608,9 +1606,14 @@ function bindGraph(
         typeof current.y === "number" &&
         typeof current.z === "number"
       ) {
-        const len = Math.hypot(current.x, current.y, current.z)
+        const dir = {
+          x: current.x - cameraTarget.x,
+          y: current.y - cameraTarget.y,
+          z: current.z - cameraTarget.z,
+        }
+        const len = Math.hypot(dir.x, dir.y, dir.z)
         if (len > 1) {
-          return { dir: { x: current.x, y: current.y, z: current.z }, len }
+          return { dir, len }
         }
       }
     }
@@ -1624,17 +1627,25 @@ function bindGraph(
       if (typeof graph.cameraPosition !== "function") {
         return
       }
-      const targetLen = INITIAL_CAMERA_DISTANCE / clamp(tune.zoom, 0.4, 2.5)
+      const targetLen = zoomBaseDistance / clamp(tune.zoom, 0.4, 2.5)
       const { dir, len: dirLen } = currentCameraVector()
       const k = targetLen / dirLen
-      graph.cameraPosition({ x: dir.x * k, y: dir.y * k, z: dir.z * k }, INITIAL_LOOK_AT, ms)
+      graph.cameraPosition(
+        {
+          x: cameraTarget.x + dir.x * k,
+          y: cameraTarget.y + dir.y * k,
+          z: cameraTarget.z + dir.z * k,
+        },
+        cameraTarget,
+        prefersReducedMotion() ? 0 : ms,
+      )
       // Fog range is distance-relative (see FOG_NEAR_FACTOR/FOG_FAR_FACTOR),
       // so a zoom change must refresh it too. No-op when lod.fog is unset.
       updateFog()
       return
     }
     if (typeof graph.zoom === "function") {
-      graph.zoom(tune.zoom, ms)
+      graph.zoom(tune.zoom, prefersReducedMotion() ? 0 : ms)
     }
   }
 
@@ -1753,13 +1764,9 @@ function bindGraph(
   // applyFocusChange's per-node/per-link mutation path and are otherwise
   // left empty, costing nothing when the option is unset.
 
-  // Star-mesh material per node id (both theme branches), so a focus change
-  // can recolor a node without re-setting graph.nodeThreeObject. The shared
-  // low-detail "dot" LOD material (see dotResourceCache) is deliberately not
-  // tracked here — incremental repaint only recolors the full-detail star;
-  // a node currently showing its distance-culled dot keeps its dot color
-  // until the next full repaint (documented limitation).
+  // Stars mutate private materials; LOD dots swap shared materials by color.
   const nodeMaterials = new Map<string, ThreeMaterialHandle>()
+  const nodeDots = new Map<string, ThreeMeshHandle>()
 
   // Rendered GraphNode by id, rebuilt from `data.nodes` at the top of
   // paintLabels3d — lets applyFocusChange resolve an affected node id back
@@ -1778,18 +1785,19 @@ function bindGraph(
   // Geometry/Material GL resources instead of each allocating its own —
   // directly addressing the zero-sharing baseline (13,287 unique
   // geometries/materials) measured before this option existed.
-  const dotResourceCache = new Map<string, { geometry: unknown; material: unknown }>()
+  const dotResourceCache = new Map<string, { geometry: unknown; material: ThreeMaterialHandle }>()
 
   const dotResourceFor = (
     three: ThreeApi,
     radius: number,
     fill: string,
-  ): { geometry: unknown; material: unknown } => {
+  ): { geometry: unknown; material: ThreeMaterialHandle } => {
     const key = `${Math.round(radius * 4)}|${fill}`
-    return getOrCreate(dotResourceCache, key, () => ({
-      geometry: new three.SphereGeometry(radius, 6, 6),
-      material: new three.MeshBasicMaterial({ color: fill }),
-    }))
+    return getOrCreate(dotResourceCache, key, () => {
+      const material = new three.MeshBasicMaterial({ color: fill })
+      if (isDarkTheme()) material.color.multiplyScalar(2)
+      return { geometry: new three.SphereGeometry(radius, 6, 6), material }
+    })
   }
 
   // Shared link geometry/material caches for `lod.shareLinkResources`,
@@ -1848,6 +1856,7 @@ function bindGraph(
     labelSprites.clear()
     dotResourceCache.clear()
     nodeMaterials.clear()
+    nodeDots.clear()
     renderedNodeById.clear()
     if (incremental) {
       for (const node of data.nodes) {
@@ -1895,6 +1904,7 @@ function bindGraph(
         if (dotDistance !== undefined && star !== false) {
           const dot = dotResourceFor(three, radius, fill)
           const dotMesh = new three.Mesh(dot.geometry, dot.material)
+          nodeDots.set(node.id, dotMesh)
           const lod = new three.LOD()
           lod.addLevel(star, 0)
           lod.addLevel(dotMesh, dotDistance)
@@ -1911,7 +1921,11 @@ function bindGraph(
         return star
       }
       // Alex-style label: small, no stroke bubble, floating beside the star.
-      const sprite = new SpriteText(node.name)
+      const characters = Array.from(node.name)
+      const limit = window.innerWidth < 700 ? 24 : 48
+      const sprite = new SpriteText(
+        characters.length > limit ? `${characters.slice(0, limit).join("")}…` : node.name,
+      )
       sprite.color = labelColorFor(node)
       sprite.backgroundColor = false
       sprite.fontWeight = "400"
@@ -2021,7 +2035,7 @@ function bindGraph(
     }
     graph.linkDirectionalParticles((link) => {
       const focus = litId()
-      if (focus === null) {
+      if (focus === null || !motionEnabled || prefersReducedMotion() || document.hidden) {
         return 0
       }
       const source = linkEndpointId(link.source)
@@ -2070,7 +2084,12 @@ function bindGraph(
   // full-repaint path for the same focus state; node/link geometry (radius,
   // width) never depends on focus, so no scale mutation is needed here.
   const applyFocusChange = (previousFocus: string | null, nextFocus: string | null): void => {
-    const affected = affectedFocusNodeIds(neighbors, previousFocus, nextFocus)
+    const affected = affectedFocusNodeIds(
+      neighbors,
+      previousFocus,
+      nextFocus,
+      renderedNodeById.keys(),
+    )
     const visitedLinks = new Set<GraphLink>()
     for (const id of affected) {
       const node = renderedNodeById.get(id)
@@ -2079,6 +2098,10 @@ function bindGraph(
       }
       const fill = nodeFill(node)
       nodeMaterials.get(id)?.color.set(fill)
+      const dot = nodeDots.get(id)
+      if (dot && options.three) {
+        dot.material = dotResourceFor(options.three, nodeWorldRadius(node), fill).material
+      }
       const twinkle = twinkleMaterials.get(id)
       if (twinkle) {
         twinkle.material.emissive.set(fill)
@@ -2256,54 +2279,34 @@ function bindGraph(
     )
   }
 
-  // layout.incrementalWarmup: skip the full re-warmup that graph.graphData()
-  // otherwise triggers on every applyView() call, for the expand-only path.
-  //
-  // three-forcegraph's kapsule digest is debounced 1ms (lodash debounce,
-  // trailing-edge only — see kapsule.mjs). `warmupTicks` has
-  // `triggerUpdate: false` (setting it does not itself schedule a digest),
-  // but the digest already scheduled by graphData()'s `triggerUpdate: true`
-  // still reads whatever `state.warmupTicks` is at the moment it eventually
-  // fires. That means a naive synchronous
-  // `warmupTicks(0); graphData(...); warmupTicks(prior)` is a no-op from the
-  // digest's point of view: all three calls happen before the debounced
-  // digest ever runs, so it only ever observes the final, already-restored
-  // value and still runs the full warmup loop.
-  //
-  // `onFinishUpdate` (triggerUpdate: false) is invoked synchronously inside
-  // that same debounced updateFn, immediately after its warmup loop
-  // completes. Restoring warmupTicks there — instead of synchronously right
-  // after graphData() — defers the restore until after the skip has already
-  // taken effect for this digest, while still putting the real value back in
-  // place before any later digest (e.g. a genuine setLens/setFocusTag/
-  // setFocusFolder full-restructure) needs it.
-  let pendingWarmupRestore: number | null = null
-  if (options.layout.incrementalWarmup && typeof graph.onFinishUpdate === "function") {
-    graph.onFinishUpdate(() => {
-      if (pendingWarmupRestore !== null) {
-        graph.warmupTicks(pendingWarmupRestore)
-        pendingWarmupRestore = null
-      }
-    })
+  let initialFit = true
+  const fitOverview = (): void => {
+    if (data.nodes.length > 0) graph.zoomToFit?.(0, 80)
+    zoomBaseDistance = currentCameraVector().len
+    applyZoom(0)
+    updateFog()
   }
-  // Called only from the expand branch of activateNode, right before
-  // applyView(). Guarded internally (rather than at each call site) so
-  // there's a single source of truth for whether the option is actually
-  // usable. The `pendingWarmupRestore === null` guard makes this safe
-  // against a second expand click landing before the first expand's
-  // debounced digest has fired: the *original* configured value is only
-  // ever captured once, never overwritten with an already-skipped `0`.
-  const requestSkippedWarmup = (): void => {
-    if (!options.layout.incrementalWarmup || typeof graph.onFinishUpdate !== "function") {
-      return
+  let fitFrame = 0
+  graph.onEngineStop(() => {
+    if (initialFit) {
+      // onEngineStop fires before this frame copies simulation positions
+      // into meshes. Fit against the completed frame's bounds.
+      fitFrame = window.requestAnimationFrame(() => {
+        initialFit = false
+        fitOverview()
+      })
     }
-    if (pendingWarmupRestore === null) {
-      pendingWarmupRestore = graph.warmupTicks() as number
-    }
-    graph.warmupTicks(0)
-  }
+  })
+  window.addCleanup(() => window.cancelAnimationFrame(fitFrame))
 
-  const applyView = (): void => {
+  const applyView = (expanding = false): void => {
+    // Each data update owns its warmup policy. Leave it set through the
+    // asynchronous digest; the next full update explicitly restores it.
+    graph.warmupTicks(
+      expanding && options.layout.incrementalWarmup
+        ? 0
+        : (options.layout.warmupTicks ?? (options.use3d ? 50 : 60)),
+    )
     graph.graphData(currentData())
     applyForces()
     refreshAccessors()
@@ -2311,7 +2314,7 @@ function bindGraph(
     renderLegend()
     renderFacets()
     setPressed(options.root, "[data-graph-lens]", state.lens, "data-graph-lens")
-    graph.d3ReheatSimulation()
+    settleLayout()
   }
 
   const setLens = (lens: Lens): void => {
@@ -2452,16 +2455,10 @@ function bindGraph(
     if (typeof graph.enableNavigationControls === "function") {
       graph.enableNavigationControls(true)
     }
-    if (!prefersReducedMotion() && typeof graph.controls === "function") {
+    if (typeof graph.controls === "function") {
       const controls = graph.controls()
       controls.autoRotate = false
       controls.autoRotateSpeed = AUTO_ROTATE_SPEED
-      const rotateTimer = window.setTimeout(() => {
-        if (typeof graph.controls === "function") {
-          graph.controls().autoRotate = true
-        }
-      }, 1600)
-      window.addCleanup(() => window.clearTimeout(rotateTimer))
     }
     graph.warmupTicks(options.layout.warmupTicks ?? 50)
     graph.cooldownTicks(
@@ -2490,14 +2487,22 @@ function bindGraph(
     }
     paintLabels3d()
     updateFog()
-    // Subtle emissive twinkle: rAF-driven sine per node, +-15%, dark only.
-    if (!prefersReducedMotion()) {
+    // Decorative motion is opt-in and pauses with the inspector or tab.
+    {
       let twinkleFrame = 0
       const twinkle = (): void => {
-        const t = (performance.now() / 1000) * TWINKLE_SPEED
-        for (const entry of twinkleMaterials.values()) {
-          entry.material.emissiveIntensity =
-            entry.base * (1 + TWINKLE_AMPLITUDE * Math.sin(t + entry.phase))
+        if (
+          motionEnabled &&
+          !prefersReducedMotion() &&
+          !document.hidden &&
+          selectedId === null &&
+          !dragging
+        ) {
+          const t = (performance.now() / 1000) * TWINKLE_SPEED
+          for (const entry of twinkleMaterials.values()) {
+            entry.material.emissiveIntensity =
+              entry.base * (1 + TWINKLE_AMPLITUDE * Math.sin(t + entry.phase))
+          }
         }
         twinkleFrame = window.requestAnimationFrame(twinkle)
       }
@@ -2518,7 +2523,9 @@ function bindGraph(
     const labelDistance = options.lod.labelDistance
     const cullDistance = options.lod.cullDistance
     if (
-      (labelDistance !== undefined || cullDistance !== undefined) &&
+      (labelDistance !== undefined ||
+        cullDistance !== undefined ||
+        options.lod.dotDistance !== undefined) &&
       typeof graph.cameraPosition === "function"
     ) {
       const getCameraPosition = graph.cameraPosition.bind(graph)
@@ -2531,13 +2538,50 @@ function bindGraph(
           typeof cam.y === "number" &&
           typeof cam.z === "number"
         ) {
+          // Keep distant LOD stars visible at approximately one screen pixel.
+          // Their degree-based size ratio remains intact on narrow viewports.
+          const viewportHeight = Math.max(1, options.root.clientHeight || window.innerHeight)
+          for (const [id, dot] of nodeDots) {
+            const node = fullNodeById.get(id)
+            if (!node) continue
+            const distance = Math.hypot(
+              cam.x - (node.x ?? 0),
+              cam.y - (node.y ?? 0),
+              cam.z - (node.z ?? 0),
+            )
+            const scale = Math.max(1, distance / viewportHeight)
+            dot.scale.x = dot.scale.y = dot.scale.z = scale
+          }
           if (labelDistance !== undefined) {
             for (const entry of labelSprites.values()) {
               const nx = entry.node.x ?? 0
               const ny = entry.node.y ?? 0
               const nz = entry.node.z ?? 0
               const distance = Math.hypot(cam.x - nx, cam.y - ny, cam.z - nz)
-              entry.sprite.visible = lodLevelForDistance(distance, labelDistance) === "full"
+              entry.sprite.visible = graphLabelVisible(
+                showNodeLabel(entry.node),
+                litId() === entry.node.id || (litId() === null && labeledHubIds.has(entry.node.id)),
+                distance,
+                labelDistance,
+              )
+              if (entry.sprite.visible) {
+                const characters = Array.from(entry.node.name)
+                const limit = window.innerWidth < 700 ? 24 : 48
+                const text =
+                  characters.length > limit
+                    ? `${characters.slice(0, limit).join("")}…`
+                    : entry.node.name
+                if (entry.sprite.text !== text) entry.sprite.text = text
+                const projected = graph.graph2ScreenCoords?.(nx, ny, nz)
+                entry.sprite.center.set(
+                  projected && projected.x > window.innerWidth * 0.6 ? 1 : 0,
+                  0.5,
+                )
+                const textHeight = Math.max(5.5, (distance / viewportHeight) * 11)
+                if (Math.abs(entry.sprite.textHeight - textHeight) > 0.5) {
+                  entry.sprite.textHeight = textHeight
+                }
+              }
             }
           }
           if (cullDistance !== undefined) {
@@ -2631,12 +2675,37 @@ function bindGraph(
     }
   }
 
-  const setAutoRotate = (enabled: boolean): void => {
-    if (prefersReducedMotion() || typeof graph.controls !== "function") {
-      return
+  const motionButton = options.root.querySelector("[data-graph-motion]")
+  const updateMotion = (): void => {
+    const reduced = prefersReducedMotion()
+    const active = motionEnabled && !reduced && !document.hidden && selectedId === null && !dragging
+    if (typeof graph.controls === "function") {
+      graph.controls().autoRotate = active
     }
-    graph.controls().autoRotate = enabled
+    if (motionButton instanceof HTMLButtonElement) {
+      motionButton.disabled = reduced || !options.use3d
+      motionButton.setAttribute("aria-pressed", String(motionEnabled && !reduced))
+      motionButton.textContent =
+        motionEnabled && !reduced
+          ? (motionButton.dataset.motionStop ?? "Pause motion")
+          : (motionButton.dataset.motionStart ?? "Enable motion")
+      motionButton.title = reduced
+        ? (options.root.dataset.motionReduced ?? "Reduced motion enabled")
+        : motionButton.textContent
+    }
+    if (!active) {
+      for (const entry of twinkleMaterials.values()) entry.material.emissiveIntensity = entry.base
+    }
+    refreshParticles()
   }
+  const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)")
+  motionPreference.addEventListener("change", updateMotion)
+  document.addEventListener("visibilitychange", updateMotion)
+  window.addCleanup(() => {
+    motionPreference.removeEventListener("change", updateMotion)
+    document.removeEventListener("visibilitychange", updateMotion)
+  })
+  updateMotion()
 
   const connectedNeighbors = (node: GraphNode): GraphNode[] => {
     const ids = neighbors.get(node.id) ?? new Set<string>()
@@ -2748,39 +2817,111 @@ function bindGraph(
     const previousFocus = litId()
     selectedId = null
     if (inspectEl instanceof HTMLElement) {
+      const restoreFocus = inspectEl.contains(document.activeElement)
       inspectEl.hidden = true
+      if (restoreFocus) {
+        searchInput?.focus({ preventScroll: true })
+        closeSearch()
+      }
     }
     options.root.dataset.inspecting = "false"
-    setAutoRotate(true)
+    hoveredId = null
+    updateMotion()
     repaintFocusChange(previousFocus)
   }
 
   const selectNode = (node: GraphNode): void => {
-    if (selectedId === node.id && node.type === "note" && node.slug.length > 0) {
-      navigateToSlug(node.slug)
-      return
-    }
-    if (selectedId === node.id && node.type === "external" && node.url.length > 0) {
-      openExternalUrl(node.url)
-      return
-    }
     const previousFocus = litId()
     selectedId = node.id
-    // Inspect/preview already shows the destination; keep the constellation spinning.
+    updateMotion()
     fillInspect(node)
     repaintFocusChange(previousFocus)
   }
 
-  const activateNode = (node: GraphNode): void => {
+  const activateNode = (node: GraphNode, center = false): void => {
     // Lazily pull the clicked node's neighbors into the live simulation
     // before selecting it, so `fillInspect`'s connectedNeighbors reflects the
     // freshly-expanded set immediately. No-op when maxRenderedNodes is unset.
     if (expandFromNode(node.id)) {
-      requestSkippedWarmup()
-      applyView()
+      applyView(true)
     }
     selectNode(node)
+    if (center) {
+      cameraTarget = { x: node.x ?? 0, y: node.y ?? 0, z: node.z ?? 0 }
+      const ms = prefersReducedMotion() ? 0 : 450
+      if (options.use3d && graph.cameraPosition) {
+        zoomBaseDistance = INITIAL_CAMERA_DISTANCE
+        graph.cameraPosition(
+          {
+            x: cameraTarget.x + INITIAL_CAMERA.x / tune.zoom,
+            y: cameraTarget.y + INITIAL_CAMERA.y / tune.zoom,
+            z: cameraTarget.z + INITIAL_CAMERA.z / tune.zoom,
+          },
+          cameraTarget,
+          ms,
+        )
+      } else {
+        graph.centerAt?.(cameraTarget.x, cameraTarget.y, ms)
+      }
+    }
   }
+
+  const searchInput = options.root.querySelector<HTMLInputElement>("[data-graph-search]")
+  const searchResults = options.root.querySelector<HTMLElement>("[data-graph-search-results]")
+  const searchStatus = options.root.querySelector<HTMLElement>("[data-graph-search-status]")
+  const closeSearch = (): void => {
+    if (searchResults) searchResults.hidden = true
+    if (searchStatus) searchStatus.textContent = ""
+  }
+  const renderSearch = (): void => {
+    if (!searchInput || !searchResults) return
+    const matches = searchGraphNodes(options.fullData.nodes, searchInput.value)
+    searchResults.replaceChildren(
+      ...matches.map((node) => {
+        const item = document.createElement("li")
+        const button = document.createElement("button")
+        button.type = "button"
+        button.className = "graph-landing__search-result"
+        button.dataset.graphSearchId = node.id
+        button.textContent = node.name
+        item.append(button)
+        return item
+      }),
+    )
+    searchResults.hidden = matches.length === 0
+    if (searchStatus)
+      searchStatus.textContent = !searchInput.value.trim()
+        ? ""
+        : matches.length
+          ? (options.root.dataset.searchCount ?? "{n} results").replace(
+              "{n}",
+              String(matches.length),
+            )
+          : (options.root.dataset.searchEmpty ?? "No matching notes")
+  }
+  const searchKey = (event: KeyboardEvent): void => {
+    if (event.isComposing) return
+    if (event.key === "ArrowDown") {
+      event.preventDefault()
+      searchResults?.querySelector<HTMLButtonElement>("button")?.focus()
+    }
+    if (event.key === "Enter") {
+      event.preventDefault()
+      searchResults?.querySelector<HTMLButtonElement>("button")?.click()
+    }
+    if (event.key === "Escape") {
+      event.stopPropagation()
+      closeSearch()
+    }
+  }
+  searchInput?.addEventListener("input", renderSearch)
+  searchInput?.addEventListener("focus", renderSearch)
+  searchInput?.addEventListener("keydown", searchKey)
+  window.addCleanup(() => {
+    searchInput?.removeEventListener("input", renderSearch)
+    searchInput?.removeEventListener("focus", renderSearch)
+    searchInput?.removeEventListener("keydown", searchKey)
+  })
 
   let libraryHandledClick = false
   graph.onNodeClick((node, event) => {
@@ -2802,11 +2943,21 @@ function bindGraph(
 
   const mount = options.root.querySelector("#graph-landing-mount")
   if (mount instanceof HTMLElement) {
+    const resize = new ResizeObserver(() => {
+      graph.width(mount.clientWidth)
+      graph.height(mount.clientHeight)
+      if (selectedId === null && !initialFit) fitOverview()
+    })
+    resize.observe(mount)
+    window.addCleanup(() => resize.disconnect())
     let pointerDown: { x: number; y: number } | null = null
+    let pointerClickTimer = 0
     const onPointerDown = (event: PointerEvent): void => {
       pointerDown = { x: event.clientX, y: event.clientY }
-      // Grabbing holds the constellation still; release resumes the idle spin.
-      setAutoRotate(false)
+      libraryHandledClick = false
+      dragging = true
+      updateMotion()
+      closeSearch()
     }
     const nearestNode = (clientX: number, clientY: number): GraphNode | null => {
       if (typeof graph.graph2ScreenCoords !== "function") {
@@ -2816,15 +2967,14 @@ function bindGraph(
       const localX = clientX - rect.left
       const localY = clientY - rect.top
       let best: GraphNode | null = null
-      let bestDist = 64 * 64
+      let bestDist = 22 * 22
       for (const node of currentData().nodes) {
         if (node.x === undefined || node.y === undefined) {
           continue
         }
         const screen = graph.graph2ScreenCoords(node.x, node.y, node.z ?? 0)
         const localDist = (screen.x - localX) ** 2 + (screen.y - localY) ** 2
-        const clientDist = (screen.x - clientX) ** 2 + (screen.y - clientY) ** 2
-        const dist = Math.min(localDist, clientDist)
+        const dist = localDist
         if (dist < bestDist) {
           bestDist = dist
           best = node
@@ -2835,7 +2985,8 @@ function bindGraph(
     const onPointerUp = (event: PointerEvent): void => {
       const start = pointerDown
       pointerDown = null
-      setAutoRotate(true)
+      dragging = false
+      updateMotion()
       if (!start) {
         return
       }
@@ -2843,7 +2994,8 @@ function bindGraph(
       if (moved > 25) {
         return
       }
-      window.setTimeout(() => {
+      window.clearTimeout(pointerClickTimer)
+      pointerClickTimer = window.setTimeout(() => {
         if (libraryHandledClick) {
           libraryHandledClick = false
           return
@@ -2858,12 +3010,14 @@ function bindGraph(
     }
     const onPointerCancel = (): void => {
       pointerDown = null
-      setAutoRotate(true)
+      dragging = false
+      updateMotion()
     }
     mount.addEventListener("pointerdown", onPointerDown, true)
     mount.addEventListener("pointerup", onPointerUp, true)
     mount.addEventListener("pointercancel", onPointerCancel, true)
     window.addCleanup(() => {
+      window.clearTimeout(pointerClickTimer)
       mount.removeEventListener("pointerdown", onPointerDown, true)
       mount.removeEventListener("pointerup", onPointerUp, true)
       mount.removeEventListener("pointercancel", onPointerCancel, true)
@@ -2906,6 +3060,42 @@ function bindGraph(
     if (!(target instanceof Element)) {
       return
     }
+    if (!target.closest(".graph-landing__search")) closeSearch()
+    if (target.closest("[data-graph-motion]")) {
+      motionEnabled = !motionEnabled
+      updateMotion()
+      return
+    }
+    if (target.closest("[data-graph-reset]")) {
+      clearSelection()
+      if (searchInput) searchInput.value = ""
+      closeSearch()
+      cameraTarget = INITIAL_LOOK_AT
+      tune.zoom = 1
+      persistTune(tune)
+      if (zoomInput instanceof HTMLInputElement) zoomInput.value = "100"
+      state.focusTag = state.focusFolder = null
+      setLens("all")
+      if (options.use3d) fitOverview()
+      else {
+        graph.centerAt?.(0, 0, 0)
+        graph.zoom?.(1, 0)
+      }
+      updateFog()
+      return
+    }
+    const result = target.closest<HTMLElement>("[data-graph-search-id]")
+    if (result?.dataset.graphSearchId) {
+      const node = fullNodeById.get(result.dataset.graphSearchId)
+      if (node) {
+        activateNode(node, true)
+        closeSearch()
+        const title = options.root.querySelector<HTMLElement>("[data-graph-inspect-title]")
+        title?.setAttribute("tabindex", "-1")
+        title?.focus({ preventScroll: true })
+      }
+      return
+    }
     if (target.closest("[data-graph-inspect-close]")) {
       clearSelection()
       return
@@ -2933,7 +3123,7 @@ function bindGraph(
         (entry) => entry.id === inspectLink.dataset.graphInspectId,
       )
       if (next) {
-        activateNode(next)
+        activateNode(next, true)
       }
       return
     }
@@ -2957,7 +3147,7 @@ function bindGraph(
       return
     }
     if (target.closest("[data-graph-relayout]")) {
-      graph.d3ReheatSimulation()
+      settleLayout()
       return
     }
     const labelsBtn = target.closest("[data-graph-labels]")
@@ -2998,6 +3188,8 @@ function bindGraph(
     const onNodeScale = (): void => {
       tune.nodeScale = Number(nodeScaleInput.value) / 100
       persistTune(tune)
+      applyForces()
+      settleLayout()
       refreshAccessors()
       if (options.use3d) {
         paintLabels3d()
@@ -3024,7 +3216,7 @@ function bindGraph(
       tune.hubGravity = Number.isFinite(value) ? Math.min(2, Math.max(0, value)) : 1
       persistTune(tune)
       applyForces()
-      graph.d3ReheatSimulation()
+      settleLayout()
     }
     hubGravityInput.addEventListener("input", onHubGravity)
     window.addCleanup(() => hubGravityInput.removeEventListener("input", onHubGravity))
@@ -3047,7 +3239,7 @@ function bindGraph(
       tune.spread = Number(spreadInput.value) / 100
       persistTune(tune)
       applyForces()
-      graph.d3ReheatSimulation()
+      settleLayout()
     }
     spreadInput.addEventListener("input", onSpread)
     window.addCleanup(() => spreadInput.removeEventListener("input", onSpread))
@@ -3058,7 +3250,16 @@ function bindGraph(
   window.addCleanup(() => options.root.removeEventListener("click", onRootClick))
 
   const onKeyDown = (event: KeyboardEvent): void => {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+      event.preventDefault()
+      searchInput?.focus()
+    }
     if (event.key === "Escape") {
+      if (searchResults && !searchResults.hidden) {
+        searchInput?.focus()
+        closeSearch()
+        return
+      }
       if (options.root.dataset.railOpen === "true") {
         setRailOpen(false)
         return
@@ -3699,13 +3900,11 @@ async function initGraphLanding(): Promise<void> {
 
   // Kick off every network dependency at once: content index, renderer,
   // and the three.js extras all race in parallel instead of a CDN waterfall.
-  // "auto" (unset, default): current behavior, WebGL+motion decide.
-  // "3d": never falls back to 2D — if WebGL is missing or reduced-motion is
-  // requested, show the existing canvas-message path instead of silently
-  // loading the 2D renderer.
+  // "auto" selects by WebGL capability; reduced motion controls animation.
+  // "3d" requires WebGL and shows a notice when that capability is absent.
   const canRender3d = shouldUse3D()
   if (graphRenderMode === "3d" && !canRender3d) {
-    showLoadError(canvas, "3D graph unavailable: WebGL is required and motion must be enabled.")
+    showLoadError(canvas, "3D graph unavailable: WebGL is required.")
     return
   }
   const use3d = graphRenderMode === "3d" || canRender3d
@@ -3804,6 +4003,8 @@ async function initGraphLanding(): Promise<void> {
 
   canvas.replaceChildren()
   graph = createGraph(canvas)
+  graph.width(canvas.clientWidth)
+  graph.height(canvas.clientHeight)
   // Debug handle for browser QA (edge/kind breakdown, hover simulation).
   ;(canvas as HTMLElement & { __graphLanding?: ForceGraphInstance }).__graphLanding = graph
   ;(canvas as HTMLElement & { __graphData?: GraphData }).__graphData = data

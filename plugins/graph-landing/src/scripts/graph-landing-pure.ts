@@ -245,6 +245,29 @@ export function lodLevelForDistance(distance: number, threshold: number | undefi
   return distance >= threshold ? "dot" : "full"
 }
 
+export function graphLabelVisible(
+  relevant: boolean,
+  focused: boolean,
+  distance: number,
+  threshold: number | undefined,
+): boolean {
+  return focused || (relevant && lodLevelForDistance(distance, threshold) === "full")
+}
+
+/** Searches all notes, including isolated notes outside the rendered subset. */
+export function searchGraphNodes(nodes: readonly GraphNode[], query: string): GraphNode[] {
+  const terms = query.normalize("NFC").trim().toLowerCase().split(/\s+/).filter(Boolean)
+  if (terms.length === 0) return []
+  return nodes
+    .filter((node) => {
+      if (node.type !== "note") return false
+      const text = `${node.name} ${node.slug} ${node.tags.join(" ")}`.normalize("NFC").toLowerCase()
+      return terms.every((term) => text.includes(term))
+    })
+    .sort((a, b) => b.degree - a.degree || a.id.localeCompare(b.id))
+    .slice(0, 8)
+}
+
 /**
  * Generic memoizing lookup: returns the cached value for `key` if present,
  * otherwise builds it with `factory`, stores it, and returns it. Matches the
@@ -370,15 +393,6 @@ export function expandHopIds(
   return toAdd
 }
 
-/**
- * Computes the set of node ids affected by a focus change from
- * `previousFocus` to `nextFocus`: the previous focus node + its direct
- * neighbors, unioned with the next focus node + its direct neighbors.
- * Either focus may be null (e.g. hover-out, no selection). Returns an empty
- * set when both are null. Used by the incremental-repaint path
- * (`interaction.incrementalRepaint`) to scope a focus-change repaint to only
- * the nodes/links/labels whose visual state depends on the focused node.
- */
 // Golden-angle spiral increment (radians, ~137.5deg) — the standard
 // "no two points ever line up" constant used for evenly-fanning-out points
 // around a center without needing randomness.
@@ -425,19 +439,17 @@ export function affectedFocusNodeIds(
   neighbors: Map<string, Set<string>>,
   previousFocus: string | null,
   nextFocus: string | null,
+  allNodeIds: Iterable<string>,
 ): Set<string> {
-  const result = new Set<string>()
-  if (previousFocus !== null) {
-    result.add(previousFocus)
-    for (const id of neighbors.get(previousFocus) ?? []) {
-      result.add(id)
-    }
+  if (previousFocus === nextFocus) return new Set()
+  // Entering/leaving focus changes every unrelated node's dim state.
+  if (previousFocus === null || nextFocus === null) return new Set(allNodeIds)
+  const result = new Set([previousFocus, nextFocus])
+  for (const id of neighbors.get(previousFocus) ?? []) {
+    result.add(id)
   }
-  if (nextFocus !== null) {
-    result.add(nextFocus)
-    for (const id of neighbors.get(nextFocus) ?? []) {
-      result.add(id)
-    }
+  for (const id of neighbors.get(nextFocus) ?? []) {
+    result.add(id)
   }
   return result
 }
