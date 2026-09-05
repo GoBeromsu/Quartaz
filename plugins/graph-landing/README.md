@@ -16,13 +16,22 @@ hub attraction, and a slow automatic orbit. All configuration options are option
   Distance LOD retains label relevance and always keeps the focused title.
 - Two skies. Dark: stars are additive light points with degree-driven luminance
   and color temperature, and a distant dust field gives parallax. Light: a
-  daytime sky gradient shows through the transparent canvas, with notes as ink
-  points and links as thin contrails. Links bow gently along bezier arcs (up to
-  2,500 links; larger graphs use straight cylinders). Links blend their endpoints' star colors and
+  clear blue sky with photographic white clouds shows through the transparent
+  canvas. Connections are restrained straight lines at every graph size.
+  Night links blend their endpoints' star colors and
   brighten with the log of the weaker endpoint's degree, so hub filaments glow
   while leaf threads stay faint; folder/co-occurrence texture appears in its lens.
 - While music plays, a record-sleeve label beside the turntable shows the
   current title and artist. Hover previews sit bottom-right, clear of the dock.
+
+## Daytime photograph
+
+The bundled 3840 × 2160 WebP uses
+[Luke Pamer's 2016 photograph](<https://commons.wikimedia.org/wiki/File:Luke_Pamer_2016_(Unsplash).jpg>),
+published under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/).
+The image is cropped and color-balanced, then embedded during the plugin build;
+the deployed sky requires no third-party image request. Plugin code uses MIT;
+this photograph retains its CC0 dedication.
 
 ## Install or update
 
@@ -33,7 +42,7 @@ release tag:
 - source:
     repo: github:GoBeromsu/Quartaz
     subdir: plugins/graph-landing
-    ref: graph-landing-v0.8.0
+    ref: graph-landing-v0.9.0
     name: graph-landing
   enabled: true
 ```

@@ -43,15 +43,14 @@ body:has(.graph-landing) {
 
 /* Pinned to the viewport so host wrappers (page padding, header rows)
    can never crop the canvas. */
-/* Daytime sky: zenith at the top, brighter haze toward the horizon, a soft
-   sun glow upper-left, and faint high cirrus. The WebGL canvas clears to
-   transparent in light mode so this shows through. */
+/* High-altitude CC0 cloudscape by Luke Pamer, bundled into the plugin at
+   build time. WebGL clears to transparent in light mode so the photograph
+   remains visible; the open blue upper field leaves room for the graph. */
 :root:not([saved-theme="dark"]) .graph-landing__hero {
   background:
-    radial-gradient(ellipse 60% 40% at 18% 8%, rgba(255, 255, 255, 0.85), transparent 70%),
-    radial-gradient(ellipse 90% 26% at 70% 34%, rgba(255, 255, 255, 0.35), transparent 75%),
-    radial-gradient(ellipse 70% 20% at 30% 58%, rgba(255, 255, 255, 0.28), transparent 75%),
-    linear-gradient(180deg, #bcd3ee 0%, #d6e4f4 42%, #eaf1f8 78%, #f7fafd 100%);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04) 62%, transparent),
+    url("./graph-landing-day-sky.webp") center / cover no-repeat,
+    #168bc4;
 }
 
 .graph-landing__hero {
@@ -72,6 +71,7 @@ body:has(.graph-landing) {
   /* Touch drags rotate the constellation instead of scrolling/zooming the page. */
   touch-action: none;
   width: 100%;
+  z-index: 1;
 }
 
 .graph-landing__canvas canvas {

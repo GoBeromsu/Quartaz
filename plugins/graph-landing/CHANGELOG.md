@@ -2,6 +2,15 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.9.0
+
+### Changed
+
+- Daylight uses clear blue sky and detailed photographic white clouds, keeping
+  open space around the graph. The night background remains unchanged.
+- Connections use straight cylinders at every graph size. Removed curved tubes,
+  per-frame curve geometry allocation, and the curvature size threshold.
+
 ## 0.8.0
 
 ### Added

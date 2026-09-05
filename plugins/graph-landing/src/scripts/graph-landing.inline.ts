@@ -146,18 +146,14 @@ interface ForceGraphInstance {
   graph2ScreenCoords?: (x: number, y: number, z?: number) => { x: number; y: number }
   zoomToFit?: (ms: number, padding: number) => unknown
   linkThreeObject?: (fn: (link: GraphLink) => unknown) => unknown
-  linkCurvature?: (value: number) => unknown
-  linkCurveRotation?: (fn: (link: GraphLink) => number) => unknown
   linkPositionUpdate?: (
     fn: (
       obj: {
         position: Vec3
         scale: Vec3
         quaternion: { setFromUnitVectors: (a: unknown, b: unknown) => void }
-        geometry: { dispose: () => void }
       },
       coords: { start: Vec3; end: Vec3 },
-      link: GraphLink & { __curve?: unknown },
     ) => boolean | void,
   ) => unknown
   postProcessingComposer?: () => {
@@ -277,13 +273,6 @@ interface ThreeApi {
     height: number,
     radialSegments: number,
   ) => unknown
-  TubeGeometry: new (
-    path: unknown,
-    tubularSegments: number,
-    radius: number,
-    radialSegments: number,
-    closed: boolean,
-  ) => { dispose: () => void }
   Vector3: new (x: number, y: number, z: number) => { normalize: () => unknown }
   MeshBasicMaterial: new (params: {
     color: string
@@ -359,12 +348,6 @@ const STAR_COOL = "#c9dcff"
 const STAR_WARM = "#ffe6bf"
 const STAR_HUB = "#fff1d4"
 const STAR_EXTERNAL = "#f0c48a"
-// Lombardi arcs: a gentle bow keeps links from reading as struts. Tubes are
-// rebuilt per link when endpoints move, so large graphs fall back to
-// straight shared cylinders.
-const LINK_CURVATURE = 0.16
-const CURVED_LINK_LIMIT = 2500
-const CURVE_TUBULAR_SEGMENTS = 12
 const DUST_COUNT = 1400
 const DUST_RADIUS = { min: 1300, max: 2800 }
 const BLOOM_STRENGTH = 0.55
@@ -2033,17 +2016,6 @@ function bindGraph(
     const cullDistance = options.lod.cullDistance
     const incremental = options.interaction.incrementalRepaint
     const shareLinkResources = options.lod.shareLinkResources
-    const curved = data.links.length <= CURVED_LINK_LIMIT
-    // Per-mesh curve state: link radius plus the last endpoint signature the
-    // tube was built for, so static frames after settling cost nothing.
-    const curveState = new WeakMap<object, { radius: number; key: string; owned: boolean }>()
-    graph.linkCurvature?.(curved ? LINK_CURVATURE : 0)
-    graph.linkCurveRotation?.((link) => {
-      const seed = `${linkEndpointId(link.source)}|${linkEndpointId(link.target)}`
-      let hash = 0
-      for (const char of seed) hash = (hash * 31 + char.charCodeAt(0)) >>> 0
-      return (hash % 360) * (Math.PI / 180)
-    })
     linkMeshes.clear()
     linksByNode.clear()
     linkGeometryCache.clear()
@@ -2077,7 +2049,6 @@ function bindGraph(
         ? linkGeometryFor(three, radius, linkSegments)
         : new three.CylinderGeometry(radius, radius, 1, linkSegments)
       const mesh = new three.Mesh(geometry, material)
-      if (curved) curveState.set(mesh, { radius, key: "", owned: false })
       // Tracked when cullDistance is set (consumed by the link-cull rAF loop
       // below) or when incrementalRepaint is set (consumed by
       // applyFocusChange). With both unset, linkMeshes stays empty and the
@@ -2091,40 +2062,7 @@ function bindGraph(
     if (typeof graph.linkPositionUpdate !== "function") {
       return
     }
-    graph.linkPositionUpdate((obj, coords, link) => {
-      const state = curveState.get(obj)
-      if (state && link.__curve) {
-        const key = [
-          coords.start.x,
-          coords.start.y,
-          coords.start.z,
-          coords.end.x,
-          coords.end.y,
-          coords.end.z,
-        ]
-          .map((value) => Math.round(value * 2))
-          .join(",")
-        if (key !== state.key) {
-          if (state.owned) obj.geometry.dispose()
-          obj.geometry = new three.TubeGeometry(
-            link.__curve,
-            CURVE_TUBULAR_SEGMENTS,
-            state.radius,
-            linkSegments,
-            false,
-          )
-          state.key = key
-          state.owned = true
-        }
-        // The bezier is in world space; the link-cull loop still reads the
-        // midpoint from position, so keep it while the geometry stays put.
-        obj.position.x = 0
-        obj.position.y = 0
-        obj.position.z = 0
-        obj.scale.x = obj.scale.y = obj.scale.z = 1
-        obj.quaternion.setFromUnitVectors(up, up)
-        return true
-      }
+    graph.linkPositionUpdate((obj, coords) => {
       const dx = coords.end.x - coords.start.x
       const dy = coords.end.y - coords.start.y
       const dz = coords.end.z - coords.start.z
@@ -2747,19 +2685,11 @@ function bindGraph(
                 mesh.visible = true
                 continue
               }
-              // Curved tubes live in world space at the origin, so measure
-              // from the link's actual midpoint rather than mesh.position.
-              const s = link.source as GraphNode | string
-              const t = link.target as GraphNode | string
-              const mid =
-                typeof s === "object" && typeof t === "object"
-                  ? {
-                      x: ((s.x ?? 0) + (t.x ?? 0)) / 2,
-                      y: ((s.y ?? 0) + (t.y ?? 0)) / 2,
-                      z: ((s.z ?? 0) + (t.z ?? 0)) / 2,
-                    }
-                  : mesh.position
-              const distance = Math.hypot(cam.x - mid.x, cam.y - mid.y, cam.z - mid.z)
+              const distance = Math.hypot(
+                cam.x - mesh.position.x,
+                cam.y - mesh.position.y,
+                cam.z - mesh.position.z,
+              )
               mesh.visible = !(lodLevelForDistance(distance, cullDistance) === "dot")
             }
           }

@@ -8,9 +8,17 @@ const inlineScriptPlugin: Plugin = {
     const absWorkingDir = parentBuild.initialOptions.absWorkingDir ?? process.cwd()
 
     parentBuild.onLoad({ filter: /\.scss$/ }, async (args) => {
+      const fs = await import("fs")
       const sass = await import("sass")
       const result = sass.compile(args.path)
-      return { contents: result.css, loader: "text" }
+      const skyAsset = path.join(path.dirname(args.path), "graph-landing-day-sky.webp")
+      const skyData = await fs.promises.readFile(skyAsset, "base64")
+      const skyUrl = 'url("./graph-landing-day-sky.webp")'
+      if (!result.css.includes(skyUrl)) {
+        throw new Error(`inline-script-loader: missing daytime sky URL in ${args.path}`)
+      }
+      const css = result.css.replace(skyUrl, `url("data:image/webp;base64,${skyData}")`)
+      return { contents: css, loader: "text" }
     })
 
     parentBuild.onLoad({ filter: /\.inline\.ts$/ }, async (args) => {
