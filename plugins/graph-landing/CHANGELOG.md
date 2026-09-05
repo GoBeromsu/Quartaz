@@ -2,6 +2,17 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.11.2
+
+### Fixed
+
+- Daylight 3D connections are clipped at both bead boundaries, including semantic
+  outer rings, and collapse safely when endpoints overlap.
+- Daylight beads render after crossing links to keep white centers clean.
+  Night rendering and node sizes are unchanged.
+- Daylight background traversal takes 40 seconds instead of 24, reducing its
+  speed by 40% for viewing comfort while preserving motion safety pauses.
+
 ## 0.11.1
 
 ### Changed

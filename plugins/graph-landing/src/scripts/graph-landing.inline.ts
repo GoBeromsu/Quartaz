@@ -20,6 +20,7 @@ interface ContentEntry {
 // unchanged.
 import {
   affectedFocusNodeIds,
+  clipSegmentToEndpointRadii,
   expandHopIds,
   getOrCreate,
   graphLabelVisible,
@@ -154,6 +155,7 @@ interface ForceGraphInstance {
         quaternion: { setFromUnitVectors: (a: unknown, b: unknown) => void }
       },
       coords: { start: Vec3; end: Vec3 },
+      link: GraphLink,
     ) => boolean | void,
   ) => unknown
   postProcessingComposer?: () => {
@@ -225,6 +227,7 @@ interface ThreeObject {
 // unknown-compatible, so widening from `unknown` to this shape is safe.
 interface ThreeMeshHandle {
   visible: boolean
+  renderOrder: number
   position: Vec3
   scale: Vec3
   material: ThreeMaterialHandle
@@ -345,6 +348,9 @@ const NODE_RADIUS_MAX = 14.4
 const STAR_HDR = 1.6
 const STAR_SPRITE_SCALE_DARK = 6.2
 const STAR_SPRITE_SCALE_LIGHT = 2.5
+const STAR_TEXTURE_SIZE = 64
+const DAYLIGHT_BEAD_TEXTURE_RADIUS = 24.5 + 3 / 2
+const DAYLIGHT_RING_TEXTURE_RADIUS = 29 + 2.5 / 2
 const STAR_WHITE = "#f2f3f4"
 const STAR_HUB = "#fffaf0"
 const DAYLIGHT_NAVY = "#102a4c"
@@ -1576,6 +1582,12 @@ function bindGraph(
     return null
   }
 
+  const daylightNodeWorldRadius = (node: GraphNode): number => {
+    const textureRadius =
+      daylightRingColor(node) === null ? DAYLIGHT_BEAD_TEXTURE_RADIUS : DAYLIGHT_RING_TEXTURE_RADIUS
+    return nodeWorldRadius(node) * STAR_SPRITE_SCALE_LIGHT * (textureRadius / STAR_TEXTURE_SIZE)
+  }
+
   // Layered opacities: wikilinks strongest > tag membership > faint texture.
   const edgeBaseOpacity = (kind: LinkKind): number => {
     const dark = isDarkTheme()
@@ -1809,7 +1821,7 @@ function bindGraph(
   const starTextures = new Map<string, unknown>()
   const starTexture = (three: ThreeApi, dark: boolean, ringColor: string | null = null): unknown =>
     getOrCreate(starTextures, dark ? "dark" : `light:${ringColor ?? "none"}`, () => {
-      const size = 64
+      const size = STAR_TEXTURE_SIZE
       const canvas = document.createElement("canvas")
       canvas.width = canvas.height = size
       const context = canvas.getContext("2d")
@@ -1985,6 +1997,9 @@ function bindGraph(
           nodeMaterials.set(node.id, material)
         }
         const sprite = new three.Sprite(material)
+        // Billboards can overlap unrelated edges in projection even after
+        // endpoint clipping. Draw daylight beads after transparent links.
+        if (!dark) sprite.renderOrder = 1
         const scale = radius * (dark ? STAR_SPRITE_SCALE_DARK : STAR_SPRITE_SCALE_LIGHT)
         sprite.scale.x = scale
         sprite.scale.y = scale
@@ -2094,11 +2109,47 @@ function bindGraph(
     if (typeof graph.linkPositionUpdate !== "function") {
       return
     }
-    graph.linkPositionUpdate((obj, coords) => {
+    graph.linkPositionUpdate((obj, coords, link) => {
       const dx = coords.end.x - coords.start.x
       const dy = coords.end.y - coords.start.y
       const dz = coords.end.z - coords.start.z
       const dist = Math.sqrt(dx * dx + dy * dy + dz * dz)
+      if (!isDarkTheme()) {
+        const sourceNode =
+          typeof link.source === "string" ? fullNodeById.get(link.source) : link.source
+        const targetNode =
+          typeof link.target === "string" ? fullNodeById.get(link.target) : link.target
+        const clipped =
+          sourceNode && targetNode
+            ? clipSegmentToEndpointRadii(
+                coords.start,
+                coords.end,
+                daylightNodeWorldRadius(sourceNode),
+                daylightNodeWorldRadius(targetNode),
+              )
+            : null
+        if (!clipped) {
+          obj.scale.y = 0
+          return true
+        }
+        obj.position.x = (clipped.start.x + clipped.end.x) / 2
+        obj.position.y = (clipped.start.y + clipped.end.y) / 2
+        obj.position.z = (clipped.start.z + clipped.end.z) / 2
+        obj.scale.x = 1
+        obj.scale.y = clipped.length
+        obj.scale.z = 1
+        if (clipped.length > 0) {
+          obj.quaternion.setFromUnitVectors(
+            up,
+            new three.Vector3(
+              clipped.end.x - clipped.start.x,
+              clipped.end.y - clipped.start.y,
+              clipped.end.z - clipped.start.z,
+            ).normalize(),
+          )
+        }
+        return true
+      }
       obj.position.x = (coords.start.x + coords.end.x) / 2
       obj.position.y = (coords.start.y + coords.end.y) / 2
       obj.position.z = (coords.start.z + coords.end.z) / 2

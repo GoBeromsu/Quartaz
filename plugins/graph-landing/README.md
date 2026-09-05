@@ -18,11 +18,13 @@ hub attraction, and a slow automatic orbit. All configuration options are option
   luminance and subtly warm hubs; a neutral dust field gives parallax. Light: a
   clear blue sky with photographic white clouds shows through the transparent
   canvas. Connections are restrained straight lines at every graph size.
-  The daytime photograph flows diagonally on a 24-second, constant-speed alternating path;
+  The daytime photograph flows diagonally on a 40-second, constant-speed alternating path;
   overscan keeps its edges covered. Dragging, background tabs, and reduced-motion
   preferences pause the drift. This moves the complete photograph, not individual clouds.
   Base node radii span 5–14.4 world units before the size control multiplier.
   Daylight connections use thicker navy strokes and a stronger opacity floor.
+  Daylight 3D lines stop at node boundaries; beads render above crossing lines
+  to preserve clean white centers. Overlapping endpoint nodes hide the intervening segment.
   Day nodes are slightly larger white beads outlined in navy, with colored
   outer rings for focus and lens context. Dark labels have a white halo;
   navy links strengthen around the hovered node. The cumulus photograph stays visible.
@@ -57,7 +59,7 @@ the `ref` below selects the installed plugin release.
 - source:
     repo: github:GoBeromsu/Quartaz
     subdir: plugins/graph-landing
-    ref: graph-landing-v0.11.1
+    ref: graph-landing-v0.11.2
     name: graph-landing
   enabled: true
 ```

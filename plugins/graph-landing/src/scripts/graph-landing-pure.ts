@@ -46,6 +46,68 @@ export interface GraphData {
   links: GraphLink[]
 }
 
+export interface Point3 {
+  x: number
+  y: number
+  z: number
+}
+
+export interface ClippedSegment3 {
+  start: Point3
+  end: Point3
+  length: number
+}
+
+/**
+ * Clips a 3D segment by a spherical radius at each endpoint. When the
+ * endpoint spheres overlap, the segment collapses at its midpoint instead
+ * of reversing and protruding through either sphere.
+ */
+export function clipSegmentToEndpointRadii(
+  start: Point3,
+  end: Point3,
+  startRadius: number,
+  endRadius: number,
+): ClippedSegment3 | null {
+  const values = [start.x, start.y, start.z, end.x, end.y, end.z, startRadius, endRadius]
+  if (!values.every(Number.isFinite)) {
+    return null
+  }
+
+  const dx = end.x - start.x
+  const dy = end.y - start.y
+  const dz = end.z - start.z
+  const distance = Math.hypot(dx, dy, dz)
+  const midpoint = {
+    x: (start.x + end.x) / 2,
+    y: (start.y + end.y) / 2,
+    z: (start.z + end.z) / 2,
+  }
+  const clippedLength = distance - Math.max(0, startRadius) - Math.max(0, endRadius)
+  if (distance === 0 || clippedLength <= 0) {
+    return { start: midpoint, end: midpoint, length: 0 }
+  }
+
+  const ux = dx / distance
+  const uy = dy / distance
+  const uz = dz / distance
+  const clippedStart = Math.max(0, startRadius)
+  const clippedEnd = Math.max(0, endRadius)
+  return {
+    start: {
+      x: start.x + ux * clippedStart,
+      y: start.y + uy * clippedStart,
+      z: start.z + uz * clippedStart,
+    },
+    end: {
+      x: end.x - ux * clippedEnd,
+      y: end.y - uy * clippedEnd,
+      z: end.z - uz * clippedEnd,
+    },
+    length: clippedLength,
+  }
+}
+
 export function isMarkdownFilePath(value: unknown): boolean {
   return typeof value === "string" && value.trim().toLowerCase().endsWith(".md")
 }

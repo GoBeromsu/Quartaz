@@ -57,7 +57,7 @@ body:has(.graph-landing) {
   background:
     url("./graph-landing-day-sky.webp") center / cover no-repeat,
     #168bc4;
-  animation: graph-daylight-drift 24s linear infinite alternate;
+  animation: graph-daylight-drift 40s linear infinite alternate;
   animation-play-state: paused;
 }
 

@@ -2,6 +2,7 @@ import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 import {
   affectedFocusNodeIds,
+  clipSegmentToEndpointRadii,
   expandHopIds,
   getOrCreate,
   graphLabelVisible,
@@ -21,6 +22,48 @@ import {
   type GraphLink,
   type GraphNode,
 } from "./graph-landing-pure"
+
+describe("clipSegmentToEndpointRadii", () => {
+  it("clips both ends of a normal segment", () => {
+    assert.deepEqual(
+      clipSegmentToEndpointRadii({ x: 0, y: 0, z: 0 }, { x: 10, y: 0, z: 0 }, 2, 3),
+      {
+        start: { x: 2, y: 0, z: 0 },
+        end: { x: 7, y: 0, z: 0 },
+        length: 5,
+      },
+    )
+  })
+
+  it("collapses zero-length and overlapping segments without reversing them", () => {
+    assert.deepEqual(clipSegmentToEndpointRadii({ x: 4, y: 2, z: 1 }, { x: 4, y: 2, z: 1 }, 2, 2), {
+      start: { x: 4, y: 2, z: 1 },
+      end: { x: 4, y: 2, z: 1 },
+      length: 0,
+    })
+    assert.deepEqual(clipSegmentToEndpointRadii({ x: 0, y: 0, z: 0 }, { x: 3, y: 0, z: 0 }, 2, 2), {
+      start: { x: 1.5, y: 0, z: 0 },
+      end: { x: 1.5, y: 0, z: 0 },
+      length: 0,
+    })
+  })
+
+  it("rejects non-finite coordinates and radii", () => {
+    assert.equal(
+      clipSegmentToEndpointRadii({ x: Number.NaN, y: 0, z: 0 }, { x: 3, y: 0, z: 0 }, 1, 1),
+      null,
+    )
+    assert.equal(
+      clipSegmentToEndpointRadii(
+        { x: 0, y: 0, z: 0 },
+        { x: 3, y: 0, z: 0 },
+        1,
+        Number.POSITIVE_INFINITY,
+      ),
+      null,
+    )
+  })
+})
 
 describe("isMarkdownFilePath", () => {
   it("accepts Markdown paths case-insensitively after trimming", () => {
