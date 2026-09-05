@@ -2,6 +2,13 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.10.1
+
+### Changed
+
+- Increased base node radii by 50% in both themes (2.2–6.4 to 3.3–9.6),
+  preserving the existing size-control multiplier and star/bead styling.
+
 ## 0.10.0
 
 ### Changed

@@ -338,8 +338,8 @@ const FOG_FAR_FACTOR = 1600 / INITIAL_CAMERA_DISTANCE
 // Alex grammar: small bright cores with tight bloom halos, hairline edges.
 // Bloom stays tight (low radius, mid threshold) so the night-sky background
 // keeps its near-black depth instead of washing into gray fog.
-const NODE_RADIUS_MIN = 2.2
-const NODE_RADIUS_MAX = 6.4
+const NODE_RADIUS_MIN = 3.3
+const NODE_RADIUS_MAX = 9.6
 // Star sprites carry HDR color (>1) so only their cores cross the bloom
 // threshold; white label pixels stay at 1 and remain crisp.
 const STAR_HDR = 1.6

@@ -18,6 +18,7 @@ hub attraction, and a slow automatic orbit. All configuration options are option
   and color temperature, and a distant dust field gives parallax. Light: a
   clear blue sky with photographic white clouds shows through the transparent
   canvas. Connections are restrained straight lines at every graph size.
+  Base node radii span 3.3–9.6 world units before the size control multiplier.
   Day nodes are slightly larger white beads outlined in navy, with colored
   outer rings for focus and lens context. Dark labels have a white halo;
   navy links strengthen around the hovered node. The cumulus photograph stays visible.
@@ -49,7 +50,7 @@ release tag:
 - source:
     repo: github:GoBeromsu/Quartaz
     subdir: plugins/graph-landing
-    ref: graph-landing-v0.10.0
+    ref: graph-landing-v0.10.1
     name: graph-landing
   enabled: true
 ```
