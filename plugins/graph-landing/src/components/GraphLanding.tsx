@@ -64,11 +64,6 @@ interface OverlayCopy {
   searchPlaceholder: string
   searchEmpty: string
   searchCount: string
-  motion: string
-  motionStart: string
-  motionStop: string
-  motionReduced: string
-  reset: string
 }
 
 interface LocaleToggleLink {
@@ -121,11 +116,6 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
       searchPlaceholder: "노트 검색",
       searchEmpty: "검색 결과가 없습니다",
       searchCount: "{n}개 결과",
-      motion: "움직임",
-      motionStart: "움직임 시작",
-      motionStop: "움직임 멈춤",
-      motionReduced: "움직임은 기기의 모션 줄이기 설정을 따릅니다",
-      reset: "보기 초기화",
     }
   }
 
@@ -170,11 +160,6 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
     searchPlaceholder: "Search notes",
     searchEmpty: "No results found",
     searchCount: "{n} results",
-    motion: "Motion",
-    motionStart: "Start motion",
-    motionStop: "Stop motion",
-    motionReduced: "Motion follows your reduced-motion preference",
-    reset: "Reset view",
   }
 }
 
@@ -354,7 +339,6 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
           data-inspect-empty={copy.inspectEmpty}
           data-search-empty={copy.searchEmpty}
           data-search-count={copy.searchCount}
-          data-motion-reduced={copy.motionReduced}
         >
           <link rel="preconnect" href="https://esm.sh" crossOrigin="anonymous" />
           <link rel="dns-prefetch" href="https://esm.sh" />
@@ -439,6 +423,30 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
                 <label class="graph-landing__visually-hidden" for="graph-landing-search">
                   {copy.searchLabel}
                 </label>
+                <svg
+                  class="graph-landing__search-icon"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <circle
+                    cx="11"
+                    cy="11"
+                    r="6.5"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                  />
+                  <path
+                    d="m16 16 4 4"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-width="1.8"
+                  />
+                </svg>
                 <input
                   id="graph-landing-search"
                   type="search"
@@ -459,20 +467,6 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
                   data-graph-search-status
                   aria-live="polite"
                 ></span>
-                <div class="graph-landing__navigation" role="group" aria-label={copy.controls}>
-                  <button
-                    type="button"
-                    data-graph-motion
-                    data-motion-start={copy.motionStart}
-                    data-motion-stop={copy.motionStop}
-                    aria-pressed="false"
-                  >
-                    {copy.motion}
-                  </button>
-                  <button type="button" data-graph-reset aria-label={copy.reset}>
-                    {copy.reset}
-                  </button>
-                </div>
               </div>
               <button
                 type="button"
@@ -696,7 +690,7 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
                         type="range"
                         min="50"
                         max="150"
-                        value="70"
+                        value="100"
                         data-graph-node-scale
                         aria-label={copy.nodeSize}
                       />

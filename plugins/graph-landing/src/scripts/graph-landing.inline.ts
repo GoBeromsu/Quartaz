@@ -315,21 +315,21 @@ const FOG_FAR_FACTOR = 1600 / INITIAL_CAMERA_DISTANCE
 // Alex grammar: small bright cores with tight bloom halos, hairline edges.
 // Bloom stays tight (low radius, mid threshold) so the night-sky background
 // keeps its near-black depth instead of washing into gray fog.
-const NODE_RADIUS_MIN = 1.3
-const NODE_RADIUS_MAX = 4.8
+const NODE_RADIUS_MIN = 2.6
+const NODE_RADIUS_MAX = 7
 // Threshold sits below the emissive star cores (>1 HDR) but above label
 // pixels, so text stays crisp while stars glow. Tight halo: the star reads
 // as a bright point, not a blob.
-const BLOOM_STRENGTH = 0.62
+const BLOOM_STRENGTH = 0.8
 const BLOOM_RADIUS = 0.16
 const BLOOM_THRESHOLD = 1
 const COLLISION_PADDING = 2.4
 // Screen-space hairlines: closer camera makes the same world radius read
 // as a tube. Keep these just above the composer aliasing floor.
 const LINK_RADIUS: Record<LinkKind, number> = {
-  wikilink: 0.16,
-  tag: 0.1,
-  external: 0.12,
+  wikilink: 0.65,
+  tag: 0.45,
+  external: 0.55,
   cooc: 0.08,
   folder: 0.08,
 }
@@ -1124,7 +1124,7 @@ function readStoredLens(): Lens {
 }
 
 function readStoredTune(): TuneState {
-  const fallback: TuneState = { nodeScale: 0.7, edgeScale: 1, zoom: 1, spread: 1, hubGravity: 1.5 }
+  const fallback: TuneState = { nodeScale: 1, edgeScale: 1, zoom: 1, spread: 1, hubGravity: 1.5 }
   try {
     const raw = sessionStorage.getItem(TUNE_STORAGE_KEY)
     if (!raw) {
@@ -1388,7 +1388,6 @@ function bindGraph(
   let hoveredId: string | null = null
   let selectedId: string | null = null
   const tune = readStoredTune()
-  let motionEnabled = false
   let dragging = false
   let cameraTarget = INITIAL_LOOK_AT
   let zoomBaseDistance = INITIAL_CAMERA_DISTANCE
@@ -1526,13 +1525,13 @@ function bindGraph(
   const edgeBaseOpacity = (kind: LinkKind): number => {
     const dark = isDarkTheme()
     if (kind === "wikilink") {
-      return dark ? 0.16 : 0.36
+      return dark ? 0.52 : 0.64
     }
     if (kind === "external") {
-      return dark ? 0.12 : 0.3
+      return dark ? 0.42 : 0.56
     }
     if (kind === "tag") {
-      return dark ? 0.1 : 0.24
+      return dark ? 0.38 : 0.5
     }
     return 0
   }
@@ -2035,7 +2034,7 @@ function bindGraph(
     }
     graph.linkDirectionalParticles((link) => {
       const focus = litId()
-      if (focus === null || !motionEnabled || prefersReducedMotion() || document.hidden) {
+      if (focus === null || prefersReducedMotion() || document.hidden) {
         return 0
       }
       const source = linkEndpointId(link.source)
@@ -2487,17 +2486,11 @@ function bindGraph(
     }
     paintLabels3d()
     updateFog()
-    // Decorative motion is opt-in and pauses with the inspector or tab.
+    // The constellation orbits automatically, including during inspection.
     {
       let twinkleFrame = 0
       const twinkle = (): void => {
-        if (
-          motionEnabled &&
-          !prefersReducedMotion() &&
-          !document.hidden &&
-          selectedId === null &&
-          !dragging
-        ) {
+        if (!prefersReducedMotion() && !document.hidden && !dragging) {
           const t = (performance.now() / 1000) * TWINKLE_SPEED
           for (const entry of twinkleMaterials.values()) {
             entry.material.emissiveIntensity =
@@ -2553,6 +2546,7 @@ function bindGraph(
             dot.scale.x = dot.scale.y = dot.scale.z = scale
           }
           if (labelDistance !== undefined) {
+            const titleBounds: Array<{ left: number; right: number; y: number }> = []
             for (const entry of labelSprites.values()) {
               const nx = entry.node.x ?? 0
               const ny = entry.node.y ?? 0
@@ -2573,6 +2567,18 @@ function bindGraph(
                     : entry.node.name
                 if (entry.sprite.text !== text) entry.sprite.text = text
                 const projected = graph.graph2ScreenCoords?.(nx, ny, nz)
+                if (projected && litId() === null) {
+                  const width = Array.from(text).length * 9 + 12
+                  const left =
+                    projected.x > window.innerWidth * 0.6 ? projected.x - width : projected.x
+                  const right = left + width
+                  const overlaps = titleBounds.some(
+                    (box) =>
+                      Math.abs(box.y - projected.y) < 22 && left < box.right && right > box.left,
+                  )
+                  entry.sprite.visible = !overlaps && left >= 8 && right <= window.innerWidth - 8
+                  if (entry.sprite.visible) titleBounds.push({ left, right, y: projected.y })
+                }
                 entry.sprite.center.set(
                   projected && projected.x > window.innerWidth * 0.6 ? 1 : 0,
                   0.5,
@@ -2675,23 +2681,11 @@ function bindGraph(
     }
   }
 
-  const motionButton = options.root.querySelector("[data-graph-motion]")
   const updateMotion = (): void => {
     const reduced = prefersReducedMotion()
-    const active = motionEnabled && !reduced && !document.hidden && selectedId === null && !dragging
+    const active = !reduced && !document.hidden && !dragging
     if (typeof graph.controls === "function") {
       graph.controls().autoRotate = active
-    }
-    if (motionButton instanceof HTMLButtonElement) {
-      motionButton.disabled = reduced || !options.use3d
-      motionButton.setAttribute("aria-pressed", String(motionEnabled && !reduced))
-      motionButton.textContent =
-        motionEnabled && !reduced
-          ? (motionButton.dataset.motionStop ?? "Pause motion")
-          : (motionButton.dataset.motionStart ?? "Enable motion")
-      motionButton.title = reduced
-        ? (options.root.dataset.motionReduced ?? "Reduced motion enabled")
-        : motionButton.textContent
     }
     if (!active) {
       for (const entry of twinkleMaterials.values()) entry.material.emissiveIntensity = entry.base
@@ -3061,29 +3055,6 @@ function bindGraph(
       return
     }
     if (!target.closest(".graph-landing__search")) closeSearch()
-    if (target.closest("[data-graph-motion]")) {
-      motionEnabled = !motionEnabled
-      updateMotion()
-      return
-    }
-    if (target.closest("[data-graph-reset]")) {
-      clearSelection()
-      if (searchInput) searchInput.value = ""
-      closeSearch()
-      cameraTarget = INITIAL_LOOK_AT
-      tune.zoom = 1
-      persistTune(tune)
-      if (zoomInput instanceof HTMLInputElement) zoomInput.value = "100"
-      state.focusTag = state.focusFolder = null
-      setLens("all")
-      if (options.use3d) fitOverview()
-      else {
-        graph.centerAt?.(0, 0, 0)
-        graph.zoom?.(1, 0)
-      }
-      updateFog()
-      return
-    }
     const result = target.closest<HTMLElement>("[data-graph-search-id]")
     if (result?.dataset.graphSearchId) {
       const node = fullNodeById.get(result.dataset.graphSearchId)

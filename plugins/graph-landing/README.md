@@ -1,20 +1,20 @@
 # graph-landing
 
 Full-viewport knowledge-graph constellation with luminous stars, degree-weighted
-hub attraction, and a calm initial camera. All configuration options are optional.
+hub attraction, and a slow automatic orbit. All configuration options are optional.
 
 ## Exploring the constellation
 
 - Search matches the full index, including isolated notes outside the initial
   render limit. Use `Cmd/Ctrl+K`, type a title or tag, then Enter or Tab to a result.
 - Click or tap a star to inspect it. The explicit **Read note** action opens it.
-- **Enable motion** opts into slow orbit and subtle twinkle. Inspection and
-  background tabs pause motion. Reduced-motion preferences keep the graph usable
-  with decorative motion disabled.
-- **Reset view** restores the overview camera and clears the active lens/filter.
-- Six landmark titles appear at overview; focus reveals the connected neighborhood.
+- Slow orbit and subtle twinkle start automatically and continue during inspection.
+  Dragging holds the camera; release resumes orbit. Background tabs and the system's
+  reduced-motion preference pause decorative animation.
+- Up to six non-overlapping landmark titles appear at overview; focus reveals the connected neighborhood.
   Distance LOD retains label relevance and always keeps the focused title.
-- Real links use quiet hairlines; folder/co-occurrence texture appears in its lens.
+- Stars use larger luminous cores and real connections use visible strokes;
+  folder/co-occurrence texture appears in its lens.
 
 ## Install or update
 

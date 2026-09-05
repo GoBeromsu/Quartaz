@@ -174,7 +174,6 @@ plugins:
       lod:
         labelDistance: 800
         dotDistance: 1200
-        cullDistance: 1600
         fog: true
         nodeResolution: 8
         linkResolution: 3
