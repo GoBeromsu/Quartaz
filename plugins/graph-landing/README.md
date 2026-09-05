@@ -5,8 +5,8 @@ hub attraction, and a slow automatic orbit. All configuration options are option
 
 ## Exploring the constellation
 
-- Search matches the full index, including isolated notes outside the initial
-  render limit. Use `Cmd/Ctrl+K`, type a title or tag, then Enter or Tab to a result.
+- Search is provided by Quartz's native `@quartz-community/search` component.
+  Use its button or `Cmd/Ctrl+K`, then type a title, content term, or tag.
 - Click or tap a star to inspect it. The explicit **Read note** action opens it.
 - Slow orbit and subtle twinkle start automatically and continue during inspection.
   Dragging holds the camera; release resumes orbit. Background tabs and the system's
@@ -35,6 +35,31 @@ After changing `ref` to a newer `graph-landing-v<version>` release tag, run:
 ```sh
 npx quartz plugin install --from-config
 ```
+
+### Native search integration
+
+Enable Quartz's search plugin and place it in `footer`:
+
+```yaml
+- source: github:quartz-community/search
+  enabled: true
+  layout:
+    position: footer
+    priority: 20
+```
+
+The graph page uses Quartz's `minimal` frame, which renders only the page body
+and footer; it does not emit `beforeBody` or sidebar slots. The footer placement
+therefore renders one native `.search` host immediately after
+`.center.minimal` at
+`#quartz-root.page[data-frame="minimal"] > #quartz-body > .search`, outside
+`.graph-landing`, while still registering the component's stylesheet, browser
+script, keyboard shortcuts, modal, and content index access. Sites that hide
+the graph footer should keep `.search` visible while leaving other footer
+content hidden.
+
+Native search requires Quartz's content index. Keep `indexSource` unset or set
+it to `contentIndex` when native search is available on graph pages.
 
 ## Data contract
 
@@ -130,7 +155,7 @@ Which client renderer to use.
   otherwise the 2D canvas renderer loads.
 - `"3d"` — requires WebGL and shows a notice when it is unavailable.
 - Reduced motion disables decorative animation while retaining the renderer,
-  search, selection, and note navigation.
+  selection, and note navigation. Native search remains independently available.
 
 ### `layout`
 

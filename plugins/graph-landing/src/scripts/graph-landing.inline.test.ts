@@ -14,7 +14,6 @@ import {
   normalizedDegreeWeight,
   parseNonNegativeNumber,
   seedExpandedNodePosition,
-  searchGraphNodes,
   selectRenderedSubset,
   youtubeVideoId,
   youtubeTracks,
@@ -464,40 +463,6 @@ describe("graphLabelVisible", () => {
   })
   it("retains focused titles beyond the distance threshold", () => {
     assert.equal(graphLabelVisible(true, true, 1500, 800), true)
-  })
-})
-
-describe("searchGraphNodes", () => {
-  it("finds isolated notes outside the rendered subset", () => {
-    const nodes = [makeNode("hub", 100), makeNode("isolated", 0)]
-    assert.deepEqual(
-      selectRenderedSubset({ nodes, links: [] }, 1).nodes.map((n) => n.id),
-      ["hub"],
-    )
-    assert.deepEqual(
-      searchGraphNodes(nodes, "isolated").map((n) => n.id),
-      ["isolated"],
-    )
-  })
-  it("matches normalized Korean, case-insensitive titles and multiple tag terms", () => {
-    const node = { ...makeNode("note", 1), name: "밤하늘 Graph", tags: ["UX"] }
-    assert.deepEqual(searchGraphNodes([node], `${"밤하늘".normalize("NFD")} graph ux`), [node])
-    assert.deepEqual(searchGraphNodes([node], "graph missing"), [])
-  })
-  it("bounds and ranks results without mutating source order", () => {
-    const nodes = Array.from({ length: 12 }, (_, i) => makeNode(`note-${i}`, i))
-    assert.deepEqual(
-      searchGraphNodes(nodes, "note").map((n) => n.degree),
-      [11, 10, 9, 8, 7, 6, 5, 4],
-    )
-    assert.equal(nodes[0]?.degree, 0)
-    assert.deepEqual(searchGraphNodes(nodes, "  "), [])
-  })
-  it("searches note tags without returning tag or external graph objects", () => {
-    const note = { ...makeNode("note", 1), tags: ["design"] }
-    const tag: GraphNode = { ...makeNode("design-tag", 100), type: "tag" }
-    const external: GraphNode = { ...makeNode("design-external", 200), type: "external" }
-    assert.deepEqual(searchGraphNodes([tag, external, note], "design"), [note])
   })
 })
 

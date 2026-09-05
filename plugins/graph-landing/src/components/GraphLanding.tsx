@@ -60,10 +60,6 @@ interface OverlayCopy {
   nodeSize: string
   edgeWidth: string
   hubGravity: string
-  searchLabel: string
-  searchPlaceholder: string
-  searchEmpty: string
-  searchCount: string
 }
 
 interface LocaleToggleLink {
@@ -112,10 +108,6 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
       nodeSize: "Node size",
       edgeWidth: "Edge width",
       hubGravity: "허브 인력",
-      searchLabel: "전체 노트 검색",
-      searchPlaceholder: "노트 검색",
-      searchEmpty: "검색 결과가 없습니다",
-      searchCount: "{n}개 결과",
     }
   }
 
@@ -156,10 +148,6 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
     nodeSize: "Node size",
     edgeWidth: "Edge width",
     hubGravity: "Hub gravity",
-    searchLabel: "Search all notes",
-    searchPlaceholder: "Search notes",
-    searchEmpty: "No results found",
-    searchCount: "{n} results",
   }
 }
 
@@ -337,8 +325,6 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
           data-music-current-track={copy.musicCurrentTrack}
           data-inspect-connected={copy.inspectConnected}
           data-inspect-empty={copy.inspectEmpty}
-          data-search-empty={copy.searchEmpty}
-          data-search-count={copy.searchCount}
         >
           <link rel="preconnect" href="https://esm.sh" crossOrigin="anonymous" />
           <link rel="dns-prefetch" href="https://esm.sh" />
@@ -418,55 +404,6 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
                     </svg>
                   </button>
                 </nav>
-              </div>
-              <div class="graph-landing__search">
-                <label class="graph-landing__visually-hidden" for="graph-landing-search">
-                  {copy.searchLabel}
-                </label>
-                <svg
-                  class="graph-landing__search-icon"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <circle
-                    cx="11"
-                    cy="11"
-                    r="6.5"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                  />
-                  <path
-                    d="m16 16 4 4"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-width="1.8"
-                  />
-                </svg>
-                <input
-                  id="graph-landing-search"
-                  type="search"
-                  data-graph-search
-                  placeholder={copy.searchPlaceholder}
-                  aria-label={copy.searchLabel}
-                  aria-controls="graph-search-results"
-                  autoComplete="off"
-                />
-                <ul
-                  class="graph-landing__search-results"
-                  id="graph-search-results"
-                  data-graph-search-results
-                  hidden
-                ></ul>
-                <span
-                  class="graph-landing__search-status"
-                  data-graph-search-status
-                  aria-live="polite"
-                ></span>
               </div>
               <button
                 type="button"

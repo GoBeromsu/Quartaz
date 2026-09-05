@@ -254,20 +254,6 @@ export function graphLabelVisible(
   return focused || (relevant && lodLevelForDistance(distance, threshold) === "full")
 }
 
-/** Searches all notes, including isolated notes outside the rendered subset. */
-export function searchGraphNodes(nodes: readonly GraphNode[], query: string): GraphNode[] {
-  const terms = query.normalize("NFC").trim().toLowerCase().split(/\s+/).filter(Boolean)
-  if (terms.length === 0) return []
-  return nodes
-    .filter((node) => {
-      if (node.type !== "note") return false
-      const text = `${node.name} ${node.slug} ${node.tags.join(" ")}`.normalize("NFC").toLowerCase()
-      return terms.every((term) => text.includes(term))
-    })
-    .sort((a, b) => b.degree - a.degree || a.id.localeCompare(b.id))
-    .slice(0, 8)
-}
-
 /**
  * Generic memoizing lookup: returns the cached value for `key` if present,
  * otherwise builds it with `factory`, stores it, and returns it. Matches the

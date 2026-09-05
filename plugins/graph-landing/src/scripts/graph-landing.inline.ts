@@ -33,7 +33,6 @@ import {
   normalizedDegreeWeight,
   parseNonNegativeNumber,
   seedExpandedNodePosition,
-  searchGraphNodes,
   selectRenderedSubset,
   youtubeTracks,
   type GraphData,
@@ -334,7 +333,6 @@ const LINK_RADIUS: Record<LinkKind, number> = {
   folder: 0.08,
 }
 const EDGE_INK_DARK = "#a8b0c2"
-const EDGE_INK_LIGHT = "#2a3348"
 const CLOUD_NOTE = { min: 80, max: 200 }
 const CLOUD_HUB = { min: 40, max: 110 }
 const CLOUD_EXTERNAL = { min: 160, max: 280 }
@@ -947,10 +945,10 @@ function readTheme(): ThemeTokens {
   return {
     bg: resolveCssColor("--graph-backdrop", "#ffffff"),
     ink: resolveCssColor("--graph-text", "#0f0f0f"),
-    accent: resolveCssColor("--graph-accent", "#27798c"),
-    tertiary: resolveCssColor("--graph-external", "#3f6f8c"),
+    accent: resolveCssColor("--graph-accent", "#a52142"),
+    tertiary: resolveCssColor("--graph-external", "#c75b75"),
     gray: resolveCssColor("--graph-muted", "#737373"),
-    external: resolveCssColor("--graph-external", "#3f6f8c"),
+    external: resolveCssColor("--graph-external", "#c75b75"),
     font: font.length > 0 ? font : "Inter, sans-serif",
   }
 }
@@ -1006,12 +1004,7 @@ function mixRgb(from: string, to: string, amount: number): string {
 }
 
 function canvasBackground(theme: ThemeTokens): string {
-  if (!isDarkTheme()) {
-    return theme.bg
-  }
-  // Near-black with a hint of blue-black (Alex-style night sky), still
-  // derived from the theme token so custom themes shift with it.
-  return mixRgb(theme.bg, "#05070f", 0.88)
+  return theme.bg
 }
 
 // The 3D pipeline treats the clear color as linear and sRGB-encodes it on
@@ -1028,7 +1021,7 @@ function srgbCompensate(color: string): string {
     return Math.ceil(linear * 255)
   }
   // The renderer's color parser requires integer RGB. Round upwards so
-  // the near-black red channel survives and the sky retains its blue hue.
+  // near-black channels survive and retain the configured theme hue.
   return `rgb(${invert(rgb.r)}, ${invert(rgb.g)}, ${invert(rgb.b)})`
 }
 
@@ -1306,8 +1299,8 @@ function bindGraph(
   // top-N-by-degree subset. New arrays leave the running simulation's
   // resolved endpoints intact until the renderer's asynchronous digest.
   //
-  // Search resolves every node. Expansion-only adjacency and edge sets
-  // are allocated only when the initial render is capped.
+  // Expansion can resolve every node. Expansion-only adjacency and edge
+  // sets are allocated only when the initial render is capped.
   const expandEdgeKey = (source: string, target: string, kind: LinkKind): string =>
     source < target ? `${source}|${target}|${kind}` : `${target}|${source}|${kind}`
   const fullNodeById = new Map(options.fullData.nodes.map((node) => [node.id, node]))
@@ -1507,14 +1500,6 @@ function bindGraph(
       }
       return mixRgb("#ffffff", theme.current.accent, 0.12)
     }
-    // Light is ink on white: deepen wine / teal so they keep chroma
-    // against the white ground. Dark fills stay on the night-sky path.
-    if (node.type === "external") {
-      return mixRgb(theme.current.external, "#08343a", 0.12)
-    }
-    if (node.type === "tag") {
-      return mixRgb(theme.current.tertiary, theme.current.accent, 0.55)
-    }
     if (node.isHub) {
       return mixRgb(theme.current.ink, theme.current.accent, 0.22)
     }
@@ -1561,7 +1546,7 @@ function bindGraph(
     const source = linkEndpointId(link.source)
     const target = linkEndpointId(link.target)
     const focus = litId()
-    const ink = isDarkTheme() ? EDGE_INK_DARK : EDGE_INK_LIGHT
+    const ink = isDarkTheme() ? EDGE_INK_DARK : theme.current.ink
     if (focus !== null && (source === focus || target === focus)) {
       return mixRgb(theme.current.accent, ink, 0.45)
     }
@@ -2814,8 +2799,7 @@ function bindGraph(
       const restoreFocus = inspectEl.contains(document.activeElement)
       inspectEl.hidden = true
       if (restoreFocus) {
-        searchInput?.focus({ preventScroll: true })
-        closeSearch()
+        document.querySelector<HTMLButtonElement>(".search-button")?.focus({ preventScroll: true })
       }
     }
     options.root.dataset.inspecting = "false"
@@ -2860,63 +2844,6 @@ function bindGraph(
     }
   }
 
-  const searchInput = options.root.querySelector<HTMLInputElement>("[data-graph-search]")
-  const searchResults = options.root.querySelector<HTMLElement>("[data-graph-search-results]")
-  const searchStatus = options.root.querySelector<HTMLElement>("[data-graph-search-status]")
-  const closeSearch = (): void => {
-    if (searchResults) searchResults.hidden = true
-    if (searchStatus) searchStatus.textContent = ""
-  }
-  const renderSearch = (): void => {
-    if (!searchInput || !searchResults) return
-    const matches = searchGraphNodes(options.fullData.nodes, searchInput.value)
-    searchResults.replaceChildren(
-      ...matches.map((node) => {
-        const item = document.createElement("li")
-        const button = document.createElement("button")
-        button.type = "button"
-        button.className = "graph-landing__search-result"
-        button.dataset.graphSearchId = node.id
-        button.textContent = node.name
-        item.append(button)
-        return item
-      }),
-    )
-    searchResults.hidden = matches.length === 0
-    if (searchStatus)
-      searchStatus.textContent = !searchInput.value.trim()
-        ? ""
-        : matches.length
-          ? (options.root.dataset.searchCount ?? "{n} results").replace(
-              "{n}",
-              String(matches.length),
-            )
-          : (options.root.dataset.searchEmpty ?? "No matching notes")
-  }
-  const searchKey = (event: KeyboardEvent): void => {
-    if (event.isComposing) return
-    if (event.key === "ArrowDown") {
-      event.preventDefault()
-      searchResults?.querySelector<HTMLButtonElement>("button")?.focus()
-    }
-    if (event.key === "Enter") {
-      event.preventDefault()
-      searchResults?.querySelector<HTMLButtonElement>("button")?.click()
-    }
-    if (event.key === "Escape") {
-      event.stopPropagation()
-      closeSearch()
-    }
-  }
-  searchInput?.addEventListener("input", renderSearch)
-  searchInput?.addEventListener("focus", renderSearch)
-  searchInput?.addEventListener("keydown", searchKey)
-  window.addCleanup(() => {
-    searchInput?.removeEventListener("input", renderSearch)
-    searchInput?.removeEventListener("focus", renderSearch)
-    searchInput?.removeEventListener("keydown", searchKey)
-  })
-
   let libraryHandledClick = false
   graph.onNodeClick((node, event) => {
     if (!node) {
@@ -2951,7 +2878,6 @@ function bindGraph(
       libraryHandledClick = false
       dragging = true
       updateMotion()
-      closeSearch()
     }
     const nearestNode = (clientX: number, clientY: number): GraphNode | null => {
       if (typeof graph.graph2ScreenCoords !== "function") {
@@ -3052,19 +2978,6 @@ function bindGraph(
   const onRootClick = (event: Event): void => {
     const target = event.target
     if (!(target instanceof Element)) {
-      return
-    }
-    if (!target.closest(".graph-landing__search")) closeSearch()
-    const result = target.closest<HTMLElement>("[data-graph-search-id]")
-    if (result?.dataset.graphSearchId) {
-      const node = fullNodeById.get(result.dataset.graphSearchId)
-      if (node) {
-        activateNode(node, true)
-        closeSearch()
-        const title = options.root.querySelector<HTMLElement>("[data-graph-inspect-title]")
-        title?.setAttribute("tabindex", "-1")
-        title?.focus({ preventScroll: true })
-      }
       return
     }
     if (target.closest("[data-graph-inspect-close]")) {
@@ -3221,16 +3134,7 @@ function bindGraph(
   window.addCleanup(() => options.root.removeEventListener("click", onRootClick))
 
   const onKeyDown = (event: KeyboardEvent): void => {
-    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-      event.preventDefault()
-      searchInput?.focus()
-    }
     if (event.key === "Escape") {
-      if (searchResults && !searchResults.hidden) {
-        searchInput?.focus()
-        closeSearch()
-        return
-      }
       if (options.root.dataset.railOpen === "true") {
         setRailOpen(false)
         return

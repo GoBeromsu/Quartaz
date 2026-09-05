@@ -205,6 +205,9 @@ plugins:
     enabled: true
   - source: github:quartz-community/search
     enabled: true
+    layout:
+      position: footer
+      priority: 20
   - source: github:quartz-community/darkmode
     enabled: true
   - source: github:quartz-community/breadcrumbs
