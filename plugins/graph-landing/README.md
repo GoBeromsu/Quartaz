@@ -18,6 +18,9 @@ hub attraction, and a slow automatic orbit. All configuration options are option
   and color temperature, and a distant dust field gives parallax. Light: a
   clear blue sky with photographic white clouds shows through the transparent
   canvas. Connections are restrained straight lines at every graph size.
+  Day nodes are slightly larger white beads outlined in navy, with colored
+  outer rings for focus and lens context. Dark labels have a white halo;
+  navy links strengthen around the hovered node. The cumulus photograph stays visible.
   Night links blend their endpoints' star colors and
   brighten with the log of the weaker endpoint's degree, so hub filaments glow
   while leaf threads stay faint; folder/co-occurrence texture appears in its lens.
@@ -46,7 +49,7 @@ release tag:
 - source:
     repo: github:GoBeromsu/Quartaz
     subdir: plugins/graph-landing
-    ref: graph-landing-v0.9.2
+    ref: graph-landing-v0.10.0
     name: graph-landing
   enabled: true
 ```

@@ -232,6 +232,7 @@ interface ThreeMeshHandle {
 
 interface ThreeStarMaterial extends ThreeMaterialHandle {
   blending: number
+  map: unknown
   needsUpdate: boolean
 }
 
@@ -343,11 +344,12 @@ const NODE_RADIUS_MAX = 6.4
 // threshold; white label pixels stay at 1 and remain crisp.
 const STAR_HDR = 1.6
 const STAR_SPRITE_SCALE_DARK = 6.2
-const STAR_SPRITE_SCALE_LIGHT = 2.1
+const STAR_SPRITE_SCALE_LIGHT = 2.5
 const STAR_COOL = "#c9dcff"
 const STAR_WARM = "#ffe6bf"
 const STAR_HUB = "#fff1d4"
 const STAR_EXTERNAL = "#f0c48a"
+const DAYLIGHT_NAVY = "#102a4c"
 const DUST_COUNT = 1400
 const DUST_RADIUS = { min: 1300, max: 2800 }
 const BLOOM_STRENGTH = 0.55
@@ -1059,9 +1061,8 @@ function srgbCompensate(color: string): string {
 }
 
 // Daytime sky: the light theme clears the WebGL canvas to transparent so
-// the CSS sky gradient behind it shows through; fog fades toward its
-// mid-sky tone. Night keeps an opaque deepened clear color.
-const SKY_FOG = "#e4ecf6"
+// the cloud photograph behind it shows through. Night keeps an opaque
+// deepened clear color.
 
 function canvasBackground3d(theme: ThemeTokens): string {
   return isDarkTheme() ? srgbCompensate(canvasBackground(theme)) : "rgba(0, 0, 0, 0)"
@@ -1572,6 +1573,26 @@ function bindGraph(
     return color
   }
 
+  const daylightRingColor = (node: GraphNode): string | null => {
+    const focus = litId()
+    if (focus !== null && (focus === node.id || (neighbors.get(focus)?.has(node.id) ?? false))) {
+      return theme.current.accent
+    }
+    if (state.lens !== "all" || state.focusTag !== null || state.focusFolder !== null) {
+      return baseNodeColor(node)
+    }
+    if (node.isHub) {
+      return theme.current.accent
+    }
+    if (node.type === "tag") {
+      return theme.current.tertiary
+    }
+    if (node.type === "external") {
+      return theme.current.external
+    }
+    return null
+  }
+
   // Layered opacities: wikilinks strongest > tag membership > faint texture.
   const edgeBaseOpacity = (kind: LinkKind): number => {
     const dark = isDarkTheme()
@@ -1613,9 +1634,9 @@ function bindGraph(
     const source = linkEndpointId(link.source)
     const target = linkEndpointId(link.target)
     const focus = litId()
-    const ink = isDarkTheme() ? EDGE_INK_DARK : theme.current.ink
+    const ink = isDarkTheme() ? EDGE_INK_DARK : DAYLIGHT_NAVY
     if (focus !== null && (source === focus || target === focus)) {
-      return mixRgb(theme.current.accent, ink, 0.45)
+      return isDarkTheme() ? mixRgb(theme.current.accent, ink, 0.45) : DAYLIGHT_NAVY
     }
     if (isDarkTheme()) {
       const a = fullNodeById.get(source)
@@ -1637,13 +1658,13 @@ function bindGraph(
   // applyFocusChange (the incremental-repaint path) can recompute a single
   // node's label color without re-running the full label repaint.
   const labelColorFor = (node: GraphNode): string => {
-    const labelInk = isDarkTheme() ? "rgba(255, 255, 255, 1)" : withAlpha(theme.current.ink, 0.88)
+    const labelInk = isDarkTheme() ? "rgba(255, 255, 255, 1)" : DAYLIGHT_NAVY
     return isActive(node.id) ? labelInk : withAlpha(labelInk, DIM_ALPHA)
   }
 
   const labelStrokeColorFor = (node: GraphNode): string => {
     if (!isDarkTheme()) {
-      return "rgba(0, 0, 0, 0)"
+      return isActive(node.id) ? "rgba(255, 255, 255, 0.9)" : "rgba(255, 255, 255, 0.28)"
     }
     return isActive(node.id) ? "rgba(0, 0, 0, 0.95)" : "rgba(0, 0, 0, 0.3)"
   }
@@ -1798,37 +1819,59 @@ function bindGraph(
     { material: ThreeMaterialHandle; base: number; phase: number }
   >()
 
-  // One radial texture per theme: a hot core with a soft additive falloff
-  // for the night sky, a crisp ink disk for the star chart.
+  // Night retains its original hot-core texture. Day textures are cached by
+  // their optional semantic ring color, keeping their white center untinted.
   const starTextures = new Map<string, unknown>()
-  const starTexture = (three: ThreeApi, dark: boolean): unknown =>
-    getOrCreate(starTextures, dark ? "dark" : "light", () => {
+  const starTexture = (three: ThreeApi, dark: boolean, ringColor: string | null = null): unknown =>
+    getOrCreate(starTextures, dark ? "dark" : `light:${ringColor ?? "none"}`, () => {
       const size = 64
       const canvas = document.createElement("canvas")
       canvas.width = canvas.height = size
       const context = canvas.getContext("2d")
       if (context) {
-        const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32)
         if (dark) {
+          const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32)
           gradient.addColorStop(0, "rgba(255,255,255,1)")
           gradient.addColorStop(0.22, "rgba(255,255,255,0.96)")
           gradient.addColorStop(0.36, "rgba(255,255,255,0.42)")
           gradient.addColorStop(0.62, "rgba(255,255,255,0.1)")
           gradient.addColorStop(1, "rgba(255,255,255,0)")
+          context.fillStyle = gradient
+          context.fillRect(0, 0, size, size)
         } else {
-          gradient.addColorStop(0, "rgba(255,255,255,1)")
-          gradient.addColorStop(0.86, "rgba(255,255,255,1)")
-          gradient.addColorStop(1, "rgba(255,255,255,0)")
+          if (ringColor !== null) {
+            context.beginPath()
+            context.arc(32, 32, 29, 0, Math.PI * 2)
+            context.strokeStyle = ringColor
+            context.lineWidth = 2.5
+            context.stroke()
+          }
+          context.beginPath()
+          context.arc(32, 32, 24.5, 0, Math.PI * 2)
+          context.fillStyle = "#ffffff"
+          context.fill()
+          context.strokeStyle = DAYLIGHT_NAVY
+          context.lineWidth = 3
+          context.stroke()
         }
-        context.fillStyle = gradient
-        context.fillRect(0, 0, size, size)
       }
       return new three.CanvasTexture(canvas)
     })
 
-  const setStarColor = (material: ThreeMaterialHandle, fill: string): void => {
-    material.color.set(fill)
-    if (isDarkTheme()) material.color.multiplyScalar(STAR_HDR)
+  const setStarAppearance = (
+    material: ThreeStarMaterial,
+    node: GraphNode,
+    three: ThreeApi,
+  ): void => {
+    if (isDarkTheme()) {
+      material.color.set(nodeFill(node))
+      material.color.multiplyScalar(STAR_HDR)
+    } else {
+      material.map = starTexture(three, false, daylightRingColor(node))
+      material.color.set("#ffffff")
+      material.opacity = isActive(node.id) ? 1 : DIM_ALPHA
+      material.needsUpdate = true
+    }
   }
 
   // Populated by paintLabels3d() whenever options.lod.labelDistance is set
@@ -1856,7 +1899,7 @@ function bindGraph(
   // left empty, costing nothing when the option is unset.
 
   // Stars mutate private materials; LOD dots swap shared materials by color.
-  const nodeMaterials = new Map<string, ThreeMaterialHandle>()
+  const nodeMaterials = new Map<string, ThreeStarMaterial>()
 
   // Rendered GraphNode by id, rebuilt from `data.nodes` at the top of
   // paintLabels3d — lets applyFocusChange resolve an affected node id back
@@ -1932,20 +1975,24 @@ function bindGraph(
     }
     graph.nodeThreeObject((node) => {
       const radius = nodeWorldRadius(node)
-      const fill = nodeFill(node)
       let star: unknown = false
       if (three) {
         const dark = isDarkTheme()
         const base = dark ? starLuminance(node) : 1
         const material = new three.SpriteMaterial({
-          map: starTexture(three, dark),
+          map: starTexture(three, dark, dark ? null : daylightRingColor(node)),
           color: "#ffffff",
           transparent: true,
           depthWrite: false,
           blending: dark ? three.AdditiveBlending : three.NormalBlending,
           opacity: base,
         })
-        setStarColor(material, fill)
+        if (dark) {
+          material.color.set(nodeFill(node))
+          material.color.multiplyScalar(STAR_HDR)
+        } else {
+          material.opacity = isActive(node.id) ? 1 : DIM_ALPHA
+        }
         if (dark) {
           twinkleMaterials.set(node.id, { material, base, phase: node.phase })
         }
@@ -1976,8 +2023,8 @@ function bindGraph(
       )
       sprite.color = labelColorFor(node)
       sprite.backgroundColor = false
-      sprite.fontWeight = "400"
-      sprite.strokeWidth = isDarkTheme() ? 0.35 : 0
+      sprite.fontWeight = isDarkTheme() ? "400" : "600"
+      sprite.strokeWidth = isDarkTheme() ? 0.35 : 0.22
       sprite.strokeColor = labelStrokeColorFor(node)
       // UnrealBloomPass does not preserve transparent sprite pixels cleanly
       // unless the empty texels are discarded. Without alphaTest, the label
@@ -2146,12 +2193,12 @@ function bindGraph(
         continue
       }
       const material = nodeMaterials.get(id)
-      if (material) setStarColor(material, nodeFill(node))
+      if (material && options.three) setStarAppearance(material, node, options.three)
       const label = labelSprites.get(id)
       if (label) {
         label.sprite.color = labelColorFor(node)
         label.sprite.strokeColor = labelStrokeColorFor(node)
-        label.sprite.strokeWidth = isDarkTheme() ? 0.35 : 0
+        label.sprite.strokeWidth = isDarkTheme() ? 0.35 : 0.22
         label.sprite.visible = showNodeLabel(node)
       }
       for (const link of linksByNode.get(id) ?? []) {
@@ -2423,8 +2470,14 @@ function bindGraph(
       return
     }
     const cameraDistance = currentCameraVector().len
+    if (!isDarkTheme()) {
+      // The photograph supplies depth; fog would wash navy edges and labels
+      // into the cloud background, undoing the daylight contrast treatment.
+      graph.scene().fog = null
+      return
+    }
     graph.scene().fog = new options.three.Fog(
-      isDarkTheme() ? activeBackground() : SKY_FOG,
+      activeBackground(),
       cameraDistance * FOG_NEAR_FACTOR,
       cameraDistance * FOG_FAR_FACTOR,
     )
@@ -2706,14 +2759,30 @@ function bindGraph(
     )
     graph.nodeCanvasObject((node, ctx, globalScale) => {
       const radius = nodeWorldRadius(node)
+      const beadRadius = radius * 1.15
       const x = node.x ?? 0
       const y = node.y ?? 0
       ctx.save()
+      if (!isDarkTheme()) {
+        ctx.globalAlpha = isActive(node.id) ? 1 : DIM_ALPHA
+        const ringColor = daylightRingColor(node)
+        if (ringColor !== null) {
+          ctx.beginPath()
+          ctx.arc(x, y, beadRadius + 2.5 / globalScale, 0, Math.PI * 2)
+          ctx.strokeStyle = ringColor
+          ctx.lineWidth = 1.25 / globalScale
+          ctx.stroke()
+        }
+      }
       ctx.beginPath()
-      ctx.arc(x, y, radius, 0, Math.PI * 2)
-      ctx.fillStyle = nodeFill(node)
+      ctx.arc(x, y, isDarkTheme() ? radius : beadRadius, 0, Math.PI * 2)
+      ctx.fillStyle = isDarkTheme() ? nodeFill(node) : "#ffffff"
       ctx.fill()
-      if (node.isHub) {
+      if (!isDarkTheme()) {
+        ctx.strokeStyle = DAYLIGHT_NAVY
+        ctx.lineWidth = 1.5 / globalScale
+        ctx.stroke()
+      } else if (node.isHub) {
         ctx.strokeStyle = isActive(node.id)
           ? theme.current.accent
           : withAlpha(theme.current.accent, DIM_ALPHA)
@@ -2721,14 +2790,24 @@ function bindGraph(
         ctx.stroke()
       }
       if (showNodeLabel(node)) {
+        ctx.globalAlpha = 1
         const fontSize = 11.5 / globalScale
         ctx.font = `${fontSize}px ${theme.current.font}`
-        ctx.fillStyle = isActive(node.id)
-          ? theme.current.ink
-          : withAlpha(theme.current.ink, DIM_ALPHA)
+        ctx.fillStyle = isDarkTheme()
+          ? isActive(node.id)
+            ? theme.current.ink
+            : withAlpha(theme.current.ink, DIM_ALPHA)
+          : labelColorFor(node)
         ctx.textAlign = "center"
         ctx.textBaseline = "bottom"
-        ctx.fillText(node.name, x, y - radius - 6)
+        const labelY = y - (isDarkTheme() ? radius : beadRadius) - 6
+        if (!isDarkTheme()) {
+          ctx.strokeStyle = labelStrokeColorFor(node)
+          ctx.lineWidth = 2.5 / globalScale
+          ctx.lineJoin = "round"
+          ctx.strokeText(node.name, x, labelY)
+        }
+        ctx.fillText(node.name, x, labelY)
       }
       ctx.restore()
     })

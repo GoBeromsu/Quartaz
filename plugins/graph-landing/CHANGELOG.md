@@ -2,6 +2,17 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.10.0
+
+### Changed
+
+- Daylight nodes use opaque white centers, thin navy outlines, slightly larger
+  sizing, and semantic outer rings in both 3D and 2D.
+- Daylight labels receive white halos; links use navy with existing hover emphasis.
+- Daylight fog is disabled so it preserves label and edge contrast over the photograph.
+- Cached bead textures preserve white centers across focus/lens changes and
+  restore full opacity when focus clears. Night stars and the cloud photo remain unchanged.
+
 ## 0.9.2
 
 ### Changed
