@@ -6,7 +6,8 @@ hub attraction, and a slow automatic orbit. All configuration options are option
 ## Exploring the constellation
 
 - Search is provided by Quartz's native `@quartz-community/search` component.
-  Use its button or `Cmd/Ctrl+K`, then type a title, content term, or tag.
+  Its button sits in the top navigation beside the theme toggle. Use it or
+  `Cmd/Ctrl+K`, then type a title, content term, or tag.
 - Click or tap a star to inspect it. The explicit **Read note** action opens it.
 - Slow orbit and subtle twinkle start automatically and continue during inspection.
   Dragging holds the camera; release resumes orbit. Background tabs and the system's

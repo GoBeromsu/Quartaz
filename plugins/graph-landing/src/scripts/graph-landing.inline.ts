@@ -3674,6 +3674,21 @@ async function initGraphLanding(): Promise<void> {
     return
   }
   root.dataset.graphReady = "1"
+  const nativeSearch = document.querySelector("#quartz-body > .search")
+  const navigation = root.querySelector(".graph-landing__top-right")
+  if (nativeSearch instanceof HTMLElement && navigation instanceof HTMLElement) {
+    const originalParent = nativeSearch.parentElement
+    const originalNext = nativeSearch.nextSibling
+    navigation.insertBefore(nativeSearch, navigation.querySelector("[data-graph-theme]"))
+    window.addCleanup(() => {
+      if (originalParent?.isConnected && nativeSearch.isConnected) {
+        originalParent.insertBefore(
+          nativeSearch,
+          originalNext?.parentNode === originalParent ? originalNext : null,
+        )
+      }
+    })
+  }
   bindAmbientAudio(root)
 
   const canvas = root.querySelector("#graph-landing-mount")
