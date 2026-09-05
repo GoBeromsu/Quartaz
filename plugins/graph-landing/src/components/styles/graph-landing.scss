@@ -43,13 +43,34 @@ body:has(.graph-landing) {
 
 /* Pinned to the viewport so host wrappers (page padding, header rows)
    can never crop the canvas. */
-/* Downward-looking CC0 cloudscape by Gary Rockett, bundled into the plugin
-   at build time. WebGL clears to transparent in light mode so the photograph
-   remains visible; the blue opening leaves room for the graph. */
+/* Downward-looking cloudscape bundled into the plugin at build time. WebGL
+   clears to transparent in light mode so the photograph remains visible. */
 :root:not([saved-theme="dark"]) .graph-landing__hero {
   background:
     url("./graph-landing-day-sky.webp") center / cover no-repeat,
     #168bc4;
+}
+
+.graph-landing__sky-credit {
+  position: absolute;
+  right: 8px;
+  bottom: 2px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #202b34;
+  font-size: 9px;
+  line-height: 14px;
+  pointer-events: auto;
+
+  a {
+    color: inherit;
+    text-decoration: underline;
+  }
+}
+
+:root[saved-theme="dark"] .graph-landing__sky-credit {
+  display: none;
 }
 
 .graph-landing__hero {

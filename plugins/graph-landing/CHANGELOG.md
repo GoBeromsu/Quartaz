@@ -2,6 +2,15 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.9.2
+
+### Changed
+
+- Daylight now looks steeply down onto scattered sunlit white clouds above
+  the Atlantic Ocean. Wide water gaps replace the overcast cloud blanket.
+- Bundled 0x010C's CC BY-SA 4.0 photograph with crop/color-balance disclosure
+  and a daylight-only on-page source/license credit. Night remains unchanged.
+
 ## 0.9.1
 
 ### Changed

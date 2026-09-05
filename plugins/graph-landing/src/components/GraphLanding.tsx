@@ -329,6 +329,14 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
           <section class="graph-landing__hero" aria-label="Knowledge graph">
             <div class="graph-landing__canvas" id="graph-landing-mount"></div>
             <div class="graph-landing__overlay">
+              <span class="graph-landing__sky-credit">
+                <a href="https://commons.wikimedia.org/wiki/File:2016-08_Paris_Montreal_flight_15.jpg">
+                  Photo: 0x010C
+                </a>
+                {" · "}
+                <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>
+                {" · cropped / color-balanced"}
+              </span>
               <div class="graph-landing__chrome">
                 <div class="graph-landing__title-block graph-landing__title-block--chrome">
                   <a class="graph-landing__title" href={homeHref}>
