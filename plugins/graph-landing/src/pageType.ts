@@ -90,10 +90,9 @@ export interface GraphLandingPageOptions {
   }
   /**
    * Camera-distance level-of-detail for the 3D renderer. Default: undefined
-   * (current behavior unchanged — every node renders its full sphere +
-   * label mesh regardless of camera distance, no THREE.LOD wrapping, no
-   * distance-driven label hide). Has no effect when the 2D renderer is
-   * active.
+   * (labels and links remain visible regardless of camera distance, with no
+   * distance-driven label hiding or link culling). Has no effect when the
+   * 2D renderer is active.
    */
   lod?: {
     /**
@@ -101,17 +100,9 @@ export interface GraphLandingPageOptions {
      * hidden, except the focused title and overview landmarks.
      * Relevance and distance are combined.
      * Default: undefined (labels never hide based on distance;
-     * current behavior unchanged). Applies independently of `dotDistance`.
+     * current behavior unchanged).
      */
     labelDistance?: number
-    /**
-     * Camera distance (world units) beyond which a node's full-detail
-     * sphere mesh is swapped for a cheap, shared low-poly "dot" mesh via
-     * THREE.LOD. Default: undefined (every node always renders its
-     * full-detail mesh; current behavior unchanged, no THREE.LOD wrapping
-     * at all).
-     */
-    dotDistance?: number
     /**
      * Camera distance (world units) beyond which a link's cylinder mesh is
      * hidden (`mesh.visible = false`), except links touching the currently
@@ -129,13 +120,6 @@ export interface GraphLandingPageOptions {
      * effect when the 2D renderer is active.
      */
     fog?: boolean
-    /**
-     * Overrides the segment count (width/height segments) used for each
-     * node's full-detail sphere geometry. Default: undefined (14, current
-     * behavior unchanged). Lower values trade visual smoothness for fewer
-     * triangles per node.
-     */
-    nodeResolution?: number
     /**
      * Overrides the radial segment count used for each link's cylinder
      * geometry. Default: undefined (5, current behavior unchanged). Lower

@@ -259,9 +259,8 @@ export function graphLabelVisible(
  * otherwise builds it with `factory`, stores it, and returns it. Matches the
  * `if (cached) return cached` truthy-check semantics every call site here
  * previously inlined by hand (all cached values are objects, never a falsy
- * value), so behavior is unchanged. Used by dotResourceFor/linkGeometryFor/
- * linkMaterialFor to share this shared-resource-cache pattern instead of
- * three near-identical copies.
+ * value), so behavior is unchanged. Used by linkGeometryFor/linkMaterialFor
+ * and the star-texture cache to share this shared-resource-cache pattern.
  */
 export function getOrCreate<T>(cache: Map<string, T>, key: string, factory: () => T): T {
   const cached = cache.get(key)
@@ -283,8 +282,7 @@ export function getOrCreate<T>(cache: Map<string, T>, key: string, factory: () =
  * `undefined` (renderer default / "unset"), never reaching a caller as
  * NaN or a negative number. Matches the guarded parse blocks each of
  * maxRenderedNodes/layoutWarmupTicks/layoutCooldownTicks/layoutChargeTheta/
- * lodLabelDistance/lodDotDistance/lodCullDistance/lodNodeResolution/
- * lodLinkResolution used to inline by hand.
+ * lodLabelDistance/lodCullDistance/lodLinkResolution used to inline by hand.
  */
 export function parseNonNegativeNumber(
   raw: string | undefined,
@@ -385,7 +383,7 @@ export function expandHopIds(
 const GOLDEN_ANGLE = 2.399963229728653
 
 // World-unit offset from the source node for seeded siblings. Deliberately
-// smaller than SPREAD_DISTANCE (72-116, the resting link length the force
+// smaller than SPREAD_DISTANCE (96-156, the resting link length the force
 // simulation settles newly-warmed nodes to) so seeded nodes visibly start
 // bunched near the node that was clicked rather than already at their
 // eventual resting distance.

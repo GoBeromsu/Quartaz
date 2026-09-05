@@ -2,6 +2,37 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.7.0
+
+### Added
+
+- Night-sky rendering: stars are camera-facing additive light sprites with
+  degree-driven luminance and color temperature (cool blue-white leaves, warm
+  ivory hubs, amber external links), a far dust field for parallax, and
+  additive hairline links. The light theme renders a star chart of ink points.
+- Automatic slow orbit and twinkle that continue during inspection, pausing
+  only while dragging, in background tabs, or under reduced-motion preferences.
+- Note search is delegated to Quartz's native `@quartz-community/search`
+  component, hosted in the graph's top navigation via the `footer` layout slot.
+- Full-index rendering by default; `maxRenderedNodes` remains optional.
+  Bounded 90-tick settling after expansion and force changes; responsive
+  camera fit and canvas resizing; entering/leaving focus dims and restores
+  every node, including isolates.
+
+### Changed
+
+- Wider spacing (stronger repulsion, longer links, collision padding) so
+  constellations separate with dark gaps.
+- Chrome follows the host theme tokens (`--light`, `--darkgray`, `--gray`,
+  `--secondary`, `--tertiary`); the night sky deepens the dark surface toward
+  neutral black.
+- Hub gravity default is `150`.
+
+### Removed
+
+- `lod.dotDistance` and `lod.nodeResolution` (sphere-only options).
+- Custom in-graph search, motion toggle, and reset-view controls.
+
 ## 0.6.0
 
 ### Changed

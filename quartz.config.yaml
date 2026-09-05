@@ -173,9 +173,7 @@ plugins:
         incrementalRepaint: true
       lod:
         labelDistance: 800
-        dotDistance: 1200
         fog: true
-        nodeResolution: 8
         linkResolution: 3
         shareLinkResources: true
       music:

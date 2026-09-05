@@ -157,7 +157,7 @@ interface ForceGraphInstance {
     ) => boolean | void,
   ) => unknown
   postProcessingComposer?: () => { addPass: (pass: unknown) => void }
-  scene?: () => { fog: unknown }
+  scene?: () => { fog: unknown; add: (object: unknown) => void; remove: (object: unknown) => void }
   linkDirectionalParticles?: (n: number | ((link: GraphLink) => number)) => unknown
   linkDirectionalParticleWidth?: (n: number) => unknown
   linkDirectionalParticleSpeed?: (n: number) => unknown
@@ -208,19 +208,10 @@ interface ThreeMaterialHandle {
   opacity: number
 }
 
-interface EmissiveMaterial extends ThreeMaterialHandle {
-  emissive: ThreeColorHandle
-  emissiveIntensity: number
-}
-
 type SpriteTextCtor = new (text: string) => SpriteTextInstance
 
 interface ThreeObject {
   add: (obj: unknown) => void
-}
-
-interface ThreeLOD extends ThreeObject {
-  addLevel: (object: unknown, distance?: number) => unknown
 }
 
 // Return type for `new three.Mesh(...)`, used by the link-distance-cull rAF
@@ -235,11 +226,43 @@ interface ThreeMeshHandle {
   material: ThreeMaterialHandle
 }
 
+interface ThreeStarMaterial extends ThreeMaterialHandle {
+  blending: number
+  needsUpdate: boolean
+}
+
+interface ThreePointsMaterial extends ThreeStarMaterial {
+  size: number
+}
+
 interface ThreeApi {
   Group: new () => ThreeObject
-  LOD: new () => ThreeLOD
   Mesh: new (geo: unknown, mat: unknown) => ThreeMeshHandle
-  SphereGeometry: new (radius: number, width: number, height: number) => unknown
+  Sprite: new (material: ThreeStarMaterial) => ThreeMeshHandle
+  SpriteMaterial: new (params: {
+    map: unknown
+    color: string
+    transparent: boolean
+    depthWrite: boolean
+    blending: number
+    opacity: number
+  }) => ThreeStarMaterial
+  CanvasTexture: new (canvas: HTMLCanvasElement) => unknown
+  Points: new (geometry: unknown, material: ThreePointsMaterial) => ThreeMeshHandle
+  PointsMaterial: new (params: {
+    color: string
+    size: number
+    sizeAttenuation: boolean
+    transparent: boolean
+    depthWrite: boolean
+    opacity: number
+    blending: number
+    fog: boolean
+  }) => ThreePointsMaterial
+  BufferGeometry: new () => { setAttribute: (name: string, attribute: unknown) => unknown }
+  Float32BufferAttribute: new (array: Float32Array, itemSize: number) => unknown
+  AdditiveBlending: number
+  NormalBlending: number
   CylinderGeometry: new (
     radiusTop: number,
     radiusBottom: number,
@@ -252,12 +275,8 @@ interface ThreeApi {
     transparent?: boolean
     opacity?: number
     depthWrite?: boolean
+    blending?: number
   }) => ThreeMaterialHandle
-  MeshLambertMaterial: new (params: {
-    color: string
-    emissive: string
-    emissiveIntensity: number
-  }) => EmissiveMaterial
   Fog: new (color: string, near: number, far: number) => unknown
 }
 
@@ -314,15 +333,23 @@ const FOG_FAR_FACTOR = 1600 / INITIAL_CAMERA_DISTANCE
 // Alex grammar: small bright cores with tight bloom halos, hairline edges.
 // Bloom stays tight (low radius, mid threshold) so the night-sky background
 // keeps its near-black depth instead of washing into gray fog.
-const NODE_RADIUS_MIN = 2.6
-const NODE_RADIUS_MAX = 7
-// Threshold sits below the emissive star cores (>1 HDR) but above label
-// pixels, so text stays crisp while stars glow. Tight halo: the star reads
-// as a bright point, not a blob.
-const BLOOM_STRENGTH = 0.8
+const NODE_RADIUS_MIN = 2.2
+const NODE_RADIUS_MAX = 6.4
+// Star sprites carry HDR color (>1) so only their cores cross the bloom
+// threshold; white label pixels stay at 1 and remain crisp.
+const STAR_HDR = 1.6
+const STAR_SPRITE_SCALE_DARK = 6.2
+const STAR_SPRITE_SCALE_LIGHT = 2.1
+const STAR_COOL = "#c9dcff"
+const STAR_WARM = "#ffe6bf"
+const STAR_HUB = "#fff1d4"
+const STAR_EXTERNAL = "#f0c48a"
+const DUST_COUNT = 1400
+const DUST_RADIUS = { min: 1300, max: 2800 }
+const BLOOM_STRENGTH = 0.55
 const BLOOM_RADIUS = 0.16
 const BLOOM_THRESHOLD = 1
-const COLLISION_PADDING = 2.4
+const COLLISION_PADDING = 6
 // Screen-space hairlines: closer camera makes the same world radius read
 // as a tube. Keep these just above the composer aliasing floor.
 const LINK_RADIUS: Record<LinkKind, number> = {
@@ -345,9 +372,9 @@ const PREVIEW_HIDE_DELAY_MS = 350
 
 // Continuous spread: tune.spread 0.5..1.5 interpolates from the old
 // tight preset to the old wide preset.
-const SPREAD_CHARGE = { min: -100, max: -190 }
-const SPREAD_DISTANCE = { min: 72, max: 116 }
-const SPREAD_CLUSTER_RADIUS = { min: 130, max: 260 }
+const SPREAD_CHARGE = { min: -170, max: -320 }
+const SPREAD_DISTANCE = { min: 96, max: 156 }
+const SPREAD_CLUSTER_RADIUS = { min: 170, max: 340 }
 
 function spreadT(spread: number): number {
   return clamp(spread - 0.5, 0, 1)
@@ -1003,8 +1030,10 @@ function mixRgb(from: string, to: string, amount: number): string {
   return `rgb(${mix(a.r, b.r)}, ${mix(a.g, b.g)}, ${mix(a.b, b.b)})`
 }
 
+// Light mode follows the site paper color exactly. The night sky deepens
+// the theme's dark surface toward neutral black so stars have contrast.
 function canvasBackground(theme: ThemeTokens): string {
-  return theme.bg
+  return isDarkTheme() ? mixRgb(theme.bg, "#000000", 0.82) : theme.bg
 }
 
 // The 3D pipeline treats the clear color as linear and sRGB-encodes it on
@@ -1279,10 +1308,8 @@ function bindGraph(
     }
     lod: {
       labelDistance: number | undefined
-      dotDistance: number | undefined
       cullDistance: number | undefined
       fog: boolean
-      nodeResolution: number | undefined
       linkResolution: number | undefined
       shareLinkResources: boolean
     }
@@ -1384,6 +1411,18 @@ function bindGraph(
   let dragging = false
   let cameraTarget = INITIAL_LOOK_AT
   let zoomBaseDistance = INITIAL_CAMERA_DISTANCE
+  let currentMaxDegree = 0
+  let updateDust = (): void => undefined
+  const degreeWeight = (node: GraphNode): number =>
+    normalizedDegreeWeight(node.degree, 0, currentMaxDegree)
+  // Deterministic per-star magnitude scatter so brightness never reads as
+  // a lookup table. Leaves stay dim; hubs stay near full luminance.
+  const starLuminance = (node: GraphNode): number => {
+    const jitter = 0.1 * Math.sin(node.phase * 3.7)
+    if (node.type === "tag") return 0.7
+    if (node.type === "external") return 0.45 + jitter
+    return clamp(0.58 + 0.42 * Math.pow(degreeWeight(node), 0.6) + jitter, 0.48, 1)
+  }
 
   const settleLayout = (): void => {
     // Reheating with cooldownTicks=0 never advances the simulation.
@@ -1489,16 +1528,19 @@ function bindGraph(
     }
     if (isDarkTheme()) {
       if (node.type === "external") {
-        return mixRgb(theme.current.external, "#ffffff", 0.18)
+        return STAR_EXTERNAL
       }
-      // Alex grammar: near-white star cores, accent-family tags, warmer hubs.
       if (node.type === "tag") {
         return mixRgb(theme.current.tertiary, "#ffffff", 0.22)
       }
-      if (node.isHub) {
-        return mixRgb("#fff3e4", theme.current.accent, 0.1)
+      if (state.lens !== "all") {
+        return mixRgb(color, "#ffffff", 0.3)
       }
-      return mixRgb("#ffffff", theme.current.accent, 0.12)
+      if (node.isHub) {
+        return STAR_HUB
+      }
+      // Stellar magnitude: leaves cool blue-white, well-connected notes warm.
+      return mixRgb(STAR_COOL, STAR_WARM, Math.pow(degreeWeight(node), 0.7))
     }
     if (node.isHub) {
       return mixRgb(theme.current.ink, theme.current.accent, 0.22)
@@ -1639,8 +1681,8 @@ function bindGraph(
     const linkDistance = SPREAD_DISTANCE.min + t * (SPREAD_DISTANCE.max - SPREAD_DISTANCE.min)
     const degreeById = new Map(data.nodes.map((node) => [node.id, node.degree]))
     const maxDegree = Math.max(0, ...degreeById.values())
-    const nodeDegreeWeight = (node: GraphNode): number =>
-      normalizedDegreeWeight(node.degree, 0, maxDegree)
+    currentMaxDegree = maxDegree
+    const nodeDegreeWeight = degreeWeight
     const edgeWeight = (edge: GraphLink): number =>
       linkDegreeWeight(
         degreeById.get(linkEndpointId(edge.source)) ?? 0,
@@ -1721,8 +1763,41 @@ function bindGraph(
 
   const twinkleMaterials = new Map<
     string,
-    { material: EmissiveMaterial; base: number; phase: number }
+    { material: ThreeMaterialHandle; base: number; phase: number }
   >()
+
+  // One radial texture per theme: a hot core with a soft additive falloff
+  // for the night sky, a crisp ink disk for the star chart.
+  const starTextures = new Map<string, unknown>()
+  const starTexture = (three: ThreeApi, dark: boolean): unknown =>
+    getOrCreate(starTextures, dark ? "dark" : "light", () => {
+      const size = 64
+      const canvas = document.createElement("canvas")
+      canvas.width = canvas.height = size
+      const context = canvas.getContext("2d")
+      if (context) {
+        const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32)
+        if (dark) {
+          gradient.addColorStop(0, "rgba(255,255,255,1)")
+          gradient.addColorStop(0.22, "rgba(255,255,255,0.96)")
+          gradient.addColorStop(0.36, "rgba(255,255,255,0.42)")
+          gradient.addColorStop(0.62, "rgba(255,255,255,0.1)")
+          gradient.addColorStop(1, "rgba(255,255,255,0)")
+        } else {
+          gradient.addColorStop(0, "rgba(255,255,255,1)")
+          gradient.addColorStop(0.86, "rgba(255,255,255,1)")
+          gradient.addColorStop(1, "rgba(255,255,255,0)")
+        }
+        context.fillStyle = gradient
+        context.fillRect(0, 0, size, size)
+      }
+      return new three.CanvasTexture(canvas)
+    })
+
+  const setStarColor = (material: ThreeMaterialHandle, fill: string): void => {
+    material.color.set(fill)
+    if (isDarkTheme()) material.color.multiplyScalar(STAR_HDR)
+  }
 
   // Populated by paintLabels3d() whenever options.lod.labelDistance is set
   // (consumed by the label-distance-fade rAF loop below) OR whenever
@@ -1750,7 +1825,6 @@ function bindGraph(
 
   // Stars mutate private materials; LOD dots swap shared materials by color.
   const nodeMaterials = new Map<string, ThreeMaterialHandle>()
-  const nodeDots = new Map<string, ThreeMeshHandle>()
 
   // Rendered GraphNode by id, rebuilt from `data.nodes` at the top of
   // paintLabels3d — lets applyFocusChange resolve an affected node id back
@@ -1762,32 +1836,9 @@ function bindGraph(
   // color/opacity depend on a given focus node without scanning every link.
   const linksByNode = new Map<string, GraphLink[]>()
 
-  // Shared geometry/material cache for the low-detail "dot" LOD tier, keyed
-  // by a coarse radius bucket + fill color. Only ever populated when
-  // options.lod.dotDistance is set; a fresh Mesh instance is still created
-  // per node (cheap JS object), but many nodes share the same underlying
-  // Geometry/Material GL resources instead of each allocating its own —
-  // directly addressing the zero-sharing baseline (13,287 unique
-  // geometries/materials) measured before this option existed.
-  const dotResourceCache = new Map<string, { geometry: unknown; material: ThreeMaterialHandle }>()
-
-  const dotResourceFor = (
-    three: ThreeApi,
-    radius: number,
-    fill: string,
-  ): { geometry: unknown; material: ThreeMaterialHandle } => {
-    const key = `${Math.round(radius * 4)}|${fill}`
-    return getOrCreate(dotResourceCache, key, () => {
-      const material = new three.MeshBasicMaterial({ color: fill })
-      if (isDarkTheme()) material.color.multiplyScalar(2)
-      return { geometry: new three.SphereGeometry(radius, 6, 6), material }
-    })
-  }
-
-  // Shared link geometry/material caches for `lod.shareLinkResources`,
-  // following the dotResourceCache pattern above. Only populated/consumed
-  // when shareLinkResources is on; paintLinks3d clears both maps at the top
-  // of every call (mirroring dotResourceCache.clear()) WITHOUT disposing
+  // Shared link geometry/material caches for `lod.shareLinkResources`.
+  // Only populated/consumed when shareLinkResources is on; paintLinks3d
+  // clears both maps at the top of every call WITHOUT disposing
   // prior entries — per spec, shared resources are never disposed on
   // repaint, only dropped from the cache so a fresh paint repopulates them
   // from scratch. Geometry is safe to share across links regardless of
@@ -1823,6 +1874,7 @@ function bindGraph(
           transparent: true,
           opacity,
           depthWrite: false,
+          blending: isDarkTheme() ? three.AdditiveBlending : three.NormalBlending,
         }),
     )
   }
@@ -1833,14 +1885,10 @@ function bindGraph(
     }
     const SpriteText = options.spriteText
     const three = options.three
-    const dotDistance = options.lod.dotDistance
-    const nodeSegments = options.lod.nodeResolution ?? 14
     const incremental = options.interaction.incrementalRepaint
     twinkleMaterials.clear()
     labelSprites.clear()
-    dotResourceCache.clear()
     nodeMaterials.clear()
-    nodeDots.clear()
     renderedNodeById.clear()
     if (incremental) {
       for (const node of data.nodes) {
@@ -1855,45 +1903,29 @@ function bindGraph(
       const fill = nodeFill(node)
       let star: unknown = false
       if (three) {
-        if (isDarkTheme()) {
-          // Smaller cores need hotter emissive to stay above the bloom
-          // threshold and read as glowing points.
-          const base = node.isHub ? 1.35 : 1.1
-          const material = new three.MeshLambertMaterial({
-            color: fill,
-            emissive: fill,
-            emissiveIntensity: base,
-          })
+        const dark = isDarkTheme()
+        const base = dark ? starLuminance(node) : 1
+        const material = new three.SpriteMaterial({
+          map: starTexture(three, dark),
+          color: "#ffffff",
+          transparent: true,
+          depthWrite: false,
+          blending: dark ? three.AdditiveBlending : three.NormalBlending,
+          opacity: base,
+        })
+        setStarColor(material, fill)
+        if (dark) {
           twinkleMaterials.set(node.id, { material, base, phase: node.phase })
-          if (incremental) {
-            nodeMaterials.set(node.id, material)
-          }
-          star = new three.Mesh(
-            new three.SphereGeometry(radius, nodeSegments, nodeSegments),
-            material,
-          )
-        } else {
-          const material = new three.MeshBasicMaterial({ color: fill })
-          if (incremental) {
-            nodeMaterials.set(node.id, material)
-          }
-          star = new three.Mesh(
-            new three.SphereGeometry(radius, nodeSegments, nodeSegments),
-            material,
-          )
         }
-        // Only wraps in THREE.LOD when dotDistance is explicitly set; with
-        // it unset `star` stays the plain full-detail Mesh built above,
-        // preserving current behavior byte for byte.
-        if (dotDistance !== undefined && star !== false) {
-          const dot = dotResourceFor(three, radius, fill)
-          const dotMesh = new three.Mesh(dot.geometry, dot.material)
-          nodeDots.set(node.id, dotMesh)
-          const lod = new three.LOD()
-          lod.addLevel(star, 0)
-          lod.addLevel(dotMesh, dotDistance)
-          star = lod
+        if (incremental) {
+          nodeMaterials.set(node.id, material)
         }
+        const sprite = new three.Sprite(material)
+        const scale = radius * (dark ? STAR_SPRITE_SCALE_DARK : STAR_SPRITE_SCALE_LIGHT)
+        sprite.scale.x = scale
+        sprite.scale.y = scale
+        sprite.scale.z = 1
+        star = sprite
       }
       const showLabel = showNodeLabel(node)
       // With incremental unset this is exactly the original
@@ -1979,6 +2011,7 @@ function bindGraph(
             transparent: true,
             opacity: edgeOpacity(link),
             depthWrite: false,
+            blending: isDarkTheme() ? three.AdditiveBlending : three.NormalBlending,
           })
       const geometry = shareLinkResources
         ? linkGeometryFor(three, radius, linkSegments)
@@ -2080,16 +2113,8 @@ function bindGraph(
       if (!node) {
         continue
       }
-      const fill = nodeFill(node)
-      nodeMaterials.get(id)?.color.set(fill)
-      const dot = nodeDots.get(id)
-      if (dot && options.three) {
-        dot.material = dotResourceFor(options.three, nodeWorldRadius(node), fill).material
-      }
-      const twinkle = twinkleMaterials.get(id)
-      if (twinkle) {
-        twinkle.material.emissive.set(fill)
-      }
+      const material = nodeMaterials.get(id)
+      if (material) setStarColor(material, nodeFill(node))
       const label = labelSprites.get(id)
       if (label) {
         label.sprite.color = labelColorFor(node)
@@ -2444,6 +2469,51 @@ function bindGraph(
       controls.autoRotate = false
       controls.autoRotateSpeed = AUTO_ROTATE_SPEED
     }
+    if (options.three && typeof graph.scene === "function") {
+      // Far dust shell: inert points well outside the note cloud so orbiting
+      // produces parallax and the graph reads as a volume, not a plane.
+      const three = options.three
+      const positions = new Float32Array(DUST_COUNT * 3)
+      let seed = 0x9e3779b9
+      const random = (): number => {
+        seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0
+        return seed / 0x100000000
+      }
+      for (let index = 0; index < DUST_COUNT; index += 1) {
+        const u = random() * 2 - 1
+        const angle = random() * Math.PI * 2
+        const ring = Math.sqrt(1 - u * u)
+        const radius =
+          DUST_RADIUS.min + Math.pow(random(), 0.6) * (DUST_RADIUS.max - DUST_RADIUS.min)
+        positions[index * 3] = ring * Math.cos(angle) * radius
+        positions[index * 3 + 1] = u * radius
+        positions[index * 3 + 2] = ring * Math.sin(angle) * radius
+      }
+      const geometry = new three.BufferGeometry()
+      geometry.setAttribute("position", new three.Float32BufferAttribute(positions, 3))
+      const dustMaterial = new three.PointsMaterial({
+        color: "#ffffff",
+        size: 1.6,
+        sizeAttenuation: false,
+        transparent: true,
+        depthWrite: false,
+        opacity: 0.6,
+        blending: three.NormalBlending,
+        fog: false,
+      })
+      const dust = new three.Points(geometry, dustMaterial)
+      graph.scene().add(dust)
+      window.addCleanup(() => graph.scene?.().remove(dust))
+      updateDust = () => {
+        const dark = isDarkTheme()
+        dustMaterial.color.set(dark ? "#dfe7ff" : "#8f8f8f")
+        dustMaterial.opacity = dark ? 0.42 : 0.22
+        dustMaterial.size = dark ? 1.4 : 1.3
+        dustMaterial.blending = dark ? three.AdditiveBlending : three.NormalBlending
+        dustMaterial.needsUpdate = true
+      }
+      updateDust()
+    }
     graph.warmupTicks(options.layout.warmupTicks ?? 50)
     graph.cooldownTicks(
       options.layout.freezeAfterWarmup ? 0 : (options.layout.cooldownTicks ?? 200),
@@ -2478,7 +2548,7 @@ function bindGraph(
         if (!prefersReducedMotion() && !document.hidden && !dragging) {
           const t = (performance.now() / 1000) * TWINKLE_SPEED
           for (const entry of twinkleMaterials.values()) {
-            entry.material.emissiveIntensity =
+            entry.material.opacity =
               entry.base * (1 + TWINKLE_AMPLITUDE * Math.sin(t + entry.phase))
           }
         }
@@ -2501,9 +2571,7 @@ function bindGraph(
     const labelDistance = options.lod.labelDistance
     const cullDistance = options.lod.cullDistance
     if (
-      (labelDistance !== undefined ||
-        cullDistance !== undefined ||
-        options.lod.dotDistance !== undefined) &&
+      (labelDistance !== undefined || cullDistance !== undefined) &&
       typeof graph.cameraPosition === "function"
     ) {
       const getCameraPosition = graph.cameraPosition.bind(graph)
@@ -2516,20 +2584,7 @@ function bindGraph(
           typeof cam.y === "number" &&
           typeof cam.z === "number"
         ) {
-          // Keep distant LOD stars visible at approximately one screen pixel.
-          // Their degree-based size ratio remains intact on narrow viewports.
           const viewportHeight = Math.max(1, options.root.clientHeight || window.innerHeight)
-          for (const [id, dot] of nodeDots) {
-            const node = fullNodeById.get(id)
-            if (!node) continue
-            const distance = Math.hypot(
-              cam.x - (node.x ?? 0),
-              cam.y - (node.y ?? 0),
-              cam.z - (node.z ?? 0),
-            )
-            const scale = Math.max(1, distance / viewportHeight)
-            dot.scale.x = dot.scale.y = dot.scale.z = scale
-          }
           if (labelDistance !== undefined) {
             const titleBounds: Array<{ left: number; right: number; y: number }> = []
             for (const entry of labelSprites.values()) {
@@ -2673,7 +2728,7 @@ function bindGraph(
       graph.controls().autoRotate = active
     }
     if (!active) {
-      for (const entry of twinkleMaterials.values()) entry.material.emissiveIntensity = entry.base
+      for (const entry of twinkleMaterials.values()) entry.material.opacity = entry.base
     }
     refreshParticles()
   }
@@ -2963,6 +3018,7 @@ function bindGraph(
     theme.current = readTheme()
     graph.backgroundColor(activeBackground())
     updateFog()
+    updateDust()
     if (options.bloomPass) {
       options.bloomPass.strength = isDarkTheme() ? BLOOM_STRENGTH : 0
       options.bloomPass.radius = BLOOM_RADIUS
@@ -3759,15 +3815,11 @@ async function initGraphLanding(): Promise<void> {
     root.dataset.graphLodLabelDistance,
     Number.parseFloat,
   )
-  const lodDotDistance = parseNonNegativeNumber(root.dataset.graphLodDotDistance, Number.parseFloat)
   const lodCullDistance = parseNonNegativeNumber(
     root.dataset.graphLodCullDistance,
     Number.parseFloat,
   )
   const lodFog = root.dataset.graphLodFog === "true"
-  const lodNodeResolution = parseNonNegativeNumber(root.dataset.graphLodNodeResolution, (s) =>
-    Number.parseInt(s, 10),
-  )
   const lodLinkResolution = parseNonNegativeNumber(root.dataset.graphLodLinkResolution, (s) =>
     Number.parseInt(s, 10),
   )
@@ -3809,7 +3861,7 @@ async function initGraphLanding(): Promise<void> {
     : Promise.resolve(null)
   const threePromise: Promise<ThreeApi | null> = use3d
     ? (import(THREE_CDN) as Promise<ThreeApi>).catch((error: unknown) => {
-        console.error("[graph-landing] three unavailable; using default node spheres", error)
+        console.error("[graph-landing] three unavailable; using default node rendering", error)
         return null
       })
     : Promise.resolve(null)
@@ -3916,10 +3968,8 @@ async function initGraphLanding(): Promise<void> {
     },
     lod: {
       labelDistance: lodLabelDistance,
-      dotDistance: lodDotDistance,
       cullDistance: lodCullDistance,
       fog: lodFog,
-      nodeResolution: lodNodeResolution,
       linkResolution: lodLinkResolution,
       shareLinkResources: lodShareLinkResources,
     },

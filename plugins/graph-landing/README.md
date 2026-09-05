@@ -14,7 +14,9 @@ hub attraction, and a slow automatic orbit. All configuration options are option
   reduced-motion preference pause decorative animation.
 - Up to six non-overlapping landmark titles appear at overview; focus reveals the connected neighborhood.
   Distance LOD retains label relevance and always keeps the focused title.
-- Stars use larger luminous cores and real connections use visible strokes;
+- Stars are additive light points with degree-driven luminance and color
+  temperature; a distant dust field gives parallax. Light theme renders a
+  star-chart of ink points. Real connections use visible strokes, while
   folder/co-occurrence texture appears in its lens.
 
 ## Install or update
@@ -26,7 +28,7 @@ release tag:
 - source:
     repo: github:GoBeromsu/Quartaz
     subdir: plugins/graph-landing
-    ref: graph-landing-v0.5.3
+    ref: graph-landing-v0.7.0
     name: graph-landing
   enabled: true
 ```
@@ -91,10 +93,8 @@ indexes may supply a pre-truncated `excerpt` instead of `content`.
       incrementalWarmup: true
     lod:
       labelDistance: 800
-      dotDistance: 1200
       cullDistance: 1600
       fog: true
-      nodeResolution: 8
       linkResolution: 3
       shareLinkResources: true
     interaction:
@@ -192,19 +192,14 @@ d3-force's built-in default).
 ### `lod`
 
 Camera-distance level-of-detail tuning for the 3D renderer. Default:
-`undefined` — original behavior unchanged (every node/link renders at
-full detail regardless of camera distance, no THREE.LOD wrapping, no
-fog). Has no effect when the 2D renderer is active.
+`undefined` — original behavior unchanged (labels and links remain visible
+regardless of camera distance, with no distance-driven label hiding, link
+culling, or fog). Has no effect when the 2D renderer is active.
 
 - `labelDistance` — camera distance (world units) beyond which a node's
   label sprite is hidden, with exceptions for the focused title and six
   overview landmarks. Default: `undefined` (labels never hide based
-  on distance). Applies independently of `dotDistance`.
-- `dotDistance` — camera distance beyond which a node's full-detail
-  sphere mesh is swapped for a cheap, shared low-poly "dot" mesh via
-  `THREE.LOD`. Default: `undefined` (every node always renders full
-  detail; no `THREE.LOD` wrapping at all). Distant dots retain a minimum
-  screen-scale size and dark-theme glow, including on narrow viewports.
+  on distance).
 - `cullDistance` — camera distance beyond which a link's cylinder mesh is
   hidden (`mesh.visible = false`), except links touching the currently
   focused (hovered/selected) node, which always stay visible regardless
@@ -214,10 +209,6 @@ fog). Has no effect when the 2D renderer is active.
   a hard edge. Purely visual — it does not cull or skip rendering
   anything itself (pairs naturally with `cullDistance`, which does).
   Default: `undefined`/`false` (no fog).
-- `nodeResolution` — overrides the segment count (width/height segments)
-  used for each node's full-detail sphere geometry. Default: `undefined`
-  (`14`, original behavior). Lower values trade visual smoothness for
-  fewer triangles per node.
 - `linkResolution` — overrides the radial segment count used for each
   link's cylinder geometry. Default: `undefined` (`5`, original
   behavior). Lower values trade visual smoothness for fewer triangles per
@@ -313,24 +304,16 @@ frontmatter/slug prefix, and when the site has no `sourceLocale` set.
 
 ## 3D performance
 
-The 3D renderer instantiates one `THREE.Mesh` per node and one per link,
-each with its own `Geometry`/`Material` (no sharing/caching by default) —
-so frame cost scales directly with node + link count, and is bound by
-draw-call count and fill rate rather than force-simulation cost. Measured
-on a live 1,500-node / 11,786-edge graph (13,287 meshes total, no
-LOD/culling options set): ~15 fps at rest, with camera movement adding
-negligible extra cost on top of that draw-call-bound ceiling — the "lag
-when zooming in" some large graphs exhibit is this steady-state ceiling
-becoming visible during continuous re-render, not a new cost introduced
-by interaction.
+Node-side rendering uses lightweight camera-facing sprites. For larger
+graphs, `layout.freezeAfterWarmup` keeps the force simulation from becoming
+the dominant ongoing cost, while `lod.labelDistance` removes distant label
+sprites without hiding focused or overview labels.
 
-For graphs in that range, `layout.freezeAfterWarmup` (near-zero cost) and
-`lod.dotDistance` / `lod.labelDistance` (collapse the node-side cost at
-distance via shared low-poly geometry/material and label hiding) are the
-first two options to reach for. `lod.cullDistance` and `lod.fog` address
-the link side, which is typically the larger contributor by mesh count
-(link cylinders usually outnumber node spheres several-fold once tag/
-folder/co-occurrence edges are included). `lod.nodeResolution` /
-`lod.linkResolution` trade visual smoothness for fewer triangles per mesh
-on top of either. All of these are independent and additive; none change
-rendered behavior unless explicitly set.
+Links remain the main geometry and draw-call cost as graphs become dense,
+especially when tag, folder, and co-occurrence edges are included.
+`lod.cullDistance` hides distant link cylinders while preserving links
+connected to the focused node. `lod.fog` provides a matching-theme depth cue
+but does not cull geometry. `lod.linkResolution` lowers the radial segments
+per link cylinder, and `lod.shareLinkResources` reuses matching link
+geometries and materials to reduce allocation and resource overhead. These
+options are independent and do not change rendering unless set.

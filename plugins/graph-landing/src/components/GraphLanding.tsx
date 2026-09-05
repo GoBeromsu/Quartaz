@@ -297,10 +297,8 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
             options.layout?.incrementalWarmup ? "true" : undefined
           }
           data-graph-lod-label-distance={options.lod?.labelDistance}
-          data-graph-lod-dot-distance={options.lod?.dotDistance}
           data-graph-lod-cull-distance={options.lod?.cullDistance}
           data-graph-lod-fog={options.lod?.fog ? "true" : undefined}
-          data-graph-lod-node-resolution={options.lod?.nodeResolution}
           data-graph-lod-link-resolution={options.lod?.linkResolution}
           data-graph-lod-share-link-resources={options.lod?.shareLinkResources ? "true" : undefined}
           data-graph-interaction-incremental-repaint={
