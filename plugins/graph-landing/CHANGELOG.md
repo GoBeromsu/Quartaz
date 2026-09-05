@@ -2,6 +2,14 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.11.1
+
+### Changed
+
+- Daytime background movement uses a 24-second linear traverse with wider
+  travel and 12% overscan. Motion is visible immediately rather than easing
+  slowly away from rest. Reduced-motion and visibility pauses remain intact.
+
 ## 0.11.0
 
 ### Added
