@@ -75,12 +75,6 @@ interface Vec3 {
   z: number
 }
 
-interface BloomPass {
-  strength: number
-  radius: number
-  threshold: number
-}
-
 interface CollisionForce {
   strength: (value: number) => CollisionForce
   iterations: (value: number) => CollisionForce
@@ -290,7 +284,7 @@ interface ThreeApi {
 }
 
 // Pinned esm.sh URLs. Keep THREE_VERSION identical across 3D imports
-// (`?deps=three@…`) so 3d-force-graph, SpriteText, and UnrealBloomPass
+// (`?deps=three@…`) so 3d-force-graph and SpriteText
 // share one Three instance. CDN-pinned (not self-hosted) to keep the
 // visual upgrade unblocked; self-hosting would add a tsup client entry
 // and a static/ copy step without changing the UX.
@@ -300,7 +294,6 @@ const FORCE_GRAPH_3D = `https://esm.sh/3d-force-graph@1.80.0?deps=three@${THREE_
 const D3_FORCE_3D = "https://esm.sh/d3-force-3d@3.0.6"
 const SPRITE_TEXT = `https://esm.sh/three-spritetext@1.9.2?deps=three@${THREE_VERSION}`
 const THREE_CDN = `https://esm.sh/three@${THREE_VERSION}`
-const UNREAL_BLOOM = `https://esm.sh/three@${THREE_VERSION}/examples/jsm/postprocessing/UnrealBloomPass.js`
 
 const HUB_COUNT = 8
 // Landmark titles leave space for the stars at overview scale.
@@ -344,27 +337,15 @@ const INITIAL_CAMERA_DISTANCE = Math.hypot(INITIAL_CAMERA.x, INITIAL_CAMERA.y, I
 const OVERVIEW_FILL = 0.52
 const FOG_NEAR_FACTOR = 300 / INITIAL_CAMERA_DISTANCE
 const FOG_FAR_FACTOR = 1600 / INITIAL_CAMERA_DISTANCE
-// Alex grammar: small bright cores with tight bloom halos, hairline edges.
-// Bloom stays tight (low radius, mid threshold) so the night-sky background
-// keeps its near-black depth instead of washing into gray fog.
+// Solid dots and hairline edges in both themes; night only swaps the palette.
 const NODE_RADIUS_MIN = 3.6
 const NODE_RADIUS_MAX = 10.5
-// Star sprites carry HDR color (>1) so only their cores cross the bloom
-// threshold; white label pixels stay at 1 and remain crisp.
-const STAR_HDR = 1.6
-const STAR_SPRITE_SCALE_DARK = 4.6
-const STAR_SPRITE_SCALE_LIGHT = 3.2
+const STAR_SPRITE_SCALE = 3.2
 const STAR_TEXTURE_SIZE = 64
-// Daylight ink dots fill this radius of the 64px texture with a soft edge.
+// Ink dots fill this radius of the 64px texture with a soft edge.
 const INK_DOT_TEXTURE_RADIUS = 24
 const STAR_WHITE = "#f2f3f4"
-// Hubs carry a crimson tint; additive HDR keeps their cores white.
 const STAR_HUB = "#f4c3d0"
-const DUST_COUNT = 1400
-const DUST_RADIUS = { min: 1300, max: 2800 }
-const BLOOM_STRENGTH = 0.55
-const BLOOM_RADIUS = 0.16
-const BLOOM_THRESHOLD = 1
 const COLLISION_PADDING = 6
 // Screen-space hairlines: closer camera makes the same world radius read
 // as a tube. Keep these just above the composer aliasing floor.
@@ -382,8 +363,6 @@ const CLOUD_EXTERNAL = { min: 160, max: 280 }
 const CLOUD_TAG = { min: 90, max: 170 }
 const EXCERPT_LENGTH = 220
 const FOLDER_RING_SKIP = 2
-const TWINKLE_AMPLITUDE = 0.06
-const TWINKLE_SPEED = 0.8
 const PREVIEW_HIDE_DELAY_MS = 350
 
 // Continuous spread: tune.spread 0.5..1.5 interpolates from the old
@@ -1046,28 +1025,9 @@ function mixRgb(from: string, to: string, amount: number): string {
   return `rgb(${mix(a.r, b.r)}, ${mix(a.g, b.g)}, ${mix(a.b, b.b)})`
 }
 
-// Light mode follows the site paper color exactly. The night sky deepens
-// the theme's dark surface toward neutral black so stars have contrast.
+// Both themes follow the page backdrop exactly (night sets its own in CSS).
 function canvasBackground(theme: ThemeTokens): string {
-  return isDarkTheme() ? mixRgb(theme.bg, "#000000", 0.82) : theme.bg
-}
-
-// The 3D pipeline treats the clear color as linear and sRGB-encodes it on
-// output, which lifts near-blacks to washed gray. Pre-compensating with the
-// inverse transfer keeps the rendered background at the intended hex.
-function srgbCompensate(color: string): string {
-  const rgb = parseRgb(color)
-  if (!rgb) {
-    return color
-  }
-  const invert = (channel: number): number => {
-    const c = channel / 255
-    const linear = c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
-    return Math.ceil(linear * 255)
-  }
-  // The renderer's color parser requires integer RGB. Round upwards so
-  // near-black channels survive and retain the configured theme hue.
-  return `rgb(${invert(rgb.r)}, ${invert(rgb.g)}, ${invert(rgb.b)})`
+  return theme.bg
 }
 
 // Daylight: the light theme clears the WebGL canvas to transparent so
@@ -1075,7 +1035,7 @@ function srgbCompensate(color: string): string {
 // deepened clear color.
 
 function canvasBackground3d(theme: ThemeTokens): string {
-  return isDarkTheme() ? srgbCompensate(canvasBackground(theme)) : "rgba(0, 0, 0, 0)"
+  return isDarkTheme() ? canvasBackground(theme) : "rgba(0, 0, 0, 0)"
 }
 
 function hashPick(seed: string, palette: string[]): string {
@@ -1314,7 +1274,6 @@ function bindGraph(
     use3d: boolean
     root: HTMLElement
     spriteText: SpriteTextCtor | null
-    bloomPass: BloomPass | null
     three: ThreeApi | null
     forceCollide: ForceCollideFactory | null
     fullData: GraphData
@@ -1432,17 +1391,8 @@ function bindGraph(
   let cameraTarget = INITIAL_LOOK_AT
   let zoomBaseDistance = INITIAL_CAMERA_DISTANCE
   let currentMaxDegree = 0
-  let updateDust = (): void => undefined
   const degreeWeight = (node: GraphNode): number =>
     normalizedDegreeWeight(node.degree, 0, currentMaxDegree)
-  // Deterministic per-star magnitude scatter so brightness never reads as
-  // a lookup table. Leaves stay dim; hubs stay near full luminance.
-  const starLuminance = (node: GraphNode): number => {
-    const jitter = 0.1 * Math.sin(node.phase * 3.7)
-    if (node.type === "tag") return 0.7
-    if (node.type === "external") return 0.45 + jitter
-    return clamp(0.58 + 0.42 * Math.pow(degreeWeight(node), 0.6) + jitter, 0.48, 1)
-  }
 
   const settleLayout = (): void => {
     // Reheating with cooldownTicks=0 never advances the simulation.
@@ -1536,9 +1486,9 @@ function bindGraph(
     return node.type === "tag" ? theme.current.tertiary : theme.current.ink
   }
 
-  // Night-sky palette independent of focus state, shared by stars and the
-  // links between them so a connection carries the color of its endpoints.
-  const nightStarColor = (node: GraphNode): string => (node.isHub ? STAR_HUB : STAR_WHITE)
+  // Night palette independent of focus state: accent hubs, ink leaves.
+  const nightStarColor = (node: GraphNode): string =>
+    node.isHub ? theme.current.accent : theme.current.ink
 
   // Connection weight in the spirit of Butler's friendship map: brightness
   // follows the log of the weaker endpoint, so hub-to-hub filaments glow and
@@ -1566,19 +1516,18 @@ function bindGraph(
   }
 
   const daylightNodeWorldRadius = (node: GraphNode): number =>
-    nodeWorldRadius(node) * STAR_SPRITE_SCALE_LIGHT * (INK_DOT_TEXTURE_RADIUS / STAR_TEXTURE_SIZE)
+    nodeWorldRadius(node) * STAR_SPRITE_SCALE * (INK_DOT_TEXTURE_RADIUS / STAR_TEXTURE_SIZE)
 
   // Layered opacities: wikilinks strongest > tag membership > faint texture.
   const edgeBaseOpacity = (kind: LinkKind): number => {
-    const dark = isDarkTheme()
     if (kind === "wikilink") {
-      return dark ? 0.52 : 0.8
+      return 0.8
     }
     if (kind === "external") {
-      return dark ? 0.42 : 0.7
+      return 0.7
     }
     if (kind === "tag") {
-      return dark ? 0.38 : 0.62
+      return 0.62
     }
     return 0
   }
@@ -1597,8 +1546,7 @@ function bindGraph(
       return isDarkTheme() ? 0.72 : 0.95
     }
     const weight = linkWeight(source, target)
-    const graded =
-      edgeBaseOpacity(link.kind) * (isDarkTheme() ? 0.45 + 0.55 * weight : 0.6 + 0.4 * weight)
+    const graded = edgeBaseOpacity(link.kind) * (0.6 + 0.4 * weight)
     if (focus !== null || state.focusTag !== null || state.focusFolder !== null) {
       if (!isActive(source) || !isActive(target)) {
         return graded * DIM_ALPHA
@@ -1615,13 +1563,6 @@ function bindGraph(
     if (focus !== null && (source === focus || target === focus)) {
       return isDarkTheme() ? STAR_WHITE : theme.current.accent
     }
-    if (isDarkTheme()) {
-      const a = fullNodeById.get(source)
-      const b = fullNodeById.get(target)
-      if (a && b) {
-        return mixRgb(nightStarColor(a), nightStarColor(b), 0.5)
-      }
-    }
     return ink
   }
 
@@ -1635,7 +1576,7 @@ function bindGraph(
   // applyFocusChange (the incremental-repaint path) can recompute a single
   // node's label color without re-running the full label repaint.
   const labelColorFor = (node: GraphNode): string => {
-    const labelInk = isDarkTheme() ? "rgba(255, 255, 255, 1)" : theme.current.ink
+    const labelInk = theme.current.ink
     return isActive(node.id) ? labelInk : withAlpha(labelInk, DIM_ALPHA)
   }
 
@@ -1792,39 +1733,24 @@ function bindGraph(
     }
   }
 
-  const twinkleMaterials = new Map<
-    string,
-    { material: ThreeMaterialHandle; base: number; phase: number }
-  >()
 
-  // Night keeps a hot-core glow; day is a crisp ink dot. Both are white
-  // masks tinted through the sprite material color.
+  // A crisp ink dot in both themes: a white mask tinted through the sprite
+  // material color.
   const starTextures = new Map<string, unknown>()
-  const starTexture = (three: ThreeApi, dark: boolean): unknown =>
-    getOrCreate(starTextures, dark ? "dark" : "light", () => {
+  const starTexture = (three: ThreeApi): unknown =>
+    getOrCreate(starTextures, "dot", () => {
       const size = STAR_TEXTURE_SIZE
       const canvas = document.createElement("canvas")
       canvas.width = canvas.height = size
       const context = canvas.getContext("2d")
       if (context) {
-        if (dark) {
-          const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32)
-          gradient.addColorStop(0, "rgba(255,255,255,1)")
-          gradient.addColorStop(0.22, "rgba(255,255,255,0.96)")
-          gradient.addColorStop(0.36, "rgba(255,255,255,0.42)")
-          gradient.addColorStop(0.62, "rgba(255,255,255,0.1)")
-          gradient.addColorStop(1, "rgba(255,255,255,0)")
-          context.fillStyle = gradient
-          context.fillRect(0, 0, size, size)
-        } else {
-          const r = INK_DOT_TEXTURE_RADIUS
-          const gradient = context.createRadialGradient(32, 32, 0, 32, 32, r)
-          gradient.addColorStop(0, "rgba(255,255,255,1)")
-          gradient.addColorStop(0.9, "rgba(255,255,255,1)")
-          gradient.addColorStop(1, "rgba(255,255,255,0)")
-          context.fillStyle = gradient
-          context.fillRect(0, 0, size, size)
-        }
+        const r = INK_DOT_TEXTURE_RADIUS
+        const gradient = context.createRadialGradient(32, 32, 0, 32, 32, r)
+        gradient.addColorStop(0, "rgba(255,255,255,1)")
+        gradient.addColorStop(0.9, "rgba(255,255,255,1)")
+        gradient.addColorStop(1, "rgba(255,255,255,0)")
+        context.fillStyle = gradient
+        context.fillRect(0, 0, size, size)
       }
       return new three.CanvasTexture(canvas)
     })
@@ -1835,9 +1761,6 @@ function bindGraph(
     three: ThreeApi,
   ): void => {
     material.color.set(nodeFill(node))
-    if (isDarkTheme()) {
-      material.color.multiplyScalar(STAR_HDR)
-    }
   }
 
   // Populated by paintLabels3d() whenever options.lod.labelDistance is set
@@ -1845,7 +1768,7 @@ function bindGraph(
   // options.interaction.incrementalRepaint is set (consumed by
   // applyFocusChange, which needs a handle to every node's label sprite to
   // mutate color/visibility in place on a focus change). Cleared/repopulated
-  // alongside twinkleMaterials on every repaint (theme change, tune change,
+  // on every repaint (theme change, tune change,
   // etc.) so it never holds stale sprite references.
   const labelSprites = new Map<string, { sprite: SpriteTextInstance; node: GraphNode }>()
 
@@ -1927,7 +1850,6 @@ function bindGraph(
     const SpriteText = options.spriteText
     const three = options.three
     const incremental = options.interaction.incrementalRepaint
-    twinkleMaterials.clear()
     labelSprites.clear()
     nodeMaterials.clear()
     renderedNodeById.clear()
@@ -1943,31 +1865,23 @@ function bindGraph(
       const radius = nodeWorldRadius(node)
       let star: unknown = false
       if (three) {
-        const dark = isDarkTheme()
-        const base = dark ? starLuminance(node) : 1
         const material = new three.SpriteMaterial({
-          map: starTexture(three, dark),
+          map: starTexture(three),
           color: "#ffffff",
           transparent: true,
           depthWrite: false,
-          blending: dark ? three.AdditiveBlending : three.NormalBlending,
-          opacity: base,
+          blending: three.NormalBlending,
+          opacity: 1,
         })
         material.color.set(nodeFill(node))
-        if (dark) {
-          material.color.multiplyScalar(STAR_HDR)
-        }
-        if (dark) {
-          twinkleMaterials.set(node.id, { material, base, phase: node.phase })
-        }
         if (incremental) {
           nodeMaterials.set(node.id, material)
         }
         const sprite = new three.Sprite(material)
         // Billboards can overlap unrelated edges in projection even after
         // endpoint clipping. Draw daylight beads after transparent links.
-        if (!dark) sprite.renderOrder = 1
-        const scale = radius * (dark ? STAR_SPRITE_SCALE_DARK : STAR_SPRITE_SCALE_LIGHT)
+        sprite.renderOrder = 1
+        const scale = radius * STAR_SPRITE_SCALE
         sprite.scale.x = scale
         sprite.scale.y = scale
         sprite.scale.z = 1
@@ -1993,9 +1907,8 @@ function bindGraph(
       sprite.fontWeight = isDarkTheme() ? "400" : "500"
       sprite.strokeWidth = isDarkTheme() ? 0.35 : 0.22
       sprite.strokeColor = labelStrokeColorFor(node)
-      // UnrealBloomPass does not preserve transparent sprite pixels cleanly
-      // unless the empty texels are discarded. Without alphaTest, the label
-      // quad can appear as a tinted rectangle even with backgroundColor=false.
+      // Discard empty texels so the label quad never reads as a tinted
+      // rectangle even with backgroundColor=false.
       sprite.material.transparent = true
       sprite.material.depthWrite = false
       sprite.material.alphaTest = 0.01
@@ -2420,11 +2333,20 @@ function bindGraph(
     const k = Math.min((width * (0.5 - margin)) / halfX, (height * (0.5 - margin)) / halfY)
     return clamp(1 / k, 0.3, 1)
   }
+  let fitRetries = 0
   const fitOverview = (): void => {
     const mountEl = options.root.querySelector("#graph-landing-mount")
     const width = mountEl instanceof HTMLElement ? mountEl.clientWidth : 0
     const height = mountEl instanceof HTMLElement ? mountEl.clientHeight : 0
     if (data.nodes.length > 0) graph.zoomToFit?.(0, 40)
+    // The bounding box is degenerate until meshes receive their first
+    // positions; a fit against it parks the camera on the origin and the
+    // graph renders blank. Retry next frame until the fit is real.
+    if (data.nodes.length > 1 && currentCameraVector().len < 10 && fitRetries++ < 120) {
+      fitFrame = window.requestAnimationFrame(fitOverview)
+      return
+    }
+    fitRetries = 0
     zoomBaseDistance = currentCameraVector().len * overviewFill(width, height)
     applyZoom(0)
     updateFog()
@@ -2493,23 +2415,6 @@ function bindGraph(
     applyView()
   }
 
-  // Bloom runs through the post-processing composer, which flattens the
-  // transparent daytime clear color to black. Attach the pass only at night
-  // so the day sky renders straight to the alpha canvas.
-  const syncBloom = (): void => {
-    if (!options.bloomPass || typeof graph.postProcessingComposer !== "function") return
-    const composer = graph.postProcessingComposer()
-    const attached = composer.passes.includes(options.bloomPass)
-    if (isDarkTheme()) {
-      options.bloomPass.strength = BLOOM_STRENGTH
-      options.bloomPass.radius = BLOOM_RADIUS
-      options.bloomPass.threshold = BLOOM_THRESHOLD
-      if (!attached) composer.addPass(options.bloomPass)
-    } else if (attached) {
-      composer.removePass(options.bloomPass)
-    }
-  }
-
   const activeBackground = (): string =>
     options.use3d ? canvasBackground3d(theme.current) : canvasBackground(theme.current)
 
@@ -2529,7 +2434,7 @@ function bindGraph(
     // The daylight canvas clears to transparent, so fog takes the paper
     // color directly instead of the (transparent) clear color.
     graph.scene().fog = new options.three.Fog(
-      srgbCompensate(canvasBackground(theme.current)),
+      canvasBackground(theme.current),
       cameraDistance * FOG_NEAR_FACTOR,
       cameraDistance * FOG_FAR_FACTOR,
     )
@@ -2625,53 +2530,6 @@ function bindGraph(
       controls.autoRotate = false
       controls.autoRotateSpeed = AUTO_ROTATE_SPEED
     }
-    if (options.three && typeof graph.scene === "function") {
-      // Far dust shell: inert points well outside the note cloud so orbiting
-      // produces parallax and the graph reads as a volume, not a plane.
-      const three = options.three
-      const positions = new Float32Array(DUST_COUNT * 3)
-      let seed = 0x9e3779b9
-      const random = (): number => {
-        seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0
-        return seed / 0x100000000
-      }
-      for (let index = 0; index < DUST_COUNT; index += 1) {
-        const u = random() * 2 - 1
-        const angle = random() * Math.PI * 2
-        const ring = Math.sqrt(1 - u * u)
-        const radius =
-          DUST_RADIUS.min + Math.pow(random(), 0.6) * (DUST_RADIUS.max - DUST_RADIUS.min)
-        positions[index * 3] = ring * Math.cos(angle) * radius
-        positions[index * 3 + 1] = u * radius
-        positions[index * 3 + 2] = ring * Math.sin(angle) * radius
-      }
-      const geometry = new three.BufferGeometry()
-      geometry.setAttribute("position", new three.Float32BufferAttribute(positions, 3))
-      const dustMaterial = new three.PointsMaterial({
-        color: "#ffffff",
-        size: 1.6,
-        sizeAttenuation: false,
-        transparent: true,
-        depthWrite: false,
-        opacity: 0.6,
-        blending: three.NormalBlending,
-        fog: false,
-      })
-      const dust = new three.Points(geometry, dustMaterial)
-      graph.scene().add(dust)
-      window.addCleanup(() => graph.scene?.().remove(dust))
-      updateDust = () => {
-        const dark = isDarkTheme()
-        // Stars vanish in daylight; the day sky relies on fog for depth.
-        dust.visible = dark
-        dustMaterial.color.set(STAR_WHITE)
-        dustMaterial.opacity = 0.42
-        dustMaterial.size = 1.4
-        dustMaterial.blending = three.AdditiveBlending
-        dustMaterial.needsUpdate = true
-      }
-      updateDust()
-    }
     graph.warmupTicks(options.layout.warmupTicks ?? 50)
     graph.cooldownTicks(
       options.layout.freezeAfterWarmup ? 0 : (options.layout.cooldownTicks ?? 200),
@@ -2685,7 +2543,6 @@ function bindGraph(
     if (typeof graph.linkDirectionalParticleColor === "function") {
       graph.linkDirectionalParticleColor(() => (isDarkTheme() ? STAR_WHITE : theme.current.accent))
     }
-    syncBloom()
     if (typeof graph.cameraPosition === "function") {
       graph.cameraPosition(INITIAL_CAMERA, INITIAL_LOOK_AT)
       if (tune.zoom !== 1) {
@@ -2694,27 +2551,11 @@ function bindGraph(
     }
     paintLabels3d()
     updateFog()
-    // The constellation orbits automatically, including during inspection.
-    {
-      let twinkleFrame = 0
-      const twinkle = (): void => {
-        if (!prefersReducedMotion() && !document.hidden && !dragging) {
-          const t = (performance.now() / 1000) * TWINKLE_SPEED
-          for (const entry of twinkleMaterials.values()) {
-            entry.material.opacity =
-              entry.base * (1 + TWINKLE_AMPLITUDE * Math.sin(t + entry.phase))
-          }
-        }
-        twinkleFrame = window.requestAnimationFrame(twinkle)
-      }
-      twinkleFrame = window.requestAnimationFrame(twinkle)
-      window.addCleanup(() => window.cancelAnimationFrame(twinkleFrame))
-    }
     // Label-distance fade + link-distance culling: merged into a single rAF
     // loop that reads graph.cameraPosition() once per frame instead of
     // twice, running the label-fade pass when options.lod.labelDistance is
     // set and the link-cull pass when options.lod.cullDistance is set.
-    // Unlike twinkle above, these are functional/perf thresholds rather
+    // These are functional/perf thresholds rather
     // than decorative motion, so the loop runs regardless of
     // prefersReducedMotion() — and it is entirely absent (no rAF loop
     // registered at all) unless at least one of labelDistance/cullDistance
@@ -2887,9 +2728,6 @@ function bindGraph(
     const active = !reduced && !document.hidden && !dragging
     if (typeof graph.controls === "function") {
       graph.controls().autoRotate = active
-    }
-    if (!active) {
-      for (const entry of twinkleMaterials.values()) entry.material.opacity = entry.base
     }
     refreshParticles()
   }
@@ -3181,8 +3019,6 @@ function bindGraph(
     theme.current = readTheme()
     graph.backgroundColor(activeBackground())
     updateFog()
-    updateDust()
-    syncBloom()
     refreshAccessors()
     paintLabels3d()
     renderLegend()
@@ -4040,17 +3876,6 @@ async function initGraphLanding(): Promise<void> {
         return null
       })
     : Promise.resolve(null)
-  const bloomPromise: Promise<BloomPass | null> = use3d
-    ? (import(UNREAL_BLOOM) as Promise<{ UnrealBloomPass?: new () => BloomPass }>)
-        .then((mod) => (mod.UnrealBloomPass ? new mod.UnrealBloomPass() : null))
-        .catch((error: unknown) => {
-          console.error(
-            "[graph-landing] UnrealBloomPass unavailable; dark-mode bloom disabled",
-            error,
-          )
-          return null
-        })
-    : Promise.resolve(null)
   const collisionPromise: Promise<ForceCollideFactory | null> = use3d
     ? (import(D3_FORCE_3D) as Promise<{ forceCollide?: ForceCollideFactory }>)
         .then((mod) => mod.forceCollide ?? null)
@@ -4107,10 +3932,9 @@ async function initGraphLanding(): Promise<void> {
     throw error
   }
 
-  const [spriteText, three, bloomPass, forceCollide] = await Promise.all([
+  const [spriteText, three, forceCollide] = await Promise.all([
     spritePromise,
     threePromise,
-    bloomPromise,
     collisionPromise,
   ])
 
@@ -4129,7 +3953,6 @@ async function initGraphLanding(): Promise<void> {
     use3d,
     root,
     spriteText,
-    bloomPass,
     three,
     forceCollide,
     fullData,

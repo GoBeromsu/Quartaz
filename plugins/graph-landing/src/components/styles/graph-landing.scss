@@ -1185,6 +1185,9 @@ a.graph-landing__title:focus-visible {
 }
 
 :root[saved-theme="dark"] .graph-landing {
+  --graph-backdrop: #090b12;
+  --graph-surface: color-mix(in srgb, #11141c 92%, transparent);
+  --graph-surface-strong: #11141c;
   background: var(--graph-backdrop);
 }
 

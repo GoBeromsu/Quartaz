@@ -2,6 +2,23 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.14.1
+
+### Changed
+
+- Dark theme: the night sky is gone. Nodes are solid dots (accent hubs, ink
+  leaves) on a `#090b12` backdrop with gray-blue hairline edges at the same
+  opacity as daylight, matching the XIA site. Bloom, star twinkle, and the far
+  dust shell are removed along with the UnrealBloomPass import.
+- The WebGL clear color no longer pre-compensates for sRGB output; the
+  renderer already round-trips it, so the backdrop now matches the CSS hex.
+
+### Fixed
+
+- The initial overview fit retries until node meshes have positions, so the
+  camera no longer parks on the origin and renders an empty graph when
+  `onEngineStop` lands before the first positioned frame.
+
 ## 0.14.0
 
 ### Changed
