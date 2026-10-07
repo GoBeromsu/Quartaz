@@ -2,6 +2,13 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.12.1
+
+### Changed
+
+- Note dots are larger (3.6–10.5 radius), ten hubs are labeled by default, and the
+  overview camera pulls in further so the constellation fills the hero.
+
 ## 0.12.0
 
 ### Changed

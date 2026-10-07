@@ -303,7 +303,7 @@ const UNREAL_BLOOM = `https://esm.sh/three@${THREE_VERSION}/examples/jsm/postpro
 
 const HUB_COUNT = 8
 // Landmark titles leave space for the stars at overview scale.
-const LABEL_HUB_COUNT = 6
+const LABEL_HUB_COUNT = 10
 const HUB_EGO_N = 6
 const MIN_NODE_VAL = 1
 const MAX_NODE_VAL = 4
@@ -339,14 +339,14 @@ const INITIAL_CAMERA_DISTANCE = Math.hypot(INITIAL_CAMERA.x, INITIAL_CAMERA.y, I
 // zoomToFit frames the whole bounding box, which leaves a small cluster
 // floating in the middle of the hero. Pull the overview camera closer so the
 // constellation fills the viewport like the reference garden.
-const OVERVIEW_FILL = 0.6
+const OVERVIEW_FILL = 0.52
 const FOG_NEAR_FACTOR = 300 / INITIAL_CAMERA_DISTANCE
 const FOG_FAR_FACTOR = 1600 / INITIAL_CAMERA_DISTANCE
 // Alex grammar: small bright cores with tight bloom halos, hairline edges.
 // Bloom stays tight (low radius, mid threshold) so the night-sky background
 // keeps its near-black depth instead of washing into gray fog.
-const NODE_RADIUS_MIN = 2.6
-const NODE_RADIUS_MAX = 7.2
+const NODE_RADIUS_MIN = 3.6
+const NODE_RADIUS_MAX = 10.5
 // Star sprites carry HDR color (>1) so only their cores cross the bloom
 // threshold; white label pixels stay at 1 and remain crisp.
 const STAR_HDR = 1.6
