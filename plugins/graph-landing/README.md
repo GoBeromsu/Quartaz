@@ -14,38 +14,19 @@ hub attraction, and a slow automatic orbit. All configuration options are option
   reduced-motion preference pause decorative animation.
 - Up to six non-overlapping landmark titles appear at overview; focus reveals the connected neighborhood.
   Distance LOD retains label relevance and always keeps the focused title.
-- Two skies. Dark: stars are soft white additive light points with degree-driven
-  luminance and subtly warm hubs; a neutral dust field gives parallax. Light: a
-  clear blue sky with photographic white clouds shows through the transparent
-  canvas. Connections are restrained straight lines at every graph size.
-  The daytime photograph flows diagonally on a 40-second, constant-speed alternating path;
-  overscan keeps its edges covered. Dragging, background tabs, and reduced-motion
-  preferences pause the drift. This moves the complete photograph, not individual clouds.
-  Base node radii span 5–14.4 world units before the size control multiplier.
-  Daylight connections use thicker navy strokes and a stronger opacity floor.
-  Daylight 3D lines stop at node boundaries; beads render above crossing lines
-  to preserve clean white centers. Overlapping endpoint nodes hide the intervening segment.
-  Day nodes are slightly larger white beads outlined in navy, with colored
-  outer rings for focus and lens context. Dark labels have a white halo;
-  navy links strengthen around the hovered node. The cumulus photograph stays visible.
+- Two skies. Dark: small white additive stars with crimson-tinted hubs over a
+  deep night backdrop; a neutral dust field gives parallax and fog fades distant
+  threads. Light: paper and ink. Notes are soft ink dots, hubs and focus take
+  the crimson accent, tags and external links keep their softer tint, and
+  connections are thin gray hairlines. Both skies share the same geometry;
+  only color, size, and fog change with the theme.
+  Base node radii span 2.6–7.2 world units before the size control multiplier.
+  The overview camera pulls in past fit-to-view so the constellation fills the hero.
   Night links blend their endpoints' star colors and
   brighten with the log of the weaker endpoint's degree, so hub filaments glow
   while leaf threads stay faint; folder/co-occurrence texture appears in its lens.
 - While music plays, a record-sleeve label beside the turntable shows the
   current title and artist. Hover previews sit bottom-right, clear of the dock.
-
-## Daytime photograph
-
-The bundled 3840 × 2160 WebP adapts
-[_2016-08 Paris Montreal flight 15_](https://commons.wikimedia.org/wiki/File:2016-08_Paris_Montreal_flight_15.jpg)
-by Wikimedia Commons user [0x010C](https://commons.wikimedia.org/wiki/User:0x010C),
-licensed under
-[CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
-The native 5759 × 3839 photograph is cropped to 5759 × 3239
-(x=0–5759, y=300–3539), resized without upscaling to 3840 × 2160, and
-color-balanced toward neutral white clouds, and converted to WebP. This adapted image is distributed
-under CC BY-SA 4.0. The deployed sky requires no third-party image request;
-plugin code remains MIT-licensed.
 
 ## Install or update
 
@@ -59,7 +40,7 @@ the `ref` below selects the installed plugin release.
 - source:
     repo: github:GoBeromsu/Quartaz
     subdir: plugins/graph-landing
-    ref: graph-landing-v0.11.2
+    ref: graph-landing-v0.12.0
     name: graph-landing
   enabled: true
 ```

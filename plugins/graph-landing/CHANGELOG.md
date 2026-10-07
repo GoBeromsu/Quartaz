@@ -2,6 +2,18 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.12.0
+
+### Changed
+
+- Daylight is paper and ink: transparent canvas over the page background, ink
+  dots for notes, crimson hubs and focus, thin gray links with fog. The
+  photographed cloud sky, its drift animation, bead outlines, and the photo
+  credit are removed.
+- Night stars are smaller with crimson-tinted hubs; fog applies in both themes.
+- Overview camera pulls in past fit-to-view so small graphs fill the hero.
+- Links are slightly thicker to avoid sub-pixel dashing.
+
 ## 0.11.2
 
 ### Fixed
