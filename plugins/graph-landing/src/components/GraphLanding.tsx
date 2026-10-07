@@ -7,15 +7,11 @@ import type { GraphLandingPageOptions } from "../pageType"
 // @ts-expect-error - inline script import handled by tsup inline-script-loader
 import graphLandingScript from "../scripts/graph-landing.inline.ts"
 import styles from "./styles/graph-landing.scss"
+import { resolveLocale, type LocaleEntry } from "../locale"
 
 interface MultilingualFields {
   locale?: string
   translationKey?: string
-}
-
-interface LocaleEntry {
-  id: string
-  nativeName?: string
 }
 
 interface MultilingualCfg {
@@ -151,13 +147,6 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
   }
 }
 
-function localeHomeHref(localeId: string): string {
-  return `/${localeId}/`
-}
-
-function localePageHref(localeId: string, permalink: string): string {
-  return `/${localeId}/${permalink}`
-}
 
 function slugToAbsHref(slug: string): string {
   const isIndex = slug === "index" || slug.endsWith("/index")
@@ -184,19 +173,24 @@ function switchAriaLabel(targetLocaleId: string, targetName: string): string {
   return `Switch to ${targetName}`
 }
 
+// Finds a site page by its multilingual translationKey when a plugin provides
+// one, otherwise by plain slug (`about`, `ko/about`). No plugin is required.
 function findLocaleSlug(
   allFiles: QuartzComponentProps["allFiles"],
   translationKey: string,
   localeId: string,
+  prefixed: boolean,
 ): string | null {
+  const plainSlug = prefixed ? `${localeId}/${translationKey}` : translationKey
   const match = allFiles.find((file) => {
+    if (typeof file.slug !== "string" || file.slug === "index") {
+      return false
+    }
     const multilingual = file.multilingual as MultilingualFields | undefined
-    return (
-      multilingual?.translationKey === translationKey &&
-      multilingual?.locale === localeId &&
-      typeof file.slug === "string" &&
-      file.slug !== "index"
-    )
+    if (multilingual?.translationKey) {
+      return multilingual.translationKey === translationKey && multilingual.locale === localeId
+    }
+    return file.slug === plainSlug || file.slug === `${plainSlug}/index`
   })
   return typeof match?.slug === "string" ? match.slug : null
 }
@@ -214,7 +208,8 @@ function localeToggleLink(
     return null
   }
   const slug =
-    findLocaleSlug(allFiles, translationKey, other.id) ?? findLocaleSlug(allFiles, "home", other.id)
+    findLocaleSlug(allFiles, translationKey, other.id, true) ??
+    findLocaleSlug(allFiles, "home", other.id, true)
   if (!slug) {
     return null
   }
@@ -248,24 +243,30 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
     const GraphLanding: QuartzComponent = ({ fileData, cfg, allFiles }: QuartzComponentProps) => {
       const multilingual = fileData.multilingual as MultilingualFields | undefined
       const slug = typeof fileData.slug === "string" ? fileData.slug : ""
-      const localeId = multilingual?.locale ?? slug.split("/")[0] ?? options.defaultLocale ?? "ko"
       const multilingualCfg = (
         cfg as QuartzComponentProps["cfg"] & { multilingual?: MultilingualCfg }
       ).multilingual
-      const sourceLocale = multilingualCfg?.sourceLocale ?? options.defaultLocale ?? "ko"
       const locales = multilingualCfg?.locales ?? []
+      const { localeId, sourceLocale, prefixed } = resolveLocale({
+        frontmatterLocale: multilingual?.locale,
+        slug,
+        locales,
+        sourceLocale: multilingualCfg?.sourceLocale,
+        defaultLocale: options.defaultLocale,
+        siteLocale: cfg.locale,
+      })
       const localePrefixes = locales.map((locale) => locale.id).join(",")
       const copy = overlayCopyForLocale(localeId)
       const translationKey = multilingual?.translationKey ?? "graph"
-      const localeToggle = localeToggleLink(allFiles, locales, localeId, translationKey)
-      const homeSlug = findLocaleSlug(allFiles, "home", localeId)
-      const writingSlug = findLocaleSlug(allFiles, "writing", localeId)
-      const aboutSlug = findLocaleSlug(allFiles, "about", localeId)
-      const homeHref = homeSlug ? slugToAbsHref(homeSlug) : localeHomeHref(localeId)
-      const aboutHref = aboutSlug ? slugToAbsHref(aboutSlug) : localePageHref(localeId, "about")
-      const writingHref = writingSlug
-        ? slugToAbsHref(writingSlug)
-        : localePageHref(localeId, "writing")
+      const localeToggle =
+        locales.length > 1 ? localeToggleLink(allFiles, locales, localeId, translationKey) : null
+      const homeSlug = findLocaleSlug(allFiles, "home", localeId, prefixed)
+      const writingSlug = findLocaleSlug(allFiles, "writing", localeId, prefixed)
+      const aboutSlug = findLocaleSlug(allFiles, "about", localeId, prefixed)
+      const homeHref = homeSlug ? slugToAbsHref(homeSlug) : prefixed ? `/${localeId}/` : "/"
+      const aboutHref = aboutSlug ? slugToAbsHref(aboutSlug) : null
+      const writingHref = writingSlug ? slugToAbsHref(writingSlug) : null
+      const siteTitle = cfg.pageTitle ?? "Graph"
       const graphIndexPath = `${pathToRoot(slug)}/static/graphIndex.json`
 
       return (
@@ -332,16 +333,20 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
               <div class="graph-landing__chrome">
                 <div class="graph-landing__title-block graph-landing__title-block--chrome">
                   <a class="graph-landing__title" href={homeHref}>
-                    Beomsu Koh
+                    {siteTitle}
                   </a>
                 </div>
                 <nav class="graph-landing__top-right" aria-label="Site">
-                  <a class="graph-landing__nav-link" href={writingHref}>
-                    {copy.articles}
-                  </a>
-                  <a class="graph-landing__nav-link" href={aboutHref}>
-                    {copy.about}
-                  </a>
+                  {writingHref ? (
+                    <a class="graph-landing__nav-link" href={writingHref}>
+                      {copy.articles}
+                    </a>
+                  ) : null}
+                  {aboutHref ? (
+                    <a class="graph-landing__nav-link" href={aboutHref}>
+                      {copy.about}
+                    </a>
+                  ) : null}
                   {localeToggle ? (
                     <a
                       class="graph-landing__locale-toggle"
@@ -520,7 +525,7 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
                 {...{ onwheel: "event.stopPropagation()" }}
               >
                 <div class="graph-landing__title-block graph-landing__title-block--rail">
-                  <p class="graph-landing__title">Beomsu Koh</p>
+                  <p class="graph-landing__title">{siteTitle}</p>
                   <p class="graph-landing__counts" data-graph-counts>
                     {copy.countsTemplate.replace("{n}", "–").replace("{m}", "–")}
                   </p>

@@ -174,21 +174,28 @@ export interface GraphLandingPageOptions {
     tracks?: Array<{ title: string; artist?: string; url: string }>
   }
   /**
-   * Fallback locale id used when a page's locale cannot be determined from
-   * its multilingual frontmatter/slug prefix, and when the site's
-   * multilingual config has no `sourceLocale` set. Default: undefined —
-   * current behavior unchanged, falls back to `"ko"`. Set this when
-   * publishing a site whose primary locale is not Korean.
+   * Locale id that selects the built-in overlay copy ("ko" or anything else
+   * for English). Resolution order: a multilingual plugin's frontmatter
+   * locale, a configured locale slug prefix, this option, the language part
+   * of Quartz `configuration.locale`, then `"en"`. No multilingual plugin is
+   * required.
    */
   defaultLocale?: string
 }
 
 const graphPageMatcher: PageMatcher = ({ fileData }) => {
   const frontmatter = fileData.frontmatter as Record<string, unknown> | undefined
+  if (frontmatter?.graphLanding === true) {
+    return true
+  }
+  // A multilingual plugin may tag locale roots as home/graph; without one,
+  // any `graph.md` (root or nested) becomes the landing page.
   const translationKey = frontmatter?.translationKey
-  // Locale roots (/ko/, /en/) keep translationKey home; /graph stays as a
-  // dedicated alias so existing links do not break.
-  return translationKey === "graph" || translationKey === "home"
+  if (translationKey === "graph" || translationKey === "home") {
+    return true
+  }
+  const slug = typeof fileData.slug === "string" ? fileData.slug : ""
+  return slug === "graph" || slug.endsWith("/graph")
 }
 
 const GraphLandingPage: QuartzPageTypePlugin<GraphLandingPageOptions> = (userOpts) => {

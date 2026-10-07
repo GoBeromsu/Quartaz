@@ -2,6 +2,17 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.13.0
+
+### Changed
+
+- No dependency on a multilingual/locale plugin. Locale resolves from optional
+  frontmatter, a configured slug prefix, `defaultLocale`, the site's
+  `configuration.locale`, then `"en"`; a bare `graph.md` or `graphLanding: true`
+  frontmatter turns a page into the landing on any Quartz site.
+- The nav title comes from `configuration.pageTitle`; Writing/About links and
+  the language toggle render only when matching pages exist.
+
 ## 0.12.1
 
 ### Changed

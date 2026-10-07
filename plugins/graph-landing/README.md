@@ -307,12 +307,22 @@ a `title`, an optional `artist`, and a YouTube `url`.
 
 ### `defaultLocale`
 
-Fallback locale id used when a page's locale can't be determined from its
-frontmatter/slug prefix, and when the site has no `sourceLocale` set.
+Locale id for the built-in overlay copy (`ko` is Korean, anything else is
+English). No multilingual plugin is needed; resolution order is a plugin's
+frontmatter locale, a configured locale slug prefix, this option, the language
+part of Quartz `configuration.locale`, then `en`.
 
-- Default: `undefined` — original behavior unchanged, falls back to `"ko"`.
-- Set this when publishing a site whose primary locale is not Korean (e.g.
-  `defaultLocale: en`).
+### Which page becomes the landing
+
+Any of these, no plugin required:
+
+- a page with `graphLanding: true` in its frontmatter
+- a page whose slug is `graph` or ends in `/graph` (e.g. `content/graph.md`)
+- a page a multilingual plugin tags with `translationKey: graph` or `home`
+
+The nav title is Quartz `configuration.pageTitle`. Writing / About links appear
+only when a `writing` or `about` page exists (plain slug, or the current
+locale's translation when a multilingual plugin provides one).
 
 ## 3D performance
 

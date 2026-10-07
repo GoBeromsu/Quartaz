@@ -1,6 +1,6 @@
 {
   "name": "graph-landing",
-  "version": "0.12.1",
+  "version": "0.13.0",
   "description": "Locale home pageType that renders a full-viewport knowledge-graph constellation.",
   "keywords": [
     "quartz",
@@ -42,7 +42,7 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/scripts/graph-landing.inline.test.ts",
+    "test": "tsx --test src/scripts/graph-landing.inline.test.ts src/locale.test.ts",
     "prepack": "npm test && npm run typecheck && npm run build"
   },
   "peerDependencies": {
@@ -71,7 +71,7 @@
     "category": [
       "pageType"
     ],
-    "version": "0.12.1",
+    "version": "0.13.0",
     "quartzVersion": ">=5.0.0",
     "dependencies": [],
     "defaultOrder": 55,

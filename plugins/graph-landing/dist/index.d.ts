@@ -172,11 +172,11 @@ interface GraphLandingPageOptions {
         }>;
     };
     /**
-     * Fallback locale id used when a page's locale cannot be determined from
-     * its multilingual frontmatter/slug prefix, and when the site's
-     * multilingual config has no `sourceLocale` set. Default: undefined —
-     * current behavior unchanged, falls back to `"ko"`. Set this when
-     * publishing a site whose primary locale is not Korean.
+     * Locale id that selects the built-in overlay copy ("ko" or anything else
+     * for English). Resolution order: a multilingual plugin's frontmatter
+     * locale, a configured locale slug prefix, this option, the language part
+     * of Quartz `configuration.locale`, then `"en"`. No multilingual plugin is
+     * required.
      */
     defaultLocale?: string;
 }
