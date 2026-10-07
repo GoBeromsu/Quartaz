@@ -146,6 +146,7 @@ interface ForceGraphInstance {
   zoom?: (k: number, ms?: number) => unknown
   graph2ScreenCoords?: (x: number, y: number, z?: number) => { x: number; y: number }
   zoomToFit?: (ms: number, padding: number) => unknown
+  camera?: () => { updateMatrixWorld?: () => void } | undefined
   linkThreeObject?: (fn: (link: GraphLink) => unknown) => unknown
   linkPositionUpdate?: (
     fn: (
@@ -314,6 +315,7 @@ const LINK_OPACITY = 1
 const DIM_ALPHA = 0.18
 const LENS_STORAGE_KEY = "graph-landing:lens"
 const TUNE_STORAGE_KEY = "graph-landing:tune"
+const HINT_STORAGE_KEY = "graph-landing:hint"
 const AUDIO_STORAGE_KEY = "graph-landing:ambient-audio"
 const AMBIENT_VIDEO_ID = "UDVtMYqUAyw"
 const AMBIENT_MAX_VOLUME = 12
@@ -336,9 +338,9 @@ const INITIAL_CAMERA_DISTANCE = Math.hypot(INITIAL_CAMERA.x, INITIAL_CAMERA.y, I
 // Scaling with distance keeps the same relative depth-cue framing at every
 // zoom level: near sits inside the current view, far sits past the current
 // view's far edge.
-// zoomToFit frames the whole bounding box, which leaves a small cluster
-// floating in the middle of the hero. Pull the overview camera closer so the
-// constellation fills the viewport like the reference garden.
+// Fallback overview zoom when the screen extent cannot be measured (see
+// overviewFill): pull the fitted camera closer so the constellation fills the
+// hero instead of floating as a small cluster.
 const OVERVIEW_FILL = 0.52
 const FOG_NEAR_FACTOR = 300 / INITIAL_CAMERA_DISTANCE
 const FOG_FAR_FACTOR = 1600 / INITIAL_CAMERA_DISTANCE
@@ -351,7 +353,7 @@ const NODE_RADIUS_MAX = 10.5
 // threshold; white label pixels stay at 1 and remain crisp.
 const STAR_HDR = 1.6
 const STAR_SPRITE_SCALE_DARK = 4.6
-const STAR_SPRITE_SCALE_LIGHT = 2.6
+const STAR_SPRITE_SCALE_LIGHT = 3.2
 const STAR_TEXTURE_SIZE = 64
 // Daylight ink dots fill this radius of the 64px texture with a soft edge.
 const INK_DOT_TEXTURE_RADIUS = 24
@@ -1570,13 +1572,13 @@ function bindGraph(
   const edgeBaseOpacity = (kind: LinkKind): number => {
     const dark = isDarkTheme()
     if (kind === "wikilink") {
-      return dark ? 0.52 : 0.72
+      return dark ? 0.52 : 0.8
     }
     if (kind === "external") {
-      return dark ? 0.42 : 0.62
+      return dark ? 0.42 : 0.7
     }
     if (kind === "tag") {
-      return dark ? 0.38 : 0.55
+      return dark ? 0.38 : 0.62
     }
     return 0
   }
@@ -2368,10 +2370,62 @@ function bindGraph(
     )
   }
 
+  // One-time interaction hint, shown after the first fit and dismissed by the
+  // first gesture. Session-scoped so it never nags across pages.
+  const hintEl = options.root.querySelector("[data-graph-hint]")
+  let hintTimer = 0
+  const hideHint = (): void => {
+    if (!(hintEl instanceof HTMLElement) || hintEl.hidden) return
+    hintEl.hidden = true
+    window.clearTimeout(hintTimer)
+    try {
+      sessionStorage.setItem(HINT_STORAGE_KEY, "1")
+    } catch {
+      // Private mode or blocked storage: the hint simply shows again next page.
+    }
+  }
+  const showHint = (): void => {
+    if (!(hintEl instanceof HTMLElement)) return
+    try {
+      if (sessionStorage.getItem(HINT_STORAGE_KEY)) return
+    } catch {
+      // ignore
+    }
+    hintEl.hidden = false
+    hintTimer = window.setTimeout(hideHint, 9000)
+  }
+  window.addCleanup(() => window.clearTimeout(hintTimer))
+
   let initialFit = true
+  // zoomToFit frames the bounding sphere, which leaves most of the viewport
+  // empty. Measure where the nodes actually land on screen and zoom in until
+  // the widest axis fills the viewport minus a margin, so landscape and
+  // portrait screens both get a full overview without clipping.
+  const overviewFill = (width: number, height: number): number => {
+    if (typeof graph.graph2ScreenCoords !== "function" || width <= 0 || height <= 0) {
+      return OVERVIEW_FILL
+    }
+    graph.camera?.()?.updateMatrixWorld?.()
+    let halfX = 0
+    let halfY = 0
+    for (const node of currentData().nodes) {
+      if (node.x === undefined || node.y === undefined) continue
+      const screen = graph.graph2ScreenCoords(node.x, node.y, node.z ?? 0)
+      halfX = Math.max(halfX, Math.abs(screen.x - width / 2))
+      halfY = Math.max(halfY, Math.abs(screen.y - height / 2))
+    }
+    if (halfX < 1 || halfY < 1) return OVERVIEW_FILL
+    // ponytail: linear zoom model ignores perspective depth; the margin absorbs it.
+    const margin = 0.12
+    const k = Math.min((width * (0.5 - margin)) / halfX, (height * (0.5 - margin)) / halfY)
+    return clamp(1 / k, 0.3, 1)
+  }
   const fitOverview = (): void => {
-    if (data.nodes.length > 0) graph.zoomToFit?.(0, 80)
-    zoomBaseDistance = currentCameraVector().len * OVERVIEW_FILL
+    const mountEl = options.root.querySelector("#graph-landing-mount")
+    const width = mountEl instanceof HTMLElement ? mountEl.clientWidth : 0
+    const height = mountEl instanceof HTMLElement ? mountEl.clientHeight : 0
+    if (data.nodes.length > 0) graph.zoomToFit?.(0, 40)
+    zoomBaseDistance = currentCameraVector().len * overviewFill(width, height)
     applyZoom(0)
     updateFog()
   }
@@ -2383,6 +2437,7 @@ function bindGraph(
       fitFrame = window.requestAnimationFrame(() => {
         initialFit = false
         fitOverview()
+        showHint()
       })
     }
   })
@@ -2978,6 +3033,7 @@ function bindGraph(
   }
 
   const activateNode = (node: GraphNode, center = false): void => {
+    hideHint()
     // Lazily pull the clicked node's neighbors into the live simulation
     // before selecting it, so `fillInspect`'s connectedNeighbors reflects the
     // freshly-expanded set immediately. No-op when maxRenderedNodes is unset.
@@ -3035,6 +3091,7 @@ function bindGraph(
     let pointerDown: { x: number; y: number } | null = null
     let pointerClickTimer = 0
     const onPointerDown = (event: PointerEvent): void => {
+      hideHint()
       pointerDown = { x: event.clientX, y: event.clientY }
       libraryHandledClick = false
       dragging = true

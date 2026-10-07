@@ -45,6 +45,7 @@ interface OverlayCopy {
   musicCurrentTrack: string
   folderRoot: string
   previewHint: string
+  hint: string
   previewTagTemplate: string
   inspectOpen: string
   inspectOpenExternal: string
@@ -93,6 +94,7 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
       musicCurrentTrack: "현재 트랙",
       folderRoot: "루트",
       previewHint: "클릭하면 연결이 열립니다",
+      hint: "끌어서 돌리고, 확대해서 들여다보고, 점을 누르면 열립니다",
       previewTagTemplate: "{n}개 노트",
       inspectOpen: "본문 읽기",
       inspectOpenExternal: "열기",
@@ -133,6 +135,7 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
     musicCurrentTrack: "Current track",
     folderRoot: "Root",
     previewHint: "Click to inspect connections",
+    hint: "Drag to orbit, zoom to look closer, tap a dot to open",
     previewTagTemplate: "{n} notes",
     inspectOpen: "Read note",
     inspectOpenExternal: "Open",
@@ -709,6 +712,9 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
                 <p class="graph-landing__preview-excerpt" data-graph-preview-excerpt></p>
                 <p class="graph-landing__preview-hint">{copy.previewHint}</p>
               </aside>
+              <p class="graph-landing__hint" data-graph-hint hidden>
+                {copy.hint}
+              </p>
               <aside
                 class="graph-landing__inspect"
                 data-graph-inspect

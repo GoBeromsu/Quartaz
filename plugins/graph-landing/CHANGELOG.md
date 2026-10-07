@@ -2,6 +2,18 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.14.0
+
+### Changed
+
+- The overview fit measures where nodes land on screen and zooms until the
+  widest axis fills the viewport minus a margin, so portrait phones no longer
+  clip the constellation and landscape screens keep the full overview.
+- A one-time interaction hint ("drag to orbit, zoom, tap a dot") appears after
+  the first fit and disappears on the first gesture; remembered per session.
+- Light theme: note dots render larger and wikilink/external/tag edges are
+  more opaque for better contrast on white.
+
 ## 0.13.0
 
 ### Changed
