@@ -5,7 +5,6 @@ import type {
 } from "@quartz-community/types"
 import { classNames } from "@quartz-community/utils/lang"
 import { resolveRelative, type FullSlug } from "@quartz-community/utils/path"
-import { localeScopedFiles, type GlobalConfig } from "../locale"
 
 interface Options {
   title: string
@@ -21,12 +20,11 @@ export default ((userOpts?: Partial<Options>) => {
   const BlogAllTags: QuartzComponent = ({
     fileData,
     allFiles,
-    cfg,
     displayClass,
   }: QuartzComponentProps) => {
     const allTags = [
       ...new Set(
-        localeScopedFiles(cfg as GlobalConfig, fileData, allFiles).flatMap((file) => {
+        allFiles.flatMap((file) => {
           const tags = file.frontmatter?.tags
           return Array.isArray(tags) ? tags.map((tag) => String(tag)) : []
         }),

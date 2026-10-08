@@ -8,7 +8,7 @@
   - `permalink` must be in English (SEO-friendly, no UTF-8 encoding issues)
   - If title is already in English, keep it as-is
   - Use kebab-case: `my-article-title`
-- URL format: `berom.net/{permalink}` (no folder prefix)
+- URL format: `beomsukoh.com/{permalink}` (no folder prefix)
 
 ### Frontmatter Example
 
@@ -30,27 +30,21 @@ permalink: my-article-slug
 
 ### Deploy
 
-**Use `/deploy` skill for deployment** - it automates build, commit, push, and visual verification.
-
-Skill location: `../Ataraxia/.claude/skills/deploy/` (managed in Ataraxia vault)
-
-Manual command (if needed):
-
 ```bash
 npx quartz build && git add . && git commit -m "message" && git push origin v5
 ```
 
 - Branch: `v5`
 - Auto-deploy via GitHub Actions to GitHub Pages
-- Site: https://berom.net
+- Site: https://beomsukoh.com
 
 ## Content Sync
 
 ### Architecture
 
-- Source: `../Ataraxia/40. Digital Garden/` (Obsidian vault)
+- Source: `../Ataraxia/25. Digital Garden/` (Obsidian vault)
 - Destination: `./content/` (real directory, not symlink)
-- Pre-commit hook auto-syncs on every commit
+- Published as-is in Korean; no locale split
 
 ### Commands
 
@@ -62,7 +56,6 @@ npx quartz build && git add . && git commit -m "message" && git push origin v5
 
 ### Files
 
-- `.git/hooks/pre-commit` - Auto-sync hook
 - `scripts/watch-content.mjs` - Watch script using chokidar
 
 ## Image Policy

@@ -9,12 +9,6 @@ tags:
   - productivity
   - softwareengineering
 type: article
-translationKey: orca-serve-dev-server
-locale: ko
-sourceLocale: ko
-sourcePath: content/Articles/Orca serve로 Dev Server를 띄우니 노트북에서 해방된다.md
-sourceHash: sha256:1226cce045360eff4bfc9138d58bc6b1083592621f4e2703484d35fa647596c3
-translationStatus: source
 ---
 
 # Orca Serve 로 Dev Server 를 띄우니 노트북에서 해방된다

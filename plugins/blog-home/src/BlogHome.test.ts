@@ -4,15 +4,11 @@ import test, { describe } from "node:test"
 
 import { h } from "preact"
 import renderToString from "preact-render-to-string"
-import { parse } from "yaml"
 
 import type { QuartzComponentProps } from "@quartz-community/types"
 
-import { validateMultilingualConfig } from "../../../quartz/util/multilingual"
-import type { GlobalConfiguration, MultilingualConfiguration } from "../../../quartz/cfg"
-import type { BuildCtx } from "../../../quartz/util/ctx"
-import type { FullSlug } from "../../../quartz/util/path"
-import { isLocaleHomeFile, isLocaleHomeSlug } from "./locale"
+import type { FullSlug } from "@quartz-community/utils/path"
+import { isUtilitySlug } from "./utility"
 import BlogAllTags from "./components/BlogAllTags"
 import BlogArticleList from "./components/BlogArticleList"
 import BlogLatest from "./components/BlogLatest"
@@ -23,131 +19,32 @@ type TestGlobal = typeof globalThis & {
     readonly createElement: typeof h
   }
 }
-
-type Frontmatter = {
-  readonly title: string
-  readonly tags?: readonly string[]
-  readonly translationKey?: string
-}
 ;(globalThis as TestGlobal).React = { createElement: h }
 
 type CssCarrier = {
   readonly css?: string
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value)
-}
-
-function requiredRecord(value: unknown, label: string): Record<string, unknown> {
-  if (!isRecord(value)) {
-    assert.fail(`${label} should be an object`)
-  }
-
-  return value
-}
-
-function readBlogConfiguration(): GlobalConfiguration {
-  const parsed = requiredRecord(
-    parse(readFileSync(new URL("../../../quartz.config.yaml", import.meta.url), "utf8")),
-    "quartz.config.yaml",
-  )
-  const configuration = requiredRecord(parsed.configuration, "configuration")
-
-  return {
-    ...configuration,
-    multilingual: validateMultilingualConfig(configuration.multilingual),
-  } as GlobalConfiguration
-}
-
-function metadata(config: MultilingualConfiguration, locale: string, permalink: string) {
-  const localeConfig = config.locales.find((entry) => entry.id === locale)
-  if (!localeConfig) {
-    assert.fail(`missing locale config for ${locale}`)
-  }
-
-  return {
-    translationKey: permalink,
-    locale,
-    sourceLocale: "ko",
-    sourcePath: "quartz/test/fixtures/multilingual-build-content/ko-source.md",
-    sourceHash: "sha256:fixture",
-    translationStatus: locale === "ko" ? "source" : "translated",
-    permalink,
-    localizedPath: `${localeConfig.routePrefix}${permalink}`,
-    canonicalUrl: `https://beomsukoh.com${localeConfig.routePrefix}${permalink}`,
-    direction: localeConfig.direction,
-  }
-}
-
-function article(
-  config: MultilingualConfiguration,
-  locale: string,
-  title: string,
-  tags: readonly string[],
-) {
-  const translation = metadata(config, locale, "beauty-of-youth")
-
-  return {
-    slug: translation.localizedPath.replace(/^\//, "") as FullSlug,
-    filePath: `${locale}-beauty-of-youth.md`,
-    frontmatter: { title, tags } satisfies Frontmatter,
-    dates: { created: new Date("2024-01-01T00:00:00.000Z") },
-    defaultDateType: "created",
-    multilingual: translation,
-  }
-}
-
-function homePage(config: MultilingualConfiguration, locale: string) {
-  const translation = metadata(config, locale, "index")
-  translation.translationKey = "home"
-
-  return {
-    slug: `${locale}/index` as FullSlug,
-    filePath: `${locale}-index.md`,
-    frontmatter: { title: "Beomsu", translationKey: "home" } satisfies Frontmatter,
-    multilingual: translation,
-  }
-}
-
-function componentProps(cfg: GlobalConfiguration, slug: FullSlug): QuartzComponentProps {
-  const multilingual = cfg.multilingual
-  if (!multilingual) {
-    assert.fail("test config should include multilingual settings")
-  }
-
+function componentProps(slug: FullSlug): QuartzComponentProps {
   const allFiles = [
-    homePage(multilingual, "ko"),
-    homePage(multilingual, "en"),
-    article(multilingual, "ko", "젊음이 아름답다", ["essay", "korean-only"]),
-    article(multilingual, "en", "Youth Is Beautiful", ["essay", "english-only"]),
+    { slug: "index" as FullSlug, filePath: "index.md", frontmatter: { title: "Beomsu" } },
+    { slug: "writing" as FullSlug, filePath: "writing.md", frontmatter: { title: "Writing" } },
+    { slug: "graph" as FullSlug, filePath: "graph.md", frontmatter: { title: "그래프" } },
+    {
+      slug: "beauty-of-youth" as FullSlug,
+      filePath: "Articles/젊음이 아름답다.md",
+      frontmatter: { title: "젊음이 아름답다", tags: ["essay"] },
+      dates: { created: new Date("2024-01-01T00:00:00.000Z") },
+      defaultDateType: "created",
+    },
   ]
 
   return {
-    ctx: {
-      buildId: "blog-home-test",
-      argv: {
-        directory: "quartz/test/fixtures/multilingual-build-content",
-        verbose: false,
-        output: "public",
-        serve: false,
-        watch: false,
-        port: 8080,
-        wsPort: 3001,
-      },
-      cfg: { configuration: cfg, plugins: {} },
-      allSlugs: [],
-      allFiles: [],
-      incremental: false,
-      virtualPages: [],
-    } satisfies BuildCtx,
-    externalResources: { css: [], js: [] },
     fileData: { slug },
-    cfg,
+    cfg: { locale: "ko-KR" },
     children: [],
-    tree: { type: "root", children: [] },
     allFiles,
-  }
+  } as unknown as QuartzComponentProps
 }
 
 function componentCss(component: CssCarrier): string {
@@ -165,77 +62,26 @@ function assertIncludesAll(haystack: string, markers: readonly string[]): void {
   }
 }
 
-describe("Blog home locale-aware listings", () => {
-  test("treats locale-prefixed index slugs as homes", () => {
-    assert.equal(isLocaleHomeSlug("index"), true)
-    assert.equal(isLocaleHomeSlug("ko/index"), true)
-    assert.equal(isLocaleHomeSlug("en/index"), true)
-    assert.equal(isLocaleHomeSlug("en/beauty-of-youth"), false)
+describe("Blog home listings", () => {
+  test("treats index, writing, graph and about as utility pages", () => {
+    assert.equal(isUtilitySlug("index"), true)
+    assert.equal(isUtilitySlug("writing"), true)
+    assert.equal(isUtilitySlug("graph"), true)
+    assert.equal(isUtilitySlug("about"), true)
+    assert.equal(isUtilitySlug("articles/beauty-of-youth"), false)
   })
 
-  test("treats writing and graph utility notes as listing exclusions", () => {
-    assert.equal(isLocaleHomeFile({ frontmatter: { translationKey: "writing" } }), true)
-    assert.equal(isLocaleHomeFile({ frontmatter: { translationKey: "graph" } }), true)
-    assert.equal(isLocaleHomeFile({ frontmatter: { translationKey: "about" } }), false)
-  })
-
-  test("scopes article lists and tags to the current Korean locale home", () => {
-    const cfg = readBlogConfiguration()
-    const props = componentProps(cfg, "ko/index" as FullSlug)
+  test("lists articles but never utility pages", () => {
+    const props = componentProps("writing" as FullSlug)
     const articleList = renderToString(BlogArticleList({ title: "Writing", limit: 0 })(props))
     const latest = renderToString(BlogLatest({ title: "Latest", limit: 5 })(props))
     const tags = renderToString(BlogAllTags({ title: "Topics" })(props))
 
     assert.match(articleList, /젊음이 아름답다/)
-    assert.doesNotMatch(articleList, /Youth Is Beautiful/)
     assert.doesNotMatch(articleList, />Beomsu</)
+    assert.doesNotMatch(articleList, />그래프</)
     assert.match(latest, /젊음이 아름답다/)
-    assert.doesNotMatch(latest, /Youth Is Beautiful/)
-    assert.match(tags, /korean-only/)
-    assert.doesNotMatch(tags, /english-only/)
-  })
-
-  test("scopes article lists to the current English locale home", () => {
-    const cfg = readBlogConfiguration()
-    const props = componentProps(cfg, "en/index" as FullSlug)
-    const articleList = renderToString(BlogArticleList({ title: "Writing", limit: 0 })(props))
-
-    assert.match(articleList, /Youth Is Beautiful/)
-    assert.doesNotMatch(articleList, /젊음이 아름답다/)
-  })
-
-  test("omits the Obsidian source post when the other locale has no translation", () => {
-    const cfg = readBlogConfiguration()
-    const multilingual = cfg.multilingual
-    if (!multilingual) {
-      assert.fail("test config should include multilingual settings")
-    }
-    const sourceOnly = metadata(multilingual, "ko", "after-korea")
-    const props = componentProps(cfg, "en/index" as FullSlug)
-    props.allFiles = [
-      ...props.allFiles,
-      {
-        slug: "articles/after-returning-to-korea" as FullSlug,
-        filePath: "Articles/한국에 돌아온 후 근황.md",
-        frontmatter: { title: "한국에 돌아온 후 근황", tags: ["life"] },
-        dates: { created: new Date("2026-03-01T00:00:00.000Z") },
-        defaultDateType: "created",
-      },
-      {
-        slug: sourceOnly.localizedPath.replace(/^\//, "") as FullSlug,
-        filePath: "ko-after-korea.md",
-        frontmatter: { title: "번역 없는 원문", tags: ["life"] },
-        dates: { created: new Date("2026-04-01T00:00:00.000Z") },
-        defaultDateType: "created",
-        multilingual: sourceOnly,
-      },
-    ]
-    const articleList = renderToString(BlogArticleList({ title: "Writing", limit: 0 })(props))
-
-    assert.match(articleList, /Youth Is Beautiful/)
-    assert.doesNotMatch(articleList, /한국에 돌아온 후 근황/)
-    assert.doesNotMatch(articleList, /번역 없는 원문/)
-    assert.doesNotMatch(articleList, /젊음이 아름답다/)
+    assert.match(tags, /essay/)
   })
 })
 

@@ -14,13 +14,7 @@ interface DatedFile {
     };
 }
 
-interface LocaleFileData {
-    readonly slug?: string;
-    readonly frontmatter?: Record<string, unknown>;
-    readonly multilingual?: unknown;
-}
-
-interface ListFile extends DatedFile, LocaleFileData {
+interface ListFile extends DatedFile {
     readonly filePath?: string;
     readonly slug?: string;
     readonly frontmatter?: {

@@ -115,15 +115,6 @@ export interface QuartzPageTypePluginInstance {
   layout: string
   /** Optional page frame name (e.g. "default", "full-width", "minimal"). Defaults to "default". */
   frame?: string
-  /**
-   * When true, pageResources() omits the page-global `contentIndex.json`
-   * fetch (`fetchData`) for pages using this page type. Only set this when
-   * nothing on the page reads the global `fetchData` (e.g. a page type that
-   * fetches its own lighter index directly, like graph-landing's
-   * `indexSource: "graphIndex"`). Defaults to false, preserving today's
-   * unconditional fetch.
-   */
-  skipContentIndexFetch?: boolean
   body: QuartzComponentConstructor
   /** Optional render-time HAST tree transforms (e.g. resolving inline codeblocks). */
   treeTransforms?: (ctx: BuildCtx) => TreeTransform[]
@@ -144,8 +135,6 @@ export interface PageTypePluginEntry {
   layout: string
   /** Optional page frame name (e.g. "default", "full-width", "minimal"). Defaults to "default". */
   frame?: string
-  /** See QuartzPageTypePluginInstance.skipContentIndexFetch. */
-  skipContentIndexFetch?: boolean
   body: QuartzComponentConstructor
   treeTransforms?: (...args: never[]) => TreeTransform[]
 }

@@ -1,0 +1,26 @@
+{
+  "name": "permalink-slug",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "quartz": {
+    "name": "permalink-slug",
+    "displayName": "Permalink Slug",
+    "description": "Publishes a note at its frontmatter `permalink` instead of its folder path.",
+    "version": "1.0.0",
+    "category": [
+      "transformer"
+    ],
+    "defaultEnabled": true,
+    "defaultOrder": 7,
+    "defaultOptions": {}
+  }
+}

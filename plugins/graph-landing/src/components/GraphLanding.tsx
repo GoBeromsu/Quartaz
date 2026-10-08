@@ -8,6 +8,7 @@ import type { GraphLandingPageOptions } from "../pageType"
 import graphLandingScript from "../scripts/graph-landing.inline.ts"
 import styles from "./styles/graph-landing.scss"
 import { resolveLocale, type LocaleEntry } from "../locale"
+import type { JSX } from "preact"
 
 interface MultilingualFields {
   locale?: string
@@ -150,7 +151,6 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
   }
 }
 
-
 function slugToAbsHref(slug: string): string {
   const isIndex = slug === "index" || slug.endsWith("/index")
   const withoutIndex = isIndex ? slug.replace(/\/?index$/, "") : slug
@@ -242,6 +242,21 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
   // dispatcher.ts always calls `pageType.body(undefined)`, so any per-page
   // options must be closed over here, one level up, rather than threaded
   // through the constructor's own (unused) call arguments.
+  // "기술은 의도를\n증폭한다." + "의도" -> 기술은 <em>의도</em>를<br>증폭한다.
+  function renderHeadline(title: string, emphasis?: string) {
+    const lines = title.split("\n")
+    return lines.flatMap((line, lineIndex) => {
+      const parts: Array<string | JSX.Element> = []
+      if (emphasis && line.includes(emphasis)) {
+        const at = line.indexOf(emphasis)
+        parts.push(line.slice(0, at), <em>{emphasis}</em>, line.slice(at + emphasis.length))
+      } else {
+        parts.push(line)
+      }
+      return lineIndex < lines.length - 1 ? [...parts, <br />] : parts
+    })
+  }
+
   const GraphLandingConstructor: QuartzComponentConstructor = () => {
     const GraphLanding: QuartzComponent = ({ fileData, cfg, allFiles }: QuartzComponentProps) => {
       const multilingual = fileData.multilingual as MultilingualFields | undefined
@@ -276,6 +291,7 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
         <div
           class="graph-landing"
           data-rail-open="false"
+          data-hero={options.hero ? "true" : undefined}
           data-locale={localeId}
           data-source-locale={sourceLocale}
           data-locale-prefixes={localePrefixes}
@@ -411,6 +427,37 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
                   </button>
                 </nav>
               </div>
+              {options.hero ? (
+                <div class="graph-landing__copy">
+                  {options.hero.eyebrow ? (
+                    <p class="graph-landing__eyebrow">{options.hero.eyebrow}</p>
+                  ) : null}
+                  {options.hero.title ? (
+                    <h1 class="graph-landing__headline">
+                      {renderHeadline(options.hero.title, options.hero.titleEmphasis)}
+                    </h1>
+                  ) : null}
+                  {options.hero.lede ? (
+                    <p class="graph-landing__lede">{options.hero.lede}</p>
+                  ) : null}
+                  {options.hero.actions && options.hero.actions.length > 0 ? (
+                    <div class="graph-landing__actions">
+                      {options.hero.actions.map((action) => (
+                        <a
+                          class={
+                            action.accent
+                              ? "graph-landing__btn graph-landing__btn--accent"
+                              : "graph-landing__btn"
+                          }
+                          href={action.href}
+                        >
+                          {action.label}
+                        </a>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
               <button
                 type="button"
                 class="graph-landing__scrim"

@@ -1,7 +1,7 @@
 {
   "name": "blog-home",
   "version": "0.1.0",
-  "description": "Locale home listings and Ataraxia Minimal styles for Beomsu's Quartz blog.",
+  "description": "Writing listings and Ataraxia Minimal styles for Beomsu's Quartz blog.",
   "type": "module",
   "license": "MIT",
   "private": true,
@@ -49,7 +49,7 @@
   "quartz": {
     "name": "blog-home",
     "displayName": "Blog Home",
-    "description": "Latest posts, article list, tags, and Ataraxia Minimal styles for locale homes.",
+    "description": "Latest posts, article list, tags, and Ataraxia Minimal styles for the writing page.",
     "category": [
       "component"
     ],
@@ -62,15 +62,15 @@
     "components": {
       "BlogLatest": {
         "displayName": "Blog Latest",
-        "description": "Latest posts on locale home pages."
+        "description": "Latest posts."
       },
       "BlogArticleList": {
         "displayName": "Blog Article List",
-        "description": "Full writing list on locale home pages."
+        "description": "Full writing list."
       },
       "BlogAllTags": {
         "displayName": "Blog All Tags",
-        "description": "Locale-scoped topic tags on home pages."
+        "description": "Topic tags across all notes."
       },
       "BlogStyles": {
         "displayName": "Blog Styles",

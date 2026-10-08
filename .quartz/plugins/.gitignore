@@ -1,6 +1,0 @@
-# Ignore all plugin subdirectories and their node_modules
-# Only index.ts (the barrel file) is tracked in git
-# CI installs plugins via: npx quartz plugin install --from-config
-*
-!.gitignore
-!index.ts

@@ -330,11 +330,7 @@ body:has(.graph-landing) {
 /* A flat vinyl disc: black with hairline grooves, an accent label, no plinth. */
 .graph-landing__turntable-record {
   background:
-    repeating-radial-gradient(
-      circle,
-      transparent 0 2px,
-      rgba(255, 255, 255, 0.055) 2px 2.5px
-    ),
+    repeating-radial-gradient(circle, transparent 0 2px, rgba(255, 255, 255, 0.055) 2px 2.5px),
     radial-gradient(circle at 38% 36%, #2a2d35, #15171d 62%);
   border: 1px solid color-mix(in srgb, var(--graph-text) 22%, transparent);
   border-radius: 50%;
@@ -1192,6 +1188,150 @@ a.graph-landing__title:focus-visible {
   justify-content: center;
   padding: 1.5rem;
   text-align: center;
+}
+
+/* Hero copy (options.hero): bottom-left manifesto over the canvas. */
+.graph-landing__copy {
+  bottom: calc(16px + 48px + 24px);
+  left: clamp(16px, 4vw, 48px);
+  max-width: 640px;
+  pointer-events: none;
+  position: absolute;
+  transition:
+    opacity 0.2s ease,
+    visibility 0.2s ease;
+  z-index: 3;
+}
+
+.graph-landing__copy > * {
+  pointer-events: auto;
+}
+
+.graph-landing[data-rail-open="true"] .graph-landing__copy {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.graph-landing__eyebrow {
+  color: var(--graph-accent);
+  font-family: var(--codeFont);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  margin: 0 0 0.9rem;
+  text-transform: uppercase;
+}
+
+.graph-landing__headline {
+  color: var(--graph-text);
+  font-family: "Newsreader", "Noto Serif KR", Georgia, serif;
+  font-size: clamp(2.4rem, 6.2vw, 4.6rem);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.02;
+  margin: 0 0 1.1rem;
+  word-break: keep-all;
+}
+
+.graph-landing__headline em {
+  color: var(--graph-accent);
+  font-style: italic;
+}
+
+.graph-landing__lede {
+  color: var(--graph-muted);
+  font-size: clamp(1rem, 1.5vw, 1.15rem);
+  line-height: 1.6;
+  margin: 0 0 1.4rem;
+  max-width: 48ch;
+  word-break: keep-all;
+}
+
+.graph-landing__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.graph-landing__btn {
+  border: 1px solid var(--graph-border);
+  border-radius: 999px;
+  color: var(--graph-text);
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.7rem 1.15rem;
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.graph-landing__btn:hover {
+  border-color: var(--graph-accent);
+  color: var(--graph-accent);
+}
+
+.graph-landing__btn--accent {
+  background: var(--graph-accent);
+  border-color: var(--graph-accent);
+  color: var(--light);
+}
+
+.graph-landing__btn--accent:hover {
+  background: color-mix(in srgb, var(--graph-accent) 85%, #000);
+  color: var(--light);
+}
+
+/* Push the constellation right of the copy on wide screens; fade its left edge. */
+@media (min-width: 861px) {
+  .graph-landing[data-hero] .graph-landing__canvas {
+    left: clamp(0px, 18vw, 280px);
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 clamp(240px, 34vw, 560px));
+    mask-image: linear-gradient(to right, transparent 0, #000 clamp(240px, 34vw, 560px));
+    width: auto;
+  }
+}
+
+@media (max-width: 700px) {
+  .graph-landing__copy {
+    bottom: calc(max(16px, env(safe-area-inset-bottom)) + 48px + 16px);
+    left: 16px;
+    max-width: none;
+    right: 16px;
+  }
+
+  /* Fade the constellation behind the copy so labels do not collide with it. */
+  .graph-landing__copy::before {
+    background: linear-gradient(
+      to top,
+      var(--graph-surface-strong) 0,
+      var(--graph-surface-strong) 70%,
+      transparent 100%
+    );
+    bottom: -24px;
+    content: "";
+    left: -16px;
+    position: absolute;
+    right: -16px;
+    top: -56px;
+    z-index: -1;
+  }
+
+  .graph-landing__headline {
+    font-size: clamp(1.8rem, 8vw, 2.4rem);
+  }
+
+  .graph-landing__lede {
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    display: -webkit-box;
+    font-size: 0.95rem;
+    overflow: hidden;
+  }
+
+  .graph-landing[data-hero] .graph-landing__hint {
+    display: none;
+  }
 }
 
 :root[saved-theme="dark"] .graph-landing {

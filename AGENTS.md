@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Quartaz is a Quartz v5 fork for publishing the Ataraxia knowledge base. The repository contains the Quartz engine, site configuration, and reusable plugins under `plugins/`. `plugins/graph-landing` provides the full-screen 2D/3D knowledge-graph page used for locale home and graph routes.
+Quartaz is a Quartz v5 fork for publishing the Ataraxia knowledge base. The repository contains the Quartz engine, site configuration, and reusable plugins under `plugins/`. `plugins/graph-landing` provides the full-screen 2D/3D knowledge-graph page used for the home and graph routes.
 
 ## Architecture & Data Flow
 
@@ -18,7 +18,7 @@ Quartaz is a Quartz v5 fork for publishing the Ataraxia knowledge base. The repo
 
 - `quartz/`: Quartz engine, CLI, plugin loader, and core emitters.
 - `plugins/graph-landing/`: reusable graph page-type package.
-- `plugins/multilingual-content-index/`: multilingual content/RSS/sitemap emitter; keep it independent from graph rendering.
+- `plugins/permalink-slug/`, `plugins/legacy-frontmatter-dates/`: tiny frontmatter transformers (flat `permalink` URLs, legacy date keys).
 - `.github/workflows/`: repository CI and release lanes.
 - `scripts/`: site/content operations. `scripts/watch-content.mjs` is destructive site synchronization (`rsync --delete`), not a release command.
 - `content/` and `public*/`: source and generated site data; do not hand-edit generated output.

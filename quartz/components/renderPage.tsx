@@ -11,8 +11,7 @@ import { FullSlug, RelativeURL, joinSegments, normalizeHastElement } from "../ut
 import { clone } from "../util/clone"
 import { Root, Element, ElementContent } from "hast"
 import { GlobalConfiguration } from "../cfg"
-import { i18n, type ValidLocale } from "../i18n"
-import { isTranslationMetadata, isValidLocaleTag } from "../util/multilingual"
+import { i18n } from "../i18n"
 import { styleText } from "util"
 import { resolveFrame } from "./frames"
 import type { TreeTransform } from "../plugins/types"
@@ -35,7 +34,6 @@ export function pageResources(
   baseDir: FullSlug | RelativeURL,
   staticResources: StaticResources,
   ctx?: BuildCtx,
-  skipContentIndexFetch?: boolean,
 ): StaticResources {
   const hashedNames = ctx?.hashedResourceNames
   const cssFile = hashedNames?.["index.css"] ?? "index.css"
@@ -74,31 +72,7 @@ export function pageResources(
   })
 
   const contentIndexPath = joinSegments(baseDir, "static/contentIndex.json")
-  // Pages that opt out (skipContentIndexFetch, e.g. graph-landing with
-  // indexSource: "graphIndex") fetch their own lighter index directly and
-  // never read the global `fetchData` for page content themselves. We still
-  // declare `fetchData` — as an already-resolved `undefined` — rather than
-  // omitting it entirely: the site-wide component bundle (postscript.js) is
-  // shared across all page types, so scripts belonging to components not
-  // even rendered on this page (e.g. the search plugin's `document`-level
-  // "nav" listener) still run here and read the global unconditionally.
-  // Known consumers (404's `typeof fetchData !== "undefined"` guard plus its
-  // own falsy/non-object `index` check, and search's own falsy-result guard)
-  // treat a falsy resolved value as "no index," so this avoids a
-  // ReferenceError/TypeError there while still eliminating the redundant
-  // contentIndex.json network request. Every other page — and the default
-  // when unset — keeps the real unconditional fetch, unchanged.
-  const contentIndexScript = skipContentIndexFetch
-    ? `const fetchData = Promise.resolve(undefined)`
-    : `const fetchData = fetch("${contentIndexPath}").then(data => data.json())`
-  const contentIndexResource: JSResource[] = [
-    {
-      loadTime: "beforeDOMReady",
-      contentType: "inline",
-      spaPreserve: true,
-      script: contentIndexScript,
-    },
-  ]
+  const contentIndexScript = `const fetchData = fetch("${contentIndexPath}").then(data => data.json())`
 
   const resources: StaticResources = {
     css: [
@@ -114,7 +88,12 @@ export function pageResources(
         loadTime: "beforeDOMReady",
         contentType: "external",
       },
-      ...contentIndexResource,
+      {
+        loadTime: "beforeDOMReady",
+        contentType: "inline",
+        spaPreserve: true,
+        script: contentIndexScript,
+      },
       ...resolvedJs,
     ],
     additionalHead: staticResources.additionalHead,
@@ -356,24 +335,8 @@ export function renderPage(
   const Body = BodyConstructor()
   const frame = resolveFrame(frameName)
 
-  const multilingualMetadata = isTranslationMetadata(componentData.fileData.multilingual)
-    ? componentData.fileData.multilingual
-    : undefined
-  const localeConfig = multilingualMetadata
-    ? cfg.multilingual?.locales.find((locale) => locale.id === multilingualMetadata.locale)
-    : undefined
-  const frontmatterLang = componentData.fileData.frontmatter?.lang
-  const lang: ValidLocale =
-    localeConfig?.locale ??
-    (frontmatterLang !== undefined && isValidLocaleTag(frontmatterLang)
-      ? frontmatterLang
-      : undefined) ??
-    cfg.locale ??
-    "en-US"
-  const direction = multilingualMetadata?.direction ?? i18n(lang).direction ?? "ltr"
-  if (lang !== cfg.locale) {
-    componentData.cfg = { ...cfg, locale: lang }
-  }
+  const lang = componentData.fileData.frontmatter?.lang ?? cfg.locale?.split("-")[0] ?? "en"
+  const direction = i18n(cfg.locale).direction ?? "ltr"
   // During local dev (--serve), the dev server serves from root without the
   // baseUrl subpath, so basePath must be empty to avoid broken links.
   const basePath =

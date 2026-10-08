@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 /**
- * Syncs Ataraxia Digital Garden staging folder to content/
- * NOTE: Syncs from .deploy-staging (prepared by /deploy skill)
+ * Syncs the Ataraxia "25. Digital Garden" folder to content/
  * Usage:
  *   node scripts/watch-content.mjs         # Watch mode
  *   node scripts/watch-content.mjs --once  # Sync once and exit
@@ -13,19 +12,10 @@ import { basename, resolve } from "path"
 
 import { watch } from "chokidar"
 
-const SOURCE_DIR = resolve(
-  process.env.BLOG_SYNC_SOURCE_DIR ?? "../Ataraxia/40. Digital Garden/.deploy-staging",
-)
+const SOURCE_DIR = resolve(process.env.BLOG_SYNC_SOURCE_DIR ?? "../Ataraxia/25. Digital Garden")
 const DEST_DIR = resolve(process.env.BLOG_SYNC_DEST_DIR ?? "./content")
 
 const once = process.argv.includes("--once")
-const printTranslationOutputDir = process.argv.includes("--print-translation-output-dir")
-
-if (printTranslationOutputDir) {
-  console.log(SOURCE_DIR)
-  process.exit(0)
-}
-
 function checkContentPolicy(path, attachmentRoot = null) {
   if (!existsSync(path)) {
     return
@@ -39,9 +29,9 @@ function sync() {
   console.log("\n[sync] Syncing content...")
   try {
     checkContentPolicy(SOURCE_DIR, DEST_DIR)
-    // Writing index pages live in this repo; do not let --delete remove them.
+    // _attachments live only in this repo; do not let --delete remove them.
     execSync(
-      `rsync -av --delete --exclude='.obsidian' --exclude='.DS_Store' --exclude='_attachments' --exclude='/writing.md' --exclude='/en/writing.md' "${SOURCE_DIR}/" "${DEST_DIR}"`,
+      `rsync -av --delete --exclude='.obsidian' --exclude='.DS_Store' --exclude='_attachments' "${SOURCE_DIR}/" "${DEST_DIR}"`,
       { stdio: "inherit" },
     )
     checkContentPolicy(DEST_DIR)

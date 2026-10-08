@@ -2,6 +2,16 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.17.0
+
+### Added
+
+- `hero` option: optional manifesto copy (eyebrow, serif headline with an
+  emphasised word, lede, pill buttons) rendered bottom-left over the canvas.
+  On wide screens the constellation shifts right and fades at its left edge so
+  the copy stays legible; on phones the lede clamps to three lines and the
+  hint hides. Omit `hero` for the bare constellation as before.
+
 ## 0.16.1
 
 ### Fixed

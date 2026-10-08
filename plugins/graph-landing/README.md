@@ -312,6 +312,25 @@ English). No multilingual plugin is needed; resolution order is a plugin's
 frontmatter locale, a configured locale slug prefix, this option, the language
 part of Quartz `configuration.locale`, then `en`.
 
+### `hero`
+
+Optional manifesto copy over the canvas, bottom-left:
+
+```yaml
+hero:
+  eyebrow: "Beomsu Koh · Senior AI Lab"
+  title: "기술은 의도를\n증폭한다." # "\n" forces a line break
+  titleEmphasis: "의도" # wrapped in <em>, accent colour
+  lede: "…"
+  actions:
+    - { label: "About", href: "/about", accent: true }
+    - { label: "Writing", href: "/writing" }
+```
+
+Every field is optional. With `hero` set the canvas shifts right on screens
+wider than 860px and fades at its left edge; on phones the lede clamps to three
+lines. The copy hides while the rail is open.
+
 ### Which page becomes the landing
 
 Any of these, no plugin required:

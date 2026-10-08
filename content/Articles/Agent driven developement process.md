@@ -11,12 +11,6 @@ tags:
   - artificialintelligence
   - softwareengineering
 type: article
-translationKey: agent-driven-development-process
-locale: ko
-sourceLocale: ko
-sourcePath: content/Articles/Agent driven developement process.md
-sourceHash: sha256:529b72beb82ddd704abfde170dc8d57799d4ff0a6352ec0b7055f0105a65c64a
-translationStatus: source
 ---
 
 ## Agent Driven Development Process

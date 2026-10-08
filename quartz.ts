@@ -19,29 +19,17 @@ interface FileLike {
   frontmatter?: Record<string, unknown>
 }
 
-const translationKeyOf = (file: FileLike): string | undefined => {
-  const value = file.frontmatter?.translationKey
-  return typeof value === "string" ? value : undefined
-}
-
-// Former article-list home now lives at Writing (/ko/writing, /en/writing).
-const isWritingPage = (file: FileLike) => translationKeyOf(file) === "writing"
+// The article listing lives at /writing; the root is the graph landing.
+const isWritingPage = (file: FileLike) => file.slug === "writing"
 
 // Utility pages must not appear in article listings.
-const isUtilityPage = (file: FileLike) => {
-  const key = translationKeyOf(file)
-  return (
-    file.slug === "index" ||
-    key === "home" ||
-    key === "graph" ||
-    key === "writing"
-  )
-}
+const isUtilityPage = (file: FileLike) =>
+  file.slug === "index" || file.slug === "graph" || file.slug === "writing" || file.slug === "about"
 
 const sharedHeader = [
   Component.Flex({
     components: [
-      { Component: Component.External("page-title") },
+      { Component: Component.External("PageTitle") },
       { Component: Component.Spacer() },
       {
         Component: Component.External("BlogLinksHeader", {
@@ -52,9 +40,8 @@ const sharedHeader = [
           },
         }),
       },
-      { Component: Component.External("BlogLanguageSwitcher") },
-      { Component: Component.External("search") },
-      { Component: Component.External("darkmode") },
+      { Component: Component.External("Search") },
+      { Component: Component.External("Darkmode") },
     ],
     gap: "1.5rem",
     wrap: "wrap",
@@ -84,10 +71,10 @@ const sharedAfterBody = [
     condition: (props) => isWritingPage(props.fileData),
   }),
   Component.ConditionalRender({
-    component: Component.External("tag-list"),
+    component: Component.External("TagList"),
     condition: (props) => !isWritingPage(props.fileData),
   }),
-  Component.External("comments", {
+  Component.External("Comments", {
     provider: "giscus",
     options: {
       repo: "GoBeromsu/Quartaz",
@@ -115,17 +102,17 @@ const layout = await loadQuartzLayout({
       left: [],
       beforeBody: [
         Component.ConditionalRender({
-          component: Component.External("breadcrumbs"),
+          component: Component.External("Breadcrumbs"),
           condition: (props) => !isWritingPage(props.fileData),
         }),
         Component.ConditionalRender({
-          component: Component.External("article-title"),
+          component: Component.External("ArticleTitle"),
           condition: (props) =>
             props.fileData.frontmatter?.hidetitle !== true &&
             props.fileData.frontmatter?.hidetitle !== "true",
         }),
         Component.ConditionalRender({
-          component: Component.External("content-meta"),
+          component: Component.External("ContentMeta"),
           condition: (props) => !isWritingPage(props.fileData),
         }),
       ],
@@ -137,19 +124,19 @@ const layout = await loadQuartzLayout({
       left: [],
       right: [],
       beforeBody: [
-        // Writing (/ko/writing, /en/writing) keeps the old home listing chrome.
+        // /writing keeps the old home listing chrome.
         Component.ConditionalRender({
-          component: Component.External("breadcrumbs"),
+          component: Component.External("Breadcrumbs"),
           condition: (props) => !isWritingPage(props.fileData),
         }),
         Component.ConditionalRender({
-          component: Component.External("article-title"),
+          component: Component.External("ArticleTitle"),
           condition: (props) =>
             props.fileData.frontmatter?.hidetitle !== true &&
             props.fileData.frontmatter?.hidetitle !== "true",
         }),
         Component.ConditionalRender({
-          component: Component.External("content-meta"),
+          component: Component.External("ContentMeta"),
           condition: (props) => !isWritingPage(props.fileData),
         }),
       ],
@@ -161,15 +148,15 @@ const layout = await loadQuartzLayout({
       left: [],
       right: [],
       beforeBody: [
-        Component.External("breadcrumbs"),
-        Component.External("article-title"),
-        Component.External("content-meta"),
+        Component.External("Breadcrumbs"),
+        Component.External("ArticleTitle"),
+        Component.External("ContentMeta"),
       ],
     },
     graph: {
-      // MinimalFrame does not render header/afterBody. Locale homes and
-      // /graph carry their own rail (Writing/About, locale switcher, theme)
-      // so the canvas can stay exactly 100dvh.
+      // MinimalFrame does not render header/afterBody. The landing and
+      // /graph carry their own chrome (Writing/About, theme) so the canvas
+      // can stay exactly 100dvh.
       frame: "minimal",
       header: [],
       afterBody: [],

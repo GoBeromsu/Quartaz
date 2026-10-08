@@ -86,131 +86,8 @@ function byDateAndAlphabetical() {
   };
 }
 
-// src/locale.ts
-function slugString(file) {
-  return typeof file.slug === "string" ? file.slug : void 0;
-}
-function isRecord(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-function isTranslationMetadata(value) {
-  if (!isRecord(value)) {
-    return false;
-  }
-  return typeof value.translationKey === "string" && typeof value.locale === "string";
-}
-function isLocaleHomeSlug(slug2) {
-  if (typeof slug2 !== "string" || slug2.length === 0) {
-    return false;
-  }
-  return slug2 === "index" || slug2.endsWith("/index");
-}
-var UTILITY_TRANSLATION_KEYS = /* @__PURE__ */ new Set(["home", "graph", "writing"]);
-function isLocaleHomeFile(file) {
-  if (isLocaleHomeSlug(slugString(file))) {
-    return true;
-  }
-  const frontmatterKey = file.frontmatter?.translationKey;
-  if (typeof frontmatterKey === "string" && UTILITY_TRANSLATION_KEYS.has(frontmatterKey)) {
-    return true;
-  }
-  return isTranslationMetadata(file.multilingual) && UTILITY_TRANSLATION_KEYS.has(file.multilingual.translationKey);
-}
-function localeFromSlug(cfg, slug2) {
-  const multilingual = cfg.multilingual;
-  if (!multilingual?.enabled || !slug2) {
-    return void 0;
-  }
-  for (const locale of multilingual.locales) {
-    const route = locale.routePrefix.replace(/^\/+|\/+$/g, "");
-    if (slug2 === locale.id || slug2.startsWith(`${locale.id}/`)) {
-      return locale.id;
-    }
-    if (route.length > 0 && (slug2 === route || slug2.startsWith(`${route}/`))) {
-      return locale.id;
-    }
-  }
-  return void 0;
-}
-function currentLocaleId(cfg, fileData) {
-  if (isTranslationMetadata(fileData.multilingual)) {
-    return fileData.multilingual.locale;
-  }
-  return localeFromSlug(cfg, slugString(fileData));
-}
-function currentLocaleTag(cfg, fileData) {
-  const multilingual = cfg.multilingual;
-  const locale = currentLocaleId(cfg, fileData);
-  const localeConfig = multilingual?.locales.find((entry) => entry.id === locale);
-  return localeConfig?.locale ?? cfg.locale;
-}
-function fileLocale(cfg, file) {
-  if (isTranslationMetadata(file.multilingual)) {
-    return file.multilingual.locale;
-  }
-  return localeFromSlug(cfg, slugString(file));
-}
-function notePermalink(cfg, slug2) {
-  const multilingual = cfg.multilingual;
-  if (!multilingual) {
-    return slug2;
-  }
-  for (const locale of multilingual.locales) {
-    const route = locale.routePrefix.replace(/^\/+|\/+$/g, "");
-    if (slug2 === locale.id || slug2 === route) {
-      return "";
-    }
-    if (slug2.startsWith(`${locale.id}/`)) {
-      return slug2.slice(locale.id.length + 1);
-    }
-    if (route.length > 0 && slug2.startsWith(`${route}/`)) {
-      return slug2.slice(route.length + 1);
-    }
-  }
-  return slug2;
-}
-function noteIdentity(cfg, file) {
-  if (isTranslationMetadata(file.multilingual)) {
-    return `key:${file.multilingual.translationKey}`;
-  }
-  const slug2 = slugString(file);
-  if (!slug2) {
-    return "slug:";
-  }
-  return `slug:${notePermalink(cfg, slug2)}`;
-}
-function pickPreferredFile(cfg, members, locale) {
-  const sourceLocale = cfg.multilingual?.sourceLocale;
-  const current = members.find((file) => fileLocale(cfg, file) === locale);
-  if (current) {
-    return current;
-  }
-  if (locale && locale !== sourceLocale) {
-    return void 0;
-  }
-  return members.find((file) => fileLocale(cfg, file) === sourceLocale) ?? members.find((file) => fileLocale(cfg, file) === void 0) ?? members[0];
-}
-function localeScopedFiles(cfg, currentFile, allFiles) {
-  if (!cfg.multilingual?.enabled) {
-    return allFiles;
-  }
-  const locale = currentLocaleId(cfg, currentFile);
-  const groups = /* @__PURE__ */ new Map();
-  for (const file of allFiles) {
-    const identity = noteIdentity(cfg, file);
-    const members = groups.get(identity) ?? [];
-    members.push(file);
-    groups.set(identity, members);
-  }
-  const preferred = [];
-  for (const members of groups.values()) {
-    const picked = pickPreferredFile(cfg, members, locale);
-    if (picked) {
-      preferred.push(picked);
-    }
-  }
-  return preferred;
-}
+// src/utility.ts
+var isUtilitySlug = (slug2) => slug2 === "index" || slug2 === "writing" || slug2 === "graph" || slug2 === "about";
 var l;
 l = { __e: function(n2, l2, u3, t2) {
   for (var i2, r2, o2; l2 = l2.__; ) if ((i2 = l2.__c) && !i2.__) try {
@@ -245,7 +122,7 @@ var BlogLatest_default = ((userOpts) => {
     cfg
   }) => {
     const opts = { ...defaultOptions(), ...userOpts };
-    const pages = localeScopedFiles(cfg, fileData, allFiles).filter((file) => Boolean(file.filePath) && !isLocaleHomeFile(file)).sort(byDateAndAlphabetical()).slice(0, opts.limit);
+    const pages = allFiles.filter((file) => Boolean(file.filePath) && !isUtilitySlug(file.slug)).sort(byDateAndAlphabetical()).slice(0, opts.limit);
     if (pages.length === 0) {
       return null;
     }
@@ -253,7 +130,7 @@ var BlogLatest_default = ((userOpts) => {
       /* @__PURE__ */ u2("h3", { children: opts.title }),
       /* @__PURE__ */ u2("ul", { class: "blog-article-list", children: pages.map((page) => {
         const date = page.dates ? getDate(page) : void 0;
-        const dateText = date ? formatDate(date, currentLocaleTag(cfg, fileData)) : "";
+        const dateText = date ? formatDate(date, cfg.locale ?? "en-US") : "";
         return /* @__PURE__ */ u2("li", { children: /* @__PURE__ */ u2(
           "a",
           {
@@ -300,7 +177,7 @@ var BlogArticleList_default = ((userOpts) => {
     cfg
   }) => {
     const opts = { ...defaultOptions2(), ...userOpts };
-    const pages = localeScopedFiles(cfg, fileData, allFiles).filter((file) => Boolean(file.filePath) && !isLocaleHomeFile(file) && opts.filter(file)).sort(opts.sort);
+    const pages = allFiles.filter((file) => Boolean(file.filePath) && !isUtilitySlug(file.slug) && opts.filter(file)).sort(opts.sort);
     const limitedPages = opts.limit > 0 ? pages.slice(0, opts.limit) : pages;
     if (limitedPages.length === 0) {
       return null;
@@ -309,7 +186,7 @@ var BlogArticleList_default = ((userOpts) => {
       opts.title && /* @__PURE__ */ u2("h3", { children: opts.title }),
       /* @__PURE__ */ u2("ul", { class: "blog-article-list", children: limitedPages.map((page) => {
         const date = page.dates ? getDate(page) : void 0;
-        const dateText = date ? formatDate(date, currentLocaleTag(cfg, fileData)) : "";
+        const dateText = date ? formatDate(date, cfg.locale ?? "en-US") : "";
         return /* @__PURE__ */ u2("li", { children: /* @__PURE__ */ u2(
           "a",
           {
@@ -429,12 +306,11 @@ var BlogAllTags_default = ((userOpts) => {
   const BlogAllTags = ({
     fileData,
     allFiles,
-    cfg,
     displayClass
   }) => {
     const allTags = [
       ...new Set(
-        localeScopedFiles(cfg, fileData, allFiles).flatMap((file) => {
+        allFiles.flatMap((file) => {
           const tags = file.frontmatter?.tags;
           return Array.isArray(tags) ? tags.map((tag) => String(tag)) : [];
         })

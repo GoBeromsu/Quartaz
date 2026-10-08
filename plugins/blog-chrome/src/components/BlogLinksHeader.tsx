@@ -4,23 +4,18 @@ import type {
   QuartzComponentProps,
 } from "@quartz-community/types"
 import { classNames } from "@quartz-community/utils/lang"
-import { localizeInternalHref, type GlobalConfig } from "../locale"
 
 interface Options {
   links: Record<string, string>
 }
 
 export default ((opts?: Options) => {
-  const BlogLinksHeader: QuartzComponent = ({
-    cfg,
-    fileData,
-    displayClass,
-  }: QuartzComponentProps) => {
+  const BlogLinksHeader: QuartzComponent = ({ displayClass }: QuartzComponentProps) => {
     const links = opts?.links ?? {}
     return (
       <nav class={classNames(displayClass, "blog-links-header")}>
         {Object.entries(links).map(([label, href]) => (
-          <a href={localizeInternalHref(cfg as GlobalConfig, fileData, href)}>{label}</a>
+          <a href={href}>{label}</a>
         ))}
       </nav>
     )

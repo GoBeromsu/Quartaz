@@ -181,6 +181,19 @@ export interface GraphLandingPageOptions {
    * required.
    */
   defaultLocale?: string
+  /**
+   * Optional manifesto copy rendered bottom-left over the canvas, in the
+   * style of a landing hero. Every field is optional; omit `hero` for the
+   * bare constellation. `title` may contain "\n" for a manual line break and
+   * `titleEmphasis` wraps that substring of the title in `<em>`.
+   */
+  hero?: {
+    eyebrow?: string
+    title?: string
+    titleEmphasis?: string
+    lede?: string
+    actions?: Array<{ label: string; href: string; accent?: boolean }>
+  }
 }
 
 const graphPageMatcher: PageMatcher = ({ fileData }) => {

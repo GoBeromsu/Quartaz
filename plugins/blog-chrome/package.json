@@ -1,7 +1,7 @@
 {
   "name": "blog-chrome",
   "version": "0.1.0",
-  "description": "Header links, language toggle, and footer chrome for Beomsu's Quartz blog.",
+  "description": "Header links and footer chrome for Beomsu's Quartz blog.",
   "type": "module",
   "license": "MIT",
   "private": true,
@@ -49,8 +49,10 @@
   "quartz": {
     "name": "blog-chrome",
     "displayName": "Blog Chrome",
-    "description": "Header links, language toggle, and footer for locale-aware blog chrome.",
-    "category": ["component"],
+    "description": "Header links and footer for the blog chrome.",
+    "category": [
+      "component"
+    ],
     "version": "0.1.0",
     "quartzVersion": ">=5.0.0",
     "dependencies": [],
@@ -60,11 +62,7 @@
     "components": {
       "BlogLinksHeader": {
         "displayName": "Blog Links Header",
-        "description": "Locale-aware header navigation links."
-      },
-      "BlogLanguageSwitcher": {
-        "displayName": "Blog Language Switcher",
-        "description": "Toggle between published Korean and English locales."
+        "description": "Header navigation links."
       },
       "BlogFooter": {
         "displayName": "Blog Footer",
