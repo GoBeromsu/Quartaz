@@ -40,7 +40,7 @@ the `ref` below selects the installed plugin release.
 - source:
     repo: github:GoBeromsu/Quartaz
     subdir: plugins/graph-landing
-    ref: graph-landing-v0.12.0
+    ref: graph-landing-v0.18.0
     name: graph-landing
   enabled: true
 ```
@@ -50,6 +50,39 @@ After changing `ref` to a newer `graph-landing-v<version>` release tag, run:
 ```sh
 npx quartz plugin install --from-config
 ```
+
+### Quick start: your own landing
+
+Three steps turn the site root into a graph landing with hero copy:
+
+1. Mark the home page. Add `graphLanding: true` to `content/index.md`
+   (or name the page `graph.md`; see [Which page becomes the landing](#which-page-becomes-the-landing)).
+2. Register the plugin in `quartz.config.yaml` as shown above, then run
+   `npx quartz plugin install --from-config`.
+3. Add `hero` copy under the plugin `options`. The default block is written in
+   your site locale; `translations` adds other languages and the browser picks
+   one by `navigator.languages` before first paint (see [`hero`](#hero)).
+
+```yaml
+options:
+  hero:
+    eyebrow: "Your name · Your lab"
+    title: "Technology\namplifies intent."
+    titleEmphasis: "intent"
+    lede: "One or two sentences about what you build and why."
+    actions:
+      - { label: About, href: /about, accent: true }
+      - { label: Writing, href: /writing }
+    fallbackLanguage: en
+    translations:
+      ko:
+        title: "기술은 의도를\n증폭한다."
+        titleEmphasis: "의도"
+        lede: "무엇을 만들고 왜 만드는지 한두 문장으로 적습니다."
+```
+
+Everything else (graph layout, labels, search, music) works with the bundled
+defaults; the options below are for tuning.
 
 ### Native search integration
 
@@ -329,7 +362,35 @@ hero:
 
 Every field is optional. With `hero` set the canvas shifts right on screens
 wider than 860px and fades at its left edge; on phones the lede clamps to three
-lines. The copy hides while the rail is open.
+lines (four for Latin copy). The copy hides while the rail is open.
+
+To show the copy in the visitor's language, add `translations` keyed by primary
+language subtag. The top-level copy is the default (and is tagged with the
+site's language); a tiny inline script swaps in the first translation that
+matches `navigator.languages`, before first paint and with no layout shift.
+Fields missing from a translation inherit the default copy, so shared pieces
+such as `eyebrow` and `actions` need writing once. `fallbackLanguage` names the
+copy for visitors whose languages match nothing, so a Korean site can greet
+everyone else in English:
+
+```yaml
+hero:
+  eyebrow: "Beomsu Koh · Senior AI Lab"
+  title: "기술은 의도를\n증폭한다."
+  titleEmphasis: "의도"
+  lede: "…"
+  actions: [{ label: "About", href: "/about", accent: true }]
+  fallbackLanguage: en
+  translations:
+    en:
+      title: "Technology\namplifies intent."
+      titleEmphasis: "intent"
+      lede: "…"
+```
+
+Korean copy keeps words whole (`word-break: keep-all`), so lines break only at
+spaces or at a `"\n"` you place in `title`; the lede uses `text-wrap: pretty`
+to avoid a lone word on the last line.
 
 ### Which page becomes the landing
 

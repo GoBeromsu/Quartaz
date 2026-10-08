@@ -185,17 +185,32 @@ interface GraphLandingPageOptions {
      * bare constellation. `title` may contain "\n" for a manual line break and
      * `titleEmphasis` wraps that substring of the title in `<em>`.
      */
-    hero?: {
-        eyebrow?: string;
-        title?: string;
-        titleEmphasis?: string;
-        lede?: string;
-        actions?: Array<{
-            label: string;
-            href: string;
-            accent?: boolean;
-        }>;
+    hero?: GraphLandingHeroCopy & {
+        /**
+         * Alternative copy keyed by primary language subtag (`en`, `ja`, ...).
+         * The visitor's `navigator.languages` picks one before first paint; the
+         * top-level copy is the default when nothing matches. Fields left out of a
+         * translation fall back to the default copy.
+         */
+        translations?: Record<string, GraphLandingHeroCopy>;
+        /**
+         * Language to show when none of the visitor's languages match, e.g. `en`
+         * so a Korean site greets everyone else in English. Must be the site
+         * language or a key of `translations`; omit to keep the default copy.
+         */
+        fallbackLanguage?: string;
     };
+}
+interface GraphLandingHeroCopy {
+    eyebrow?: string;
+    title?: string;
+    titleEmphasis?: string;
+    lede?: string;
+    actions?: Array<{
+        label: string;
+        href: string;
+        accent?: boolean;
+    }>;
 }
 declare const GraphLandingPage: QuartzPageTypePlugin<GraphLandingPageOptions>;
 

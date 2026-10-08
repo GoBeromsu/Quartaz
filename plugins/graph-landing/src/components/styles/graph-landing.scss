@@ -1229,6 +1229,8 @@ a.graph-landing__title:focus-visible {
   letter-spacing: -0.01em;
   line-height: 1.02;
   margin: 0 0 1.1rem;
+  overflow-wrap: break-word;
+  text-wrap: balance;
   word-break: keep-all;
 }
 
@@ -1243,6 +1245,8 @@ a.graph-landing__title:focus-visible {
   line-height: 1.6;
   margin: 0 0 1.4rem;
   max-width: 48ch;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
   word-break: keep-all;
 }
 
@@ -1323,7 +1327,7 @@ a.graph-landing__title:focus-visible {
 
   .graph-landing__lede {
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 4;
     display: -webkit-box;
     font-size: 0.95rem;
     overflow: hidden;

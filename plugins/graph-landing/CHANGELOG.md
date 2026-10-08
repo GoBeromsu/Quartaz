@@ -2,6 +2,22 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.18.0
+
+### Added
+
+- `hero.translations`: per-language hero copy keyed by primary subtag. An
+  inline script picks the visitor's first matching `navigator.languages`
+  entry before first paint; missing fields inherit the default copy.
+- `hero.fallbackLanguage`: copy for visitors whose languages match nothing.
+
+### Changed
+
+- Headline and lede keep Korean words whole and wrap only at spaces or an
+  explicit `"\n"`; the lede uses `text-wrap: pretty`, the headline
+  `text-wrap: balance`, with `overflow-wrap: break-word` as the safety net.
+- Phone lede clamps at four lines instead of three.
+
 ## 0.17.0
 
 ### Added

@@ -1780,7 +1780,6 @@ function bindGraph(
     }
   }
 
-
   // A crisp ink dot in both themes: a white mask tinted through the sprite
   // material color.
   const starTextures = new Map<string, unknown>()

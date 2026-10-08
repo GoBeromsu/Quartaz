@@ -3,7 +3,8 @@ import type {
   QuartzComponentConstructor,
   QuartzComponentProps,
 } from "@quartz-community/types"
-import type { GraphLandingPageOptions } from "../pageType"
+import type { GraphLandingHeroCopy, GraphLandingPageOptions } from "../pageType"
+import { pickHeroLanguage } from "../heroLanguage"
 // @ts-expect-error - inline script import handled by tsup inline-script-loader
 import graphLandingScript from "../scripts/graph-landing.inline.ts"
 import styles from "./styles/graph-landing.scss"
@@ -257,6 +258,25 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
     })
   }
 
+  // One copy block per language: the default (site locale) visible, each
+  // translation hidden until the inline script picks the visitor's language.
+  function heroCopyBlocks(
+    hero: GraphLandingPageOptions["hero"],
+    defaultLang: string,
+  ): Array<{ lang: string; copy: GraphLandingHeroCopy; hidden: boolean }> {
+    if (!hero) return []
+    const { translations, fallbackLanguage: _fallback, ...base } = hero
+    const blocks = [{ lang: defaultLang, copy: base, hidden: false }]
+    for (const [lang, copy] of Object.entries(translations ?? {})) {
+      if (lang === defaultLang) continue
+      blocks.push({ lang, copy: { ...base, ...copy }, hidden: true })
+    }
+    return blocks
+  }
+
+  // Runs synchronously where it sits, so the swap lands before first paint.
+  const heroLanguageScript = `(function(){var s=document.currentScript;if(!s)return;var b=s.parentNode.querySelectorAll("[data-hero-lang]");var a=[];for(var i=0;i<b.length;i++)a.push(b[i].getAttribute("data-hero-lang"));var p=navigator.languages||[navigator.language||""];var pick=(${pickHeroLanguage.toString()})(a,p,s.getAttribute("data-hero-fallback"));if(!pick)return;for(var k=0;k<b.length;k++)b[k].hidden=b[k].getAttribute("data-hero-lang")!==pick;})();`
+
   const GraphLandingConstructor: QuartzComponentConstructor = () => {
     const GraphLanding: QuartzComponent = ({ fileData, cfg, allFiles }: QuartzComponentProps) => {
       const multilingual = fileData.multilingual as MultilingualFields | undefined
@@ -286,6 +306,7 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
       const writingHref = writingSlug ? slugToAbsHref(writingSlug) : null
       const siteTitle = cfg.pageTitle ?? "Graph"
       const graphIndexPath = `${pathToRoot(slug)}/static/graphIndex.json`
+      const heroBlocks = heroCopyBlocks(options.hero, localeId)
 
       return (
         <div
@@ -427,22 +448,18 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
                   </button>
                 </nav>
               </div>
-              {options.hero ? (
-                <div class="graph-landing__copy">
-                  {options.hero.eyebrow ? (
-                    <p class="graph-landing__eyebrow">{options.hero.eyebrow}</p>
-                  ) : null}
-                  {options.hero.title ? (
+              {heroBlocks.map(({ lang, copy, hidden }) => (
+                <div class="graph-landing__copy" data-hero-lang={lang} lang={lang} hidden={hidden}>
+                  {copy.eyebrow ? <p class="graph-landing__eyebrow">{copy.eyebrow}</p> : null}
+                  {copy.title ? (
                     <h1 class="graph-landing__headline">
-                      {renderHeadline(options.hero.title, options.hero.titleEmphasis)}
+                      {renderHeadline(copy.title, copy.titleEmphasis)}
                     </h1>
                   ) : null}
-                  {options.hero.lede ? (
-                    <p class="graph-landing__lede">{options.hero.lede}</p>
-                  ) : null}
-                  {options.hero.actions && options.hero.actions.length > 0 ? (
+                  {copy.lede ? <p class="graph-landing__lede">{copy.lede}</p> : null}
+                  {copy.actions && copy.actions.length > 0 ? (
                     <div class="graph-landing__actions">
-                      {options.hero.actions.map((action) => (
+                      {copy.actions.map((action) => (
                         <a
                           class={
                             action.accent
@@ -457,6 +474,12 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
                     </div>
                   ) : null}
                 </div>
+              ))}
+              {heroBlocks.length > 1 ? (
+                <script
+                  data-hero-fallback={options.hero?.fallbackLanguage}
+                  dangerouslySetInnerHTML={{ __html: heroLanguageScript }}
+                />
               ) : null}
               <button
                 type="button"

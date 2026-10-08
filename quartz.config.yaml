@@ -161,6 +161,12 @@ plugins:
             accent: true
           - label: "Writing"
             href: "/writing"
+        fallbackLanguage: en
+        translations:
+          en:
+            title: "Technology\namplifies intent."
+            titleEmphasis: "intent"
+            lede: "I build technology that protects the attention people never meant to give away. What matters is not what a tool can do, but whose intent it amplifies."
   - source: ./plugins/blog-chrome
     enabled: true
   - source: ./plugins/blog-home
