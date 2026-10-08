@@ -201,14 +201,16 @@ body:has(.graph-landing) {
 
 .graph-landing__music-dock {
   align-items: center;
-  backdrop-filter: blur(12px);
-  background: color-mix(in srgb, var(--light) 78%, transparent);
-  border: 1px solid var(--lightgray);
-  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  background: var(--graph-surface);
+  border: 1px solid var(--graph-border);
+  border-radius: 10px;
   bottom: 16px;
   box-shadow: 0 8px 24px rgba(8, 10, 16, 0.16);
+  box-sizing: border-box;
   display: flex;
-  gap: 4px;
+  gap: 2px;
+  height: 48px;
   left: calc(16px + 48px + 8px);
   padding: 3px;
   pointer-events: auto;
@@ -217,13 +219,9 @@ body:has(.graph-landing) {
 }
 
 .graph-landing__music-now {
-  background: linear-gradient(
-    90deg,
-    var(--graph-surface),
-    color-mix(in srgb, var(--graph-surface) 92%, transparent)
-  );
-  border: 1px solid var(--graph-border);
-  border-radius: 8px;
+  background: color-mix(in srgb, var(--graph-text) 5%, transparent);
+  border: 0;
+  border-radius: 7px;
   box-sizing: border-box;
   display: block;
   flex: 0 1 auto;
@@ -292,12 +290,18 @@ body:has(.graph-landing) {
   align-items: center;
   background: transparent;
   border: 0;
+  border-radius: 7px;
   cursor: pointer;
   display: inline-flex;
   height: 40px;
   justify-content: center;
   padding: 0;
+  transition: background 160ms ease;
   width: 40px;
+}
+
+.graph-landing__audio-toggle:hover {
+  background: color-mix(in srgb, var(--graph-text) 7%, transparent);
 }
 
 .graph-landing__audio-toggle:hover .graph-landing__turntable {
@@ -317,24 +321,24 @@ body:has(.graph-landing) {
 }
 
 .graph-landing__turntable-plinth {
-  background: linear-gradient(135deg, #d7c0a4, #8a6f54);
-  border: 1px solid color-mix(in srgb, var(--dark) 35%, transparent);
-  border-radius: 8px;
-  box-shadow:
-    0 6px 14px rgba(8, 10, 16, 0.25),
-    inset 0 1px rgba(255, 255, 255, 0.38);
   display: block;
   height: 100%;
   position: relative;
   width: 100%;
 }
 
+/* A flat vinyl disc: black with hairline grooves, an accent label, no plinth. */
 .graph-landing__turntable-record {
   background:
-    repeating-radial-gradient(circle, transparent 0 2px, rgba(255, 255, 255, 0.09) 2.5px 3px),
-    radial-gradient(circle at 45% 42%, #3d4148, #101217 66%);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+    repeating-radial-gradient(
+      circle,
+      transparent 0 2px,
+      rgba(255, 255, 255, 0.055) 2px 2.5px
+    ),
+    radial-gradient(circle at 38% 36%, #2a2d35, #15171d 62%);
+  border: 1px solid color-mix(in srgb, var(--graph-text) 22%, transparent);
   border-radius: 50%;
+  box-sizing: border-box;
   height: 30px;
   left: 3px;
   position: absolute;
@@ -343,43 +347,41 @@ body:has(.graph-landing) {
 }
 
 .graph-landing__turntable-label {
-  background-color: #c78152;
+  background-color: var(--graph-accent);
   background-image: var(--graph-music-artwork);
   background-position: center;
   background-size: cover;
-  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
   inset: 9px;
   position: absolute;
 }
 
 .graph-landing__turntable-spindle {
-  background: #e9e1d5;
-  border: 1px solid #695846;
+  background: #e9e9ec;
   border-radius: 50%;
-  height: 4px;
-  left: 13px;
+  height: 3px;
+  left: 50%;
   position: absolute;
-  top: 13px;
-  width: 4px;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 3px;
 }
 
 .graph-landing__turntable-tonearm {
-  fill: #d7d8d6;
-  filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.45));
-  height: 26px;
+  fill: var(--graph-surface-strong);
+  height: 24px;
   position: absolute;
-  right: -1px;
-  stroke: #34363a;
+  right: 0;
+  stroke: var(--graph-muted);
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 2.2;
-  top: 1px;
+  stroke-width: 1.8;
+  top: 0;
   transform: rotate(-24deg);
   transform-box: fill-box;
   transform-origin: 78% 18%;
   transition: transform 260ms ease;
-  width: 26px;
+  width: 24px;
 }
 
 .graph-landing__audio-toggle[data-playing="true"] .graph-landing__turntable-record {
@@ -392,26 +394,31 @@ body:has(.graph-landing) {
 
 .graph-landing__music-library-toggle {
   align-items: center;
-  background: color-mix(in srgb, var(--light) 66%, transparent);
-  border: 1px solid var(--lightgray);
-  border-radius: 8px;
-  color: var(--dark);
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  color: var(--graph-muted);
   cursor: pointer;
   display: inline-flex;
-  height: 38px;
+  height: 40px;
   justify-content: center;
   padding: 0;
-  width: 38px;
+  transition:
+    background 160ms ease,
+    color 160ms ease;
+  width: 40px;
 }
 
-.graph-landing__music-library-toggle:hover {
-  background: color-mix(in srgb, var(--secondary) 18%, var(--light));
+.graph-landing__music-library-toggle:hover,
+.graph-landing__music-library-toggle[aria-expanded="true"] {
+  background: color-mix(in srgb, var(--graph-text) 7%, transparent);
+  color: var(--graph-text);
 }
 
 .graph-landing__music-library {
   backdrop-filter: blur(16px);
-  background: color-mix(in srgb, var(--light) 88%, transparent);
-  border: 1px solid var(--lightgray);
+  background: var(--graph-surface);
+  border: 1px solid var(--graph-border);
   border-radius: 14px;
   bottom: calc(16px + 48px + 10px);
   box-shadow: 0 12px 40px rgba(8, 10, 16, 0.2);
@@ -433,7 +440,7 @@ body:has(.graph-landing) {
 
 .graph-landing__music-library-heading {
   align-items: baseline;
-  color: var(--dark);
+  color: var(--graph-text);
   display: flex;
   font-size: 0.78rem;
   font-weight: 700;
@@ -445,7 +452,7 @@ body:has(.graph-landing) {
 }
 
 .graph-landing__music-library-heading [data-graph-music-status] {
-  color: var(--gray);
+  color: var(--graph-muted);
   font-size: 0.7rem;
   font-weight: 500;
   letter-spacing: normal;
@@ -464,10 +471,10 @@ body:has(.graph-landing) {
 
 .graph-landing__music-track {
   align-items: center;
-  background: color-mix(in srgb, var(--light) 62%, transparent);
+  background: color-mix(in srgb, var(--graph-text) 4%, transparent);
   border: 1px solid transparent;
   border-radius: 10px;
-  color: var(--dark);
+  color: var(--graph-text);
   cursor: pointer;
   display: grid;
   gap: 8px;
@@ -479,8 +486,8 @@ body:has(.graph-landing) {
 
 .graph-landing__music-track:hover,
 .graph-landing__music-track[aria-current="true"] {
-  background: color-mix(in srgb, var(--secondary) 14%, var(--light));
-  border-color: color-mix(in srgb, var(--secondary) 55%, var(--lightgray));
+  background: color-mix(in srgb, var(--graph-accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--graph-accent) 45%, var(--graph-border));
 }
 
 .graph-landing__music-track-cover {
@@ -509,7 +516,7 @@ body:has(.graph-landing) {
 }
 
 .graph-landing__music-track-artist {
-  color: var(--gray);
+  color: var(--graph-muted);
   font-size: 0.7rem;
   margin-top: 2px;
 }
@@ -1207,8 +1214,6 @@ a.graph-landing__title:focus-visible {
 
 :root[saved-theme="dark"] .graph-landing__music-dock,
 :root[saved-theme="dark"] .graph-landing__music-library {
-  background: color-mix(in srgb, var(--light) 72%, transparent);
-  border-color: var(--lightgray);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.38);
 }
 

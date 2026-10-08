@@ -2,6 +2,18 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.16.0
+
+### Changed
+
+- Nodes are smaller and crisper (radius 2.6–5.6) with hairline edges, closer
+  to the XIA constellation.
+- Notes that share a tag are joined by a faint co-occurrence web outside the
+  folder lens, so sparse graphs read as one constellation instead of islands.
+- The audio toggle is a flat vinyl record in a token-based dock that matches
+  the rail toggle; the record library panel uses the same surface, border,
+  and accent tokens in both themes.
+
 ## 0.15.1
 
 ### Fixed

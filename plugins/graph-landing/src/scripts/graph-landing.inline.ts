@@ -304,6 +304,7 @@ const MIN_NODE_VAL = 1
 const MAX_NODE_VAL = 4
 const CENTER_STRENGTH = 0.05
 const SQUASH_STRENGTH = 0.09
+const SHARED_TAG_MAX_MEMBERS = 12
 const NODE_REL_SIZE = 2.6
 const NODE_OPACITY = 1
 const LINK_OPACITY = 1
@@ -340,8 +341,8 @@ const OVERVIEW_FILL = 0.52
 const FOG_NEAR_FACTOR = 300 / INITIAL_CAMERA_DISTANCE
 const FOG_FAR_FACTOR = 1600 / INITIAL_CAMERA_DISTANCE
 // Solid dots and hairline edges in both themes; night only swaps the palette.
-const NODE_RADIUS_MIN = 3.6
-const NODE_RADIUS_MAX = 10.5
+const NODE_RADIUS_MIN = 2.6
+const NODE_RADIUS_MAX = 5.6
 const STAR_SPRITE_SCALE = 3.2
 const STAR_TEXTURE_SIZE = 64
 // Ink dots fill this radius of the 64px texture with a soft edge.
@@ -352,11 +353,11 @@ const COLLISION_PADDING = 6
 // Screen-space hairlines: closer camera makes the same world radius read
 // as a tube. Keep these just above the composer aliasing floor.
 const LINK_RADIUS: Record<LinkKind, number> = {
-  wikilink: 0.9,
-  tag: 0.6,
-  external: 0.75,
-  cooc: 0.08,
-  folder: 0.08,
+  wikilink: 0.5,
+  tag: 0.4,
+  external: 0.45,
+  cooc: 0.3,
+  folder: 0.3,
 }
 const EDGE_INK_DARK = "#a8b0c2"
 const CLOUD_NOTE = { min: 80, max: 200 }
@@ -765,6 +766,22 @@ function buildGraphData(
       const members = notesByTag.get(tag) ?? []
       members.push(note.slug)
       notesByTag.set(tag, members)
+    }
+  }
+
+  // Notes sharing a tag get a faint note-note edge: the web texture between
+  // posts. Tags with many members are skipped; they are too generic to read
+  // as a relationship and would explode the pair count.
+  if (tagCooccurrence !== false) {
+    for (const members of notesByTag.values()) {
+      if (members.length > SHARED_TAG_MAX_MEMBERS) {
+        continue
+      }
+      members.forEach((a, i) => {
+        for (const b of members.slice(i + 1)) {
+          addEdge(a, b, "cooc", false)
+        }
+      })
     }
   }
 
@@ -1552,20 +1569,25 @@ function bindGraph(
   }
 
   const edgeOpacity = (link: GraphLink): number => {
-    if (link.kind === "cooc" || link.kind === "folder") {
-      return (link.kind === "cooc" && state.lens === "tag") ||
-        (link.kind === "folder" && state.lens === "folder")
-        ? 0.06
-        : 0
-    }
     const source = linkEndpointId(link.source)
     const target = linkEndpointId(link.target)
     const focus = litId()
-    if (focus !== null && (source === focus || target === focus)) {
-      return isDarkTheme() ? 0.72 : 0.95
+    let graded: number
+    if (link.kind === "cooc" || link.kind === "folder") {
+      // Texture layers: the shared-tag web shows everywhere but the folder
+      // lens, folder edges only there.
+      const shown = link.kind === "cooc" ? state.lens !== "folder" : state.lens === "folder"
+      if (!shown) {
+        return 0
+      }
+      graded = isDarkTheme() ? 0.16 : 0.2
+    } else {
+      if (focus !== null && (source === focus || target === focus)) {
+        return isDarkTheme() ? 0.72 : 0.95
+      }
+      const weight = linkWeight(source, target)
+      graded = edgeBaseOpacity(link.kind) * (0.6 + 0.4 * weight)
     }
-    const weight = linkWeight(source, target)
-    const graded = edgeBaseOpacity(link.kind) * (0.6 + 0.4 * weight)
     if (focus !== null || state.focusTag !== null || state.focusFolder !== null) {
       if (!isActive(source) || !isActive(target)) {
         return graded * DIM_ALPHA
@@ -1771,7 +1793,7 @@ function bindGraph(
         const r = INK_DOT_TEXTURE_RADIUS
         const gradient = context.createRadialGradient(32, 32, 0, 32, 32, r)
         gradient.addColorStop(0, "rgba(255,255,255,1)")
-        gradient.addColorStop(0.9, "rgba(255,255,255,1)")
+        gradient.addColorStop(0.94, "rgba(255,255,255,1)")
         gradient.addColorStop(1, "rgba(255,255,255,0)")
         context.fillStyle = gradient
         context.fillRect(0, 0, size, size)
