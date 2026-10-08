@@ -2,6 +2,17 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.16.1
+
+### Fixed
+
+- Dots and labels now render above link meshes (3d-force-graph paints links
+  at renderOrder 10), so edges no longer cut a bright seam through hub dots.
+- Labels are smaller and lighter (hubs weight 500) with a little more room
+  from the dot, closer to the XIA constellation.
+- The overview frames the whole constellation instead of letting outliers
+  bleed past the viewport edge; the shared-tag web is a touch more visible.
+
 ## 0.16.0
 
 ### Changed

@@ -177,6 +177,7 @@ interface SpriteTextInstance {
   textHeight: number
   text: string
   fontFace: string
+  renderOrder: number
   fontWeight: string
   strokeWidth: number
   strokeColor: string
@@ -1580,7 +1581,7 @@ function bindGraph(
       if (!shown) {
         return 0
       }
-      graded = isDarkTheme() ? 0.16 : 0.2
+      graded = isDarkTheme() ? 0.24 : 0.26
     } else {
       if (focus !== null && (source === focus || target === focus)) {
         return isDarkTheme() ? 0.72 : 0.95
@@ -1927,9 +1928,10 @@ function bindGraph(
           nodeMaterials.set(node.id, material)
         }
         const sprite = new three.Sprite(material)
-        // Billboards can overlap unrelated edges in projection even after
-        // endpoint clipping. Draw daylight beads after transparent links.
-        sprite.renderOrder = 1
+        // 3d-force-graph gives link meshes renderOrder 10 so they paint
+        // last; dots and labels must sit above that or edges cut through
+        // the hub centres.
+        sprite.renderOrder = 11
         const scale = radius * STAR_SPRITE_SCALE
         sprite.scale.x = scale
         sprite.scale.y = scale
@@ -1954,16 +1956,17 @@ function bindGraph(
       sprite.color = labelColorFor(node)
       sprite.fontFace = labelFontFace
       sprite.backgroundColor = false
-      sprite.fontWeight = labeledHubIds.has(node.id) ? "600" : "400"
+      sprite.fontWeight = labeledHubIds.has(node.id) ? "500" : "400"
+      sprite.renderOrder = 12
       // Discard empty texels so the label quad never reads as a tinted
       // rectangle even with backgroundColor=false.
       sprite.material.transparent = true
       sprite.material.depthWrite = false
       sprite.material.alphaTest = 0.01
       sprite.material.toneMapped = false
-      sprite.textHeight = labeledHubIds.has(node.id) ? 6.5 : 5.5
+      sprite.textHeight = labeledHubIds.has(node.id) ? 5.5 : 4.5
       sprite.center.set(0, 0.5)
-      sprite.position.x = radius + 2
+      sprite.position.x = radius + 3
       sprite.position.y = 0
       if (incremental) {
         sprite.visible = showLabel
@@ -2373,15 +2376,14 @@ function bindGraph(
       xs.push(Math.abs(screen.x - width / 2))
       ys.push(Math.abs(screen.y - height / 2))
     }
-    // Frame the body of the constellation and let the few outliers bleed
-    // past the edges, the way a photograph crops a crowd.
+    // Frame the whole constellation so nothing is cut at the viewport edge.
     const percentile = (values: number[]): number =>
-      values.sort((a, b) => a - b)[Math.floor((values.length - 1) * 0.92)] ?? 0
+      values.sort((a, b) => a - b)[Math.floor((values.length - 1) * 0.98)] ?? 0
     const halfX = percentile(xs)
     const halfY = percentile(ys)
     if (halfX < 1 || halfY < 1) return OVERVIEW_FILL
     // ponytail: linear zoom model ignores perspective depth; the margin absorbs it.
-    const margin = 0.06
+    const margin = 0.08
     const k = Math.min((width * (0.5 - margin)) / halfX, (height * (0.5 - margin)) / halfY)
     return clamp(1 / k, 0.3, 1)
   }
@@ -2669,10 +2671,10 @@ function bindGraph(
                 }
                 const flip = projected !== undefined && projected.x > window.innerWidth * 0.6
                 entry.sprite.center.set(flip ? 1 : 0, 0.5)
-                entry.sprite.position.x = (flip ? -1 : 1) * (nodeWorldRadius(entry.node) + 2)
+                entry.sprite.position.x = (flip ? -1 : 1) * (nodeWorldRadius(entry.node) + 3)
                 const textHeight = Math.max(
-                  5.5,
-                  (distance / viewportHeight) * (labeledHubIds.has(entry.node.id) ? 12 : 9),
+                  4.5,
+                  (distance / viewportHeight) * (labeledHubIds.has(entry.node.id) ? 10 : 7.5),
                 )
                 if (Math.abs(entry.sprite.textHeight - textHeight) > 0.5) {
                   entry.sprite.textHeight = textHeight
