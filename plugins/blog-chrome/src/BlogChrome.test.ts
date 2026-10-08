@@ -8,6 +8,7 @@ import type { QuartzComponentProps } from "@quartz-community/types"
 
 import BlogFooter from "./components/BlogFooter"
 import BlogLinksHeader from "./components/BlogLinksHeader"
+import LocaleRedirect from "./components/LocaleRedirect"
 
 type TestGlobal = typeof globalThis & { React?: { readonly createElement: typeof h } }
 ;(globalThis as TestGlobal).React = { createElement: h }
@@ -30,6 +31,22 @@ const props = {
 } as unknown as QuartzComponentProps
 
 describe("Blog chrome", () => {
+  test("locale redirect strips only the configured prefixes", () => {
+    const html = renderToString(LocaleRedirect({ prefixes: ["ko", "en", "bad/one"] })(props))
+    const source = html.match(/<script>(.*)<\/script>/)?.[1] ?? ""
+    assert.ok(source.includes("(ko|en)"))
+    const fn = new Function("location", source.replace(/location\./g, "location."))
+    const calls: string[] = []
+    const run = (pathname: string) =>
+      fn({ pathname, search: "?q=1", hash: "#h", replace: (to: string) => calls.push(to) })
+    run("/ko/2025-retrospective")
+    run("/en")
+    run("/korea/town")
+    run("/about")
+    assert.deepEqual(calls, ["/2025-retrospective?q=1#h", "/?q=1#h"])
+    assert.equal(renderToString(LocaleRedirect({ prefixes: [] })(props)), "")
+  })
+
   test("renders header links verbatim", () => {
     const header = renderToString(
       BlogLinksHeader({ links: { Writing: "/writing", About: "/about" } })(props),

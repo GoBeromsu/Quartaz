@@ -1,10 +1,9 @@
 ---
 aliases: [home - digital garden]
 date_created: 2025-03-02
-date_modified: 2026-01-18
+date_modified: 2026-08-16
 enabletoc: "false"
 hidetitle: "true"
-graphLanding: true
 permalink: index
 tags: []
 title: Beomsu

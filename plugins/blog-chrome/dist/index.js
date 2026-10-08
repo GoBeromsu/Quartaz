@@ -121,6 +121,14 @@ var BlogFooter_default = ((opts) => {
   return BlogFooter;
 });
 
-export { BlogFooter_default as BlogFooter, BlogLinksHeader_default as BlogLinksHeader };
+// src/components/LocaleRedirect.tsx
+var LocaleRedirect_default = ((opts) => {
+  const prefixes = (opts?.prefixes ?? []).filter((prefix) => /^[A-Za-z][A-Za-z-]*$/.test(prefix));
+  const script = prefixes.length === 0 ? "" : `(function(){var m=location.pathname.match(/^\\/(${prefixes.join("|")})(\\/.*)?$/);if(m)location.replace((m[2]||"/")+location.search+location.hash)})()`;
+  const LocaleRedirect = () => script ? /* @__PURE__ */ u2("script", { dangerouslySetInnerHTML: { __html: script } }) : null;
+  return LocaleRedirect;
+});
+
+export { BlogFooter_default as BlogFooter, BlogLinksHeader_default as BlogLinksHeader, LocaleRedirect_default as LocaleRedirect };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

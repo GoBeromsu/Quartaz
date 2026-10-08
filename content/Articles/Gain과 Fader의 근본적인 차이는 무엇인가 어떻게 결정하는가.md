@@ -3,9 +3,9 @@ aliases: []
 cmds:
   - "[[📚 201 Knowledge]]"
   - "[[📚 305 Concepts]]"
-  - "[[📚 905 Sound Engineer]]"
+  - "[[📚 907 Sound Engineer]]"
 date_created: 2025-05-05
-date_modified: 2025-09-25
+date_modified: 2026-10-01
 tags:
   - soundengineering
 type:

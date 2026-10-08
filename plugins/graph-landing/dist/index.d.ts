@@ -157,6 +157,12 @@ interface GraphLandingPageOptions {
         incrementalRepaint?: boolean;
     };
     /**
+     * Extra slugs to render as the graph landing, e.g. `["index"]` to make the
+     * site root the landing without touching its frontmatter. `graph.md`
+     * and `graphLanding: true` keep working alongside.
+     */
+    landingSlugs?: string[];
+    /**
      * Locally configured YouTube music for the graph turntable.
      */
     music?: {

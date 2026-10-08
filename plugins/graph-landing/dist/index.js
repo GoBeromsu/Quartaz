@@ -834,16 +834,19 @@ var GraphLanding_default = ((pageOptions) => {
 });
 
 // src/pageType.ts
-var graphPageMatcher = ({ fileData }) => {
+var graphPageMatcher = (landingSlugs) => ({ fileData }) => {
   const frontmatter = fileData.frontmatter;
   if (frontmatter?.graphLanding === true) {
+    return true;
+  }
+  const slug = typeof fileData.slug === "string" ? fileData.slug : "";
+  if (landingSlugs.includes(slug)) {
     return true;
   }
   const translationKey = frontmatter?.translationKey;
   if (translationKey === "graph" || translationKey === "home") {
     return true;
   }
-  const slug = typeof fileData.slug === "string" ? fileData.slug : "";
   return slug === "graph" || slug.endsWith("/graph");
 };
 var GraphLandingPage = (userOpts) => {
@@ -851,7 +854,7 @@ var GraphLandingPage = (userOpts) => {
   const instance = {
     name: "GraphLanding",
     priority: 20,
-    match: graphPageMatcher,
+    match: graphPageMatcher(options.landingSlugs ?? []),
     layout: "graph",
     frame: "minimal",
     body: GraphLanding_default(options),

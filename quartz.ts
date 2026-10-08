@@ -24,7 +24,11 @@ const isWritingPage = (file: FileLike) => file.slug === "writing"
 
 // Utility pages must not appear in article listings.
 const isUtilityPage = (file: FileLike) =>
-  file.slug === "index" || file.slug === "graph" || file.slug === "writing" || file.slug === "about"
+  file.slug === "index" ||
+  file.slug === "graph" ||
+  file.slug === "writing" ||
+  file.slug === "about" ||
+  (file.slug ?? "").startsWith("inbox/")
 
 const sharedHeader = [
   Component.Flex({
@@ -152,6 +156,11 @@ const layout = await loadQuartzLayout({
         Component.External("ArticleTitle"),
         Component.External("ContentMeta"),
       ],
+    },
+    "404": {
+      // MinimalFrame renders only body + footer; the footer slot carries the
+      // redirect that maps retired /ko and /en URLs onto the flat site.
+      footer: [Component.External("LocaleRedirect", { prefixes: ["ko", "en"] })],
     },
     graph: {
       // MinimalFrame does not render header/afterBody. The landing and

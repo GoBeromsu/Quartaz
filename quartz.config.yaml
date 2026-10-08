@@ -128,6 +128,7 @@ plugins:
   - source: ./plugins/graph-landing
     enabled: true
     options:
+      landingSlugs: [index]
       expandHops: 1
       tagCooccurrence:
         maxTagsPerNote: 6

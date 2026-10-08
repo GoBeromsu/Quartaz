@@ -163,6 +163,12 @@ export interface GraphLandingPageOptions {
     incrementalRepaint?: boolean
   }
   /**
+   * Extra slugs to render as the graph landing, e.g. `["index"]` to make the
+   * site root the landing without touching its frontmatter. `graph.md`
+   * and `graphLanding: true` keep working alongside.
+   */
+  landingSlugs?: string[]
+  /**
    * Locally configured YouTube music for the graph turntable.
    */
   music?: {
@@ -212,27 +218,32 @@ export interface GraphLandingHeroCopy {
   actions?: Array<{ label: string; href: string; accent?: boolean }>
 }
 
-const graphPageMatcher: PageMatcher = ({ fileData }) => {
-  const frontmatter = fileData.frontmatter as Record<string, unknown> | undefined
-  if (frontmatter?.graphLanding === true) {
-    return true
+const graphPageMatcher =
+  (landingSlugs: ReadonlyArray<string>): PageMatcher =>
+  ({ fileData }) => {
+    const frontmatter = fileData.frontmatter as Record<string, unknown> | undefined
+    if (frontmatter?.graphLanding === true) {
+      return true
+    }
+    const slug = typeof fileData.slug === "string" ? fileData.slug : ""
+    if (landingSlugs.includes(slug)) {
+      return true
+    }
+    // A multilingual plugin may tag locale roots as home/graph; without one,
+    // any `graph.md` (root or nested) becomes the landing page.
+    const translationKey = frontmatter?.translationKey
+    if (translationKey === "graph" || translationKey === "home") {
+      return true
+    }
+    return slug === "graph" || slug.endsWith("/graph")
   }
-  // A multilingual plugin may tag locale roots as home/graph; without one,
-  // any `graph.md` (root or nested) becomes the landing page.
-  const translationKey = frontmatter?.translationKey
-  if (translationKey === "graph" || translationKey === "home") {
-    return true
-  }
-  const slug = typeof fileData.slug === "string" ? fileData.slug : ""
-  return slug === "graph" || slug.endsWith("/graph")
-}
 
 const GraphLandingPage: QuartzPageTypePlugin<GraphLandingPageOptions> = (userOpts) => {
   const options = userOpts ?? {}
   const instance: EngineAwarePageTypeInstance = {
     name: "GraphLanding",
     priority: 20,
-    match: graphPageMatcher,
+    match: graphPageMatcher(options.landingSlugs ?? []),
     layout: "graph",
     frame: "minimal",
     body: GraphLanding(options),

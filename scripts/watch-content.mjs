@@ -7,7 +7,7 @@
  */
 
 import { execSync } from "child_process"
-import { existsSync } from "fs"
+import { existsSync, readFileSync, readdirSync, writeFileSync } from "fs"
 import { basename, resolve } from "path"
 
 import { watch } from "chokidar"
@@ -16,6 +16,18 @@ const SOURCE_DIR = resolve(process.env.BLOG_SYNC_SOURCE_DIR ?? "../Ataraxia/25. 
 const DEST_DIR = resolve(process.env.BLOG_SYNC_DEST_DIR ?? "./content")
 
 const once = process.argv.includes("--once")
+
+// Cross-vault links only resolve inside Obsidian; publish them as plain text.
+const OBSIDIAN_LINK = /\[([^\]]*)\]\(obsidian:\/\/[^)]*\)/g
+function stripObsidianLinks(dir) {
+  for (const entry of readdirSync(dir, { withFileTypes: true, recursive: true })) {
+    if (!entry.isFile() || !entry.name.endsWith(".md")) continue
+    const path = resolve(entry.parentPath ?? entry.path, entry.name)
+    const source = readFileSync(path, "utf8")
+    const stripped = source.replace(OBSIDIAN_LINK, "$1")
+    if (stripped !== source) writeFileSync(path, stripped)
+  }
+}
 function checkContentPolicy(path, attachmentRoot = null) {
   if (!existsSync(path)) {
     return
@@ -31,9 +43,10 @@ function sync() {
     checkContentPolicy(SOURCE_DIR, DEST_DIR)
     // _attachments live only in this repo; do not let --delete remove them.
     execSync(
-      `rsync -av --delete --exclude='.obsidian' --exclude='.DS_Store' --exclude='_attachments' "${SOURCE_DIR}/" "${DEST_DIR}"`,
+      `rsync -av --delete --exclude='.*' --exclude='_attachments' "${SOURCE_DIR}/" "${DEST_DIR}"`,
       { stdio: "inherit" },
     )
+    stripObsidianLinks(DEST_DIR)
     checkContentPolicy(DEST_DIR)
     console.log("[sync] Complete\n")
     return true

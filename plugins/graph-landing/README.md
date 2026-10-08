@@ -55,8 +55,9 @@ npx quartz plugin install --from-config
 
 Three steps turn the site root into a graph landing with hero copy:
 
-1. Mark the home page. Add `graphLanding: true` to `content/index.md`
-   (or name the page `graph.md`; see [Which page becomes the landing](#which-page-becomes-the-landing)).
+1. Pick the home page. Set `landingSlugs: [index]` in the plugin options
+   (or add `graphLanding: true` to the page, or name it `graph.md`; see
+   [Which page becomes the landing](#which-page-becomes-the-landing)).
 2. Register the plugin in `quartz.config.yaml` as shown above, then run
    `npx quartz plugin install --from-config`.
 3. Add `hero` copy under the plugin `options`. The default block is written in
@@ -65,6 +66,7 @@ Three steps turn the site root into a graph landing with hero copy:
 
 ```yaml
 options:
+  landingSlugs: [index]
   hero:
     eyebrow: "Your name · Your lab"
     title: "Technology\namplifies intent."
@@ -396,6 +398,8 @@ to avoid a lone word on the last line.
 
 Any of these, no plugin required:
 
+- a page whose slug is listed in the `landingSlugs` option (e.g. `[index]`
+  turns the site root into the landing with no frontmatter change)
 - a page with `graphLanding: true` in its frontmatter
 - a page whose slug is `graph` or ends in `/graph` (e.g. `content/graph.md`)
 - a page a multilingual plugin tags with `translationKey: graph` or `home`

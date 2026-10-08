@@ -13,7 +13,7 @@ tags: []
 
 ### 2024
 
-- **[[70. Collections/77. Project/Metadata Auto Classifier]]** _(Personal Project, 2024 - Present)_
+- **[[Metadata Auto Classifier]]** _(Personal Project, 2024 - Present)_
   - Developed an automated metadata classification plugin for Obsidian using TypeScript
 - **[[Authentication Automation Deployment]]** _(Advanced Network Lab, 2024)_
   - Implemented and deployed an automated authentication system to enhance efficiency and security.

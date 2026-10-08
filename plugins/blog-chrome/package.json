@@ -67,6 +67,10 @@
       "BlogFooter": {
         "displayName": "Blog Footer",
         "description": "Site footer with copyright and social links."
+      },
+      "LocaleRedirect": {
+        "displayName": "Locale Redirect",
+        "description": "404-page script that strips retired locale prefixes from the URL."
       }
     }
   },

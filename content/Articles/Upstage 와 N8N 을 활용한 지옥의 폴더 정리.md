@@ -2,6 +2,7 @@
 aliases: [n8n File Organizer]
 date_created: 2026-03-26
 date_modified: 2026-03-27
+permalink: upstage-n8n-folder-organizer
 project:
   - "Upstage AI Ambassador 2기"
 tags:
