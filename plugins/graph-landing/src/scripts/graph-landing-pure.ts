@@ -499,3 +499,65 @@ export function affectedFocusNodeIds(
   }
   return result
 }
+
+/** Nominal LP speed, 33⅓ revolutions per minute. */
+export const VINYL_RPM = 100 / 3
+
+/** Converts a platter speed in RPM to degrees of rotation per millisecond. */
+export function rpmToDegPerMs(rpm: number): number {
+  return Number.isFinite(rpm) ? (rpm * 360) / 60000 : 0
+}
+
+/**
+ * Advances a platter's speed toward `target` with motor-style inertia: an
+ * exponential approach whose time constant is `tauMs`. The result snaps to the
+ * target once within 0.01 RPM so a coasting platter actually comes to rest.
+ */
+export function platterVelocity(
+  current: number,
+  target: number,
+  dtMs: number,
+  tauMs: number,
+): number {
+  if (!Number.isFinite(current) || !Number.isFinite(target)) {
+    return 0
+  }
+  if (!(dtMs > 0) || !(tauMs > 0)) {
+    return target
+  }
+  const next = target + (current - target) * Math.exp(-dtMs / tauMs)
+  return Math.abs(next - target) < 0.01 ? target : next
+}
+
+/**
+ * Tonearm angle in degrees for playback progress 0..1. The arm sits on the
+ * outer groove at `outer` and creeps toward the label at `inner`.
+ */
+export function tonearmAngle(progress: number, outer = 4, inner = 17): number {
+  const clamped = Number.isFinite(progress) ? Math.min(1, Math.max(0, progress)) : 0
+  return outer + (inner - outer) * clamped
+}
+
+/**
+ * Builds a loopable vinyl surface-noise buffer: a faint hiss with sparse pops
+ * that decay over a handful of samples. `random` is injectable so the output
+ * is deterministic in tests. Samples are clamped to [-1, 1].
+ */
+export function vinylNoiseSamples(
+  length: number,
+  random: () => number = Math.random,
+): Float32Array {
+  const out = new Float32Array(Math.max(0, Math.floor(Number.isFinite(length) ? length : 0)))
+  let pop = 0
+  for (let i = 0; i < out.length; i++) {
+    let sample = (random() * 2 - 1) * 0.08
+    if (pop > 0) {
+      sample += (random() * 2 - 1) * pop
+      pop = pop < 0.02 ? 0 : pop * 0.72
+    } else if (random() < 0.00015) {
+      pop = 0.4 + random() * 0.6
+    }
+    out[i] = Math.max(-1, Math.min(1, sample))
+  }
+  return out
+}

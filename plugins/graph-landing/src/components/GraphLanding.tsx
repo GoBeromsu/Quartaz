@@ -346,6 +346,7 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
             options.interaction?.incrementalRepaint ? "true" : undefined
           }
           data-graph-music-tracks={JSON.stringify(options.music?.tracks ?? [])}
+          data-graph-music-vinyl-fx={options.music?.vinylFx === false ? "false" : undefined}
           data-graph-default-locale={options.defaultLocale}
           data-counts-template={copy.countsTemplate}
           data-folder-root-label={copy.folderRoot}
@@ -525,7 +526,7 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
                 >
                   <span class="graph-landing__turntable" aria-hidden="true">
                     <span class="graph-landing__turntable-plinth">
-                      <span class="graph-landing__turntable-record">
+                      <span class="graph-landing__turntable-record" data-graph-record>
                         <span class="graph-landing__turntable-label"></span>
                         <span class="graph-landing__turntable-spindle"></span>
                       </span>
@@ -584,6 +585,27 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
                 aria-hidden="true"
                 hidden
               >
+                <div class="graph-landing__deck" aria-hidden="true">
+                  <span class="graph-landing__deck-platter">
+                    <span class="graph-landing__deck-record" data-graph-record>
+                      <span class="graph-landing__deck-label"></span>
+                      <span class="graph-landing__deck-spindle"></span>
+                    </span>
+                    <svg class="graph-landing__deck-tonearm" viewBox="0 0 32 32" focusable="false">
+                      <circle cx="25" cy="7" r="2.5" />
+                      <path d="M24.2 8.8 17.6 19.6 12.5 22.2" />
+                      <path d="m10.3 21.6 3.9 1.8-1.4 2.7-3.9-1.8Z" />
+                    </svg>
+                  </span>
+                  <span class="graph-landing__deck-copy">
+                    <span class="graph-landing__deck-title" data-graph-deck-title></span>
+                    <span class="graph-landing__deck-artist" data-graph-deck-artist></span>
+                    <span class="graph-landing__deck-meta">
+                      <span class="graph-landing__deck-lamp"></span>
+                      33⅓ RPM
+                    </span>
+                  </span>
+                </div>
                 <div class="graph-landing__music-library-heading">
                   <span>{copy.musicLibraryTitle}</span>
                   <span data-graph-music-status aria-live="polite"></span>

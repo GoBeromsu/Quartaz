@@ -363,29 +363,56 @@ body:has(.graph-landing) {
   width: 3px;
 }
 
-.graph-landing__turntable-tonearm {
+/* Both tonearms share one state machine driven from the root:
+   rest (parked beside the platter), cue (swung over, lifted), play (down in
+   the groove, creeping toward the label as the track progresses). */
+.graph-landing__turntable-tonearm,
+.graph-landing__deck-tonearm {
   fill: var(--graph-surface-strong);
-  height: 24px;
+  filter: drop-shadow(0 0.5px 0.5px rgba(0, 0, 0, 0.25));
   position: absolute;
-  right: 0;
   stroke: var(--graph-muted);
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.8;
-  top: 0;
   transform: rotate(-24deg);
   transform-box: fill-box;
   transform-origin: 78% 18%;
-  transition: transform 260ms ease;
+  translate: 0 0;
+  transition:
+    transform 480ms cubic-bezier(0.25, 0.8, 0.25, 1),
+    translate 260ms cubic-bezier(0.4, 0, 0.6, 1),
+    filter 260ms ease;
+}
+
+.graph-landing__turntable-tonearm {
+  height: 24px;
+  right: 0;
+  top: 0;
   width: 24px;
 }
 
-.graph-landing__audio-toggle[data-playing="true"] .graph-landing__turntable-record {
-  animation: graph-landing-record-spin 2.8s linear infinite;
+.graph-landing[data-graph-arm="cue"] .graph-landing__turntable-tonearm,
+.graph-landing[data-graph-arm="cue"] .graph-landing__deck-tonearm {
+  filter: drop-shadow(0 2.5px 2px rgba(0, 0, 0, 0.35));
+  transform: rotate(var(--graph-arm-angle, 4deg));
+  translate: 0 -2px;
 }
 
-.graph-landing__audio-toggle[data-playing="true"] .graph-landing__turntable-tonearm {
-  transform: rotate(4deg);
+.graph-landing[data-graph-arm="play"] .graph-landing__turntable-tonearm,
+.graph-landing[data-graph-arm="play"] .graph-landing__deck-tonearm {
+  transform: rotate(var(--graph-arm-angle, 4deg));
+}
+
+/* The dock disc idles as a flat vinyl; while the motor runs the label picks
+   up a faint reflection sweep so the spin reads even at 30px. */
+.graph-landing__turntable-record {
+  transition: box-shadow 400ms ease;
+  will-change: transform;
+}
+
+.graph-landing[data-graph-platter="on"] .graph-landing__turntable-record {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--graph-accent) 40%, transparent);
 }
 
 .graph-landing__music-library-toggle {
@@ -432,6 +459,162 @@ body:has(.graph-landing) {
 
 .graph-landing__music-library[hidden] {
   display: none;
+}
+
+/* The library opens on a deck: a 96px platter with the current record and a
+   full-size tonearm, so putting a record on is something you can watch. */
+.graph-landing__deck {
+  align-items: center;
+  background: color-mix(in srgb, var(--graph-text) 4%, transparent);
+  border-radius: 12px;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 116px minmax(0, 1fr);
+  margin-bottom: 12px;
+  padding: 10px 12px 10px 8px;
+}
+
+.graph-landing__deck-platter {
+  display: block;
+  height: 112px;
+  position: relative;
+  width: 116px;
+}
+
+.graph-landing__deck-platter::before {
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--graph-text) 14%, transparent) 0 46%,
+    color-mix(in srgb, var(--graph-text) 6%, transparent) 47% 50%,
+    transparent 51%
+  );
+  border-radius: 50%;
+  content: "";
+  height: 108px;
+  left: 0;
+  position: absolute;
+  top: 2px;
+  width: 108px;
+}
+
+.graph-landing__deck-record {
+  background:
+    repeating-radial-gradient(circle, transparent 0 2.4px, rgba(255, 255, 255, 0.05) 2.4px 3px),
+    radial-gradient(circle at 36% 34%, #2b2e36, #121419 64%);
+  border: 1px solid color-mix(in srgb, var(--graph-text) 24%, transparent);
+  border-radius: 50%;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+  box-sizing: border-box;
+  height: 100px;
+  left: 4px;
+  position: absolute;
+  top: 6px;
+  width: 100px;
+  will-change: transform;
+}
+
+/* Static light sweep over the spinning grooves. */
+.graph-landing__deck-platter::after {
+  background: conic-gradient(
+    from 210deg,
+    transparent 0 18%,
+    rgba(255, 255, 255, 0.1) 29%,
+    transparent 40%,
+    transparent 58%,
+    rgba(255, 255, 255, 0.06) 70%,
+    transparent 82%
+  );
+  border-radius: 50%;
+  content: "";
+  height: 100px;
+  left: 4px;
+  pointer-events: none;
+  position: absolute;
+  top: 6px;
+  width: 100px;
+}
+
+.graph-landing__deck-label {
+  background-color: var(--graph-accent);
+  background-image: var(--graph-music-artwork);
+  background-position: center;
+  background-size: cover;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+  inset: 31px;
+  position: absolute;
+}
+
+.graph-landing__deck-spindle {
+  background: #e9e9ec;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+  height: 6px;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+}
+
+.graph-landing__deck-tonearm {
+  height: 72px;
+  right: -8px;
+  stroke-width: 1.5;
+  top: -10px;
+  width: 72px;
+}
+
+.graph-landing__deck-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.graph-landing__deck-title,
+.graph-landing__deck-artist {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.graph-landing__deck-title {
+  color: var(--graph-text);
+  font-size: 0.92rem;
+  font-weight: 650;
+}
+
+.graph-landing__deck-artist {
+  color: var(--graph-muted);
+  font-size: 0.74rem;
+}
+
+.graph-landing__deck-meta {
+  align-items: center;
+  color: var(--graph-muted);
+  display: flex;
+  font-size: 0.66rem;
+  font-variant-numeric: tabular-nums;
+  gap: 6px;
+  letter-spacing: 0.08em;
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+
+.graph-landing__deck-lamp {
+  background: color-mix(in srgb, var(--graph-text) 18%, transparent);
+  border-radius: 50%;
+  height: 6px;
+  transition:
+    background 300ms ease,
+    box-shadow 300ms ease;
+  width: 6px;
+}
+
+.graph-landing[data-graph-platter="on"] .graph-landing__deck-lamp {
+  background: var(--graph-accent);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--graph-accent) 70%, transparent);
 }
 
 .graph-landing__music-library-heading {
@@ -486,16 +669,50 @@ body:has(.graph-landing) {
   border-color: color-mix(in srgb, var(--graph-accent) 45%, var(--graph-border));
 }
 
-.graph-landing__music-track-cover {
-  border-radius: 6px;
+.graph-landing__music-track-sleeve {
   display: block;
   height: 48px;
+  position: relative;
+  width: 48px;
+}
+
+/* A disc edge peeks out of the sleeve on hover, like pulling a record. */
+.graph-landing__music-track-sleeve::before {
+  background:
+    repeating-radial-gradient(circle, transparent 0 2px, rgba(255, 255, 255, 0.05) 2px 2.5px),
+    radial-gradient(circle at 40% 36%, #2b2e36, #121419 64%);
+  border-radius: 50%;
+  content: "";
+  height: 44px;
+  left: 2px;
+  position: absolute;
+  top: 2px;
+  transform: translateX(0);
+  transition: transform 260ms cubic-bezier(0.25, 0.8, 0.25, 1);
+  width: 44px;
+}
+
+.graph-landing__music-track:hover .graph-landing__music-track-sleeve::before,
+.graph-landing__music-track:focus-visible .graph-landing__music-track-sleeve::before {
+  transform: translateX(12px);
+}
+
+.graph-landing__music-track-cover {
+  border-radius: 6px;
+  box-shadow: 1px 0 3px rgba(0, 0, 0, 0.25);
+  display: block;
+  height: 48px;
+  /* Quartz's base styles give every img a 1rem vertical margin. */
+  margin: 0;
   object-fit: cover;
+  position: relative;
   width: 48px;
 }
 
 .graph-landing__music-track-copy {
   min-width: 0;
+  /* Painted above the sleeve's disc so the pull never covers the title. */
+  position: relative;
 }
 
 .graph-landing__music-track-title,
@@ -515,12 +732,6 @@ body:has(.graph-landing) {
   color: var(--graph-muted);
   font-size: 0.7rem;
   margin-top: 2px;
-}
-
-@keyframes graph-landing-record-spin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 .graph-landing__audio,

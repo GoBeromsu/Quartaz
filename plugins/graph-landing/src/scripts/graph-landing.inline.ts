@@ -36,6 +36,11 @@ import {
   seedExpandedNodePosition,
   selectRenderedSubset,
   youtubeTracks,
+  platterVelocity,
+  rpmToDegPerMs,
+  tonearmAngle,
+  vinylNoiseSamples,
+  VINYL_RPM,
   type GraphData,
   type GraphLink,
   type GraphNode,
@@ -316,7 +321,17 @@ const HINT_STORAGE_KEY = "graph-landing:hint"
 const AUDIO_STORAGE_KEY = "graph-landing:ambient-audio"
 const AMBIENT_VIDEO_ID = "UDVtMYqUAyw"
 const AMBIENT_MAX_VOLUME = 12
-const AMBIENT_FADE_MS = 28000
+// A record reaches level almost at once; the short fade only hides the first
+// buffered frames of the stream after the needle lands.
+const MUSIC_FADE_MS = 1800
+// Tonearm choreography: swing over the platter, then lower onto the groove.
+const ARM_SWING_MS = 480
+const ARM_DROP_MS = 260
+// Motor time constants: a quick spin-up and a long, coasting spin-down.
+const SPIN_UP_TAU_MS = 450
+const SPIN_DOWN_TAU_MS = 1400
+const ARM_TRACK_INTERVAL_MS = 1000
+const VINYL_FX_LEVEL = 0.3
 const YOUTUBE_IFRAME_API = "https://www.youtube.com/iframe_api"
 const AUTO_ROTATE_SPEED = 0.18
 const HUB_VAL_SCALE = 1.25
@@ -3262,6 +3277,8 @@ interface YoutubePlayer {
   unMute: () => void
   setVolume: (volume: number) => void
   getPlayerState: () => number
+  getCurrentTime?: () => number
+  getDuration?: () => number
   destroy: () => void
 }
 
@@ -3408,6 +3425,152 @@ function createYoutubePlayer(args: {
   })
 }
 
+interface LegacyAudioWindow extends Window {
+  webkitAudioContext?: typeof AudioContext
+}
+
+/**
+ * Synthesised turntable sounds: the thump and click of the stylus landing,
+ * the lighter click of it lifting, and a faint surface-noise bed while the
+ * record plays. Everything is generated on the fly, so nothing is downloaded,
+ * and the context is only created after a user gesture.
+ */
+class VinylFx {
+  private context: AudioContext | null = null
+  private master: GainNode | null = null
+  private crackleGain: GainNode | null = null
+  private crackleSource: AudioBufferSourceNode | null = null
+  private crackleBuffer: AudioBuffer | null = null
+
+  constructor(private readonly level: number) {}
+
+  private ensureContext(): AudioContext | null {
+    if (this.context) {
+      if (this.context.state === "suspended") {
+        void this.context.resume()
+      }
+      return this.context
+    }
+    const Context = window.AudioContext ?? (window as LegacyAudioWindow).webkitAudioContext
+    if (!Context) {
+      return null
+    }
+    try {
+      this.context = new Context()
+    } catch (error) {
+      console.error("[graph-landing] vinyl effects unavailable", error)
+      return null
+    }
+    this.master = this.context.createGain()
+    this.master.gain.value = this.level
+    this.master.connect(this.context.destination)
+    return this.context
+  }
+
+  private burst(args: {
+    durationS: number
+    filter: BiquadFilterType
+    frequency: number
+    peak: number
+  }): void {
+    const context = this.ensureContext()
+    if (!context || !this.master) {
+      return
+    }
+    const length = Math.max(1, Math.round(context.sampleRate * args.durationS))
+    const buffer = context.createBuffer(1, length, context.sampleRate)
+    const data = buffer.getChannelData(0)
+    for (let i = 0; i < length; i++) {
+      // Exponential decay gives the burst a percussive front edge.
+      data[i] = (Math.random() * 2 - 1) * Math.exp((-6 * i) / length)
+    }
+    const source = context.createBufferSource()
+    source.buffer = buffer
+    const filter = context.createBiquadFilter()
+    filter.type = args.filter
+    filter.frequency.value = args.frequency
+    const gain = context.createGain()
+    gain.gain.value = args.peak
+    source.connect(filter)
+    filter.connect(gain)
+    gain.connect(this.master)
+    source.start()
+    source.onended = () => {
+      source.disconnect()
+      filter.disconnect()
+      gain.disconnect()
+    }
+  }
+
+  needleDrop(): void {
+    this.burst({ durationS: 0.22, filter: "lowpass", frequency: 160, peak: 0.9 })
+    this.burst({ durationS: 0.035, filter: "bandpass", frequency: 2200, peak: 0.45 })
+  }
+
+  needleLift(): void {
+    this.burst({ durationS: 0.025, filter: "bandpass", frequency: 3000, peak: 0.3 })
+    this.burst({ durationS: 0.12, filter: "lowpass", frequency: 200, peak: 0.35 })
+  }
+
+  setCrackle(on: boolean): void {
+    const context = this.ensureContext()
+    if (!context || !this.master) {
+      return
+    }
+    if (!on) {
+      if (this.crackleGain && this.crackleSource) {
+        const gain = this.crackleGain
+        const source = this.crackleSource
+        gain.gain.cancelScheduledValues(context.currentTime)
+        gain.gain.setValueAtTime(gain.gain.value, context.currentTime)
+        gain.gain.linearRampToValueAtTime(0, context.currentTime + 0.4)
+        source.stop(context.currentTime + 0.45)
+        source.onended = () => {
+          source.disconnect()
+          gain.disconnect()
+        }
+      }
+      this.crackleSource = null
+      this.crackleGain = null
+      return
+    }
+    if (this.crackleSource) {
+      return
+    }
+    if (!this.crackleBuffer) {
+      const seconds = 4
+      const samples = vinylNoiseSamples(context.sampleRate * seconds)
+      this.crackleBuffer = context.createBuffer(1, samples.length, context.sampleRate)
+      this.crackleBuffer.getChannelData(0).set(samples)
+    }
+    const source = context.createBufferSource()
+    source.buffer = this.crackleBuffer
+    source.loop = true
+    const filter = context.createBiquadFilter()
+    filter.type = "bandpass"
+    filter.frequency.value = 1800
+    filter.Q.value = 0.7
+    const gain = context.createGain()
+    gain.gain.value = 0
+    gain.gain.linearRampToValueAtTime(0.25, context.currentTime + 0.8)
+    source.connect(filter)
+    filter.connect(gain)
+    gain.connect(this.master)
+    source.start()
+    this.crackleSource = source
+    this.crackleGain = gain
+  }
+
+  close(): void {
+    this.setCrackle(false)
+    if (this.context) {
+      void this.context.close()
+      this.context = null
+      this.master = null
+    }
+  }
+}
+
 function bindAmbientAudio(root: HTMLElement): void {
   const button = root.querySelector("[data-graph-audio-toggle]")
   const host = root.querySelector("[data-graph-audio-host]")
@@ -3419,6 +3582,9 @@ function bindAmbientAudio(root: HTMLElement): void {
   const sleeve = root.querySelector<HTMLElement>("[data-graph-music-now]")
   const sleeveTitle = root.querySelector<HTMLElement>("[data-graph-music-now-title]")
   const sleeveArtist = root.querySelector<HTMLElement>("[data-graph-music-now-artist]")
+  const deckTitle = root.querySelector<HTMLElement>("[data-graph-deck-title]")
+  const deckArtist = root.querySelector<HTMLElement>("[data-graph-deck-artist]")
+  const records = Array.from(root.querySelectorAll<HTMLElement>("[data-graph-record]"))
   if (
     !(button instanceof HTMLButtonElement) ||
     !(host instanceof HTMLElement) ||
@@ -3471,12 +3637,103 @@ function bindAmbientAudio(root: HTMLElement): void {
   let wanted = !readAmbientStopped()
   let started = false
   let userActivated = false
+  const fx = root.dataset.graphMusicVinylFx === "false" ? null : new VinylFx(VINYL_FX_LEVEL)
+
+  // Platter motor: a rAF loop integrates speed with inertia and writes the
+  // shared angle to every record on the page (dock disc and library deck).
+  let motorFrame = 0
+  let motorLastTs = 0
+  let platterAngle = 0
+  let platterRpm = 0
+  let platterTargetRpm = 0
+  const motorTick = (now: number): void => {
+    const dt = motorLastTs ? Math.min(100, now - motorLastTs) : 16
+    motorLastTs = now
+    platterRpm = platterVelocity(
+      platterRpm,
+      platterTargetRpm,
+      dt,
+      platterTargetRpm > 0 ? SPIN_UP_TAU_MS : SPIN_DOWN_TAU_MS,
+    )
+    platterAngle = (platterAngle + rpmToDegPerMs(platterRpm) * dt) % 360
+    for (const record of records) {
+      record.style.transform = `rotate(${platterAngle.toFixed(2)}deg)`
+    }
+    if (platterRpm > 0 || platterTargetRpm > 0) {
+      motorFrame = window.requestAnimationFrame(motorTick)
+      return
+    }
+    motorFrame = 0
+    motorLastTs = 0
+  }
+  const setMotor = (rpm: number): void => {
+    platterTargetRpm = rpm
+    root.dataset.graphPlatter = rpm > 0 ? "on" : "off"
+    if (prefersReducedMotion()) {
+      platterRpm = 0
+      return
+    }
+    if (!motorFrame) {
+      motorFrame = window.requestAnimationFrame(motorTick)
+    }
+  }
+
+  // Tonearm: rest beside the platter, cue (lifted over the groove), or play.
+  type ArmState = "rest" | "cue" | "play"
+  let armTracker = 0
+  const setArm = (state: ArmState): void => {
+    root.dataset.graphArm = state
+  }
+  const setArmProgress = (progress: number): void => {
+    root.style.setProperty("--graph-arm-angle", `${tonearmAngle(progress).toFixed(2)}deg`)
+  }
+  const stopArmTracking = (): void => {
+    if (armTracker) {
+      window.clearInterval(armTracker)
+      armTracker = 0
+    }
+  }
+  const trackArm = (): void => {
+    stopArmTracking()
+    setArmProgress(0)
+    armTracker = window.setInterval(() => {
+      if (!player || !started) {
+        return
+      }
+      const duration = player.getDuration?.() ?? 0
+      const time = player.getCurrentTime?.() ?? 0
+      if (duration > 0) {
+        setArmProgress(time / duration)
+      }
+    }, ARM_TRACK_INTERVAL_MS)
+  }
+
+  // Each cue sequence takes a ticket; a newer action invalidates older steps.
+  let sequence = 0
+  const pending = new Set<number>()
+  const wait = (ms: number, ticket: number): Promise<boolean> =>
+    new Promise((resolve) => {
+      const timer = window.setTimeout(
+        () => {
+          pending.delete(timer)
+          resolve(ticket === sequence)
+        },
+        prefersReducedMotion() ? 0 : ms,
+      )
+      pending.add(timer)
+    })
+  const cancelPending = (): void => {
+    for (const timer of pending) {
+      window.clearTimeout(timer)
+    }
+    pending.clear()
+  }
 
   const currentTrack = (): YoutubeTrack =>
     tracks[currentVideoIndex] ?? tracks[0] ?? { title: "Ambient track", videoId: AMBIENT_VIDEO_ID }
 
   const setRecordArtwork = (videoId: string): void => {
-    button.style.setProperty(
+    root.style.setProperty(
       "--graph-music-artwork",
       `url("https://i.ytimg.com/vi/${videoId}/hqdefault.jpg")`,
     )
@@ -3511,7 +3768,10 @@ function bindAmbientAudio(root: HTMLElement): void {
         artist.textContent = track.artist
         copy.appendChild(artist)
       }
-      trackButton.append(cover, copy)
+      const sleeve = document.createElement("span")
+      sleeve.className = "graph-landing__music-track-sleeve"
+      sleeve.appendChild(cover)
+      trackButton.append(sleeve, copy)
       trackList.appendChild(trackButton)
     })
     status.textContent = `${currentTrackLabel}: ${currentTrack().title}`
@@ -3538,6 +3798,11 @@ function bindAmbientAudio(root: HTMLElement): void {
       sleeveArtist.textContent = track.artist ?? ""
       sleeveArtist.hidden = !track.artist
     }
+    if (deckTitle) deckTitle.textContent = track.title
+    if (deckArtist) {
+      deckArtist.textContent = track.artist ?? ""
+      deckArtist.hidden = !track.artist
+    }
   }
 
   const setButton = (playing: boolean): void => {
@@ -3562,29 +3827,89 @@ function bindAmbientAudio(root: HTMLElement): void {
     player.setVolume(Math.max(0, Math.min(AMBIENT_MAX_VOLUME, volume)))
   }
 
+  // Needle down: the stylus lands, surface noise rises, then the music fades
+  // in over the run-in groove.
+  const landNeedle = async (readyPlayer: YoutubePlayer, ticket: number): Promise<void> => {
+    setArm("play")
+    fx?.needleDrop()
+    if (!(await wait(ARM_DROP_MS, ticket))) {
+      return
+    }
+    readyPlayer.unMute()
+    applyVolume(0)
+    readyPlayer.playVideo()
+    fx?.setCrackle(true)
+    trackArm()
+    stopFade()
+    cancelFade = fadeVolume({
+      from: 0,
+      to: AMBIENT_MAX_VOLUME,
+      durationMs: MUSIC_FADE_MS,
+      apply: applyVolume,
+    })
+  }
+
+  // Putting the record on: motor starts, the arm swings over, then lands.
+  const dropNeedle = async (readyPlayer: YoutubePlayer): Promise<void> => {
+    const ticket = ++sequence
+    setMotor(VINYL_RPM)
+    setArm("cue")
+    setArmProgress(0)
+    if (!(await wait(ARM_SWING_MS, ticket))) {
+      return
+    }
+    await landNeedle(readyPlayer, ticket)
+  }
+
+  // Taking it off: sound stops with the stylus, the arm returns, the platter coasts.
+  const liftNeedle = async (): Promise<void> => {
+    const ticket = ++sequence
+    stopFade()
+    stopArmTracking()
+    fx?.setCrackle(false)
+    if (root.dataset.graphArm === "play") {
+      fx?.needleLift()
+    }
+    setArm("cue")
+    setMotor(0)
+    if (!(await wait(ARM_DROP_MS, ticket))) {
+      return
+    }
+    setArm("rest")
+  }
+
+  // Changing records mid-session: lift, swap the disc, land again.
+  const recue = async (readyPlayer: YoutubePlayer, videoId: string): Promise<void> => {
+    const ticket = ++sequence
+    stopFade()
+    stopArmTracking()
+    fx?.setCrackle(false)
+    fx?.needleLift()
+    readyPlayer.mute()
+    setArm("cue")
+    setMotor(VINYL_RPM)
+    if (!(await wait(ARM_SWING_MS, ticket))) {
+      return
+    }
+    readyPlayer.loadVideoById(videoId)
+    readyPlayer.mute()
+    await landNeedle(readyPlayer, ticket)
+  }
+
   const beginPlayback = (readyPlayer: YoutubePlayer): void => {
     if (!wanted || started) {
       return
     }
     started = true
     setButton(true)
-    readyPlayer.unMute()
-    applyVolume(0)
-    readyPlayer.playVideo()
-    stopFade()
-    cancelFade = fadeVolume({
-      from: 0,
-      to: AMBIENT_MAX_VOLUME,
-      durationMs: AMBIENT_FADE_MS,
-      apply: applyVolume,
-    })
+    void dropNeedle(readyPlayer)
   }
 
   const pauseAmbient = (): void => {
     wanted = false
     started = false
-    stopFade()
     writeAmbientStopped(true)
+    void liftNeedle()
     if (player) {
       player.mute()
       player.pauseVideo()
@@ -3624,8 +3949,13 @@ function bindAmbientAudio(root: HTMLElement): void {
           const nextVideoId = currentVideoId()
           setRecordArtwork(nextVideoId)
           renderTracks()
+          if (started) {
+            void recue(endedPlayer, nextVideoId)
+            return
+          }
           endedPlayer.loadVideoById(nextVideoId)
-          applyVolume(started ? AMBIENT_MAX_VOLUME : 0)
+          endedPlayer.mute()
+          applyVolume(0)
         },
       })
     } catch (error) {
@@ -3681,12 +4011,11 @@ function bindAmbientAudio(root: HTMLElement): void {
     userActivated = true
     writeAmbientStopped(false)
     if (playerReady && player) {
-      player.loadVideoById(currentVideoId())
       if (started) {
-        player.unMute()
-        player.playVideo()
-        applyVolume(AMBIENT_MAX_VOLUME)
+        void recue(player, currentVideoId())
       } else {
+        player.loadVideoById(currentVideoId())
+        player.mute()
         beginPlayback(player)
       }
       return
@@ -3762,6 +4091,9 @@ function bindAmbientAudio(root: HTMLElement): void {
   }
 
   setRecordArtwork(currentVideoId())
+  setArm("rest")
+  setArmProgress(0)
+  setMotor(0)
   setButton(false)
   renderTracks()
   setLibraryOpen(false)
@@ -3784,6 +4116,13 @@ function bindAmbientAudio(root: HTMLElement): void {
     document.removeEventListener("visibilitychange", onVisibility)
     window.removeEventListener("keydown", onKeyDown)
     stopFade()
+    stopArmTracking()
+    cancelPending()
+    if (motorFrame) {
+      window.cancelAnimationFrame(motorFrame)
+      motorFrame = 0
+    }
+    fx?.close()
     if (player) {
       player.pauseVideo()
       player.destroy()

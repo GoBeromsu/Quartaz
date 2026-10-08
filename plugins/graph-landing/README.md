@@ -25,8 +25,15 @@ hub attraction, and a slow automatic orbit. All configuration options are option
   Night links blend their endpoints' star colors and
   brighten with the log of the weaker endpoint's degree, so hub filaments glow
   while leaf threads stay faint; folder/co-occurrence texture appears in its lens.
+- Pressing the turntable puts a record on: the platter spins up with motor
+  inertia, the tonearm swings over and lands with a synthesised thump, a faint
+  surface-noise bed rises, and only then does the music fade in. Stopping lifts
+  the arm, the sound cuts with the stylus, and the platter coasts to rest.
+  The arm creeps toward the label as the track plays.
 - While music plays, a record-sleeve label beside the turntable shows the
   current title and artist. Hover previews sit bottom-right, clear of the dock.
+- The record collection opens on a full-size deck of the current record and
+  tonearm; hovering a sleeve in the crate slides its disc out.
 
 ## Install or update
 
@@ -40,7 +47,7 @@ the `ref` below selects the installed plugin release.
 - source:
     repo: github:GoBeromsu/Quartaz
     subdir: plugins/graph-landing
-    ref: graph-landing-v0.18.0
+    ref: graph-landing-v0.19.0
     name: graph-landing
   enabled: true
 ```
@@ -338,7 +345,24 @@ a `title`, an optional `artist`, and a YouTube `url`.
   is played.
 - Invalid or empty collections fall back to the built-in ambient track.
 - The record spins only during audible playback and uses the current YouTube
-  thumbnail as its center label.
+  thumbnail as its center label. The platter runs at 33⅓ RPM with spin-up and
+  coast-down inertia; the tonearm cues before the sound starts and lifts
+  before it stops. Changing records mid-play lifts, swaps, and re-cues.
+- `prefers-reduced-motion` skips the motor and arm animation; the states still
+  switch so the control stays legible.
+
+### `music.vinylFx`
+
+Synthesised turntable sounds: the thump and click of the stylus landing, the
+lighter click of it lifting, and a faint crackle bed while the record plays.
+Everything is generated with WebAudio after the first user gesture, so nothing
+is downloaded and nothing plays before the visitor interacts. Default `true`;
+set `false` to keep the choreography silent.
+
+```yaml
+music:
+  vinylFx: false
+```
 
 ### `defaultLocale`
 

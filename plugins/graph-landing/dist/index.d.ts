@@ -176,6 +176,12 @@ interface GraphLandingPageOptions {
             artist?: string;
             url: string;
         }>;
+        /**
+         * Synthesised turntable sounds (stylus drop and lift, a faint
+         * surface-noise bed while playing). Generated with WebAudio after a user
+         * gesture, nothing is downloaded. Default `true`.
+         */
+        vinylFx?: boolean;
     };
     /**
      * Locale id that selects the built-in overlay copy ("ko" or anything else

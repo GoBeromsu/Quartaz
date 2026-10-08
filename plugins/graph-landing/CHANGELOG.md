@@ -2,6 +2,34 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.19.0
+
+### Added
+
+- `landingSlugs`: extra slugs rendered as the graph landing (for example
+  `[index]`) so the site root becomes the landing without a `graphLanding`
+  frontmatter field.
+- `music.vinylFx` (default `true`): WebAudio-synthesised stylus drop and
+  lift sounds plus a faint crackle bed while the record plays. Nothing is
+  downloaded; the context is created after the first gesture.
+- The record collection opens on a full-size deck showing the current record,
+  its label artwork, and a tonearm that follows the dock's state. Hovering a
+  sleeve in the crate slides its disc out.
+
+### Changed
+
+- Putting a record on is now a sequence instead of a toggle: the platter
+  spins up with motor inertia to 33⅓ RPM, the tonearm swings over and lands,
+  surface noise rises, then the music fades in over 1.8 s (previously 28 s).
+  Stopping lifts the arm, cuts the sound with the stylus, parks the arm, and
+  lets the platter coast to rest. Changing records lifts, swaps, and re-cues.
+- The tonearm creeps from the outer groove toward the label as the track
+  progresses.
+- The constant CSS spin is replaced by a requestAnimationFrame motor shared
+  by every record on the page; `prefers-reduced-motion` skips it.
+- Record artwork is exposed as `--graph-music-artwork` on the landing root
+  instead of the dock button.
+
 ## 0.18.0
 
 ### Added

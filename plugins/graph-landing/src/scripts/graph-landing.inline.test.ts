@@ -14,8 +14,13 @@ import {
   nodeRepulsionScale,
   normalizedDegreeWeight,
   parseNonNegativeNumber,
+  platterVelocity,
+  rpmToDegPerMs,
   seedExpandedNodePosition,
   selectRenderedSubset,
+  tonearmAngle,
+  vinylNoiseSamples,
+  VINYL_RPM,
   youtubeVideoId,
   youtubeTracks,
   type GraphData,
@@ -645,5 +650,80 @@ describe("seedExpandedNodePosition", () => {
         `expected distance ~20 from source, got ${distance}`,
       )
     }
+  })
+})
+
+describe("platterVelocity", () => {
+  it("spins up toward the target without overshooting and finally snaps", () => {
+    let velocity = 0
+    let previous = 0
+    for (let step = 0; step < 400; step++) {
+      velocity = platterVelocity(velocity, VINYL_RPM, 16, 450)
+      assert.ok(velocity >= previous && velocity <= VINYL_RPM)
+      previous = velocity
+    }
+    assert.equal(velocity, VINYL_RPM)
+  })
+
+  it("coasts down more slowly than it spins up when given a longer time constant", () => {
+    const up = platterVelocity(0, VINYL_RPM, 300, 450)
+    const down = platterVelocity(VINYL_RPM, 0, 300, 1400)
+    // 300ms at tau 450 gets 48% of the way up; at tau 1400 only 19% of the way down.
+    assert.ok(up > VINYL_RPM * 0.45 && up < VINYL_RPM * 0.5)
+    assert.ok(down > VINYL_RPM * 0.8)
+  })
+
+  it("returns the target for non-positive time steps and the rest for bad input", () => {
+    assert.equal(platterVelocity(10, 33, 0, 400), 33)
+    assert.equal(platterVelocity(10, 33, 16, 0), 33)
+    assert.equal(platterVelocity(Number.NaN, 33, 16, 400), 0)
+  })
+
+  it("converts 33⅓ RPM to one revolution every 1.8 seconds", () => {
+    assert.ok(Math.abs(rpmToDegPerMs(VINYL_RPM) * 1800 - 360) < 1e-9)
+    assert.equal(rpmToDegPerMs(Number.NaN), 0)
+  })
+})
+
+describe("tonearmAngle", () => {
+  it("tracks from the outer groove to the label and clamps progress", () => {
+    assert.equal(tonearmAngle(0), 4)
+    assert.equal(tonearmAngle(1), 17)
+    assert.equal(tonearmAngle(0.5), 10.5)
+    assert.equal(tonearmAngle(-3), 4)
+    assert.equal(tonearmAngle(9), 17)
+    assert.equal(tonearmAngle(Number.NaN), 4)
+  })
+})
+
+describe("vinylNoiseSamples", () => {
+  const seeded = (): (() => number) => {
+    let state = 1234567
+    return () => {
+      state = (state * 1103515245 + 12345) % 2147483648
+      return state / 2147483648
+    }
+  }
+
+  it("is deterministic, bounded, and contains both hiss and pops", () => {
+    const a = vinylNoiseSamples(44100, seeded())
+    const b = vinylNoiseSamples(44100, seeded())
+    assert.equal(a.length, 44100)
+    assert.deepEqual(Array.from(a.subarray(0, 64)), Array.from(b.subarray(0, 64)))
+    let peak = 0
+    let quiet = 0
+    for (const sample of a) {
+      assert.ok(sample >= -1 && sample <= 1)
+      peak = Math.max(peak, Math.abs(sample))
+      if (Math.abs(sample) <= 0.08) quiet++
+    }
+    assert.ok(peak > 0.2, "pops should rise above the hiss floor")
+    assert.ok(quiet > a.length * 0.9, "most samples should be quiet hiss")
+  })
+
+  it("tolerates bad lengths", () => {
+    assert.equal(vinylNoiseSamples(-5).length, 0)
+    assert.equal(vinylNoiseSamples(Number.NaN).length, 0)
+    assert.equal(vinylNoiseSamples(10.9).length, 10)
   })
 })
