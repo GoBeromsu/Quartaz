@@ -2,6 +2,12 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.15.1
+
+### Fixed
+
+- Declare `fontFace` on the SpriteText type so the plugin typechecks.
+
 ## 0.15.0
 
 ### Changed

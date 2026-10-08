@@ -176,6 +176,7 @@ interface SpriteTextInstance {
   backgroundColor: string | false
   textHeight: number
   text: string
+  fontFace: string
   fontWeight: string
   strokeWidth: number
   strokeColor: string
