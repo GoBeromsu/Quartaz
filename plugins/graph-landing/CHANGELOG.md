@@ -2,6 +2,28 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.15.0
+
+### Changed
+
+- Every node now carries a label, in the site body font with no stroke.
+  Hubs read at weight 600 in ink; leaves, tags, and externals read at weight
+  400 in muted gray, matching the XIA constellation hierarchy. The labels
+  toggle defaults to on.
+- Tags and external nodes are muted gray in both themes instead of accent
+  noise.
+- A viewport-shaped squash force flattens the cloud along the short axis, so
+  the constellation spans a landscape desktop and fills a portrait phone.
+- The overview fit frames the body of the graph (92nd percentile, 6%
+  margin) and lets the few outliers bleed past the edges.
+- The hint is plain muted text at the bottom right on desktop and sits
+  centered above the dock on mobile; it hides while a preview is open.
+
+### Fixed
+
+- The hint no longer inherits a stale horizontal translate from its entry
+  animation, which pushed it off its anchor and clipped it on phones.
+
 ## 0.14.1
 
 ### Changed

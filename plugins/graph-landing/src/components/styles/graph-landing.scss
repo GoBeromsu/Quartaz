@@ -861,11 +861,11 @@ a.graph-landing__title:focus-visible {
 }
 
 .graph-landing__dot--tag {
-  background: var(--graph-accent);
+  background: var(--graph-muted);
 }
 
 .graph-landing__dot--external {
-  background: var(--graph-external);
+  background: var(--graph-muted);
 }
 
 .graph-landing__preview {
@@ -895,25 +895,24 @@ a.graph-landing__title:focus-visible {
 
 .graph-landing__hint {
   animation: graph-landing-hint-in 0.5s ease both;
-  backdrop-filter: blur(10px);
-  background: var(--graph-surface);
-  border: 1px solid var(--graph-border);
-  border-radius: 999px;
-  bottom: calc(16px + 48px + 14px);
+  bottom: 24px;
   color: var(--graph-muted);
   font-size: 12px;
-  left: 50%;
   letter-spacing: 0.01em;
   line-height: 1.4;
   margin: 0;
   max-width: calc(100% - 2rem);
-  padding: 0.45rem 0.95rem;
+  padding: 0;
   pointer-events: none;
   position: absolute;
-  text-align: center;
-  transform: translateX(-50%);
+  right: 24px;
+  text-align: right;
   white-space: nowrap;
   z-index: 3;
+}
+
+.graph-landing__preview[data-visible="true"] ~ .graph-landing__hint {
+  opacity: 0;
 }
 
 .graph-landing__hint[hidden] {
@@ -923,11 +922,11 @@ a.graph-landing__title:focus-visible {
 @keyframes graph-landing-hint-in {
   from {
     opacity: 0;
-    transform: translate(-50%, 6px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
-    transform: translate(-50%, 0);
+    transform: translateY(0);
   }
 }
 
@@ -1155,6 +1154,10 @@ a.graph-landing__title:focus-visible {
   }
 
   .graph-landing__hint {
+    bottom: calc(max(16px, env(safe-area-inset-bottom)) + 48px + 14px);
+    left: 16px;
+    right: 16px;
+    text-align: center;
     white-space: normal;
   }
 
@@ -1200,10 +1203,6 @@ a.graph-landing__title:focus-visible {
   background: var(--graph-surface);
   border-color: var(--graph-border);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.38);
-}
-
-:root[saved-theme="dark"] .graph-landing__hint {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
 }
 
 :root[saved-theme="dark"] .graph-landing__music-dock,

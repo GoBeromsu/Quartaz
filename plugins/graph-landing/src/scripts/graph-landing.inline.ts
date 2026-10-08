@@ -302,6 +302,7 @@ const HUB_EGO_N = 6
 const MIN_NODE_VAL = 1
 const MAX_NODE_VAL = 4
 const CENTER_STRENGTH = 0.05
+const SQUASH_STRENGTH = 0.09
 const NODE_REL_SIZE = 2.6
 const NODE_OPACITY = 1
 const LINK_OPACITY = 1
@@ -1256,6 +1257,23 @@ function createClusterForce(
   return force
 }
 
+// Pulls one axis toward the origin so the constellation takes the shape of
+// the viewport: wide on desktop, tall on phones.
+function createSquashForce(axis: "x" | "y", strength: number): (alpha: number) => void {
+  let nodes: GraphNode[] = []
+  const force = (alpha: number): void => {
+    const k = strength * alpha
+    for (const node of nodes) {
+      if (axis === "y") node.vy = (node.vy ?? 0) - (node.y ?? 0) * k
+      else node.vx = (node.vx ?? 0) - (node.x ?? 0) * k
+    }
+  }
+  ;(force as { initialize?: (input: GraphNode[]) => void }).initialize = (input: GraphNode[]) => {
+    nodes = input
+  }
+  return force
+}
+
 function setPressed(root: HTMLElement, selector: string, value: string, attr: string): void {
   for (const el of root.querySelectorAll(selector)) {
     if (!(el instanceof HTMLElement)) {
@@ -1380,7 +1398,7 @@ function bindGraph(
   }
   const state: ViewState = {
     lens: readStoredLens(),
-    allLabels: false,
+    allLabels: true,
     focusTag: null,
     focusFolder: null,
   }
@@ -1463,7 +1481,7 @@ function bindGraph(
 
   const baseNodeColor = (node: GraphNode): string => {
     if (node.type === "external") {
-      return theme.current.external
+      return theme.current.gray
     }
     if (state.lens === "tag") {
       if (node.type === "tag") {
@@ -1483,12 +1501,12 @@ function bindGraph(
       }
       return node.isHub ? theme.current.accent : theme.current.ink
     }
-    return node.type === "tag" ? theme.current.tertiary : theme.current.ink
+    return node.type === "tag" ? theme.current.gray : theme.current.ink
   }
 
-  // Night palette independent of focus state: accent hubs, ink leaves.
+  // Night palette independent of focus state: accent hubs, ink leaves, gray tags.
   const nightStarColor = (node: GraphNode): string =>
-    node.isHub ? theme.current.accent : theme.current.ink
+    node.isHub ? theme.current.accent : node.type === "tag" ? theme.current.gray : theme.current.ink
 
   // Connection weight in the spirit of Butler's friendship map: brightness
   // follows the log of the weaker endpoint, so hub-to-hub filaments glow and
@@ -1576,7 +1594,8 @@ function bindGraph(
   // applyFocusChange (the incremental-repaint path) can recompute a single
   // node's label color without re-running the full label repaint.
   const labelColorFor = (node: GraphNode): string => {
-    const labelInk = theme.current.ink
+    const labelInk =
+      labeledHubIds.has(node.id) || litId() === node.id ? theme.current.ink : theme.current.gray
     return isActive(node.id) ? labelInk : withAlpha(labelInk, DIM_ALPHA)
   }
 
@@ -1730,6 +1749,10 @@ function bindGraph(
     )
     if (options.use3d) {
       graph.d3Force("flattenZ", null)
+      const mountEl = options.root.querySelector("#graph-landing-mount")
+      const landscape =
+        mountEl instanceof HTMLElement ? mountEl.clientWidth >= mountEl.clientHeight : true
+      graph.d3Force("squash", createSquashForce(landscape ? "y" : "x", SQUASH_STRENGTH))
     }
   }
 
@@ -1843,6 +1866,9 @@ function bindGraph(
     )
   }
 
+  const labelFontFace =
+    getComputedStyle(options.root).getPropertyValue("--bodyFont").trim() ||
+    "Inter, system-ui, sans-serif"
   const paintLabels3d = (): void => {
     if (!options.use3d || typeof graph.nodeThreeObject !== "function") {
       return
@@ -1898,15 +1924,14 @@ function bindGraph(
       }
       // Alex-style label: small, no stroke bubble, floating beside the star.
       const characters = Array.from(node.name)
-      const limit = window.innerWidth < 700 ? 24 : 48
+      const limit = window.innerWidth < 700 ? 24 : 40
       const sprite = new SpriteText(
         characters.length > limit ? `${characters.slice(0, limit).join("")}…` : node.name,
       )
       sprite.color = labelColorFor(node)
+      sprite.fontFace = labelFontFace
       sprite.backgroundColor = false
-      sprite.fontWeight = isDarkTheme() ? "400" : "500"
-      sprite.strokeWidth = isDarkTheme() ? 0.35 : 0.22
-      sprite.strokeColor = labelStrokeColorFor(node)
+      sprite.fontWeight = labeledHubIds.has(node.id) ? "600" : "400"
       // Discard empty texels so the label quad never reads as a tinted
       // rectangle even with backgroundColor=false.
       sprite.material.transparent = true
@@ -2113,8 +2138,6 @@ function bindGraph(
       const label = labelSprites.get(id)
       if (label) {
         label.sprite.color = labelColorFor(node)
-        label.sprite.strokeColor = labelStrokeColorFor(node)
-        label.sprite.strokeWidth = isDarkTheme() ? 0.35 : 0.22
         label.sprite.visible = showNodeLabel(node)
       }
       for (const link of linksByNode.get(id) ?? []) {
@@ -2319,17 +2342,23 @@ function bindGraph(
       return OVERVIEW_FILL
     }
     graph.camera?.()?.updateMatrixWorld?.()
-    let halfX = 0
-    let halfY = 0
+    const xs: number[] = []
+    const ys: number[] = []
     for (const node of currentData().nodes) {
       if (node.x === undefined || node.y === undefined) continue
       const screen = graph.graph2ScreenCoords(node.x, node.y, node.z ?? 0)
-      halfX = Math.max(halfX, Math.abs(screen.x - width / 2))
-      halfY = Math.max(halfY, Math.abs(screen.y - height / 2))
+      xs.push(Math.abs(screen.x - width / 2))
+      ys.push(Math.abs(screen.y - height / 2))
     }
+    // Frame the body of the constellation and let the few outliers bleed
+    // past the edges, the way a photograph crops a crowd.
+    const percentile = (values: number[]): number =>
+      values.sort((a, b) => a - b)[Math.floor((values.length - 1) * 0.92)] ?? 0
+    const halfX = percentile(xs)
+    const halfY = percentile(ys)
     if (halfX < 1 || halfY < 1) return OVERVIEW_FILL
     // ponytail: linear zoom model ignores perspective depth; the margin absorbs it.
-    const margin = 0.12
+    const margin = 0.06
     const k = Math.min((width * (0.5 - margin)) / halfX, (height * (0.5 - margin)) / halfY)
     return clamp(1 / k, 0.3, 1)
   }
@@ -2588,13 +2617,14 @@ function bindGraph(
               const distance = Math.hypot(cam.x - nx, cam.y - ny, cam.z - nz)
               entry.sprite.visible = graphLabelVisible(
                 showNodeLabel(entry.node),
-                litId() === entry.node.id || (litId() === null && labeledHubIds.has(entry.node.id)),
+                litId() === entry.node.id ||
+                  (litId() === null && (state.allLabels || labeledHubIds.has(entry.node.id))),
                 distance,
                 labelDistance,
               )
               if (entry.sprite.visible) {
                 const characters = Array.from(entry.node.name)
-                const limit = window.innerWidth < 700 ? 24 : 48
+                const limit = window.innerWidth < 700 ? 24 : 40
                 const text =
                   characters.length > limit
                     ? `${characters.slice(0, limit).join("")}…`
@@ -2602,7 +2632,8 @@ function bindGraph(
                 if (entry.sprite.text !== text) entry.sprite.text = text
                 const projected = graph.graph2ScreenCoords?.(nx, ny, nz)
                 if (projected && litId() === null) {
-                  const width = Array.from(text).length * 9 + 12
+                  const hub = labeledHubIds.has(entry.node.id)
+                  const width = Array.from(text).length * (hub ? 8 : 6) + 12
                   const left =
                     projected.x > window.innerWidth * 0.6 ? projected.x - width : projected.x
                   const right = left + width
@@ -2613,11 +2644,13 @@ function bindGraph(
                   entry.sprite.visible = !overlaps && left >= 8 && right <= window.innerWidth - 8
                   if (entry.sprite.visible) titleBounds.push({ left, right, y: projected.y })
                 }
-                entry.sprite.center.set(
-                  projected && projected.x > window.innerWidth * 0.6 ? 1 : 0,
-                  0.5,
+                const flip = projected !== undefined && projected.x > window.innerWidth * 0.6
+                entry.sprite.center.set(flip ? 1 : 0, 0.5)
+                entry.sprite.position.x = (flip ? -1 : 1) * (nodeWorldRadius(entry.node) + 2)
+                const textHeight = Math.max(
+                  5.5,
+                  (distance / viewportHeight) * (labeledHubIds.has(entry.node.id) ? 12 : 9),
                 )
-                const textHeight = Math.max(5.5, (distance / viewportHeight) * 11)
                 if (Math.abs(entry.sprite.textHeight - textHeight) > 0.5) {
                   entry.sprite.textHeight = textHeight
                 }

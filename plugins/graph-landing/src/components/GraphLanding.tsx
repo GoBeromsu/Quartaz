@@ -603,9 +603,9 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
                           data-graph-labels
                           data-label-show={copy.labelsShow}
                           data-label-hide={copy.labelsHide}
-                          aria-label={copy.labelsShow}
-                          title={copy.labelsShow}
-                          aria-pressed="false"
+                          aria-label={copy.labelsHide}
+                          title={copy.labelsHide}
+                          aria-pressed="true"
                         >
                           <svg
                             width="15"
