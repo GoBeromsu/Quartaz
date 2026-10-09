@@ -520,8 +520,12 @@ article :is(p:has(.katex), li:has(.katex), .table-container),
 
 article .table-container > table,
 .markdown-preview-view .table-container > table {
-  max-width: none;
-  width: max-content;
+  max-width: calc(100% - 2rem);
+}
+
+article .table-container :is(th, td),
+.markdown-preview-view .table-container :is(th, td) {
+  word-break: keep-all;
 }
 
 article .block-language-mermaid,

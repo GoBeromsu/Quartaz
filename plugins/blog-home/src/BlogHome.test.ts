@@ -244,9 +244,18 @@ describe("BlogStyles Ataraxia contract", () => {
       "li:has(.katex)",
       ".table-container",
       "max-width: 100%;",
-      "width: max-content;",
     ] as const
 
     assertIncludesAll(css, overflowMarkers)
+  })
+
+  test("wraps table cells inside the article column", () => {
+    const css = componentCss(BlogStyles())
+    const tableRule = css.match(/article \.table-container > table,[^{]*\{([^}]*)\}/)
+
+    assert.ok(tableRule, "article table rule exists")
+    assert.match(tableRule[1], /max-width: calc\(100% - 2rem\);/)
+    assert.doesNotMatch(tableRule[1], /width: max-content;/)
+    assert.match(css, /\.table-container :is\(th, td\)[^{]*\{\s*word-break: keep-all;/)
   })
 })
