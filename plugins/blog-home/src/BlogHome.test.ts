@@ -258,4 +258,18 @@ describe("BlogStyles Ataraxia contract", () => {
     assert.doesNotMatch(tableRule[1], /width: max-content;/)
     assert.match(css, /\.table-container :is\(th, td\)[^{]*\{\s*word-break: keep-all;/)
   })
+
+  test("drops table chrome inside the mobile article column", () => {
+    const css = componentCss(BlogStyles())
+    const mobile = css.slice(css.indexOf("@media (max-width: 800px)"))
+    const tableRule = mobile.match(/article \.table-container > table,[^{]*\{([^}]*)\}/)
+    const cellRule = mobile.match(/article \.table-container :is\(th, td\),[^{]*\{([^}]*)\}/)
+
+    assert.ok(tableRule, "mobile table rule exists")
+    assert.match(tableRule[1], /margin-inline: 0;/)
+    assert.match(tableRule[1], /max-width: 100%;/)
+    assert.match(tableRule[1], /padding: 0;/)
+    assert.ok(cellRule, "mobile cell rule exists")
+    assert.match(cellRule[1], /overflow-wrap: anywhere;/)
+  })
 })

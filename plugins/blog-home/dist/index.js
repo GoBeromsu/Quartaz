@@ -749,6 +749,20 @@ body:has(.blog-latest) .page-listing {
   .page li.section-li > .section > .tags {
     display: none;
   }
+
+  article .table-container > table,
+  .markdown-preview-view .table-container > table {
+    margin-inline: 0;
+    max-width: 100%;
+    padding: 0;
+  }
+
+  article .table-container :is(th, td),
+  .markdown-preview-view .table-container :is(th, td) {
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+    padding: 0.5rem 0.4rem;
+  }
 }
 
 @media (max-width: 430px) {
