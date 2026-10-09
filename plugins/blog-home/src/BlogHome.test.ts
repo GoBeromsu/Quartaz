@@ -249,17 +249,15 @@ describe("BlogStyles Ataraxia contract", () => {
     assertIncludesAll(css, overflowMarkers)
   })
 
-  test("wraps table cells inside the article column", () => {
+  test("leaves desktop table sizing to upstream Quartz", () => {
     const css = componentCss(BlogStyles())
-    const tableRule = css.match(/article \.table-container > table,[^{]*\{([^}]*)\}/)
+    const desktop = css.slice(0, css.indexOf("@media (max-width: 800px)"))
 
-    assert.ok(tableRule, "article table rule exists")
-    assert.match(tableRule[1], /max-width: calc\(100% - 2rem\);/)
-    assert.doesNotMatch(tableRule[1], /width: max-content;/)
-    assert.match(css, /\.table-container :is\(th, td\)[^{]*\{\s*word-break: keep-all;/)
+    assert.doesNotMatch(desktop, /\.table-container > table/)
+    assert.doesNotMatch(css, /width: max-content;/)
   })
 
-  test("drops table chrome inside the mobile article column", () => {
+  test("lets mobile tables wrap inside the narrow article column", () => {
     const css = componentCss(BlogStyles())
     const mobile = css.slice(css.indexOf("@media (max-width: 800px)"))
     const tableRule = mobile.match(/article \.table-container > table,[^{]*\{([^}]*)\}/)
@@ -267,8 +265,6 @@ describe("BlogStyles Ataraxia contract", () => {
 
     assert.ok(tableRule, "mobile table rule exists")
     assert.match(tableRule[1], /margin-inline: 0;/)
-    assert.match(tableRule[1], /max-width: 100%;/)
-    assert.match(tableRule[1], /padding: 0;/)
     assert.ok(cellRule, "mobile cell rule exists")
     assert.match(cellRule[1], /overflow-wrap: anywhere;/)
   })

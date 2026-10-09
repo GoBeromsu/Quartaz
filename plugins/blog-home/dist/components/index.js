@@ -518,16 +518,6 @@ article :is(p:has(.katex), li:has(.katex), .table-container),
   overflow-x: auto;
 }
 
-article .table-container > table,
-.markdown-preview-view .table-container > table {
-  max-width: calc(100% - 2rem);
-}
-
-article .table-container :is(th, td),
-.markdown-preview-view .table-container :is(th, td) {
-  word-break: keep-all;
-}
-
 article .block-language-mermaid,
 .markdown-preview-view .block-language-mermaid {
   overflow-x: auto;
@@ -753,15 +743,11 @@ body:has(.blog-latest) .page-listing {
   article .table-container > table,
   .markdown-preview-view .table-container > table {
     margin-inline: 0;
-    max-width: 100%;
-    padding: 0;
   }
 
   article .table-container :is(th, td),
   .markdown-preview-view .table-container :is(th, td) {
-    line-height: 1.5;
     overflow-wrap: anywhere;
-    padding: 0.5rem 0.4rem;
   }
 }
 
