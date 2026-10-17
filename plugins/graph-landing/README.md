@@ -377,7 +377,7 @@ Optional manifesto copy over the canvas, bottom-left:
 
 ```yaml
 hero:
-  eyebrow: "Beomsu Koh · Senior AI Lab"
+  eyebrow: "Beomsu Koh"
   title: "기술은 의도를\n증폭한다." # "\n" forces a line break
   titleEmphasis: "의도" # wrapped in <em>, accent colour
   lede: "…"
@@ -401,7 +401,7 @@ everyone else in English:
 
 ```yaml
 hero:
-  eyebrow: "Beomsu Koh · Senior AI Lab"
+  eyebrow: "Beomsu Koh"
   title: "기술은 의도를\n증폭한다."
   titleEmphasis: "의도"
   lede: "…"

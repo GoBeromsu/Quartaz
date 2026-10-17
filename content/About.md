@@ -16,7 +16,7 @@ type: note
 
 ## About Me
 
-Hello, I'm Beomsu Koh, co-founder and technical lead at [Senior AI Lab](https://seniorsailab.com/), where I am building **SEE:ON**, an AI video safety system for eldercare facilities.
+Hello, I'm Beomsu Koh.
 
 Alongside product development, I pursue first-author software-engineering research on tangled code commits—currently under major revision at *Empirical Software Engineering*—and build open-source tools for Obsidian and personal knowledge systems, including [Open Connections](https://github.com/GoBeromsu/open-connections). I spoke at Gyeongnam CMDS PKM Conference 2025 about AI-assisted research and knowledge workflows. In 2026, I served as an Upstage AI Ambassador, was selected as an outstanding ambassador, helped organize and teach the 2026 JNU × Upstage Skillthon, and delivered an Education Track workshop at 2026 DGIST AI Build Week.
 
@@ -36,8 +36,6 @@ I want to stop attention theft and the seizure of people's cognitive resources, 
   - Served in the Korea Coast Guard
 - **2024 ~ 2025**
   - M.Sc. in Advanced Computer Science, [University of Sheffield](https://www.sheffield.ac.uk/) — Distinction
-- **2026**
-  - Co-founded [Senior AI Lab](https://seniorsailab.com/) as technical lead and began building **SEE:ON**
 
 ## Contact
 

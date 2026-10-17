@@ -152,7 +152,7 @@ plugins:
           - title: "Ambient Constellation"
             url: "https://www.youtube.com/watch?v=o6HpCFhNcnQ"
       hero:
-        eyebrow: "Beomsu Koh · Senior AI Lab"
+        eyebrow: "Beomsu Koh"
         title: "기술은 의도를\n증폭한다."
         titleEmphasis: "의도"
         lede: "사람들이 원치 않게 탈취당하는 인지 자원을 지키는 기술을 만듭니다. 도구가 무엇을 할 수 있는지보다, 누구의 의도를 키우는지가 중요합니다."
