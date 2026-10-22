@@ -3,33 +3,40 @@
   "plugins": {
     "blog-chrome": {
       "source": "./plugins/blog-chrome",
-      "resolved": "/private/tmp/claude-501/-Users-beomsu-Documents-Obsidian-Ataraxia/ad919d8c-eccf-45dc-9b16-ed6820d4bbfc/scratchpad/quartaz/plugins/blog-chrome",
+      "resolved": "/Users/beomsu/Documents/Obsidian/Blog/plugins/blog-chrome",
       "commit": "local",
-      "installedAt": "2026-10-08T04:20:48.998Z"
+      "installedAt": "2026-10-22T06:58:48.722Z"
     },
     "blog-home": {
       "source": "./plugins/blog-home",
-      "resolved": "/private/tmp/claude-501/-Users-beomsu-Documents-Obsidian-Ataraxia/ad919d8c-eccf-45dc-9b16-ed6820d4bbfc/scratchpad/quartaz/plugins/blog-home",
+      "resolved": "/Users/beomsu/Documents/Obsidian/Blog/plugins/blog-home",
       "commit": "local",
-      "installedAt": "2026-10-08T04:20:48.998Z"
+      "installedAt": "2026-10-22T06:58:48.722Z"
     },
     "graph-landing": {
       "source": "./plugins/graph-landing",
-      "resolved": "/private/tmp/claude-501/-Users-beomsu-Documents-Obsidian-Ataraxia/ad919d8c-eccf-45dc-9b16-ed6820d4bbfc/scratchpad/quartaz/plugins/graph-landing",
+      "resolved": "/Users/beomsu/Documents/Obsidian/Blog/plugins/graph-landing",
       "commit": "local",
-      "installedAt": "2026-10-08T04:20:48.998Z"
+      "installedAt": "2026-10-22T06:58:48.722Z"
     },
     "legacy-frontmatter-dates": {
       "source": "./plugins/legacy-frontmatter-dates",
-      "resolved": "/private/tmp/claude-501/-Users-beomsu-Documents-Obsidian-Ataraxia/ad919d8c-eccf-45dc-9b16-ed6820d4bbfc/scratchpad/quartaz/plugins/legacy-frontmatter-dates",
+      "resolved": "/Users/beomsu/Documents/Obsidian/Blog/plugins/legacy-frontmatter-dates",
       "commit": "local",
-      "installedAt": "2026-10-08T04:20:48.997Z"
+      "installedAt": "2026-10-22T06:58:48.721Z"
+    },
+    "obsidian-flavored-markdown": {
+      "source": "github:quartz-community/obsidian-flavored-markdown#feat/mermaid-to-pele",
+      "resolved": "https://github.com/quartz-community/obsidian-flavored-markdown.git",
+      "commit": "b6df62d1a97b413a6f49c370e88ce3caf118adb5",
+      "ref": "feat/mermaid-to-pele",
+      "installedAt": "2026-10-22T06:58:50.080Z"
     },
     "permalink-slug": {
       "source": "./plugins/permalink-slug",
-      "resolved": "/private/tmp/claude-501/-Users-beomsu-Documents-Obsidian-Ataraxia/ad919d8c-eccf-45dc-9b16-ed6820d4bbfc/scratchpad/quartaz/plugins/permalink-slug",
+      "resolved": "/Users/beomsu/Documents/Obsidian/Blog/plugins/permalink-slug",
       "commit": "local",
-      "installedAt": "2026-10-08T04:20:48.998Z"
+      "installedAt": "2026-10-22T06:58:48.722Z"
     }
   }
 }

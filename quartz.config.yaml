@@ -84,11 +84,13 @@ plugins:
         dark: github-dark
       keepBackground: false
     order: 20
-  - source: "@quartz-community/obsidian-flavored-markdown"
+  # Pele mermaid renderer: unmerged PR quartz-community/obsidian-flavored-markdown#14; revert to "@quartz-community/obsidian-flavored-markdown" once released
+  - source: github:quartz-community/obsidian-flavored-markdown#feat/mermaid-to-pele
     enabled: true
     options:
       enableInHtmlEmbed: false
       enableCheckbox: true
+      diagramRenderer: pele
     order: 30
   - source: "@quartz-community/github-flavored-markdown"
     enabled: true
