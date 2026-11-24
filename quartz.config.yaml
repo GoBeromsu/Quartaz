@@ -249,6 +249,19 @@ plugins:
                 org: "전남대학교 SW중심대학사업단"
                 href: "https://jnu-oss-hub.com/"
                 body: "학생 개발자 3명을 이끌어 약 3개월 만에 운영을 시작했습니다."
+            facts:
+              - term: "2026.05"
+                detail: "Upstage 우수 앰배서더"
+                href: "https://www.linkedin.com/feed/update/urn:li:activity:7468929582113431552/"
+              - term: "2025.09"
+                detail: "Net Zero Data Challenge 2025 — Most Impactful Solution"
+                href: "https://www.linkedin.com/feed/update/urn:li:activity:7376614848605913088/"
+              - term: "2024.06"
+                detail: "Sheffield International PGT Merit Scholarship"
+              - term: "2023.11"
+                detail: "카카오 테크 캠퍼스 1기 종합 우수 조"
+              - term: "2022.12"
+                detail: "NET 챌린지 캠프 시즌 9 은상"
           - id: work
             nav: "작업"
             kicker: "Work"
@@ -420,19 +433,6 @@ plugins:
                   caption: "Home Note 만들기 실습"
                   width: 786
                   height: 1000
-            facts:
-              - term: "2026.05"
-                detail: "Upstage 우수 앰배서더"
-                href: "https://www.linkedin.com/feed/update/urn:li:activity:7468929582113431552/"
-              - term: "2025.09"
-                detail: "Net Zero Data Challenge 2025 — Most Impactful Solution"
-                href: "https://www.linkedin.com/feed/update/urn:li:activity:7376614848605913088/"
-              - term: "2024.06"
-                detail: "Sheffield International PGT Merit Scholarship"
-              - term: "2023.11"
-                detail: "카카오 테크 캠퍼스 1기 종합 우수 조"
-              - term: "2022.12"
-                detail: "NET 챌린지 캠프 시즌 9 은상"
           - id: contact
             nav: "연락"
             kicker: "About"
@@ -548,6 +548,19 @@ plugins:
                     org: "Chonnam National University, SW-centred University Project"
                     href: "https://jnu-oss-hub.com/"
                     body: "Led three student developers to production in about three months."
+                facts:
+                  - term: "2026.05"
+                    detail: "Upstage Outstanding Ambassador"
+                    href: "https://www.linkedin.com/feed/update/urn:li:activity:7468929582113431552/"
+                  - term: "2025.09"
+                    detail: "Net Zero Data Challenge 2025 — Most Impactful Solution"
+                    href: "https://www.linkedin.com/feed/update/urn:li:activity:7376614848605913088/"
+                  - term: "2024.06"
+                    detail: "Sheffield International PGT Merit Scholarship"
+                  - term: "2023.11"
+                    detail: "Kakao Tech Campus 1st cohort, best overall team"
+                  - term: "2022.12"
+                    detail: "NET Challenge Camp season 9, silver prize"
               - id: work
                 nav: "Work"
                 kicker: "Work"
@@ -727,19 +740,6 @@ plugins:
                       caption: "Hands-on: building a Home Note"
                       width: 786
                       height: 1000
-                facts:
-                  - term: "2026.05"
-                    detail: "Upstage Outstanding Ambassador"
-                    href: "https://www.linkedin.com/feed/update/urn:li:activity:7468929582113431552/"
-                  - term: "2025.09"
-                    detail: "Net Zero Data Challenge 2025 — Most Impactful Solution"
-                    href: "https://www.linkedin.com/feed/update/urn:li:activity:7376614848605913088/"
-                  - term: "2024.06"
-                    detail: "Sheffield International PGT Merit Scholarship"
-                  - term: "2023.11"
-                    detail: "Kakao Tech Campus 1st cohort, best overall team"
-                  - term: "2022.12"
-                    detail: "NET Challenge Camp season 9, silver prize"
               - id: contact
                 nav: "Contact"
                 kicker: "About"
