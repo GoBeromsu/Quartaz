@@ -2,6 +2,15 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.26.2
+
+### Fixed
+
+- Scrolling back up to the hero no longer shows the hero header and the profile
+  top bar at the same time. The outgoing layer now leaves at once and only the
+  incoming one fades, and the switch happens 24px into the scroll instead of
+  80px, before the first panel reaches the hero text.
+
 ## 0.26.1
 
 ### Changed

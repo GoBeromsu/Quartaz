@@ -4498,8 +4498,10 @@ function initProfileScroll(): void {
     delete root.dataset.profileReady
   })
 
+  // Low enough that the first panel never rises over hero text still on screen.
+  const scrolledPast = () => window.scrollY > 24
   const onScroll = () => {
-    const scrolled = window.scrollY > 80
+    const scrolled = scrolledPast()
     if (scrolled) {
       root.dataset.scrolled = "true"
       // An open rail or inspect panel would sit under the sections.
@@ -4536,7 +4538,7 @@ function initProfileScroll(): void {
       limit = Math.max(limit, distance)
       controls.maxDistance = limit
       const zoom = wheelZoomsGraph({
-        scrolled: window.scrollY > 80,
+        scrolled: scrolledPast(),
         modifier: event.ctrlKey || event.metaKey,
       })
       controls.noZoom = !zoom
