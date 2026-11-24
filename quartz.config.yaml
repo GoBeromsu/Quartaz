@@ -234,6 +234,12 @@ plugins:
                 org: "University of Sheffield"
                 body: "뒤엉킨 코드 커밋 연구를 제1저자로 진행했습니다. International PGT Merit Scholarship을 받았고, Net Zero Data Challenge 2025에서 Most Impactful Solution으로 선정되었습니다."
                 href: "#research"
+                image:
+                  src: "/static/home/net-zero-data-challenge-2025.jpg"
+                  alt: "Beomsu Koh 이름이 적힌 Net Zero Data Challenge Most Impactful Solution 인증서"
+                  caption: "Net Zero Data Challenge 2025 — Most Impactful Solution 인증서"
+                  width: 1200
+                  height: 709
               - period: "2024.09 – 현재"
                 title: "Obsidian 공식 커뮤니티 플러그인 — Author & Maintainer"
                 org: "오픈소스"
@@ -479,6 +485,12 @@ plugins:
               - period: "2025.10.24"
                 title: "AI를 통한 연구 맥락 복원과 지식 관리 워크플로우"
                 org: "경남 CMDS PKM Conference 2025 · 컨퍼런스 강연 · 청중 약 300명"
+                image:
+                  src: "/static/home/cmds-pkm-conference-2025.jpg"
+                  alt: "경남 CMDS AI PKM Conference 2025 현수막 아래 스크린에 고범수의 자기소개 슬라이드가 떠 있는 강연장"
+                  caption: "경남 CMDS AI PKM Conference 2025 강연"
+                  width: 1200
+                  height: 800
               - period: "2025.02 – 2025.06"
                 title: "한국학과 일대일 언어 교환"
                 org: "University of Sheffield"
@@ -595,6 +607,12 @@ plugins:
                     org: "University of Sheffield"
                     body: "First-author research on tangled code commits. International PGT Merit Scholarship; Most Impactful Solution at Net Zero Data Challenge 2025."
                     href: "#research"
+                    image:
+                      src: "/static/home/net-zero-data-challenge-2025.jpg"
+                      alt: "Net Zero Data Challenge Most Impactful Solution certificate presented to Beomsu Koh"
+                      caption: "Net Zero Data Challenge 2025 — Most Impactful Solution certificate"
+                      width: 1200
+                      height: 709
                   - period: "2024.09 – present"
                     title: "Official Obsidian community plugins — Author & Maintainer"
                     org: "Open source"
@@ -844,6 +862,12 @@ plugins:
                   - period: "2025.10.24"
                     title: "Restoring research context and knowledge-management workflows with AI"
                     org: "Gyeongnam CMDS PKM Conference 2025 · conference talk · audience of about 300"
+                    image:
+                      src: "/static/home/cmds-pkm-conference-2025.jpg"
+                      alt: "Beomsu Koh's self-introduction slide on the screen under the Gyeongnam CMDS AI PKM Conference 2025 banner"
+                      caption: "Talk at Gyeongnam CMDS AI PKM Conference 2025"
+                      width: 1200
+                      height: 800
                   - period: "2025.02 – 2025.06"
                     title: "One-to-one language exchange, Korean Studies"
                     org: "University of Sheffield"
