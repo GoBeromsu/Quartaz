@@ -71,7 +71,7 @@
     "category": [
       "pageType"
     ],
-    "version": "0.20.1",
+    "version": "0.27.0",
     "quartzVersion": ">=5.0.0",
     "dependencies": [],
     "defaultOrder": 55,
