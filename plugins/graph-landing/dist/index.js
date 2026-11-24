@@ -2268,7 +2268,7 @@ button.graph-landing__locale-toggle {
   line-height: 1.7;
   margin: 0;
   max-width: 62ch;
-  text-wrap: balance;
+  text-wrap: pretty;
   word-break: keep-all;
 }
 
@@ -2423,12 +2423,12 @@ button.graph-landing__locale-toggle {
 }
 
 .graph-landing__timeline-body h3,
-.graph-landing__timeline-body p,
 .graph-landing__card h3,
 .graph-landing__facts dd {
   text-wrap: balance;
 }
 
+.graph-landing__timeline-body p,
 .graph-landing__card p {
   text-wrap: pretty;
 }
@@ -2578,16 +2578,23 @@ a.graph-landing__card:hover {
 }
 
 .graph-landing__quote {
-  border-left: 2px solid var(--graph-accent);
-  margin: clamp(28px, 4vw, 44px) 0 0;
-  padding: 0.2rem 0 0.2rem clamp(18px, 2.5vw, 28px);
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.graph-landing__quote + .graph-landing__quote {
+  margin-top: clamp(28px, 4vw, 44px);
 }
 
 .graph-landing__quotes {
-  align-items: start;
+  border-top: 1px solid var(--graph-border);
   display: grid;
-  gap: 0 clamp(24px, 4vw, 56px);
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  margin-top: clamp(36px, 5vw, 60px);
+  padding-top: clamp(36px, 5vw, 60px);
+  text-align: center;
 }
 
 .graph-landing__quote p {
@@ -2595,8 +2602,8 @@ a.graph-landing__card:hover {
   font-family: var(--profile-display);
   font-size: clamp(1.25rem, 2.3vw, 1.7rem);
   line-height: 1.5;
-  margin: 0;
-  max-width: 34ch;
+  margin: 0 auto;
+  max-width: 46ch;
   text-wrap: balance;
   word-break: keep-all;
 }

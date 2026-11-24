@@ -6,6 +6,10 @@ All notable changes to this plugin are documented here.
 
 ### Changed
 
+- Section quotes stack in one centred column under a hairline instead of
+  sitting side by side as bordered blocks.
+- Section ledes and timeline paragraphs wrap with `text-wrap: pretty`, so
+  Korean body text no longer breaks into uneven balanced lines.
 - Card rows now stretch to fill the section width, so a row of three cards no
   longer leaves an empty fourth column.
 - A plain wheel or two-finger trackpad scroll over the hero always scrolls the
