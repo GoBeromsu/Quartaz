@@ -47,6 +47,11 @@ configuration:
         tertiary: "#a52142"
         highlight: "rgba(165, 33, 66, 0.12)"
         textHighlight: "#b3aa0288"
+  links:
+    markdownLinkResolution: shortest
+  contentIndex:
+    enableSiteMap: true
+    enableRSS: true
 plugins:
   - source: ./plugins/legacy-frontmatter-dates
     enabled: true
@@ -64,8 +69,6 @@ plugins:
         - aliases
       excludedProperties: []
       hidePropertiesView: false
-      delimiters: "---"
-      language: yaml
     order: 6
   - source: "@quartz-community/created-modified-date"
     enabled: true
@@ -84,17 +87,17 @@ plugins:
         dark: github-dark
       keepBackground: false
     order: 20
-  # Pele mermaid renderer: unmerged PR quartz-community/obsidian-flavored-markdown#14; revert to "@quartz-community/obsidian-flavored-markdown" once released
-  - source: github:quartz-community/obsidian-flavored-markdown#feat/mermaid-to-pele
+  # Mermaid fences render with Pele (released in obsidian-flavored-markdown 2.3)
+  - source: "@quartz-community/obsidian-flavored-markdown"
     enabled: true
     options:
       enableInHtmlEmbed: false
       enableCheckbox: true
       diagramRenderer: pele
-    order: 30
+    order: 40
   - source: "@quartz-community/github-flavored-markdown"
     enabled: true
-    order: 40
+    order: 30
   - source: "@quartz-community/table-of-contents"
     enabled: true
     order: 50
@@ -103,11 +106,6 @@ plugins:
       priority: 30
       condition: has-toc
       display: desktop-only
-  - source: "@quartz-community/crawl-links"
-    enabled: true
-    options:
-      markdownLinkResolution: shortest
-    order: 60
   - source: "@quartz-community/description"
     enabled: true
     order: 70
@@ -116,17 +114,10 @@ plugins:
     options:
       renderEngine: katex
     order: 80
-  - source: "@quartz-community/remove-draft"
-    enabled: true
   - source: "@quartz-community/unlisted-pages"
     enabled: true
   - source: "@quartz-community/alias-redirects"
     enabled: true
-  - source: "@quartz-community/content-index"
-    enabled: true
-    options:
-      enableSiteMap: true
-      enableRSS: true
   - source: ./plugins/graph-landing
     enabled: true
     options:
@@ -169,7 +160,9 @@ plugins:
           en:
             title: "Technology\namplifies intent."
             titleEmphasis: "intent"
-            lede: "I build technology that protects the attention people never meant to give away. What matters is not what a tool can do, but whose intent it amplifies."
+            lede:
+              "I build technology that protects the attention people never meant to give away. What matters is not what a tool
+              can do, but whose intent it amplifies."
       profile:
         sections:
           - id: now
@@ -181,9 +174,9 @@ plugins:
               - value: "7"
                 label: "Obsidian plugins"
                 note: "공식 커뮤니티 플러그인으로 등록해 직접 관리합니다."
-              - value: "17,757"
+              - value: "19,153"
                 label: "Downloads"
-                note: "플러그인 누적 다운로드 (2026-10-31 기준)."
+                note: "플러그인 누적 다운로드. GitHub 스타는 합계 99개입니다 (2026-11-24 기준)."
               - value: "73"
                 label: "Agent skills"
                 note: "craft-skills 48개와 secondbrain-skills 25개를 공개했습니다."
@@ -215,7 +208,9 @@ plugins:
               - period: "2024.09 – 2026.01"
                 title: "MSc Advanced Computer Science — Distinction"
                 org: "University of Sheffield"
-                body: "International PGT Merit Scholarship. 뒤엉킨 코드 커밋 연구를 제1저자로 진행했고, Net Zero Data Challenge 2025에서 Most Impactful Solution을 받았습니다."
+                body:
+                  "International PGT Merit Scholarship. 뒤엉킨 코드 커밋 연구를 제1저자로 진행했고, Net Zero Data Challenge 2025에서 Most Impactful
+                  Solution을 받았습니다."
               - period: "2024.09 –"
                 title: "Obsidian 플러그인 공개 시작"
                 org: "오픈소스"
@@ -266,43 +261,43 @@ plugins:
               - label: "Obsidian plugins"
                 cards:
                   - title: "Metadata Auto Classifier"
-                    body: "LLM으로 노트의 메타데이터를 자동 분류합니다. 하나의 프로바이더 계층으로 10개 LLM 프리셋을 지원합니다."
+                    body: "LLM으로 노트의 메타데이터를 자동 분류합니다. 하나의 프로바이더 계층으로 10개 LLM 프리셋을 지원합니다. Technology Hits의 2024-11 플러그인 리뷰 기사에 소개됐습니다."
                     href: "https://github.com/GoBeromsu/obsidian-metadata-auto-classifier"
-                    meta: "↓ 8,398 · 2024.09 –"
+                    meta: "★ 59 · ↓ 8,912 · 2024.09 –"
                   - title: "Open Connections"
                     body: "로컬 우선 RAG. 헤딩 단위 청킹과 벡터 검색을 제공하고, MCP 서버로 인덱스를 다른 에이전트에 엽니다."
                     href: "https://github.com/GoBeromsu/obsidian-open-connections"
-                    meta: "↓ 4,805 · 2026.02 –"
+                    meta: "★ 23 · ↓ 5,031 · 2026.02 –"
                   - title: "Eagle Integration"
                     body: "붙여 넣은 이미지를 Eagle 라이브러리에 올리고 로컬 캐시로 렌더링합니다."
                     href: "https://github.com/GoBeromsu/obsidian-eagle"
-                    meta: "↓ 3,661 · 2025.07 –"
+                    meta: "★ 11 · ↓ 3,740 · 2025.07 –"
                   - title: "Note Player"
                     body: "노트를 플레이리스트로 삼아 YouTube·캐시 오디오·로컬 파일을 재생합니다."
                     href: "https://github.com/GoBeromsu/obsidian-note-player"
-                    meta: "↓ 466 · 2026.03 –"
+                    meta: "★ 2 · ↓ 525 · 2026.03 –"
                   - title: "QMD Search"
                     body: "로컬 하이브리드 검색(BM25 + vector + HyDE), 관련 노트, 자동 동기화."
                     href: "https://github.com/GoBeromsu/obsidian-qmd"
-                    meta: "↓ 363 · 2026.03 –"
+                    meta: "★ 3 · ↓ 786 · 2026.03 –"
                   - title: "Hermes Control Center"
                     body: "SSH로 원격 Hermes 에이전트 프로필의 칸반·스킬·크론·채팅을 관리합니다."
                     href: "https://github.com/GoBeromsu/obsidian-hermes"
-                    meta: "↓ 51 · 2026.09 –"
+                    meta: "★ 1 · ↓ 125 · 2026.09 –"
                   - title: "Multilingual Bible Search"
                     body: "한·영 성경 구절을 검색해 템플릿으로 삽입합니다."
                     href: "https://github.com/GoBeromsu/obsidian-bible-search"
-                    meta: "↓ 13 · 2026.03 –"
+                    meta: "↓ 34 · 2026.03 –"
               - label: "MCP · CLI"
                 cards:
                   - title: "x-m32-mcp-server"
                     body: "Behringer X32/M32 디지털 믹서를 OSC로 제어하는 MCP 서버. 도구 24개로 입력 32채널·버스 16개·FX 랙 8개를 다룹니다."
                     href: "https://github.com/GoBeromsu/XM32-MCP"
-                    meta: "npm 3.3.0 · MCP tools 24"
+                    meta: "★ 5 · npm 3.3.0 · MCP tools 24"
                   - title: "oh-my-second-brain"
                     body: "Markdown·Obsidian 볼트를 Claude Code, Codex, Hermes에 잇는 지식·규약 계층. 하이브리드 검색과 규약 검사 쓰기를 제공합니다."
                     href: "https://github.com/GoBeromsu/oh-my-second-brain"
-                    meta: "npm 0.21.0 · MCP tools 4 · skills 6"
+                    meta: "★ 5 · npm 0.21.0 · MCP tools 4 · skills 6"
                   - title: "zotero-cli"
                     body: "Zotero 로컬·Web API로 라이브러리 검색, 문헌 가져오기, 인용 내보내기를 하는 CLI."
                     href: "https://github.com/GoBeromsu/zotero-cli"
@@ -346,7 +341,9 @@ plugins:
             nav: "연구"
             kicker: "Research"
             title: "뒤엉킨 커밋에서 여러 의도를 찾아내기"
-            lede: "하나의 커밋에 섞인 여러 변경 의도를 언어 모델로 검출하는 연구를 제1저자로 진행했습니다. Empirical Software Engineering(Springer)에 투고해 major revision을 받았고, 2026.09 수정본을 제출했습니다."
+            lede:
+              "하나의 커밋에 섞인 여러 변경 의도를 언어 모델로 검출하는 연구를 제1저자로 진행했습니다. Empirical Software Engineering(Springer)에 투고해 major revision을
+              받았고, 2026.09 수정본을 제출했습니다."
             facts:
               - term: "Title"
                 detail: "Detecting Multiple Semantic Concerns in Tangled Code Commits"
@@ -445,14 +442,16 @@ plugins:
                 nav: "Now"
                 kicker: "What I do"
                 title: "I build and run products with agents."
-                lede: "I'm Beomsu Koh, an AI engineer. I ship and operate products through agent-driven development, publish open-source tools for Obsidian and personal knowledge systems, and teach what I learn along the way."
+                lede:
+                  "I'm Beomsu Koh, an AI engineer. I ship and operate products through agent-driven development, publish open-source
+                  tools for Obsidian and personal knowledge systems, and teach what I learn along the way."
                 stats:
                   - value: "7"
                     label: "Obsidian plugins"
                     note: "Listed as official community plugins and maintained by me."
-                  - value: "17,757"
+                  - value: "19,153"
                     label: "Downloads"
-                    note: "Cumulative plugin downloads (as of 2026-10-31)."
+                    note: "Cumulative plugin downloads, with 99 GitHub stars in total (as of 2026-11-24)."
                   - value: "73"
                     label: "Agent skills"
                     note: "48 in craft-skills and 25 in secondbrain-skills."
@@ -472,7 +471,9 @@ plugins:
                   - period: "2022.03 – 2024.06"
                     title: "Undergraduate researcher"
                     org: "Advanced Network Lab, Chonnam National University"
-                    body: "Teaching assistant for data communication and computer networks (2023.03 – 2024.06). Silver prize, NET Challenge Camp season 9 (2022.12, team lead)."
+                    body:
+                      "Teaching assistant for data communication and computer networks (2023.03 – 2024.06). Silver prize, NET Challenge
+                      Camp season 9 (2022.12, team lead)."
                   - period: "2023.07 – 2023.08"
                     title: "Summer intern"
                     org: "Korea Institute of Energy Technology (KENTECH)"
@@ -484,7 +485,9 @@ plugins:
                   - period: "2024.09 – 2026.01"
                     title: "MSc Advanced Computer Science — Distinction"
                     org: "University of Sheffield"
-                    body: "International PGT Merit Scholarship. First-author research on tangled code commits; Most Impactful Solution at Net Zero Data Challenge 2025."
+                    body:
+                      "International PGT Merit Scholarship. First-author research on tangled code commits; Most Impactful Solution at
+                      Net Zero Data Challenge 2025."
                   - period: "2024.09 –"
                     title: "Started publishing Obsidian plugins"
                     org: "Open source"
@@ -517,14 +520,18 @@ plugins:
                 groups:
                   - cards:
                       - title: "SeeON"
-                        body: "Real-time fall detection. With DeepStream and TensorRT, one RTX 5070 Ti handled 13 real cameras at 29.97 fps each, 389.6 fps in total."
+                        body:
+                          "Real-time fall detection. With DeepStream and TensorRT, one RTX 5070 Ti handled 13 real cameras at 29.97 fps
+                          each, 389.6 fps in total."
                         meta: "Senior AI Lab · 2026.06 – 2026.10"
                       - title: "OSS Hub"
                         body: "A platform that tracks students' open-source records. I work as both developer and PM."
                         href: "https://jnu-oss-hub.com/"
                         meta: "Chonnam National University · 2026.07 –"
                       - title: "SICHIMI AI Ops"
-                        body: "AI transformation of GitOps-based network operations. Ran 12 profiles on Hermes Agent and MCP, verified by 138 MCP tests and 73 skill tests."
+                        body:
+                          "AI transformation of GitOps-based network operations. Ran 12 profiles on Hermes Agent and MCP, verified by 138
+                          MCP tests and 73 skill tests."
                         meta: "Freelance · 2026.06 – 2026.08"
               - id: open-source
                 nav: "Open source"
@@ -535,43 +542,49 @@ plugins:
                   - label: "Obsidian plugins"
                     cards:
                       - title: "Metadata Auto Classifier"
-                        body: "Classifies note metadata with LLMs. One provider layer covers ten LLM presets."
+                        body: "Classifies note metadata with LLMs. One provider layer covers ten LLM presets. Featured in a Technology Hits plugin roundup (2024-11)."
                         href: "https://github.com/GoBeromsu/obsidian-metadata-auto-classifier"
-                        meta: "↓ 8,398 · 2024.09 –"
+                        meta: "★ 59 · ↓ 8,912 · 2024.09 –"
                       - title: "Open Connections"
-                        body: "Local-first RAG with heading-aware chunking and vector search; exposes the index to other agents through an MCP server."
+                        body:
+                          "Local-first RAG with heading-aware chunking and vector search; exposes the index to other agents through an MCP
+                          server."
                         href: "https://github.com/GoBeromsu/obsidian-open-connections"
-                        meta: "↓ 4,805 · 2026.02 –"
+                        meta: "★ 23 · ↓ 5,031 · 2026.02 –"
                       - title: "Eagle Integration"
                         body: "Uploads pasted images to an Eagle library and renders them from a local cache."
                         href: "https://github.com/GoBeromsu/obsidian-eagle"
-                        meta: "↓ 3,661 · 2025.07 –"
+                        meta: "★ 11 · ↓ 3,740 · 2025.07 –"
                       - title: "Note Player"
                         body: "Plays YouTube, cached audio and local files with a note as the playlist."
                         href: "https://github.com/GoBeromsu/obsidian-note-player"
-                        meta: "↓ 466 · 2026.03 –"
+                        meta: "★ 2 · ↓ 525 · 2026.03 –"
                       - title: "QMD Search"
                         body: "Local hybrid search (BM25 + vector + HyDE), related notes and automatic sync."
                         href: "https://github.com/GoBeromsu/obsidian-qmd"
-                        meta: "↓ 363 · 2026.03 –"
+                        meta: "★ 3 · ↓ 786 · 2026.03 –"
                       - title: "Hermes Control Center"
                         body: "Manages kanban, skills, cron and chat of remote Hermes agent profiles over SSH."
                         href: "https://github.com/GoBeromsu/obsidian-hermes"
-                        meta: "↓ 51 · 2026.09 –"
+                        meta: "★ 1 · ↓ 125 · 2026.09 –"
                       - title: "Multilingual Bible Search"
                         body: "Searches Korean and English Bible verses and inserts them through templates."
                         href: "https://github.com/GoBeromsu/obsidian-bible-search"
-                        meta: "↓ 13 · 2026.03 –"
+                        meta: "↓ 34 · 2026.03 –"
                   - label: "MCP · CLI"
                     cards:
                       - title: "x-m32-mcp-server"
-                        body: "An MCP server that controls Behringer X32/M32 digital mixers over OSC: 24 tools for 32 input channels, 16 buses and 8 FX racks."
+                        body:
+                          "An MCP server that controls Behringer X32/M32 digital mixers over OSC: 24 tools for 32 input channels, 16 buses
+                          and 8 FX racks."
                         href: "https://github.com/GoBeromsu/XM32-MCP"
-                        meta: "npm 3.3.0 · MCP tools 24"
+                        meta: "★ 5 · npm 3.3.0 · MCP tools 24"
                       - title: "oh-my-second-brain"
-                        body: "A knowledge and contract layer that connects Markdown and Obsidian vaults to Claude Code, Codex and Hermes, with hybrid search and contract-checked writes."
+                        body:
+                          "A knowledge and contract layer that connects Markdown and Obsidian vaults to Claude Code, Codex and Hermes, with
+                          hybrid search and contract-checked writes."
                         href: "https://github.com/GoBeromsu/oh-my-second-brain"
-                        meta: "npm 0.21.0 · MCP tools 4 · skills 6"
+                        meta: "★ 5 · npm 0.21.0 · MCP tools 4 · skills 6"
                       - title: "zotero-cli"
                         body: "A CLI for library search, item import and citation export over the Zotero local and Web APIs."
                         href: "https://github.com/GoBeromsu/zotero-cli"
@@ -615,7 +628,10 @@ plugins:
                 nav: "Research"
                 kicker: "Research"
                 title: "Finding several intents in one tangled commit"
-                lede: "First-author research on detecting the multiple concerns mixed into a single commit with language models. Submitted to Empirical Software Engineering (Springer); it received a major revision and the revised version was submitted in 2026.09."
+                lede:
+                  "First-author research on detecting the multiple concerns mixed into a single commit with language models.
+                  Submitted to Empirical Software Engineering (Springer); it received a major revision and the revised
+                  version was submitted in 2026.09."
                 facts:
                   - term: "Title"
                     detail: "Detecting Multiple Semantic Concerns in Tangled Code Commits"
@@ -635,7 +651,9 @@ plugins:
                 nav: "Teaching"
                 kicker: "Teaching & community"
                 title: "Teaching what I learn"
-                lede: "I teach agents, skills and knowledge management at universities and in corporate training, and served as an Upstage AI Ambassador."
+                lede:
+                  "I teach agents, skills and knowledge management at universities and in corporate training, and served as an
+                  Upstage AI Ambassador."
                 timeline:
                   - period: "2026.10 – 2026.11"
                     title: "Assistant instructor, smart-farm education"
@@ -677,7 +695,9 @@ plugins:
                 nav: "Contact"
                 kicker: "About"
                 title: "Technology amplifies intent"
-                lede: "I want to protect the attention and cognitive resources people never meant to give away, and help them stay focused on what matters to them."
+                lede:
+                  "I want to protect the attention and cognitive resources people never meant to give away, and help them stay
+                  focused on what matters to them."
                 quote:
                   text: "The only way to save yourself is to struggle to save others."
                   cite: "Zorba the Greek — Nikos Kazantzakis"

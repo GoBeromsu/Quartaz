@@ -36,17 +36,17 @@ I want to stop attention theft and the seizure of people's cognitive resources, 
 
 ## Open Source
 
-I maintain seven official Obsidian community plugins, with 17,757 cumulative downloads as of 2026-10-31.
+I maintain seven official Obsidian community plugins, with 19,153 cumulative downloads and 99 GitHub stars as of 2026-11-24. Metadata Auto Classifier was featured in a Technology Hits plugin roundup in November 2024.
 
-| Plugin | What it does | Downloads |
-| --- | --- | --- |
-| [Metadata Auto Classifier](https://github.com/GoBeromsu/obsidian-metadata-auto-classifier) | Classifies note metadata with LLMs | 8,398 |
-| [Open Connections](https://github.com/GoBeromsu/obsidian-open-connections) | Local-first RAG that exposes its index through an MCP server | 4,805 |
-| [Eagle Integration](https://github.com/GoBeromsu/obsidian-eagle) | Uploads pasted images to an Eagle library | 3,661 |
-| [Note Player](https://github.com/GoBeromsu/obsidian-note-player) | Plays a note as a playlist | 466 |
-| [QMD Search](https://github.com/GoBeromsu/obsidian-qmd) | Local hybrid search (BM25 + vector + HyDE) | 363 |
-| [Hermes Control Center](https://github.com/GoBeromsu/obsidian-hermes) | Manages remote Hermes agent profiles over SSH | 51 |
-| [Multilingual Bible Search](https://github.com/GoBeromsu/obsidian-bible-search) | Searches Korean and English Bible verses | 13 |
+| Plugin | What it does | Downloads | Stars |
+| --- | --- | --- | --- |
+| [Metadata Auto Classifier](https://github.com/GoBeromsu/obsidian-metadata-auto-classifier) | Classifies note metadata with LLMs | 8,912 | 59 |
+| [Open Connections](https://github.com/GoBeromsu/obsidian-open-connections) | Local-first RAG that exposes its index through an MCP server | 5,031 | 23 |
+| [Eagle Integration](https://github.com/GoBeromsu/obsidian-eagle) | Uploads pasted images to an Eagle library | 3,740 | 11 |
+| [Note Player](https://github.com/GoBeromsu/obsidian-note-player) | Plays a note as a playlist | 525 | 2 |
+| [QMD Search](https://github.com/GoBeromsu/obsidian-qmd) | Local hybrid search (BM25 + vector + HyDE) | 786 | 3 |
+| [Hermes Control Center](https://github.com/GoBeromsu/obsidian-hermes) | Manages remote Hermes agent profiles over SSH | 125 | 1 |
+| [Multilingual Bible Search](https://github.com/GoBeromsu/obsidian-bible-search) | Searches Korean and English Bible verses | 34 | 0 |
 
 MCP servers, CLIs and agent skills:
 

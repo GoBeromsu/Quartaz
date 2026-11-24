@@ -25,13 +25,6 @@
       "commit": "local",
       "installedAt": "2026-10-22T06:58:48.721Z"
     },
-    "obsidian-flavored-markdown": {
-      "source": "github:quartz-community/obsidian-flavored-markdown#feat/mermaid-to-pele",
-      "resolved": "https://github.com/quartz-community/obsidian-flavored-markdown.git",
-      "commit": "b6df62d1a97b413a6f49c370e88ce3caf118adb5",
-      "ref": "feat/mermaid-to-pele",
-      "installedAt": "2026-10-22T06:58:50.080Z"
-    },
     "permalink-slug": {
       "source": "./plugins/permalink-slug",
       "resolved": "/Users/beomsu/Documents/Obsidian/Blog/plugins/permalink-slug",
