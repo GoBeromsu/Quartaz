@@ -4537,9 +4537,7 @@ function initProfileScroll(): void {
       controls.maxDistance = limit
       const zoom = wheelZoomsGraph({
         scrolled: window.scrollY > 80,
-        deltaY: event.deltaY,
-        distance,
-        limit,
+        modifier: event.ctrlKey || event.metaKey,
       })
       controls.noZoom = !zoom
       controls.enableZoom = zoom

@@ -564,20 +564,12 @@ export function vinylNoiseSamples(
 
 /**
  * Whether a wheel turn over the graph zooms it or is left to scroll the page.
- * In the hero the wheel zooms, as on a map. Zooming out stops at `limit` (the
- * overview distance); from there the same gesture scrolls on to the profile,
- * so the visitor is never held in the graph. Once the page has scrolled, the
- * wheel always belongs to the page.
+ * A plain wheel always scrolls the page, so the graph never holds the visitor
+ * at the top. Zooming is deliberate: a trackpad pinch (which browsers report
+ * as Ctrl + wheel) or Ctrl/Cmd + wheel, and only while the hero is in view.
  */
-export function wheelZoomsGraph(input: {
-  scrolled: boolean
-  deltaY: number
-  distance: number
-  limit: number
-}): boolean {
-  if (input.scrolled) return false
-  if (input.deltaY < 0) return true
-  return input.distance < input.limit * 0.98
+export function wheelZoomsGraph(input: { scrolled: boolean; modifier: boolean }): boolean {
+  return input.modifier && !input.scrolled
 }
 
 /** How long the graph stays still after the visitor lets go of it. */

@@ -2,6 +2,14 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.25.0
+
+### Changed
+
+- With a profile, a plain wheel always scrolls the page. The graph zooms on
+  a pinch or Ctrl/Cmd + wheel while the hero is in view. Wheel zoom at the
+  top (0.23.0) got in the way of scrolling down to the profile.
+
 ## 0.24.0
 
 ### Changed

@@ -237,7 +237,7 @@ plugins:
                 org: "전남대학교 SW중심대학사업단"
                 href: "https://jnu-oss-hub.com/"
               - period: "2026.10 – 2026.11"
-                title: "극지식물 스마트팜 교육 현장 조교"
+                title: "극지식물 스마트팜 교육 현장 멘토"
                 org: "Upstage · 인천시교육청 · 극지연구소"
           - id: work
             nav: "작업"
@@ -360,7 +360,7 @@ plugins:
             lede: "대학 강의와 워크숍, 컨퍼런스에서 에이전트와 스킬, 지식 관리를 가르쳤고 Upstage AI Ambassador로 활동했습니다."
             timeline:
               - period: "2026.10 – 2026.11"
-                title: "극지식물 스마트팜 교육 현장 조교"
+                title: "극지식물 스마트팜 교육 현장 멘토"
                 org: "Upstage · 인천시교육청 · 극지연구소"
               - period: "2026.09.18 – 19"
                 title: "지식 관리로 시작하는 생성형 AI"
@@ -524,7 +524,7 @@ plugins:
                     org: "Chonnam National University, SW-centred University Project"
                     href: "https://jnu-oss-hub.com/"
                   - period: "2026.10 – 2026.11"
-                    title: "On-site teaching assistant, polar-plant smart-farm course"
+                    title: "On-site mentor, polar-plant smart-farm course"
                     org: "Upstage · Incheon Metropolitan Office of Education · Korea Polar Research Institute"
               - id: work
                 nav: "Work"
@@ -660,7 +660,7 @@ plugins:
                   served as an Upstage AI Ambassador."
                 timeline:
                   - period: "2026.10 – 2026.11"
-                    title: "On-site teaching assistant, polar-plant smart-farm course"
+                    title: "On-site mentor, polar-plant smart-farm course"
                     org: "Upstage · Incheon Metropolitan Office of Education · Korea Polar Research Institute"
                   - period: "2026.09.18 – 19"
                     title: "Generative AI, starting from knowledge management"

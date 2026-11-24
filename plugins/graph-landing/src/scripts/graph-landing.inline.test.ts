@@ -732,23 +732,17 @@ describe("vinylNoiseSamples", () => {
 })
 
 describe("wheelZoomsGraph", () => {
-  const hero = { scrolled: false, distance: 1000, limit: 1000 }
-
-  it("zooms in from the overview", () => {
-    assert.equal(wheelZoomsGraph({ ...hero, deltaY: -100 }), true)
+  it("leaves a plain wheel to the page", () => {
+    assert.equal(wheelZoomsGraph({ scrolled: false, modifier: false }), false)
   })
 
-  it("lets the page scroll when zooming out at the overview", () => {
-    assert.equal(wheelZoomsGraph({ ...hero, deltaY: 100 }), false)
-  })
-
-  it("zooms back out while closer than the overview", () => {
-    assert.equal(wheelZoomsGraph({ ...hero, distance: 400, deltaY: 100 }), true)
+  it("zooms on a pinch or Ctrl/Cmd + wheel in the hero", () => {
+    assert.equal(wheelZoomsGraph({ scrolled: false, modifier: true }), true)
   })
 
   it("leaves the wheel to the page once it has scrolled", () => {
-    assert.equal(wheelZoomsGraph({ ...hero, scrolled: true, distance: 400, deltaY: -100 }), false)
-    assert.equal(wheelZoomsGraph({ ...hero, scrolled: true, deltaY: 100 }), false)
+    assert.equal(wheelZoomsGraph({ scrolled: true, modifier: true }), false)
+    assert.equal(wheelZoomsGraph({ scrolled: true, modifier: false }), false)
   })
 })
 

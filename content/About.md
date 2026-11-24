@@ -63,7 +63,7 @@ Submitted to *Empirical Software Engineering* (Springer). It received a major re
 
 ## Teaching and Community
 
-- **2026.10 – 2026.11**: on-site teaching assistant, polar-plant smart-farm course by Upstage, Incheon Metropolitan Office of Education and Korea Polar Research Institute
+- **2026.10 – 2026.11**: on-site mentor, polar-plant smart-farm course by Upstage, Incheon Metropolitan Office of Education and Korea Polar Research Institute
 - **2026.09**: "Generative AI, starting from knowledge management" at Chonnam National University, and a four-day preparatory course for the Upstage LLMOps programme at the JNU AI bootcamp
 - **2026.07**: "The agent's manual: writing your own Skill", a workshop at DGIST AI Build Week
 - **2026**: Upstage AI Ambassador (cohorts 2 and 2.5), selected as an outstanding ambassador; proposed and ran the [JNU × Upstage Skillthon](https://github.com/GoBeromsu/JNU-Upstage-Skillthon)
