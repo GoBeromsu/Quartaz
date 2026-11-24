@@ -2,7 +2,22 @@
 
 All notable changes to this plugin are documented here.
 
-## 0.29.0
+## Unreleased
+
+### Changed
+
+- A plain wheel or two-finger trackpad scroll over the hero always scrolls the
+  page. Engage-to-zoom, its cue and the zoom-limit hand-off are removed; zoom
+  stays on pinch, Ctrl/Cmd + wheel and the zoom buttons. The hint says so.
+- Each star carries a faint halo in its own color, a quiet echo of the early
+  night-sky glow: additive in dark mode, softer and normal-blended in light.
+  The halo does not widen the hover or click target.
+- The desktop hero no longer darkens the graph around the copy: the copy's
+  backdrop halo and the canvas's left-edge offset and fade are gone. A tight
+  glyph outline in the backdrop color keeps the copy readable.
+- The dark backdrop follows the host theme's `--light` token instead of a
+  fixed navy, and dark surfaces are neutral gray, so a true-black site stays
+  black on the landing page.
 
 ### Added
 

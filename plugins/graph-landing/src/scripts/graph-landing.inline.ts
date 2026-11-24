@@ -45,10 +45,8 @@ import {
   vinylNoiseSamples,
   VINYL_RPM,
   wheelZoomsGraph,
-  graphZoomLimits,
   graphZoomRange,
   graphZoomStep,
-  GRAPH_ENGAGE_IDLE_MS,
   GRAPH_ZOOM_STEP,
   overviewDistanceScale,
   type GraphData,
@@ -260,6 +258,8 @@ interface ThreeMeshHandle {
   position: Vec3
   scale: Vec3
   material: ThreeMaterialHandle
+  add: (obj: unknown) => unknown
+  raycast: (...args: unknown[]) => void
 }
 
 interface ThreeStarMaterial extends ThreeMaterialHandle {
@@ -391,6 +391,11 @@ const STAR_SPRITE_SCALE = 3.2
 const STAR_TEXTURE_SIZE = 64
 // Ink dots fill this radius of the 64px texture with a soft edge.
 const INK_DOT_TEXTURE_RADIUS = 24
+// A faint halo of the star's own color around each dot, a quiet echo of the
+// early night-sky glow. Relative to the dot sprite; opacity per theme.
+const STAR_GLOW_SCALE = 3
+const STAR_GLOW_OPACITY_DARK = 0.34
+const STAR_GLOW_OPACITY_LIGHT = 0.16
 const STAR_WHITE = "#f2f3f4"
 const STAR_HUB = "#f4c3d0"
 const COLLISION_PADDING = 6
@@ -1863,12 +1868,36 @@ function bindGraph(
       return new three.CanvasTexture(canvas)
     })
 
+  // The halo starts under the dot (a quarter of its texture at
+  // STAR_GLOW_SCALE 3) and falls off smoothly to nothing at the edge.
+  const glowTexture = (three: ThreeApi): unknown =>
+    getOrCreate(starTextures, "glow", () => {
+      const size = STAR_TEXTURE_SIZE
+      const canvas = document.createElement("canvas")
+      canvas.width = canvas.height = size
+      const context = canvas.getContext("2d")
+      if (context) {
+        const half = size / 2
+        const gradient = context.createRadialGradient(half, half, 0, half, half, half)
+        gradient.addColorStop(0, "rgba(255,255,255,1)")
+        gradient.addColorStop(0.25, "rgba(255,255,255,0.9)")
+        gradient.addColorStop(0.45, "rgba(255,255,255,0.38)")
+        gradient.addColorStop(0.7, "rgba(255,255,255,0.1)")
+        gradient.addColorStop(1, "rgba(255,255,255,0)")
+        context.fillStyle = gradient
+        context.fillRect(0, 0, size, size)
+      }
+      return new three.CanvasTexture(canvas)
+    })
+
   const setStarAppearance = (
     material: ThreeStarMaterial,
     node: GraphNode,
     three: ThreeApi,
   ): void => {
     material.color.set(nodeFill(node))
+    const glow = glowMaterials.get(material)
+    if (glow) glow.color.set(nodeFill(node))
   }
 
   // Populated by paintLabels3d() whenever options.lod.labelDistance is set
@@ -1897,6 +1926,8 @@ function bindGraph(
 
   // Stars mutate private materials; LOD dots swap shared materials by color.
   const nodeMaterials = new Map<string, ThreeStarMaterial>()
+  // Each star material's halo material, so focus changes recolor both.
+  const glowMaterials = new WeakMap<ThreeStarMaterial, ThreeStarMaterial>()
 
   // Rendered GraphNode by id, rebuilt from `data.nodes` at the top of
   // paintLabels3d — lets applyFocusChange resolve an affected node id back
@@ -1997,6 +2028,26 @@ function bindGraph(
         sprite.scale.x = scale
         sprite.scale.y = scale
         sprite.scale.z = 1
+        const dark = isDarkTheme()
+        const glowMaterial = new three.SpriteMaterial({
+          map: glowTexture(three),
+          color: "#ffffff",
+          transparent: true,
+          depthWrite: false,
+          blending: dark ? three.AdditiveBlending : three.NormalBlending,
+          opacity: dark ? STAR_GLOW_OPACITY_DARK : STAR_GLOW_OPACITY_LIGHT,
+        })
+        glowMaterial.color.set(nodeFill(node))
+        glowMaterials.set(material, glowMaterial)
+        const glow = new three.Sprite(glowMaterial)
+        // Child of the dot, so it scales and moves with it. Over the edges,
+        // under the dot; never a hover or click target.
+        glow.renderOrder = 10.5
+        glow.scale.x = STAR_GLOW_SCALE
+        glow.scale.y = STAR_GLOW_SCALE
+        glow.scale.z = 1
+        glow.raycast = () => {}
+        sprite.add(glow)
         star = sprite
       }
       const showLabel = showNodeLabel(node)
@@ -4611,8 +4662,9 @@ document.addEventListener("click", (event) => {
 
 /**
  * Profile sections (options.profile): the landing scrolls. Tracks the scrolled
- * state, reveals panels, marks the current top bar link, and shares the wheel
- * between graph zoom and page scroll (see wheelZoomsGraph).
+ * state, reveals panels, marks the current top bar link, and keeps a plain
+ * wheel for page scroll, leaving zoom to pinch or Ctrl/Cmd + wheel (see
+ * wheelZoomsGraph).
  */
 function initProfileScroll(): void {
   const root = document.querySelector(".graph-landing[data-profile]")
@@ -4641,8 +4693,7 @@ function initProfileScroll(): void {
   window.addCleanup(() => window.removeEventListener("scroll", onScroll))
 
   const mount = root.querySelector("#graph-landing-mount")
-  const hero = root.querySelector(".graph-landing__hero")
-  if (mount instanceof HTMLElement && hero instanceof HTMLElement) {
+  if (mount instanceof HTMLElement) {
     type ZoomControls = {
       noZoom?: boolean
       enableZoom?: boolean
@@ -4653,32 +4704,10 @@ function initProfileScroll(): void {
       __graphLanding?: { controls?: () => ZoomControls }
       __graphZoom?: GraphZoomApi
     }
-    // A plain wheel scrolls the page until the visitor engages the graph by
-    // pressing or dragging it with a mouse or pen. Leaving the hero, Escape,
-    // scrolling away, or a few idle seconds hand the wheel back to the page.
-    let engaged = false
-    let idleTimer = 0
-    const disengage = () => {
-      window.clearTimeout(idleTimer)
-      if (!engaged) return
-      engaged = false
-      delete root.dataset.graphEngaged
-    }
-    const touch = () => {
-      window.clearTimeout(idleTimer)
-      idleTimer = window.setTimeout(disengage, GRAPH_ENGAGE_IDLE_MS)
-    }
-    const engage = () => {
-      if (scrolledPast()) return
-      engaged = true
-      root.dataset.graphEngaged = "true"
-      touch()
-    }
+    // A plain wheel or two-finger trackpad scroll always scrolls the page;
+    // only a pinch or Ctrl/Cmd + wheel zooms (see wheelZoomsGraph).
     const onPointerDown = (event: PointerEvent) => {
-      if (event.pointerType !== "touch") {
-        engage()
-        return
-      }
+      if (event.pointerType !== "touch") return
       // A plain wheel may have left zoom off; a touch pinch must still zoom.
       const controls = (mount as ZoomHost).__graphLanding?.controls?.()
       if (controls) {
@@ -4686,29 +4715,16 @@ function initProfileScroll(): void {
         controls.enableZoom = true
       }
     }
-    const onPointerMove = (event: PointerEvent) => {
-      if (engaged && event.buttons !== 0) touch()
-    }
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") disengage()
-    }
-    const onScrollAway = () => {
-      if (scrolledPast()) disengage()
-    }
     const onWheel = (event: WheelEvent) => {
       const host = mount as ZoomHost
       const controls =
         typeof host.__graphLanding?.controls === "function"
           ? host.__graphLanding.controls()
           : undefined
-      const zoomApi = host.__graphZoom
-      if (!controls || !zoomApi) {
+      if (!controls) {
         return
       }
-      const range = zoomApi.range()
-      const limits = range
-        ? graphZoomLimits(zoomApi.distance(), range)
-        : { atMin: false, atMax: false }
+      const range = host.__graphZoom?.range()
       if (range) {
         controls.minDistance = range.min
         controls.maxDistance = range.max
@@ -4716,29 +4732,16 @@ function initProfileScroll(): void {
       const zoom = wheelZoomsGraph({
         scrolled: scrolledPast(),
         modifier: event.ctrlKey || event.metaKey,
-        engaged,
-        deltaY: event.deltaY,
-        ...limits,
       })
       controls.noZoom = !zoom
       controls.enableZoom = zoom
-      if (zoom && engaged) touch()
     }
     // Capture phase: runs before the camera controls' own wheel listener.
     mount.addEventListener("wheel", onWheel, { capture: true, passive: true })
     mount.addEventListener("pointerdown", onPointerDown, true)
-    mount.addEventListener("pointermove", onPointerMove, { passive: true })
-    hero.addEventListener("pointerleave", disengage)
-    document.addEventListener("keydown", onKeyDown)
-    window.addEventListener("scroll", onScrollAway, { passive: true })
     window.addCleanup(() => {
-      disengage()
       mount.removeEventListener("wheel", onWheel, { capture: true })
       mount.removeEventListener("pointerdown", onPointerDown, true)
-      mount.removeEventListener("pointermove", onPointerMove)
-      hero.removeEventListener("pointerleave", disengage)
-      document.removeEventListener("keydown", onKeyDown)
-      window.removeEventListener("scroll", onScrollAway)
     })
   }
 

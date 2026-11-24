@@ -1146,34 +1146,6 @@ a.graph-landing__title:focus-visible {
   display: none;
 }
 
-/* Shown while a plain wheel zooms the graph (initProfileScroll engage). */
-.graph-landing__engage-cue {
-  bottom: 24px;
-  color: var(--graph-muted);
-  font-size: 12px;
-  letter-spacing: 0.01em;
-  line-height: 1.4;
-  margin: 0;
-  opacity: 0;
-  pointer-events: none;
-  position: absolute;
-  right: 24px;
-  text-align: right;
-  transition: opacity 0.2s ease;
-  visibility: hidden;
-  white-space: nowrap;
-  z-index: 3;
-}
-
-.graph-landing[data-graph-engaged] .graph-landing__engage-cue {
-  opacity: 1;
-  visibility: visible;
-}
-
-.graph-landing[data-graph-engaged] .graph-landing__hint {
-  visibility: hidden;
-}
-
 .graph-landing__zoom {
   bottom: calc(24px + 1.4em + 14px);
   display: flex;
@@ -1285,7 +1257,7 @@ a.graph-landing__title:focus-visible {
 }
 
 :root[saved-theme="dark"] .graph-landing__preview-excerpt {
-  color: rgba(219, 226, 242, 0.72);
+  color: rgba(251, 251, 251, 0.72);
 }
 
 .graph-landing__inspect {
@@ -1456,14 +1428,10 @@ a.graph-landing__title:focus-visible {
 }
 
 :root[saved-theme="dark"] .graph-landing__inspect-excerpt {
-  color: rgba(219, 226, 242, 0.72);
+  color: rgba(251, 251, 251, 0.72);
 }
 
 @media (max-width: 700px) {
-  :root:not([saved-theme="dark"]) .graph-landing__hero::before {
-    background-position: 60% center;
-  }
-
   .graph-landing__preview {
     display: none;
   }
@@ -1581,20 +1549,20 @@ a.graph-landing__title:focus-visible {
 }
 
 /* The overview runs off the screen edges, so labels can drift behind the
-   copy; a soft backdrop-coloured halo keeps the text readable. */
+   copy. A tight backdrop-coloured outline on the glyphs keeps the text
+   readable without darkening the graph around it. */
 @media (min-width: 701px) {
-  .graph-landing__copy::before {
-    background: radial-gradient(
-      closest-side,
-      var(--graph-backdrop) 55%,
-      color-mix(in srgb, var(--graph-backdrop) 70%, transparent) 75%,
-      transparent
-    );
-    content: "";
-    inset: -64px -120px;
-    pointer-events: none;
-    position: absolute;
-    z-index: -1;
+  .graph-landing__eyebrow,
+  .graph-landing__headline,
+  .graph-landing__lede {
+    text-shadow:
+      0 0 1px var(--graph-backdrop),
+      0 0 2px var(--graph-backdrop),
+      0 0 3px var(--graph-backdrop),
+      0 0 5px var(--graph-backdrop),
+      0 0 8px var(--graph-backdrop),
+      0 0 12px var(--graph-backdrop),
+      0 0 18px var(--graph-backdrop);
   }
 }
 
@@ -1677,16 +1645,6 @@ a.graph-landing__title:focus-visible {
   color: var(--light);
 }
 
-/* Push the constellation right of the copy on wide screens; fade its left edge. */
-@media (min-width: 861px) {
-  .graph-landing[data-hero] .graph-landing__canvas {
-    left: clamp(0px, 18vw, 280px);
-    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 clamp(240px, 34vw, 560px));
-    mask-image: linear-gradient(to right, transparent 0, #000 clamp(240px, 34vw, 560px));
-    width: auto;
-  }
-}
-
 @media (max-width: 700px) {
   /* Phones: the graph owns the upper part of the screen and the copy the lower,
      so labels never run through the headline. */
@@ -1737,8 +1695,7 @@ a.graph-landing__title:focus-visible {
     overflow: hidden;
   }
 
-  .graph-landing[data-hero] .graph-landing__hint,
-  .graph-landing[data-hero] .graph-landing__engage-cue {
+  .graph-landing[data-hero] .graph-landing__hint {
     display: none;
   }
 
@@ -1757,9 +1714,9 @@ a.graph-landing__title:focus-visible {
 }
 
 :root[saved-theme="dark"] .graph-landing {
-  --graph-backdrop: #090b12;
-  --graph-surface: color-mix(in srgb, #11141c 92%, transparent);
-  --graph-surface-strong: #11141c;
+  --graph-backdrop: var(--light);
+  --graph-surface: color-mix(in srgb, #121212 92%, transparent);
+  --graph-surface-strong: #121212;
   background: var(--graph-backdrop);
 }
 
@@ -1925,7 +1882,6 @@ a.graph-landing__title:focus-visible {
 .graph-landing[data-profile][data-scrolled] .graph-landing__chrome,
 .graph-landing[data-profile][data-scrolled] .graph-landing__hint,
 .graph-landing[data-profile][data-scrolled] .graph-landing__zoom,
-.graph-landing[data-profile][data-scrolled] .graph-landing__engage-cue,
 .graph-landing[data-profile][data-scrolled] .graph-landing__rail-toggle,
 .graph-landing[data-profile][data-scrolled] .graph-landing__music-dock,
 .graph-landing[data-profile][data-scrolled] .graph-landing__music-library,

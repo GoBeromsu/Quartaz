@@ -491,15 +491,10 @@ site open in a new tab. A timeline entry can carry one `image`; `width` and
 swaps together with `hero.translations`; a language without a translation
 reuses the base copy.
 
-With a profile a plain wheel scrolls the page until the visitor engages the
-graph. Pressing or dragging on the canvas engages it, and a short cue replaces
-the hint. While engaged, a plain wheel zooms the graph. Once the zoom reaches
-its limit (the overview when zooming out, a fifth of it when zooming in), the
-wheel scrolls the page again. The graph disengages when the pointer leaves the
-hero, on Escape, when the page scrolls, or after 3 s without input. Ctrl/Cmd
-with the wheel, or a pinch, zooms at any time while the hero is in view. On
-touch screens a one-finger vertical swipe always scrolls the page, even over
-the graph.
+With a profile a plain wheel, mouse or two-finger trackpad, always scrolls the
+page, even right after the graph was clicked or dragged. Ctrl/Cmd with the
+wheel, or a pinch, zooms the graph while the hero is in view. On touch screens
+a one-finger vertical swipe always scrolls the page, even over the graph.
 
 The hero also shows zoom in, zoom out and reset-view buttons. They are
 keyboard-reachable, take the hero's language, grow to 44px on phones, and fade

@@ -26,7 +26,6 @@ import {
   VINYL_RPM,
   wheelZoomsGraph,
   graphZoomRange,
-  graphZoomLimits,
   graphZoomStep,
   GRAPH_ZOOM_STEP,
   youtubeVideoId,
@@ -749,36 +748,6 @@ describe("wheelZoomsGraph", () => {
     assert.equal(wheelZoomsGraph({ scrolled: true, modifier: true }), false)
     assert.equal(wheelZoomsGraph({ scrolled: true, modifier: false }), false)
   })
-
-  it("zooms on a plain wheel once the graph is engaged", () => {
-    assert.equal(
-      wheelZoomsGraph({ scrolled: false, modifier: false, engaged: true, deltaY: -40 }),
-      true,
-    )
-    assert.equal(
-      wheelZoomsGraph({ scrolled: false, modifier: false, engaged: true, deltaY: 40 }),
-      true,
-    )
-    assert.equal(
-      wheelZoomsGraph({ scrolled: true, modifier: false, engaged: true, deltaY: 40 }),
-      false,
-    )
-  })
-
-  it("lets an engaged wheel fall through to the page past a zoom limit", () => {
-    const engaged = { scrolled: false, modifier: false, engaged: true }
-    assert.equal(wheelZoomsGraph({ ...engaged, deltaY: 40, atMax: true }), false)
-    assert.equal(wheelZoomsGraph({ ...engaged, deltaY: -40, atMax: true }), true)
-    assert.equal(wheelZoomsGraph({ ...engaged, deltaY: -40, atMin: true }), false)
-    assert.equal(wheelZoomsGraph({ ...engaged, deltaY: 40, atMin: true }), true)
-  })
-
-  it("keeps a pinch on the graph even at a limit", () => {
-    assert.equal(
-      wheelZoomsGraph({ scrolled: false, modifier: true, deltaY: 40, atMax: true }),
-      true,
-    )
-  })
 })
 
 describe("graphZoomRange", () => {
@@ -789,17 +758,6 @@ describe("graphZoomRange", () => {
   it("is undefined before there is an overview", () => {
     assert.equal(graphZoomRange(0), undefined)
     assert.equal(graphZoomRange(Number.NaN), undefined)
-  })
-})
-
-describe("graphZoomLimits", () => {
-  const range = { min: 200, max: 1000 }
-
-  it("finds the ends of the range with a little tolerance", () => {
-    assert.deepEqual(graphZoomLimits(1000, range), { atMin: false, atMax: true })
-    assert.deepEqual(graphZoomLimits(997, range), { atMin: false, atMax: true })
-    assert.deepEqual(graphZoomLimits(200.5, range), { atMin: true, atMax: false })
-    assert.deepEqual(graphZoomLimits(500, range), { atMin: false, atMax: false })
   })
 })
 

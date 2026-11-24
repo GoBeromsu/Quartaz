@@ -56,7 +56,6 @@ interface OverlayCopy {
   folderRoot: string
   previewHint: string
   hint: string
-  engagedHint: string
   zoomIn: string
   zoomOut: string
   zoomReset: string
@@ -112,8 +111,7 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
       musicCurrentTrack: "현재 트랙",
       folderRoot: "루트",
       previewHint: "클릭하면 연결이 열립니다",
-      hint: "끌어서 돌리고, 그래프를 누른 뒤 스크롤하면 확대되며, 점을 누르면 열립니다",
-      engagedHint: "스크롤하면 그래프가 확대됩니다 · Esc로 해제",
+      hint: "끌어서 돌리고, 핀치나 Ctrl/⌘+스크롤로 확대하며, 점을 누르면 열립니다",
       zoomIn: "확대",
       zoomOut: "축소",
       zoomReset: "전체 보기",
@@ -161,8 +159,7 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
     musicCurrentTrack: "Current track",
     folderRoot: "Root",
     previewHint: "Click to inspect connections",
-    hint: "Drag to orbit, click the graph then scroll to zoom, tap a dot to open",
-    engagedHint: "Scrolling zooms the graph · Esc to release",
+    hint: "Drag to orbit, pinch or Ctrl/⌘ + scroll to zoom, tap a dot to open",
     zoomIn: "Zoom in",
     zoomOut: "Zoom out",
     zoomReset: "Reset view",
@@ -877,9 +874,6 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
               </p>
               {options.hero ? (
                 <>
-                  <p class="graph-landing__engage-cue" aria-hidden="true">
-                    {localized((c) => c.engagedHint)}
-                  </p>
                   <div
                     class="graph-landing__zoom"
                     role="group"
