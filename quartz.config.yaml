@@ -223,6 +223,12 @@ plugins:
                 org: "카카오 테크 캠퍼스 1기 백엔드 트랙"
                 body: "7인 팀의 백엔드 테크리더로 팀 프로젝트 축팅의 서버와 배포를 맡았습니다. 단계별 PR마다 현업 멘토의 코드 리뷰를 받으며 Usecase와 Port로 서비스 계층을 분리했고, 카카오 클라우드 크램폴린의 Kubernetes에 D2Hub 이미지, Kargo, Ingress로 서버를 배포했습니다. 1MB가 넘는 사진 업로드에서만 나던 413 오류의 원인을 플랫폼 앞단 Nginx 제한으로 특정해 관리자와 해결했습니다. 종합 우수 조로 선정되었습니다."
                 href: "https://github.com/Step3-kakao-tech-campus/Team14_BE"
+                image:
+                  src: "/static/home/kakao-tech-campus-2023.jpg"
+                  alt: "전남대학교 코스모스홀 무대에서 축팅 앱 화면을 띄우고 마이크로 발표하는 고범수"
+                  caption: "카카오 테크 캠퍼스 최종 발표"
+                  width: 1200
+                  height: 900
               - period: "2024.09 – 2026.01"
                 title: "MSc Advanced Computer Science — Distinction"
                 org: "University of Sheffield"
@@ -578,6 +584,12 @@ plugins:
                     org: "Kakao Tech Campus, 1st cohort, Backend track"
                     body: "Backend Tech Lead in a team of seven, responsible for the ChookTing server and its deployment. With an industry mentor reviewing every staged PR, separated the service layer into use cases and ports, and deployed the server to Kubernetes on Kakao's Krampoline cloud with D2Hub images, Kargo and Ingress. Traced a 413 error that hit only photo uploads over 1 MB to the platform's front Nginx limit and resolved it with the administrators. Named best overall team."
                     href: "https://github.com/Step3-kakao-tech-campus/Team14_BE"
+                    image:
+                      src: "/static/home/kakao-tech-campus-2023.jpg"
+                      alt: "Beomsu Koh presenting the ChookTing app with a microphone on stage at Chonnam National University's Cosmos Hall"
+                      caption: "Kakao Tech Campus final presentation"
+                      width: 1200
+                      height: 900
                   - period: "2024.09 – 2026.01"
                     title: "MSc Advanced Computer Science — Distinction"
                     org: "University of Sheffield"
