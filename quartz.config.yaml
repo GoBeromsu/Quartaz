@@ -190,9 +190,6 @@ plugins:
               - value: "73"
                 label: "Agent skills"
                 note: "craft-skills 48개와 secondbrain-skills 25개를 공개했습니다."
-              - value: "11"
-                label: "Upstage collaborations"
-                note: "2026년에 Upstage와 함께한 교육, 콘텐츠, 행사입니다."
           - id: path
             kicker: "Path"
             title: "지금까지 걸어온 길"
@@ -506,9 +503,6 @@ plugins:
                   - value: "73"
                     label: "Agent skills"
                     note: "48 in craft-skills and 25 in secondbrain-skills."
-                  - value: "11"
-                    label: "Upstage collaborations"
-                    note: "Courses, content and events with Upstage in 2026."
               - id: path
                 kicker: "Path"
                 title: "The path so far"

@@ -2,6 +2,13 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.26.1
+
+### Changed
+
+- Profile stats share the row width evenly whatever their count, instead of
+  always reserving four columns.
+
 ## 0.26.0
 
 ### Added

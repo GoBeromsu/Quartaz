@@ -2139,7 +2139,8 @@ button.graph-landing__locale-toggle {
 .graph-landing__stats {
   display: grid;
   gap: 0 clamp(20px, 3vw, 40px);
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
   margin: clamp(28px, 4vw, 44px) 0 0;
 }
 
@@ -2474,6 +2475,7 @@ a.graph-landing__card:hover {
 
 @media (max-width: 860px) {
   .graph-landing__stats {
+    grid-auto-flow: row;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     row-gap: 1.6rem;
   }
