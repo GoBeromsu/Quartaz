@@ -30,9 +30,9 @@ I want to stop attention theft and the seizure of people's cognitive resources, 
 
 ## Work
 
-- **SeeON** (2026.06 – 2026.10, Senior AI Lab, business partner and head of technical development in a CTO role): real-time fall detection. With DeepStream and TensorRT, one RTX 5070 Ti handled 13 real cameras at 29.97 fps each, 389.6 fps in total.
+- **SeeON** (2026.06 – 2026.10, Senior AI Lab, co-founder and CTO): real-time fall detection. With DeepStream and TensorRT, one RTX 5070 Ti handled 13 real cameras at 29.97 fps each, 389.6 fps in total.
 - **[OSS Hub](https://jnu-oss-hub.com/)** (2026.07 – now, Chonnam National University, Developer & PM): a platform that tracks students' open-source records.
-- **KREN AI Ops** (2026.06 – 2026.08, Freelance PM & Developer for KREN; project name SICHIMI AI Ops): moved KREN's GitOps-centred network operations to a Hermes agent team working through MCP.
+- **KREN AI Ops** (2026.06 – 2026.08, freelance for KREN, sole designer and builder; project name SICHIMI AI Ops): moved KREN's GitOps-centred network operations to a Hermes agent team working through MCP.
 
 ## Open Source
 
