@@ -396,6 +396,9 @@ site's language); a tiny inline script swaps in the first translation that
 matches `navigator.languages`, before first paint and with no layout shift.
 The site's own language wins when it appears anywhere in that list, so a
 Korean reader whose browser lists English first still reads Korean.
+With two or more languages a toggle appears in the hero nav and in the profile
+top bar, labelled with the language it switches to. The choice is kept in
+`localStorage` and wins over `navigator.languages` on later visits.
 Fields missing from a translation inherit the default copy, so shared pieces
 such as `eyebrow` and `actions` need writing once. `fallbackLanguage` names the
 copy for visitors whose languages match nothing, so a Korean site can greet

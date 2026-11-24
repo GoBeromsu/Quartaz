@@ -4,7 +4,12 @@ import type {
   QuartzComponentProps,
 } from "@quartz-community/types"
 import type { GraphLandingHeroCopy, GraphLandingPageOptions } from "../pageType"
-import { pickHeroLanguage } from "../heroLanguage"
+import {
+  applyHeroLanguage,
+  HERO_LANGUAGE_STORAGE_KEY,
+  nextHeroLanguage,
+  pickHeroLanguage,
+} from "../heroLanguage"
 import { profileBlocks } from "../profile"
 import { ProfileSections } from "./ProfileSections"
 // @ts-expect-error - inline script import handled by tsup inline-script-loader
@@ -39,6 +44,7 @@ interface OverlayCopy {
   articles: string
   about: string
   themeToggle: string
+  languageToggle: string
   filtersToggle: string
   controls: string
   audioStop: string
@@ -90,6 +96,7 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
       articles: "Blog",
       about: "About",
       themeToggle: "라이트/다크 모드 전환",
+      languageToggle: "언어 전환",
       filtersToggle: "필터",
       controls: "Controls",
       audioStop: "노래 끄기",
@@ -133,6 +140,7 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
     articles: "Blog",
     about: "About",
     themeToggle: "Toggle light / dark mode",
+    languageToggle: "Switch language",
     filtersToggle: "Filters",
     controls: "Controls",
     audioStop: "Stop music",
@@ -283,7 +291,7 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
   }
 
   // Runs synchronously where it sits, so the swap lands before first paint.
-  const heroLanguageScript = `(function(){var s=document.currentScript;if(!s)return;var b=(s.closest(".graph-landing")||s.parentNode).querySelectorAll("[data-hero-lang]");var a=[];for(var i=0;i<b.length;i++)a.push(b[i].getAttribute("data-hero-lang"));var p=navigator.languages||[navigator.language||""];var pick=(${pickHeroLanguage.toString()})(a,p,s.getAttribute("data-hero-fallback"));if(!pick)return;for(var k=0;k<b.length;k++)b[k].hidden=b[k].getAttribute("data-hero-lang")!==pick;})();`
+  const heroLanguageScript = `(function(){var s=document.currentScript;if(!s)return;var r=s.closest(".graph-landing")||s.parentNode;var b=r.querySelectorAll("[data-hero-lang]");var a=[];for(var i=0;i<b.length;i++){var l=b[i].getAttribute("data-hero-lang");if(a.indexOf(l)<0)a.push(l);}var st=null;try{st=localStorage.getItem(${JSON.stringify(HERO_LANGUAGE_STORAGE_KEY)});}catch(e){}var p=navigator.languages||[navigator.language||""];var pick=st&&a.indexOf(st)>=0?st:(${pickHeroLanguage.toString()})(a,p,s.getAttribute("data-hero-fallback"));if(!pick)return;(${applyHeroLanguage.toString()})(r,pick,(${nextHeroLanguage.toString()})(a,pick));})();`
 
   const GraphLandingConstructor: QuartzComponentConstructor = () => {
     const GraphLanding: QuartzComponent = ({ fileData, cfg, allFiles }: QuartzComponentProps) => {
@@ -315,6 +323,11 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
       const siteTitle = cfg.pageTitle ?? "Graph"
       const graphIndexPath = `${pathToRoot(slug)}/static/graphIndex.json`
       const heroBlocks = heroCopyBlocks(options.hero, localeId)
+      // Shown in the nav when the hero has translations: switches to the next one.
+      const heroToggleLang = nextHeroLanguage(
+        heroBlocks.map((block) => block.lang),
+        localeId,
+      )
       const profile = profileBlocks(
         options.profile,
         localeId,
@@ -413,6 +426,17 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
                     >
                       {localeToggle.label}
                     </a>
+                  ) : null}
+                  {heroToggleLang ? (
+                    <button
+                      type="button"
+                      class="graph-landing__locale-toggle"
+                      data-hero-lang-toggle
+                      lang={heroToggleLang}
+                      aria-label={copy.languageToggle}
+                    >
+                      {heroToggleLang.toUpperCase()}
+                    </button>
                   ) : null}
                   <button
                     type="button"
@@ -862,6 +886,7 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
             homeHref={homeHref}
             blogHref={writingHref}
             navLabel={copy.profileNav}
+            languageLabel={copy.languageToggle}
             scrollLabel={copy.profileScroll}
           />
           {profile.length > 1 ? (

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
-import { pickHeroLanguage } from "./heroLanguage"
+import { nextHeroLanguage, pickHeroLanguage } from "./heroLanguage"
 
 describe("pickHeroLanguage", () => {
   it("matches on the primary subtag in visitor preference order", () => {
@@ -30,5 +30,23 @@ describe("pickHeroLanguage", () => {
   it("survives toString() round-trip for the inline script", () => {
     const fn = new Function(`return (${pickHeroLanguage.toString()})`)() as typeof pickHeroLanguage
     assert.equal(fn(["ko", "en"], ["en-GB"]), "en")
+  })
+})
+
+describe("nextHeroLanguage", () => {
+  it("switches to the other language and wraps around", () => {
+    assert.equal(nextHeroLanguage(["ko", "en"], "ko"), "en")
+    assert.equal(nextHeroLanguage(["ko", "en"], "en"), "ko")
+    assert.equal(nextHeroLanguage(["ko", "en", "ja"], "ja"), "ko")
+  })
+
+  it("starts from the first language when the current one is unknown", () => {
+    assert.equal(nextHeroLanguage(["ko", "en"], "fr"), "ko")
+    assert.equal(nextHeroLanguage(["ko", "en"], null), "ko")
+  })
+
+  it("offers nothing when there is only one language", () => {
+    assert.equal(nextHeroLanguage(["ko"], "ko"), null)
+    assert.equal(nextHeroLanguage([], "ko"), null)
   })
 })

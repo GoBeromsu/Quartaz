@@ -2,6 +2,14 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.22.0
+
+### Added
+
+- Language toggle in the hero nav and the profile top bar when the hero or
+  profile has translations. It swaps the copy in place, keeps the section
+  being read on screen, and remembers the choice in `localStorage`.
+
 ## 0.21.0
 
 ### Added

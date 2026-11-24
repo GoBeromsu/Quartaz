@@ -1860,8 +1860,47 @@ a.graph-landing__title:focus-visible {
 .graph-landing__topbar-links {
   display: flex;
   gap: 1.4rem;
+  margin-left: auto;
+  min-width: 0;
   overflow-x: auto;
   scrollbar-width: none;
+}
+
+// Language toggle: sits outside the scrolling links so it is always in reach.
+.graph-landing__topbar-lang {
+  background: transparent;
+  border: 1px solid var(--graph-border);
+  border-radius: 999px;
+  color: var(--graph-text);
+  cursor: pointer;
+  flex: none;
+  font-family: var(--bodyFont);
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  min-height: 32px;
+  min-width: 40px;
+  padding: 0 0.7rem;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.graph-landing__topbar-lang:hover,
+.graph-landing__topbar-lang:focus-visible {
+  border-color: var(--graph-accent);
+  color: var(--graph-accent);
+}
+
+.graph-landing__topbar-lang:focus-visible {
+  outline: 2px solid var(--graph-accent);
+  outline-offset: 2px;
+}
+
+button.graph-landing__locale-toggle {
+  letter-spacing: 0.06em;
+  min-width: 32px;
 }
 
 .graph-landing__topbar-links::-webkit-scrollbar {
@@ -2312,6 +2351,11 @@ a.graph-landing__card:hover {
 
   .graph-landing__topbar-links {
     gap: 1rem;
+  }
+
+  .graph-landing__topbar-lang {
+    min-height: 40px;
+    min-width: 44px;
   }
 
   // Section links scroll sideways on a phone; taller hit areas, and the blog

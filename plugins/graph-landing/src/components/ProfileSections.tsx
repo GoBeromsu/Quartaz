@@ -1,4 +1,5 @@
 import type { GraphLandingProfileSection } from "../pageType"
+import { nextHeroLanguage } from "../heroLanguage"
 import { isExternalHref, profileImageAttrs, sectionIndexLabel, type ProfileBlock } from "../profile"
 
 function linkProps(href: string) {
@@ -101,6 +102,7 @@ export function ProfileSections({
   homeHref,
   blogHref,
   navLabel,
+  languageLabel,
   scrollLabel,
 }: {
   blocks: ProfileBlock[]
@@ -109,9 +111,12 @@ export function ProfileSections({
   /** Blog index; shown as the last top bar link when set. */
   blogHref?: string | null
   navLabel: string
+  /** Accessible name of the language toggle (shown with two or more languages). */
+  languageLabel: string
   scrollLabel: string
 }) {
   if (blocks.length === 0) return null
+  const languages = blocks.map((block) => block.lang)
   return (
     <>
       <a class="graph-landing__scroll-cue" href="#graph-landing-profile" data-profile-cue>
@@ -121,6 +126,7 @@ export function ProfileSections({
         {blocks.map(({ lang, copy, hidden }) => {
           const sections = copy.sections ?? []
           const navSections = sections.filter((section) => section.id && section.nav)
+          const toggleLang = nextHeroLanguage(languages, lang)
           return (
             <div class="graph-landing__profile" data-hero-lang={lang} lang={lang} hidden={hidden}>
               <nav class="graph-landing__topbar" aria-label={navLabel}>
@@ -137,6 +143,17 @@ export function ProfileSections({
                     </a>
                   ) : null}
                 </div>
+                {toggleLang ? (
+                  <button
+                    type="button"
+                    class="graph-landing__topbar-lang"
+                    data-hero-lang-toggle
+                    lang={toggleLang}
+                    aria-label={languageLabel}
+                  >
+                    {toggleLang.toUpperCase()}
+                  </button>
+                ) : null}
               </nav>
               {sections.map((section, index) => (
                 <Section section={section} index={index} />

@@ -34,3 +34,43 @@ export function pickHeroLanguage(
   }
   return null
 }
+
+/** localStorage key holding the language the visitor chose with the toggle. */
+export const HERO_LANGUAGE_STORAGE_KEY = "graph-landing-hero-lang"
+
+/**
+ * The language the toggle switches to: the one after `current` in
+ * `available`, wrapping around. `null` when there is nothing to switch to.
+ * ES5-shaped for the same reason as `pickHeroLanguage`.
+ */
+export function nextHeroLanguage(
+  available: ReadonlyArray<string>,
+  current: string | null | undefined,
+): string | null {
+  if (available.length < 2) return null
+  var index = -1
+  for (var i = 0; i < available.length; i++) {
+    if (available[i] === current) index = i
+  }
+  return available[(index + 1) % available.length] || null
+}
+
+/**
+ * Show the `[data-hero-lang]` blocks of `pick` under `root`, hide the others,
+ * and point every `[data-hero-lang-toggle]` at `next`. ES5-shaped: serialised
+ * into the inline script as well as bundled into the client script.
+ */
+export function applyHeroLanguage(root: ParentNode, pick: string, next: string | null): void {
+  var blocks = root.querySelectorAll("[data-hero-lang]")
+  for (var i = 0; i < blocks.length; i++) {
+    var block = blocks[i] as HTMLElement
+    block.hidden = block.getAttribute("data-hero-lang") !== pick
+  }
+  if (!next) return
+  var toggles = root.querySelectorAll("[data-hero-lang-toggle]")
+  for (var j = 0; j < toggles.length; j++) {
+    var toggle = toggles[j] as HTMLElement
+    toggle.textContent = next.toUpperCase()
+    toggle.setAttribute("lang", next)
+  }
+}

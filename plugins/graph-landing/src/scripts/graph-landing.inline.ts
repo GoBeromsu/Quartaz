@@ -48,6 +48,7 @@ import {
   type MusicTrackInput,
   type YoutubeTrack,
 } from "./graph-landing-pure"
+import { applyHeroLanguage, HERO_LANGUAGE_STORAGE_KEY, nextHeroLanguage } from "../heroLanguage"
 
 interface ThemeTokens {
   bg: string
@@ -4400,6 +4401,54 @@ document.addEventListener("click", (event) => {
     localStorage.setItem(PREFERRED_LOCALE_STORAGE_KEY, locale)
   } catch (error) {
     console.error("[graph-landing] failed to persist preferred-locale", error)
+  }
+})
+
+// Language toggle: swap the hero and profile copy in place, remember the
+// choice, and keep the section being read at the same spot on screen.
+document.addEventListener("click", (event) => {
+  const target = event.target
+  if (!(target instanceof Element)) {
+    return
+  }
+  const button = target.closest("[data-hero-lang-toggle]")
+  const root = button?.closest(".graph-landing")
+  if (!(root instanceof HTMLElement)) {
+    return
+  }
+  const blocks = [...root.querySelectorAll<HTMLElement>("[data-hero-lang]")]
+  const available = [...new Set(blocks.map((block) => block.dataset.heroLang ?? ""))]
+  const current = blocks.find((block) => !block.hidden)?.dataset.heroLang
+  const next = nextHeroLanguage(available, current)
+  if (!next || next === current) {
+    return
+  }
+
+  const visibleSections = () =>
+    [...root.querySelectorAll<HTMLElement>(".graph-landing__section[id]")].filter(
+      (section) => !section.closest("[hidden]"),
+    )
+  let anchor: { id: string; top: number } | null = null
+  if (window.scrollY > 80) {
+    for (const section of visibleSections()) {
+      const top = section.getBoundingClientRect().top
+      if (!anchor || Math.abs(top) < Math.abs(anchor.top)) {
+        anchor = { id: section.id, top }
+      }
+    }
+  }
+
+  applyHeroLanguage(root, next, nextHeroLanguage(available, next))
+  if (anchor) {
+    const match = visibleSections().find((section) => section.id === anchor.id)
+    if (match) {
+      window.scrollBy({ top: match.getBoundingClientRect().top - anchor.top, behavior: "instant" })
+    }
+  }
+  try {
+    localStorage.setItem(HERO_LANGUAGE_STORAGE_KEY, next)
+  } catch (error) {
+    console.error("[graph-landing] failed to persist the chosen language", error)
   }
 })
 
