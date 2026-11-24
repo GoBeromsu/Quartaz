@@ -82,9 +82,9 @@ title: "HTML"
         * <span> 그냥 div랑 p 사이에 쓰는데 주로 스타일 적용할 때 사용 </span>
 
     * attribuates
-        *  img src="" alt="" (<>이거 필순데 적용하니까 코드가 안보여서 이렇게 했어)
-            *  src : 이미지 파일 소스 (같은 폴더에 있어야함)
-            *  alt : alternative, src에서 소스가 잘 못될 경우 선택적으로 시행됨
+        *  img src="" alt="" (<>이거 필수인데 적용하니까 코드가 안 보여서 이렇게 했다)
+            *  src : 이미지 파일 소스 (같은 폴더에 있어야 함)
+            *  alt : alternative, src에서 소스가 잘못될 경우 선택적으로 시행됨
         * a href="#"> /a>(<>이거 빠짐 유의하셈)
             * href="url,html 파일 주소"
             * 그 뒤에 text 입력 : click 하면 그 url, html로 이동
@@ -117,7 +117,7 @@ title: "HTML"
 </html>
 ```
 
-할만해
+할 만하다.
 
 ---
 

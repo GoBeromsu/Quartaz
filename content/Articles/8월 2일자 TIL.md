@@ -7,7 +7,7 @@ tags:
   - python
 title: "8월 2일자 TIL"
 ---
-lookup를 dicitionary 형태로 바꾸기
+lookup을 dictionary 형태로 바꿔 보았다.
 
 ```python
 def lookup(index, keyword):
@@ -23,15 +23,13 @@ def lookup(index, keyword):
         return None
 ```
 
-index라는 dicitionary 안에 keyword 리스트를 만들어 나가는 것이죠
-
-computerscience는 간단하고 빠르게!
+index라는 dictionary 안에 keyword 리스트를 만들어 나가는 것이다. computer science는 간단하고 빠르게!
 
 for which of these procedures does the worst case running time scale lineorly in the number of elements in the input list p?
 
-내장함수 len  : 입력된 요소의 전체 길이를 출력해준다.
+내장 함수 len : 입력된 요소의 전체 길이를 출력해 준다.
 
-문제내에서 선형적?이란 단어가 무슨 뜻인지 모르겠다. 모임 때 물어봐야 될듯
+문제 안의 선형적?이란 단어가 무슨 뜻인지 모르겠다. 모임 때 물어봐야 할 것 같다.
 
 Sum_list
 ```python
@@ -42,7 +40,7 @@ def sum_list(p):
     return sum
 ```
 
-Sum_list는 e가 p안에 있을 경우 sum에 e를 더해 나간다.
+Sum_list는 e가 p 안에 있을 경우 sum에 e를 더해 나간다.
 
 Has_duplicate_element
 ```python
@@ -55,9 +53,9 @@ def has_duplicate_element(p):
    return False
 ```
 
-forfor문을 써서 내장함수 range를 실행시킨다.
+for문을 두 번 겹쳐 써서 내장 함수 range를 실행시킨다.
 range(start,stop,step)
-range(0,len(p))는 리스트를 0부터 p의 길이 만큼 늘려준다.
+range(0,len(p))는 리스트를 0부터 p의 길이만큼 늘려 준다.
 
 Mystery
 ```python
@@ -73,7 +71,7 @@ def mystery(p):
    return i
 ```
 
-익숙 한 형태
+익숙한 형태다.
 
 ---
 

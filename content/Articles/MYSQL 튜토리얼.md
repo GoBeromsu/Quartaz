@@ -19,7 +19,7 @@ title: "MYSQL 튜토리얼"
 
 하나의 데이터베이스 안에 여러 테이블이 있는 형태이다.
 
-- 데이버베이스 생성
+- 데이터베이스 생성
 
 ```sql
 CREATE DATABASE [Database Name] CHARACTER SET utf8 COLLATE utf8_general_ci;

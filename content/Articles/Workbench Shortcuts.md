@@ -7,11 +7,11 @@ tags:
   - database
 title: "Workbench Shortcuts"
 ---
-- 에디터에서 세미클론(;)으로 분리된 쿼리 실행
+- 에디터에서 세미콜론(;)으로 분리된 쿼리 실행
 
   - Ctrl + Enter (Ctrl키 + Enter키)
 
-- 세미클론(;)으로 분리된 쿼리 다중(여러개) 실행
+- 세미콜론(;)으로 분리된 쿼리 다중(여러 개) 실행
 
   - Ctrl + Shift + Enter (먼저 실행하고자 하는 쿼리들을 마우스로 선택한 다음 Ctrl키 + Shift키 + Enter키)
 
@@ -19,7 +19,7 @@ title: "Workbench Shortcuts"
 
   - Ctrl + T (Ctrl키 + t)
 
-- 저장된 스크립트파일(\*.sql)파일 열기
+- 저장된 스크립트 파일(\*.sql) 열기
 
   - Ctrl + Shift + O (Ctrl키 + Shift키 + o)
 

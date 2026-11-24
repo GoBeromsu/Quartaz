@@ -1,10 +1,11 @@
 ---
-aliases: []
+aliases:
+  - upstage-ai-ambassador-project-blog
 date_created: 2026-02-01
-date_modified: 2026-02-01
+date_modified: 2026-11-25
 tags:
   - upstage
-permalink: upstage-ai-ambassador-project-blog
+permalink: my-awesome-ra
 ---
 
 ## My Awesome RA: AI-Powered Research Assistant for Evidence-Based Academic Writing

@@ -12,23 +12,23 @@ title: "정보처리기사 3-3 SQL응용"
 
 - [ ]  SQL
   - [ ]  IBM 연구소에서 개발한 SEQUEL에서 유래
-  - [ ]  국제 표준 데이터 베이스언어(RDB도 지원)
-  - [ ]  관계 대수와 관계해석 혼합 데이터 언어
-  - [ ]  질의 기능 + 데이터 정의,조작,제어 기능
+  - [ ]  국제 표준 데이터베이스 언어(RDB도 지원)
+  - [ ]  관계 대수와 관계 해석 혼합 데이터 언어
+  - [ ]  질의 기능 + 데이터 정의, 조작, 제어 기능
 - [ ]  DDL
   - [ ]  논리적 데이터 구조와 물리적 데이터 구조의 사상 정의
   - [ ]  데이터베이스 관리자나 설계자가 사용
-  - [ ]  SCHEMA,DOMAI,TABLE,VIEW,INDEX 정의,변경,삭제에 이용
+  - [ ]  SCHEMA, DOMAIN, TABLE, VIEW, INDEX 정의, 변경, 삭제에 이용
 - [ ]  DML
-  - [ ]  사용자가 응용프로그램이나 질의어를 통해 데이터 실질적 처리 가능
+  - [ ]  사용자가 응용 프로그램이나 질의어를 통해 데이터를 실질적으로 처리 가능
   - [ ]  사용자와 데이터베이스 관리 시스템 간 인터페이스 제공
 - [ ]  DCL
-  - [ ]  데이터의 보안, 무결성,회복,병행 수행 제어 정의
+  - [ ]  데이터의 보안, 무결성, 회복, 병행 수행 제어 정의
   - [ ]  데이터베이스 관리자가 데이터 관리 목적으로 사용
 
 ## DDL
 
-- [ ]  DDL은 번연 결과가 데이터 사전에 여러 개의 테이블로 저장된다.
+- [ ]  DDL은 번역 결과가 데이터 사전에 여러 개의 테이블로 저장된다.
 - [ ]  CREATE SCHEMA
   - [ ]  CREATE SCHEMA 스키마명 AUTHORIZATION 사용자_ID
 - [ ]  CREATE DOMAIN
@@ -36,7 +36,7 @@ title: "정보처리기사 3-3 SQL응용"
 - [ ]  CREATE TABLE
   - [ ]  CREATE TABLE 테이블명 **(**속성명 데이터_타입 [DEFAULT 기본 값] [ NOT NULL],
   - [ ]  [,PRIMARY KEY(기본키_속성명,...)] [,UNIQUE(대체키_속성명,...)]
-  - [ ]  [,FOREGIN KEY(외래키_속성명, ....)]
+  - [ ]  [,FOREIGN KEY(외래키_속성명, ....)]
     - [ ]  [REFERENCES 참조테이블 (기본키_속성명)]
     - [ ]  [ON DELETE 옵션]
       - NO ACTION, CASCADE, SET NULL, SET DEFAULT
@@ -46,8 +46,8 @@ title: "정보처리기사 3-3 SQL응용"
 - [ ]  CREATE VIEW
   - CREATE VIEW 뷰명([속성명[,속성명,...])]
   - AS SELECT문;
-  - [ ]  서브 쿼리 SELECET 문에서는 UNION이나 ORDERBY 절 사용 못함
-  - [ ]  속성명 기술 안하면 SELECT문의 속성명이 자동으로 사용된다.
+  - [ ]  서브 쿼리 SELECT 문에서는 UNION이나 ORDER BY 절 사용 못 함
+  - [ ]  속성명을 기술 안 하면 SELECT문의 속성명이 자동으로 사용된다.
 - [ ]  CREATE INDEX
   - CREATE [UNIQUE] INDEX 인덱스명
   - ON 테이블명(속성명 [ASC | DESC] [,속성명 [ASC | DESC]])
@@ -60,29 +60,29 @@ title: "정보처리기사 3-3 SQL응용"
   - ALTER TABLE 테이블명 DROP COLUMN 속성명 [CASCADE]
 - [ ]  DROP
   - DROP 개체 개체_이름 [CASCADE | RESTRICT]
-  - [ ]  다른 개체가 제거할 요소를 참조중일 때는 제거 취소
+  - [ ]  다른 개체가 제거할 요소를 참조 중일 때는 제거 취소
 
 ## DCL
 
 - [ ]  DCL
   - [ ]  데이터베이스 관리자가 데이터 관리를 목적으로 사용
-  - [ ]  데이터의 보안, 무결성,회복, 병행 제어 등을 정의하는데 사용
+  - [ ]  데이터의 보안, 무결성, 회복, 병행 제어 등을 정의하는 데 사용
 - [ ]  GRANT 사용자 등급 TO 사용자_ID_리스트 [IDENTIFIED BY 암호];
 - [ ]  REVOKE 사용자등급 FROM 사용자_ID_LIST;
 - [ ]  GRANT 권한_리스트 ON 개체 TO 사용자 **[WITH GRANT OPTION]**;
-  - 부여 받은 권한을 다른 사용자에게 다시 부여할 수 있는 권한
+  - 부여받은 권한을 다른 사용자에게 다시 부여할 수 있는 권한
 - [ ]  REVOKE [GRANT OPTION FOR] 권한_리스트 ON 개체 FROM 사용자 [CASCADE]
   - 권한 종류 : ALL, SELECT, INSERT, DELETE, UPDATE, ALTER 등
   - GRANT OPTION FOR : 다른 사용자에게 권한을 부여할 수 있는 권한 취소
 - [ ]  COMMIT
-  - 트랜잭션이 끝난 후 모든 변경 내용을 데이터 베이스에 반영
+  - 트랜잭션이 끝난 후 모든 변경 내용을 데이터베이스에 반영
   - COMMIT 명령을 실행하지 않아도 DML이 성공적으로 완료되면 자동 실행
-  - DML 실패시 자동 ROLLBACK하는 Auto Commit 기능 존재
+  - DML 실패 시 자동 ROLLBACK하는 Auto Commit 기능 존재
 - [ ]  ROLLBACK
-  - 아직 COMMIT 되지 않은 내용들을 취소하고 데이터 베이스를 이전 상태로 되돌리는 명령어
-  - 일부분만 완료된 트랜잭션은 일관성을 위해 ROLLBACK해야함
+  - 아직 COMMIT되지 않은 내용들을 취소하고 데이터베이스를 이전 상태로 되돌리는 명령어
+  - 일부분만 완료된 트랜잭션은 일관성을 위해 ROLLBACK해야 함
 - [ ]  SAVEPOINT
-  - [ ]  트랜잭션 내에 ROLLBACK 할 위치 저장 지점정하는 명령어
+  - [ ]  트랜잭션 내에 ROLLBACK할 위치를 저장 지점으로 정하는 명령어
 
 ## DML
 
@@ -99,19 +99,19 @@ title: "정보처리기사 3-3 SQL응용"
   - [ ]  대표 문자를 이용해 지정된 속성의 값이 문자 패턴과 일치하는지 튜플 검색
   - [ ]  % : 모든 문자 대표
   - [ ]  _ : 문자 하나 대표
-  - [ ]  # **:** 숫자하나를 대표함
+  - [ ]  # **:** 숫자 하나를 대표함
 
 ### WHERE이랑 같이 쓰이는 친구들
 
-- [ ]  WHERE 속성 NOT IN (하의 질의)
-  - 포함되지 않는 데이터, 하의 질의 값을 제외 하고 검색
-- [ ]  WHERE EXISTS (하의 질의)
+- [ ]  WHERE 속성 NOT IN (하위 질의)
+  - 포함되지 않는 데이터, 하위 질의 값을 제외하고 검색
+- [ ]  WHERE EXISTS (하위 질의)
   - 검색 결과가 존재하는지 확인할 때 사용
 
 ### WINDOW 함수
 
 - [ ]  GROUP BY절을 이용하지 않고 속성 값을 집계할 함수 기술
-  - [ ]  **WINDOW함수** OVER (PARTITION BY 속성명1, 속성명2, ... ORDER BY 속성명3, 속성명4,....) [AS 별치]
+  - [ ]  **WINDOW함수** OVER (PARTITION BY 속성명1, 속성명2, ... ORDER BY 속성명3, 속성명4,....) [AS 별칭]
     - ROW_NUMBER()
     - RANK()
     - DENSE_RANK()
@@ -126,8 +126,8 @@ title: "정보처리기사 3-3 SQL응용"
 
 ### JOIN
 
-- [ ]  INEER JOIN과 OUTER JOIN으로 구분
-- [ ]  FROM 절에 기술하지만, 릴레이션 사용되는 어느 곳에서나 사용 가능
+- [ ]  INNER JOIN과 OUTER JOIN으로 구분
+- [ ]  FROM 절에 기술하지만, 릴레이션이 사용되는 어느 곳에서나 사용 가능
 - [ ]  **INNER JOIN**
   - [ ]  EQUI JOIN
     - JOIN 대상 테이블에서 공통 속성 기준으로 같은 값을 가지는 행을 연결하여 결과를 얻음
@@ -149,7 +149,7 @@ title: "정보처리기사 3-3 SQL응용"
     - [ ]  SELECT ~ FROM 테이블1 , 테이블 2 WHERE 테이블1.속성(+)=테이블2.속성
   - [ ]  FULL OUTER JOIN
     - [ ]  SELECT ~ FROM 테이블명1 FULL OUTER JOIN 테이블명 2 ON 테이블명1.속성명 = 테이블명.2속성명
-- [ ]  **SELFT JOIN**
+- [ ]  **SELF JOIN**
   - [ ]  같은 테이블에서 2개의 속성을 연결하여 EQUI JOIN
   - [ ]  SELECT ~ FROM 테이블 AS 별칭1 JOIN 테이블2 AS 별칭2 ON 별칭1.속성=별칭2.속성
 

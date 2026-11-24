@@ -15,14 +15,14 @@ title: "Data Network 1. Introduction"
   - Packet switches
     - router, switches
   - Communication links
-    - 각 노드를 연결하는 것들 ; 전선, 위성, 라디오 등등
+    - 각 노드를 연결하는 것들 : 전선, 위성, 라디오 등등
     - 전송 비율(bandwidth) : 얼마나 보낼 수 있냐?
       - 주파수가 커질수록 데이터를 많이 보냄
-      - 데이터와 1 : 1 비율로 전송 되지 않음
+      - 데이터와 1 : 1 비율로 전송되지 않음
   - Networks
     - 라우터, device들이 모인 집합체
   - Internet
-    - 네트워크들의 집합 : network of network : ISP(인터넷 사업자 간의 상호 연결이다
+    - 네트워크들의 집합 : network of network : ISP(인터넷 사업자) 간의 상호 연결이다
   - 프로토콜 : 데이터를 주고 받는 절차
     - 제어 전송, 메세지 수신
   - Internet standards
@@ -54,55 +54,55 @@ title: "Data Network 1. Introduction"
 - cable-based access
   - DSL과 다르게 TV 데이터가 보내진다.
   - 높은 주파수와 낮은 주파수를 섞어 보내니까, 수신 측에서는 분리가 가능하다
-    - 텔레지번, 인터넷 전화등 다양한 신호를 섞어 보낼 수 있다.
+    - 텔레비전, 인터넷 전화 등 다양한 신호를 섞어 보낼 수 있다.
 - Hybrid fiber coax (HFC)
   - DSL과 다르게 전용 회선이 아니라 공유 회선을 사용함
   - Asymmetric하다
     - 두 스트림의 속도가 다르다.
   - 공유 회선에서 다른 주파수로 데이터를 전송함
     - 도청이 가능하다
-- Digital Subscriber  Line(DSL)
+- Digital Subscriber Line(DSL)
   - DSL 모뎀은 컴퓨터의 디지털 신호를 아날로그 신호로 변환
-  - 전화 선을 그대로 이용하는데 대신에 주파수를 다르게 해서 보냄으로서 기존의 것을 그대로 사용할 수 있게 한거지
+  - 전화선을 그대로 이용하되, 주파수를 다르게 해서 보냄으로써 기존의 것을 그대로 사용할 수 있게 한 것이다
   - Splitter는 DSL 모뎀을 거쳐 온 컴퓨터 데이터와 전화의 음성을 서로 다른 주파수로 DSLAM으로 보낸다
   - 역으로 DSLAM으로부터 받은 데이터를 음성과 분리한다.
-  - Downstream의 전송률이 높도록 설계 되어 있음
-    - 업로드보단 다운로드를 많이해서 그럼
+  - Downstream의 전송률이 높도록 설계되어 있음
+    - 업로드보단 다운로드를 많이 해서 그렇다
     - 둘의 스트림 속도가 달라서 asymmetric(비동기)라고도 한다.
-- 요즘은 DSL 모뎀은 이미 박혀 있고 라우터, 공유기 방화벽 거쳐서 연결되어 있음
+- 요즘은 DSL 모뎀이 이미 박혀 있고 라우터, 공유기, 방화벽을 거쳐서 연결되어 있음
 
 ### Wireless access networks
 
-- 액세스 포인트에 따ㅓ라 wireless 네트워크를 두 가지로 분류한다
+- 액세스 포인트에 따라 wireless 네트워크를 두 가지로 분류한다
   - Wlan(wireless area networks)
     - 좁은 거리(100ft) 내외에서 사용
     - 개인, 기관 등에서 사용한다.
-  - Wid-area celluar access entworks
+  - Wide-area cellular access networks
     - 10km 내외에서 가능
-    - mobile, cellular netork 등에서 사용
+    - mobile, cellular network 등에서 사용
 
 ### Etc
 
 - Enterprise networks
   - 회사나 대학교 등등
-  - wired와 wireless가 여러 개 연결 되어 있음
+  - wired와 wireless가 여러 개 연결되어 있음
 - Data center networks
   - 여러 서버와 인터넷에 동시 연결되어 있음
-  - 높은 대역폭대로 연결되어 있다.
+  - 높은 대역폭으로 연결되어 있다.
 
 ### Host : sends packets of data
 
-- 호스트들은 패킷(데이터)를 주고 받는다
+- 호스트들은 패킷(데이터)을 주고받는다
 - 패킷의 길이를 L, 전송 비율을 R이라 한다면 전송 지연 시간을 알 수 있다.
 ![image](https://user-images.githubusercontent.com/37897508/162451953-0e976998-2cc8-42c0-b5b3-aede190e50cb.png)
 
 ## Links : physical media : 물리적 연결
 
-- 통신에서 정보를 저장하거나 전송하는데 사용되는 물리적 물질
+- 통신에서 정보를 저장하거나 전송하는 데 사용되는 물리적 물질
 - bit
-  - 송/수신기 사이에서의 전파 단위 정도라 생각하도록
+  - 송/수신기 사이에서의 전파 단위 정도라 생각하자
 - physical link
-  - 송/순신기 사이의 유선 연결
+  - 송/수신기 사이의 유선 연결
 - guided media(유선)
   - 구리, 섬유, coax 등 방해를 받는 신호
 - unguided media (무선)
@@ -110,18 +110,18 @@ title: "Data Network 1. Introduction"
 - Twisted pair
   - 구리선 2 개 꼬아 놓은 것
 - Coaxial cable(동축 케이블)
-  - 구리를 꼬아서 만든거임
+  - 구리를 꼬아서 만든 것이다
   - 다양한 주파수 채널을 한 케이블로 보냄
-  - 꼬는 이유가 전압 차이를 이용해서 외부 노이즈를 줄이려 하는거임
+  - 꼬는 이유는 전압 차이를 이용해서 외부 노이즈를 줄이려는 것이다
 - Fiber optic cable
   - 이상적인 광섬유
   - 신호 감쇄나 오류가 적음
-    - repeater들이 떨어져 있어 전자기성 간섭에 영향 안받음
+    - repeater들이 떨어져 있어 전자기성 간섭에 영향을 안 받음
   - 속도가 매우 빠름
 - Wireless radio
   - 전자기 스펙트럼으로 신호 전달
   - 반이중 전송 방식을 사용한다
-  - 환경적 요인에게 영향을 받는다
+  - 환경적 요인에 영향을 받는다
     - 반사, 장애물에 가림
     - 인터페이스 노이즈
     - 종류
@@ -134,7 +134,7 @@ title: "Data Network 1. Introduction"
   - 핵심 기능 : packet switching
     - 호스트가 애플리케이션 계층 메세지를 패킷으로 분할 후 라우터를 통해 목적지에 전달
 - Network core의 핵심 기능
-  - Fowarding(Switching)
+  - Forwarding(Switching)
   - Routing
 
 ## Packet-switching
@@ -142,18 +142,18 @@ title: "Data Network 1. Introduction"
 - 패킷을 다음 링크로 전송하기 위한 전략!
 
 - store and forward
-  - 패킷을 다음 링크로 전송하기 전에 라우터에 저장한뒤 전달하는 방식
-  - 무조건 다음 링크에 전송 되기 전에 라우터에 도착해야한다
+  - 패킷을 다음 링크로 전송하기 전에 라우터에 저장한 뒤 전달하는 방식
+  - 무조건 다음 링크에 전송되기 전에 라우터에 도착해야 한다
     - 전송 딜레이 계산법 기억하라!
-- queing
-  - 패킷이 들어오는 속도가 나가는 속도보다 빨라버림
-  - 패킷이 계속 링크에 전송 될 때까지 기다림
+- queuing
+  - 패킷이 들어오는 속도가 나가는 속도보다 빨라져 버림
+  - 패킷이 링크에 전송될 때까지 계속 기다림
   - 라우터의 메모리 버퍼를 넘어가면 그냥 초기화
 
 ## Circuit switching
 
 - circuit switching
-  - 목적지와 도착지가 예약 되어 있다.
+  - 목적지와 도착지가 예약되어 있다.
   - 전용 회선을 이용한다.(guaranteed)
     - 즉 내가 사용하고 있으면 다른 사람은 사용하지 못한다
   - 전화에서 주로 사용된다
@@ -167,12 +167,12 @@ title: "Data Network 1. Introduction"
 ## Packet switching VS Circuit switching
 
 - 전화처럼 데이터가 계속해서 이어지는 상황이라면 Circuit!
-  - 하지만 대화를 하지 않는 등의 상황에서는 자원이 낭비 된다고 볼 수 있음
-  - 두 클라이언트가 하나의 링크를 독점하고 있기 때문에 다른 클라이언트들도 통신하려면 계속 링크를 만들어야한다.
-  - 데이터의 loss와 delay가 없는건 장점이다
+  - 하지만 대화를 하지 않는 등의 상황에서는 자원이 낭비된다고 볼 수 있다
+  - 두 클라이언트가 하나의 링크를 독점하고 있기 때문에 다른 클라이언트들도 통신하려면 계속 링크를 만들어야 한다.
+  - 데이터의 loss와 delay가 없는 건 장점이다
 - 패킷 스위칭은 필요에 따라 링크를 할당한다.
   - 효율적으로 링크들을 사용할 수 있다.
-  - 데이터를 쪼개었다가 합칠 경우 오버헤드가 발생한다.
+  - 데이터를 쪼갰다가 합칠 경우 오버헤드가 발생한다.
   - 데이터의 혼잡 제어가 필요하다
   - bursty한 데이터에 좋다
 

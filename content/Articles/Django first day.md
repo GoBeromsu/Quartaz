@@ -14,9 +14,9 @@ title: "Django first day"
 2. How to get the course notes and files
 3. How to get help during the course
 
-* Becareful
+* Be careful
 
-    * Don't assume Any previous knoledge
+    * Don't assume any previous knowledge
 
 * How to get help
 
@@ -28,12 +28,12 @@ title: "Django first day"
 
     * Post a new question on QA forums
 
-        * Include What I have tried, yourcode, as much info as possible!
+        * Include what I have tried, your code, as much info as possible!
 
 * What is web
 
     * root
-        * My computer - put Ip - satellite, pysical line - server computer about IP
+        * My computer - put IP - satellite, physical line - server computer about IP
 
 ---
 
