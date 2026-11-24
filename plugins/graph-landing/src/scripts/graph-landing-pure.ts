@@ -587,13 +587,7 @@ export function autoRotateActive(input: {
   resting: boolean
   selected: boolean
 }): boolean {
-  return !(
-    input.reducedMotion ||
-    input.hidden ||
-    input.dragging ||
-    input.resting ||
-    input.selected
-  )
+  return !(input.reducedMotion || input.hidden || input.dragging || input.resting || input.selected)
 }
 
 /**

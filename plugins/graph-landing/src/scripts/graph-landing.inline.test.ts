@@ -747,7 +747,13 @@ describe("wheelZoomsGraph", () => {
 })
 
 describe("autoRotateActive", () => {
-  const idle = { reducedMotion: false, hidden: false, dragging: false, resting: false, selected: false }
+  const idle = {
+    reducedMotion: false,
+    hidden: false,
+    dragging: false,
+    resting: false,
+    selected: false,
+  }
 
   it("turns when nobody is handling the graph", () => {
     assert.equal(autoRotateActive(idle), true)
