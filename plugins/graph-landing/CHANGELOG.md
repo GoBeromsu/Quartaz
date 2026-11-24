@@ -2,6 +2,16 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.23.0
+
+### Changed
+
+- With a profile, the wheel zooms the graph again while the page is at the
+  top. Zooming out stops at the overview and the wheel then scrolls to the
+  profile. Before, zooming took a pinch or Ctrl/Cmd + wheel.
+- Clicking a node moves the camera to it as well as opening it.
+- The hint names scroll as the way to zoom.
+
 ## 0.22.0
 
 ### Added

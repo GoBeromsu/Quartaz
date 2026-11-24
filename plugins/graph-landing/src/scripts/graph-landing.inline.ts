@@ -41,6 +41,7 @@ import {
   tonearmAngle,
   vinylNoiseSamples,
   VINYL_RPM,
+  wheelZoomsGraph,
   type GraphData,
   type GraphLink,
   type GraphNode,
@@ -2986,7 +2987,7 @@ function bindGraph(
     if (event && typeof event.stopPropagation === "function") {
       event.stopPropagation()
     }
-    activateNode(node)
+    activateNode(node, true)
   })
   if (typeof graph.onBackgroundClick === "function") {
     graph.onBackgroundClick(() => {
@@ -3056,7 +3057,7 @@ function bindGraph(
         }
         const hit = nearestNode(event.clientX, event.clientY)
         if (hit) {
-          activateNode(hit)
+          activateNode(hit, true)
         } else {
           clearSelection()
         }
@@ -4454,8 +4455,8 @@ document.addEventListener("click", (event) => {
 
 /**
  * Profile sections (options.profile): the landing scrolls. Tracks the scrolled
- * state, reveals panels, marks the current top bar link, and keeps plain wheel
- * for the page (pinch or Ctrl/Cmd + wheel zooms the graph).
+ * state, reveals panels, marks the current top bar link, and shares the wheel
+ * between graph zoom and page scroll (see wheelZoomsGraph).
  */
 function initProfileScroll(): void {
   const root = document.querySelector(".graph-landing[data-profile]")
@@ -4483,15 +4484,33 @@ function initProfileScroll(): void {
 
   const mount = root.querySelector("#graph-landing-mount")
   if (mount instanceof HTMLElement) {
-    type ZoomControls = { noZoom?: boolean; enableZoom?: boolean }
+    type Point = { x: number; y: number; z: number }
+    type ZoomControls = {
+      noZoom?: boolean
+      enableZoom?: boolean
+      maxDistance?: number
+      target?: Point
+    }
+    type ZoomGraph = { controls?: () => ZoomControls; cameraPosition?: () => Point }
+    // The farthest the camera has been: the overview. Zooming out ends there.
+    let limit = 0
     const onWheel = (event: WheelEvent) => {
-      const graph = (mount as HTMLElement & { __graphLanding?: { controls?: () => ZoomControls } })
-        .__graphLanding
+      const graph = (mount as HTMLElement & { __graphLanding?: ZoomGraph }).__graphLanding
       const controls = typeof graph?.controls === "function" ? graph.controls() : undefined
-      if (!controls) {
+      const camera = typeof graph?.cameraPosition === "function" ? graph.cameraPosition() : null
+      if (!controls || !camera) {
         return
       }
-      const zoom = event.ctrlKey || event.metaKey
+      const target = controls.target ?? { x: 0, y: 0, z: 0 }
+      const distance = Math.hypot(camera.x - target.x, camera.y - target.y, camera.z - target.z)
+      limit = Math.max(limit, distance)
+      controls.maxDistance = limit
+      const zoom = wheelZoomsGraph({
+        scrolled: window.scrollY > 80,
+        deltaY: event.deltaY,
+        distance,
+        limit,
+      })
       controls.noZoom = !zoom
       controls.enableZoom = zoom
     }

@@ -485,8 +485,11 @@ site open in a new tab. A timeline entry can carry one `image`; `width` and
 swaps together with `hero.translations`; a language without a translation
 reuses the base copy.
 
-With a profile the wheel scrolls the page. Zoom the graph with a pinch or
-Ctrl/Cmd + wheel; a vertical touch drag scrolls instead of rotating.
+With a profile the wheel zooms the graph while the page is at the top. Zooming
+out stops at the overview, and from there the wheel scrolls on to the profile;
+once the page has scrolled the wheel only scrolls. A pinch also zooms, and a
+vertical touch drag scrolls instead of rotating. Clicking a node opens it and
+moves the camera to it.
 
 ### Which page becomes the landing
 
