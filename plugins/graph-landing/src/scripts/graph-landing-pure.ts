@@ -579,3 +579,41 @@ export function wheelZoomsGraph(input: {
   if (input.deltaY < 0) return true
   return input.distance < input.limit * 0.98
 }
+
+/** How long the graph stays still after the visitor lets go of it. */
+export const AUTO_ROTATE_REST_MS = 2500
+
+/**
+ * Whether the graph turns on its own. It holds still while the visitor is
+ * handling it, for a short rest after they let go, and while a node is open,
+ * so what they are looking at does not drift away.
+ */
+export function autoRotateActive(input: {
+  reducedMotion: boolean
+  hidden: boolean
+  dragging: boolean
+  resting: boolean
+  selected: boolean
+}): boolean {
+  return !(
+    input.reducedMotion ||
+    input.hidden ||
+    input.dragging ||
+    input.resting ||
+    input.selected
+  )
+}
+
+/**
+ * World-space height that keeps a label the same size on screen at any camera
+ * distance. `size` is the height in CSS pixels at the default 40 degree field
+ * of view divided by 1.37; labels never shrink below `floor` world units.
+ */
+export function labelTextHeight(
+  distance: number,
+  viewportHeight: number,
+  hub: boolean,
+  floor = 4.5,
+): number {
+  return Math.max(floor, (distance / Math.max(1, viewportHeight)) * (hub ? 14 : 10))
+}

@@ -20,6 +20,8 @@ interface ContentEntry {
 // unchanged.
 import {
   affectedFocusNodeIds,
+  AUTO_ROTATE_REST_MS,
+  autoRotateActive,
   clipSegmentToEndpointRadii,
   expandHopIds,
   getOrCreate,
@@ -27,6 +29,7 @@ import {
   hubGravityDistanceScale,
   hubGravityStrengthScale,
   isMarkdownFilePath,
+  labelTextHeight,
   linkDegreeWeight,
   linkEndpointId,
   lodLevelForDistance,
@@ -336,7 +339,7 @@ const SPIN_DOWN_TAU_MS = 1400
 const ARM_TRACK_INTERVAL_MS = 1000
 const VINYL_FX_LEVEL = 0.3
 const YOUTUBE_IFRAME_API = "https://www.youtube.com/iframe_api"
-const AUTO_ROTATE_SPEED = 0.18
+const AUTO_ROTATE_SPEED = 0.22
 const HUB_VAL_SCALE = 1.25
 const TAG_LENS_VAL_SCALE = 1.25
 const FOCUS_TAG_VAL_SCALE = 1.15
@@ -1443,6 +1446,9 @@ function bindGraph(
   let selectedId: string | null = null
   const tune = readStoredTune()
   let dragging = false
+  // True for a short while after a drag ends; auto-rotation waits it out.
+  let resting = false
+  let restTimer = 0
   let cameraTarget = INITIAL_LOOK_AT
   let zoomBaseDistance = INITIAL_CAMERA_DISTANCE
   let currentMaxDegree = 0
@@ -2644,6 +2650,7 @@ function bindGraph(
       typeof graph.cameraPosition === "function"
     ) {
       const getCameraPosition = graph.cameraPosition.bind(graph)
+      const lodMount = options.root.querySelector<HTMLElement>("#graph-landing-mount")
       let lodFrame = 0
       const updateLod = (): void => {
         const cam = getCameraPosition() as Partial<Vec3> | undefined
@@ -2653,7 +2660,9 @@ function bindGraph(
           typeof cam.y === "number" &&
           typeof cam.z === "number"
         ) {
-          const viewportHeight = Math.max(1, options.root.clientHeight || window.innerHeight)
+          // The canvas height, not the root's: with a profile the root is as
+          // tall as the whole page, which shrank every label to its floor.
+          const viewportHeight = Math.max(1, (lodMount?.clientHeight ?? 0) || window.innerHeight)
           if (labelDistance !== undefined) {
             const titleBounds: Array<{ left: number; right: number; y: number }> = []
             for (const entry of labelSprites.values()) {
@@ -2679,7 +2688,7 @@ function bindGraph(
                 const projected = graph.graph2ScreenCoords?.(nx, ny, nz)
                 if (projected && litId() === null) {
                   const hub = labeledHubIds.has(entry.node.id)
-                  const width = Array.from(text).length * (hub ? 8 : 6) + 12
+                  const width = Array.from(text).length * (hub ? 11 : 8) + 12
                   const left =
                     projected.x > window.innerWidth * 0.6 ? projected.x - width : projected.x
                   const right = left + width
@@ -2693,9 +2702,10 @@ function bindGraph(
                 const flip = projected !== undefined && projected.x > window.innerWidth * 0.6
                 entry.sprite.center.set(flip ? 1 : 0, 0.5)
                 entry.sprite.position.x = (flip ? -1 : 1) * (nodeWorldRadius(entry.node) + 3)
-                const textHeight = Math.max(
-                  4.5,
-                  (distance / viewportHeight) * (labeledHubIds.has(entry.node.id) ? 10 : 7.5),
+                const textHeight = labelTextHeight(
+                  distance,
+                  viewportHeight,
+                  labeledHubIds.has(entry.node.id),
                 )
                 if (Math.abs(entry.sprite.textHeight - textHeight) > 0.5) {
                   entry.sprite.textHeight = textHeight
@@ -2804,7 +2814,13 @@ function bindGraph(
 
   const updateMotion = (): void => {
     const reduced = prefersReducedMotion()
-    const active = !reduced && !document.hidden && !dragging
+    const active = autoRotateActive({
+      reducedMotion: reduced,
+      hidden: document.hidden,
+      dragging,
+      resting,
+      selected: selectedId !== null,
+    })
     if (typeof graph.controls === "function") {
       graph.controls().autoRotate = active
     }
@@ -2814,6 +2830,7 @@ function bindGraph(
   motionPreference.addEventListener("change", updateMotion)
   document.addEventListener("visibilitychange", updateMotion)
   window.addCleanup(() => {
+    window.clearTimeout(restTimer)
     motionPreference.removeEventListener("change", updateMotion)
     document.removeEventListener("visibilitychange", updateMotion)
   })
@@ -3012,6 +3029,7 @@ function bindGraph(
       pointerDown = { x: event.clientX, y: event.clientY }
       libraryHandledClick = false
       dragging = true
+      window.clearTimeout(restTimer)
       updateMotion()
     }
     const nearestNode = (clientX: number, clientY: number): GraphNode | null => {
@@ -3041,6 +3059,12 @@ function bindGraph(
       const start = pointerDown
       pointerDown = null
       dragging = false
+      resting = true
+      window.clearTimeout(restTimer)
+      restTimer = window.setTimeout(() => {
+        resting = false
+        updateMotion()
+      }, AUTO_ROTATE_REST_MS)
       updateMotion()
       if (!start) {
         return
@@ -3066,6 +3090,12 @@ function bindGraph(
     const onPointerCancel = (): void => {
       pointerDown = null
       dragging = false
+      resting = true
+      window.clearTimeout(restTimer)
+      restTimer = window.setTimeout(() => {
+        resting = false
+        updateMotion()
+      }, AUTO_ROTATE_REST_MS)
       updateMotion()
     }
     mount.addEventListener("pointerdown", onPointerDown, true)

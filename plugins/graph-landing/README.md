@@ -491,6 +491,10 @@ once the page has scrolled the wheel only scrolls. A pinch also zooms, and a
 vertical touch drag scrolls instead of rotating. Clicking a node opens it and
 moves the camera to it.
 
+The 3D graph turns slowly on its own. It stops while it is dragged, resumes
+2.5 s after release, and holds still while a node is open or when the visitor
+prefers reduced motion.
+
 ### Which page becomes the landing
 
 Any of these, no plugin required:

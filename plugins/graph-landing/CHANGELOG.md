@@ -2,6 +2,19 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.24.0
+
+### Changed
+
+- Node labels are about a third larger on screen (hub labels about 40%).
+- Auto-rotation waits 2.5 s after a drag before resuming and holds still
+  while a node is open. Speed is 0.22 (was 0.18).
+
+### Fixed
+
+- With a profile, node labels were sized against the height of the whole
+  page instead of the canvas, so they stayed at their smallest size.
+
 ## 0.23.0
 
 ### Changed

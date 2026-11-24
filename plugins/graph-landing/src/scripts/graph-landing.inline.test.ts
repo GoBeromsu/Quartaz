@@ -2,6 +2,8 @@ import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 import {
   affectedFocusNodeIds,
+  autoRotateActive,
+  labelTextHeight,
   clipSegmentToEndpointRadii,
   expandHopIds,
   getOrCreate,
@@ -747,5 +749,43 @@ describe("wheelZoomsGraph", () => {
   it("leaves the wheel to the page once it has scrolled", () => {
     assert.equal(wheelZoomsGraph({ ...hero, scrolled: true, distance: 400, deltaY: -100 }), false)
     assert.equal(wheelZoomsGraph({ ...hero, scrolled: true, deltaY: 100 }), false)
+  })
+})
+
+describe("autoRotateActive", () => {
+  const idle = { reducedMotion: false, hidden: false, dragging: false, resting: false, selected: false }
+
+  it("turns when nobody is handling the graph", () => {
+    assert.equal(autoRotateActive(idle), true)
+  })
+
+  it("holds still during a drag and the rest after it", () => {
+    assert.equal(autoRotateActive({ ...idle, dragging: true }), false)
+    assert.equal(autoRotateActive({ ...idle, resting: true }), false)
+  })
+
+  it("holds still while a node is open", () => {
+    assert.equal(autoRotateActive({ ...idle, selected: true }), false)
+  })
+
+  it("never turns for reduced motion or a hidden tab", () => {
+    assert.equal(autoRotateActive({ ...idle, reducedMotion: true }), false)
+    assert.equal(autoRotateActive({ ...idle, hidden: true }), false)
+  })
+})
+
+describe("labelTextHeight", () => {
+  it("grows with distance so the label keeps its screen size", () => {
+    assert.equal(labelTextHeight(1000, 1000, false), 10)
+    assert.equal(labelTextHeight(2000, 1000, false), 20)
+  })
+
+  it("makes hub labels larger", () => {
+    assert.equal(labelTextHeight(1000, 1000, true), 14)
+  })
+
+  it("does not shrink below the floor up close", () => {
+    assert.equal(labelTextHeight(100, 1000, false), 4.5)
+    assert.equal(labelTextHeight(100, 1000, false, 3), 3)
   })
 })
