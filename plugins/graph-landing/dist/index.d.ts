@@ -250,7 +250,7 @@ interface GraphLandingProfileImage {
 }
 /**
  * One numbered panel. Every block is optional and blocks render in a fixed
- * order: `stats`, `timeline`, `groups`, `facts`, `quote`. `image` sits beside
+ * order: `stats`, `timeline`, `groups`, `facts`, `quote`, `quotes`. `image` sits beside
  * the title and lede.
  */
 interface GraphLandingProfileSection {
@@ -296,6 +296,11 @@ interface GraphLandingProfileSection {
         text: string;
         cite?: string;
     };
+    /** Several quotes, set side by side after `quote`. */
+    quotes?: Array<{
+        text: string;
+        cite?: string;
+    }>;
 }
 interface GraphLandingHeroCopy {
     eyebrow?: string;

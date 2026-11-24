@@ -2,6 +2,12 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.27.0
+
+### Added
+
+- Profile sections accept `quotes`, a list of quotes set side by side.
+
 ## 0.26.2
 
 ### Fixed

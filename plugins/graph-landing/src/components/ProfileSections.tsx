@@ -107,6 +107,16 @@ function Section({ section, index }: { section: GraphLandingProfileSection; inde
             {section.quote.cite ? <cite>{section.quote.cite}</cite> : null}
           </blockquote>
         ) : null}
+        {section.quotes?.length ? (
+          <div class="graph-landing__quotes">
+            {section.quotes.map((quote) => (
+              <blockquote class="graph-landing__quote">
+                <p>{quote.text}</p>
+                {quote.cite ? <cite>{quote.cite}</cite> : null}
+              </blockquote>
+            ))}
+          </div>
+        ) : null}
       </div>
     </section>
   )

@@ -156,7 +156,11 @@ function Section({ section, index }) {
     section.quote ? /* @__PURE__ */ u2("blockquote", { class: "graph-landing__quote", children: [
       /* @__PURE__ */ u2("p", { children: section.quote.text }),
       section.quote.cite ? /* @__PURE__ */ u2("cite", { children: section.quote.cite }) : null
-    ] }) : null
+    ] }) : null,
+    section.quotes?.length ? /* @__PURE__ */ u2("div", { class: "graph-landing__quotes", children: section.quotes.map((quote) => /* @__PURE__ */ u2("blockquote", { class: "graph-landing__quote", children: [
+      /* @__PURE__ */ u2("p", { children: quote.text }),
+      quote.cite ? /* @__PURE__ */ u2("cite", { children: quote.cite }) : null
+    ] })) }) : null
   ] }) });
 }
 function ProfileSections({
@@ -2412,6 +2416,13 @@ a.graph-landing__card:hover {
   border-left: 2px solid var(--graph-accent);
   margin: clamp(28px, 4vw, 44px) 0 0;
   padding: 0.2rem 0 0.2rem clamp(18px, 2.5vw, 28px);
+}
+
+.graph-landing__quotes {
+  align-items: start;
+  display: grid;
+  gap: 0 clamp(24px, 4vw, 56px);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
 }
 
 .graph-landing__quote p {

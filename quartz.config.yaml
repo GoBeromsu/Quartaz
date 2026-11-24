@@ -190,6 +190,11 @@ plugins:
               - value: "73"
                 label: "Agent skills"
                 note: "craft-skills 48개와 secondbrain-skills 25개를 공개했습니다."
+            quotes:
+              - text: "자신을 구하는 유일한 길은 남을 구하려고 애쓰는 것이다."
+                cite: "그리스인 조르바 — 니코스 카잔차키스"
+              - text: "그가 시험을 받아 고난을 당하셨은즉 시험 받는 자들을 능히 도우실 수 있느니라."
+                cite: "히브리서 2:18"
           - id: path
             kicker: "Path"
             title: "지금까지 걸어온 길"
@@ -438,9 +443,6 @@ plugins:
             kicker: "About"
             title: "기술은 의도를 증폭합니다"
             lede: "사람들이 원치 않게 빼앗기는 주의와 인지 자원을 지키고, 각자에게 중요한 일에 온전히 집중하도록 돕고 싶습니다."
-            quote:
-              text: "The only way to save yourself is to struggle to save others."
-              cite: "Zorba the Greek — Nikos Kazantzakis"
             facts:
               - term: "Email"
                 detail: "gobeumsu@gmail.com"
@@ -489,6 +491,11 @@ plugins:
                   - value: "73"
                     label: "Agent skills"
                     note: "48 in craft-skills and 25 in secondbrain-skills."
+                quotes:
+                  - text: "The only way to save yourself is to struggle to save others."
+                    cite: "Zorba the Greek — Nikos Kazantzakis"
+                  - text: "For because he himself has suffered when tempted, he is able to help those who are being tempted."
+                    cite: "Hebrews 2:18"
               - id: path
                 kicker: "Path"
                 title: "The path so far"
@@ -747,9 +754,6 @@ plugins:
                 lede:
                   "I want to protect the attention and cognitive resources people never meant to give away, and help them stay
                   focused on what matters to them."
-                quote:
-                  text: "The only way to save yourself is to struggle to save others."
-                  cite: "Zorba the Greek — Nikos Kazantzakis"
                 facts:
                   - term: "Email"
                     detail: "gobeumsu@gmail.com"

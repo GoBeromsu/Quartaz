@@ -2299,6 +2299,13 @@ a.graph-landing__card:hover {
   padding: 0.2rem 0 0.2rem clamp(18px, 2.5vw, 28px);
 }
 
+.graph-landing__quotes {
+  align-items: start;
+  display: grid;
+  gap: 0 clamp(24px, 4vw, 56px);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+}
+
 .graph-landing__quote p {
   color: var(--graph-text);
   font-family: var(--profile-display);
