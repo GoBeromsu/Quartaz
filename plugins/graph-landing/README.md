@@ -394,6 +394,8 @@ To show the copy in the visitor's language, add `translations` keyed by primary
 language subtag. The top-level copy is the default (and is tagged with the
 site's language); a tiny inline script swaps in the first translation that
 matches `navigator.languages`, before first paint and with no layout shift.
+The site's own language wins when it appears anywhere in that list, so a
+Korean reader whose browser lists English first still reads Korean.
 Fields missing from a translation inherit the default copy, so shared pieces
 such as `eyebrow` and `actions` need writing once. `fallbackLanguage` names the
 copy for visitors whose languages match nothing, so a Korean site can greet
@@ -486,9 +488,10 @@ Any of these, no plugin required:
 - a page whose slug is `graph` or ends in `/graph` (e.g. `content/graph.md`)
 - a page a multilingual plugin tags with `translationKey: graph` or `home`
 
-The nav title is Quartz `configuration.pageTitle`. Writing / About links appear
+The nav title is Quartz `configuration.pageTitle`. Blog / About links appear
 only when a `writing` or `about` page exists (plain slug, or the current
-locale's translation when a multilingual plugin provides one).
+locale's translation when a multilingual plugin provides one). With a
+`profile`, the scrolled top bar ends with the same blog link.
 
 ## 3D performance
 

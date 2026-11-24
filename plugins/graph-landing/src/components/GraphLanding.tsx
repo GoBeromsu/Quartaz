@@ -87,7 +87,7 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
       lensFolder: "폴더",
       spacing: "Spacing",
       zoom: "Zoom",
-      articles: "Writing",
+      articles: "Blog",
       about: "About",
       themeToggle: "라이트/다크 모드 전환",
       filtersToggle: "필터",
@@ -130,7 +130,7 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
     lensFolder: "Folders",
     spacing: "Spacing",
     zoom: "Zoom",
-    articles: "Writing",
+    articles: "Blog",
     about: "About",
     themeToggle: "Toggle light / dark mode",
     filtersToggle: "Filters",
@@ -860,6 +860,7 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
             blocks={profile}
             siteTitle={siteTitle}
             homeHref={homeHref}
+            blogHref={writingHref}
             navLabel={copy.profileNav}
             scrollLabel={copy.profileScroll}
           />

@@ -88,12 +88,15 @@ export function ProfileSections({
   blocks,
   siteTitle,
   homeHref,
+  blogHref,
   navLabel,
   scrollLabel,
 }: {
   blocks: ProfileBlock[]
   siteTitle: string
   homeHref: string
+  /** Blog index; shown as the last top bar link when set. */
+  blogHref?: string | null
   navLabel: string
   scrollLabel: string
 }) {
@@ -117,6 +120,11 @@ export function ProfileSections({
                   {navSections.map((section) => (
                     <a href={`#${section.id}`}>{section.nav}</a>
                   ))}
+                  {blogHref ? (
+                    <a class="graph-landing__topbar-blog" href={blogHref}>
+                      {lang === "ko" ? "블로그" : "Blog"}
+                    </a>
+                  ) : null}
                 </div>
               </nav>
               {sections.map((section, index) => (

@@ -150,14 +150,20 @@ plugins:
         titleEmphasis: "의도"
         lede: "사람들이 원치 않게 탈취당하는 인지 자원을 지키는 기술을 만듭니다. 도구가 무엇을 할 수 있는지보다, 누구의 의도를 키우는지가 중요합니다."
         actions:
-          - label: "About"
+          - label: "소개"
             href: "/about"
             accent: true
-          - label: "Writing"
+          - label: "블로그"
             href: "/writing"
         fallbackLanguage: en
         translations:
           en:
+            actions:
+              - label: "About"
+                href: "/about"
+                accent: true
+              - label: "Blog"
+                href: "/writing"
             title: "Technology\namplifies intent."
             titleEmphasis: "intent"
             lede:
@@ -166,7 +172,6 @@ plugins:
       profile:
         sections:
           - id: now
-            nav: "하는 일"
             kicker: "What I do"
             title: "에이전트와 함께 제품을 만들고 운영합니다."
             lede: "AI 엔지니어 고범수입니다. 에이전트 기반 개발로 제품을 만들어 운영하고, Obsidian과 개인 지식 시스템을 위한 오픈소스 도구를 공개하며, 그 과정에서 배운 것을 강의와 워크숍으로 나눕니다."
@@ -184,7 +189,6 @@ plugins:
                 label: "Upstage collaborations"
                 note: "2026년 한 해 Upstage와 함께한 교육·콘텐츠·행사."
           - id: path
-            nav: "걸어온 길"
             kicker: "Path"
             title: "지금까지 걸어온 길"
             lede: "네트워크 연구실에서 시작해 소프트웨어 공학 연구를 거쳐, 지금은 에이전트로 제품을 만들고 가르칩니다."
@@ -315,28 +319,6 @@ plugins:
                     body: "LLM이 운영하는 지식 베이스를 위한 에이전트 스킬 모음."
                     href: "https://github.com/GoBeromsu/secondbrain-skills"
                     meta: "skills 25"
-              - label: "Contributions"
-                cards:
-                  - title: "gajae-code"
-                    body: "PR 3건 머지 (#5287, #6861, #5498)."
-                    href: "https://github.com/Yeachan-Heo/gajae-code"
-                    meta: "merged × 3"
-                  - title: "claude-talk-to-figma-mcp"
-                    body: "rename_node 도구를 추가했습니다."
-                    href: "https://github.com/arinspunk/claude-talk-to-figma-mcp/pull/36"
-                    meta: "merged · #36"
-                  - title: "Deep River"
-                    href: "https://github.com/online-ml/deep-river/pull/116"
-                    meta: "merged · #116"
-                  - title: "obsidian-ics"
-                    href: "https://github.com/open-horizon-labs/obsidian-ics/pull/55"
-                    meta: "merged · #55"
-                  - title: "Korean Book Info"
-                    href: "https://github.com/kmsk99/kr-book-info-plugin/pull/15"
-                    meta: "merged · #15"
-                  - title: "obsidian-tistory-plugin"
-                    href: "https://github.com/anpigon/obsidian-tistory-plugin/pull/4"
-                    meta: "merged · #4"
               - label: "Featured in"
                 cards:
                   - title: "Obsidian Plugins Review — 83"
@@ -370,7 +352,6 @@ plugins:
                 detail: "tangled-ccs-commits · train 1,400 / test 350, 7 concerns"
                 href: "https://huggingface.co/datasets/Berom0227/tangled-ccs-commits"
           - id: teaching
-            nav: "교육"
             kicker: "Teaching & community"
             title: "배운 것을 가르치며 나눕니다"
             lede: "에이전트, 스킬, 지식 관리를 주제로 대학과 기업 교육 현장에서 강의하고, Upstage AI Ambassador로 활동했습니다."
@@ -449,7 +430,6 @@ plugins:
           en:
             sections:
               - id: now
-                nav: "Now"
                 kicker: "What I do"
                 title: "I build and run products with agents."
                 lede:
@@ -469,7 +449,6 @@ plugins:
                     label: "Upstage collaborations"
                     note: "Courses, content and events with Upstage in 2026."
               - id: path
-                nav: "Path"
                 kicker: "Path"
                 title: "The path so far"
                 lede: "From a networking lab, through software-engineering research, to building and teaching with agents."
@@ -612,28 +591,6 @@ plugins:
                         body: "Agent skills for knowledge bases operated by LLMs."
                         href: "https://github.com/GoBeromsu/secondbrain-skills"
                         meta: "skills 25"
-                  - label: "Contributions"
-                    cards:
-                      - title: "gajae-code"
-                        body: "Three merged PRs (#5287, #6861, #5498)."
-                        href: "https://github.com/Yeachan-Heo/gajae-code"
-                        meta: "merged × 3"
-                      - title: "claude-talk-to-figma-mcp"
-                        body: "Added the rename_node tool."
-                        href: "https://github.com/arinspunk/claude-talk-to-figma-mcp/pull/36"
-                        meta: "merged · #36"
-                      - title: "Deep River"
-                        href: "https://github.com/online-ml/deep-river/pull/116"
-                        meta: "merged · #116"
-                      - title: "obsidian-ics"
-                        href: "https://github.com/open-horizon-labs/obsidian-ics/pull/55"
-                        meta: "merged · #55"
-                      - title: "Korean Book Info"
-                        href: "https://github.com/kmsk99/kr-book-info-plugin/pull/15"
-                        meta: "merged · #15"
-                      - title: "obsidian-tistory-plugin"
-                        href: "https://github.com/anpigon/obsidian-tistory-plugin/pull/4"
-                        meta: "merged · #4"
                   - label: "Featured in"
                     cards:
                       - title: "Obsidian Plugins Review — 83"
@@ -668,7 +625,6 @@ plugins:
                     detail: "tangled-ccs-commits · train 1,400 / test 350, 7 concerns"
                     href: "https://huggingface.co/datasets/Berom0227/tangled-ccs-commits"
               - id: teaching
-                nav: "Teaching"
                 kicker: "Teaching & community"
                 title: "Teaching what I learn"
                 lede:

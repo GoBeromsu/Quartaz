@@ -4,9 +4,15 @@ import { pickHeroLanguage } from "./heroLanguage"
 
 describe("pickHeroLanguage", () => {
   it("matches on the primary subtag in visitor preference order", () => {
-    assert.equal(pickHeroLanguage(["ko", "en"], ["en-US", "ko-KR"]), "en")
+    assert.equal(pickHeroLanguage(["ko", "en", "ja"], ["ja-JP", "en-US"]), "ja")
     assert.equal(pickHeroLanguage(["ko", "en"], ["ko-KR", "en-US"]), "ko")
     assert.equal(pickHeroLanguage(["ko", "en"], ["EN"]), "en")
+  })
+
+  it("prefers the site's own language wherever it sits in the list", () => {
+    assert.equal(pickHeroLanguage(["ko", "en"], ["en-US", "ko-KR"]), "ko")
+    assert.equal(pickHeroLanguage(["ko", "en"], ["en-US", "en", "ko"]), "ko")
+    assert.equal(pickHeroLanguage(["en", "ko"], ["ko-KR", "en-US"]), "en")
   })
 
   it("uses the fallback only when nothing matches and it is available", () => {

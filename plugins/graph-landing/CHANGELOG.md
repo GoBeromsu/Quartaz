@@ -2,6 +2,21 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.20.1
+
+### Changed
+
+- Hero and profile language: the site's own language wins when it appears
+  anywhere in `navigator.languages`, not only when it is listed first.
+- The profile top bar ends with a link to the blog index, and the hero nav
+  label reads "Blog".
+
+### Fixed
+
+- The constellation no longer stands upright as a vertical line when the
+  viewport is taller than wide. It lies flat on wide viewports and keeps its
+  natural round shape on tall ones.
+
 ## 0.20.0
 
 ### Added

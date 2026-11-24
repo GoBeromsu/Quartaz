@@ -310,6 +310,7 @@ const MIN_NODE_VAL = 1
 const MAX_NODE_VAL = 4
 const CENTER_STRENGTH = 0.05
 const SQUASH_STRENGTH = 0.09
+const WIDE_VIEWPORT_RATIO = 0.8
 const SHARED_TAG_MAX_MEMBERS = 12
 const NODE_REL_SIZE = 2.6
 const NODE_OPACITY = 1
@@ -1291,15 +1292,15 @@ function createClusterForce(
   return force
 }
 
-// Pulls one axis toward the origin so the constellation takes the shape of
-// the viewport: wide on desktop, tall on phones.
-function createSquashForce(axis: "x" | "y", strength: number): (alpha: number) => void {
+// Pulls the vertical axis toward the origin so the constellation lies flat
+// like a disc under the orbiting camera. Squashing x instead stood the disc
+// upright, and auto-rotate showed it edge-on as a vertical line.
+function createSquashForce(strength: number): (alpha: number) => void {
   let nodes: GraphNode[] = []
   const force = (alpha: number): void => {
     const k = strength * alpha
     for (const node of nodes) {
-      if (axis === "y") node.vy = (node.vy ?? 0) - (node.y ?? 0) * k
-      else node.vx = (node.vx ?? 0) - (node.x ?? 0) * k
+      node.vy = (node.vy ?? 0) - (node.y ?? 0) * k
     }
   }
   ;(force as { initialize?: (input: GraphNode[]) => void }).initialize = (input: GraphNode[]) => {
@@ -1789,9 +1790,13 @@ function bindGraph(
     if (options.use3d) {
       graph.d3Force("flattenZ", null)
       const mountEl = options.root.querySelector("#graph-landing-mount")
-      const landscape =
-        mountEl instanceof HTMLElement ? mountEl.clientWidth >= mountEl.clientHeight : true
-      graph.d3Force("squash", createSquashForce(landscape ? "y" : "x", SQUASH_STRENGTH))
+      // Tall viewports keep the natural round cloud: a flat disc fitted to a
+      // narrow width would shrink to a sliver.
+      const wide =
+        mountEl instanceof HTMLElement
+          ? mountEl.clientWidth >= mountEl.clientHeight * WIDE_VIEWPORT_RATIO
+          : true
+      graph.d3Force("squash", wide ? createSquashForce(SQUASH_STRENGTH) : null)
     }
   }
 

@@ -1846,6 +1846,17 @@ a.graph-landing__title:focus-visible {
   font-weight: 500;
 }
 
+.graph-landing__topbar a.graph-landing__topbar-blog {
+  border-left: 1px solid var(--graph-border);
+  color: var(--graph-text);
+  font-weight: 500;
+  padding-left: 1.4rem;
+}
+
+.graph-landing__topbar a.graph-landing__topbar-blog:hover {
+  color: var(--graph-accent);
+}
+
 .graph-landing__topbar-links {
   display: flex;
   gap: 1.4rem;
