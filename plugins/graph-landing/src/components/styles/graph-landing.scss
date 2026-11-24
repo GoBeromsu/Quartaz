@@ -1463,7 +1463,7 @@ a.graph-landing__title:focus-visible {
   margin: 0 0 1.4rem;
   max-width: 48ch;
   overflow-wrap: break-word;
-  text-wrap: pretty;
+  text-wrap: balance;
   word-break: keep-all;
 }
 
@@ -1938,7 +1938,7 @@ a.graph-landing__title:focus-visible {
   line-height: 1.7;
   margin: 0;
   max-width: 62ch;
-  text-wrap: pretty;
+  text-wrap: balance;
   word-break: keep-all;
 }
 
@@ -2054,6 +2054,38 @@ a.graph-landing__title:focus-visible {
   font-size: 0.88rem;
   margin-top: 0.15rem;
   opacity: 0.8;
+}
+
+.graph-landing__timeline-body h3,
+.graph-landing__timeline-body p,
+.graph-landing__card h3,
+.graph-landing__facts dd {
+  text-wrap: balance;
+}
+
+.graph-landing__card p {
+  text-wrap: pretty;
+}
+
+.graph-landing__timeline-figure {
+  margin: 0.9rem 0 0.2rem;
+  max-width: min(100%, 22rem);
+}
+
+.graph-landing__timeline-figure img {
+  border: 1px solid var(--graph-border);
+  border-radius: 6px;
+  display: block;
+  height: auto;
+  max-width: 100%;
+}
+
+.graph-landing__timeline-figure figcaption {
+  color: var(--graph-muted);
+  font-family: var(--codeFont);
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  margin-top: 0.45rem;
 }
 
 .graph-landing__group {
@@ -2280,6 +2312,19 @@ a.graph-landing__card:hover {
 
   .graph-landing__topbar-links {
     gap: 1rem;
+  }
+
+  // Section links scroll sideways on a phone; taller hit areas, and the blog
+  // link stays pinned so it is never scrolled out of reach.
+  .graph-landing__topbar a {
+    padding-block: 0.7rem;
+  }
+
+  .graph-landing__topbar a.graph-landing__topbar-blog {
+    background: var(--graph-surface-strong);
+    padding-left: 1rem;
+    position: sticky;
+    right: 0;
   }
 
   .graph-landing__facts > div {

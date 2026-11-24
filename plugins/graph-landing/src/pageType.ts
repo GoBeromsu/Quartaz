@@ -239,6 +239,17 @@ export interface GraphLandingProfileCopy {
   }
 }
 
+export interface GraphLandingProfileImage {
+  src: string
+  /** Describes the photo for screen readers. */
+  alt: string
+  /** Shown under the photo. */
+  caption?: string
+  /** Intrinsic pixel size; reserves the space before the photo loads. */
+  width?: number
+  height?: number
+}
+
 /**
  * One numbered panel. Every block is optional and blocks render in a fixed
  * order: `stats`, `timeline`, `groups`, `facts`, `quote`.
@@ -258,6 +269,8 @@ export interface GraphLandingProfileSection {
     org?: string
     body?: string
     href?: string
+    /** Photo shown under the entry. `src` is a site path or absolute URL. */
+    image?: GraphLandingProfileImage
   }>
   groups?: Array<{
     label?: string

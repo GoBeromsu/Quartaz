@@ -41,6 +41,16 @@ function sectionIndexLabel(index) {
 function isExternalHref(href) {
   return /^(https?:)?\/\//i.test(href) || /^mailto:/i.test(href);
 }
+function profileImageAttrs(image) {
+  const src = image?.src?.trim();
+  if (!image || !src) return null;
+  const sized = Number.isFinite(image.width) && Number.isFinite(image.height) && image.width > 0 && image.height > 0;
+  return {
+    src,
+    alt: image.alt ?? "",
+    ...sized ? { width: image.width, height: image.height } : {}
+  };
+}
 var l;
 function S(n2) {
   return n2.children;
@@ -80,14 +90,21 @@ function Section({ section, index }) {
       /* @__PURE__ */ u2("dd", { children: stat.value }),
       stat.note ? /* @__PURE__ */ u2("p", { children: stat.note }) : null
     ] })) }) : null,
-    section.timeline && section.timeline.length > 0 ? /* @__PURE__ */ u2("ol", { class: "graph-landing__timeline", children: section.timeline.map((item) => /* @__PURE__ */ u2("li", { class: "graph-landing__timeline-item", children: [
-      /* @__PURE__ */ u2("p", { class: "graph-landing__timeline-period", children: item.period }),
-      /* @__PURE__ */ u2("div", { class: "graph-landing__timeline-body", children: [
-        /* @__PURE__ */ u2("h3", { children: item.href ? /* @__PURE__ */ u2("a", { ...linkProps(item.href), children: item.title }) : item.title }),
-        item.org ? /* @__PURE__ */ u2("p", { class: "graph-landing__timeline-org", children: item.org }) : null,
-        item.body ? /* @__PURE__ */ u2("p", { children: item.body }) : null
-      ] })
-    ] })) }) : null,
+    section.timeline && section.timeline.length > 0 ? /* @__PURE__ */ u2("ol", { class: "graph-landing__timeline", children: section.timeline.map((item) => {
+      const image = profileImageAttrs(item.image);
+      return /* @__PURE__ */ u2("li", { class: "graph-landing__timeline-item", children: [
+        /* @__PURE__ */ u2("p", { class: "graph-landing__timeline-period", children: item.period }),
+        /* @__PURE__ */ u2("div", { class: "graph-landing__timeline-body", children: [
+          /* @__PURE__ */ u2("h3", { children: item.href ? /* @__PURE__ */ u2("a", { ...linkProps(item.href), children: item.title }) : item.title }),
+          item.org ? /* @__PURE__ */ u2("p", { class: "graph-landing__timeline-org", children: item.org }) : null,
+          item.body ? /* @__PURE__ */ u2("p", { children: item.body }) : null,
+          image ? /* @__PURE__ */ u2("figure", { class: "graph-landing__timeline-figure", children: [
+            /* @__PURE__ */ u2("img", { ...image, loading: "lazy", decoding: "async" }),
+            item.image?.caption ? /* @__PURE__ */ u2("figcaption", { children: item.image.caption }) : null
+          ] }) : null
+        ] })
+      ] });
+    }) }) : null,
     section.groups?.map((group) => /* @__PURE__ */ u2("div", { class: "graph-landing__group", children: [
       group.label ? /* @__PURE__ */ u2("p", { class: "graph-landing__group-label", children: group.label }) : null,
       /* @__PURE__ */ u2("div", { class: "graph-landing__cards", children: group.cards.map((card) => {
@@ -1565,7 +1582,7 @@ a.graph-landing__title:focus-visible {
   margin: 0 0 1.4rem;
   max-width: 48ch;
   overflow-wrap: break-word;
-  text-wrap: pretty;
+  text-wrap: balance;
   word-break: keep-all;
 }
 
@@ -1997,7 +2014,7 @@ a.graph-landing__title:focus-visible {
   line-height: 1.7;
   margin: 0;
   max-width: 62ch;
-  text-wrap: pretty;
+  text-wrap: balance;
   word-break: keep-all;
 }
 
@@ -2113,6 +2130,38 @@ a.graph-landing__title:focus-visible {
   font-size: 0.88rem;
   margin-top: 0.15rem;
   opacity: 0.8;
+}
+
+.graph-landing__timeline-body h3,
+.graph-landing__timeline-body p,
+.graph-landing__card h3,
+.graph-landing__facts dd {
+  text-wrap: balance;
+}
+
+.graph-landing__card p {
+  text-wrap: pretty;
+}
+
+.graph-landing__timeline-figure {
+  margin: 0.9rem 0 0.2rem;
+  max-width: min(100%, 22rem);
+}
+
+.graph-landing__timeline-figure img {
+  border: 1px solid var(--graph-border);
+  border-radius: 6px;
+  display: block;
+  height: auto;
+  max-width: 100%;
+}
+
+.graph-landing__timeline-figure figcaption {
+  color: var(--graph-muted);
+  font-family: var(--codeFont);
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  margin-top: 0.45rem;
 }
 
 .graph-landing__group {
@@ -2330,6 +2379,15 @@ a.graph-landing__card:hover {
   }
   .graph-landing__topbar-links {
     gap: 1rem;
+  }
+  .graph-landing__topbar a {
+    padding-block: 0.7rem;
+  }
+  .graph-landing__topbar a.graph-landing__topbar-blog {
+    background: var(--graph-surface-strong);
+    padding-left: 1rem;
+    position: sticky;
+    right: 0;
   }
   .graph-landing__facts > div {
     gap: 0.2rem;

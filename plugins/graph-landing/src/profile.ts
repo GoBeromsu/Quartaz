@@ -1,4 +1,8 @@
-import type { GraphLandingPageOptions, GraphLandingProfileCopy } from "./pageType"
+import type {
+  GraphLandingPageOptions,
+  GraphLandingProfileCopy,
+  GraphLandingProfileImage,
+} from "./pageType"
 
 export interface ProfileBlock {
   lang: string
@@ -41,4 +45,25 @@ export function sectionIndexLabel(index: number): string {
 /** External links open in a new tab; site-relative and anchor links do not. */
 export function isExternalHref(href: string): boolean {
   return /^(https?:)?\/\//i.test(href) || /^mailto:/i.test(href)
+}
+
+/**
+ * `<img>` attributes for a profile photo, or null when it has no source.
+ * Width and height are only passed as a pair of positive numbers.
+ */
+export function profileImageAttrs(
+  image: GraphLandingProfileImage | undefined,
+): { src: string; alt: string; width?: number; height?: number } | null {
+  const src = image?.src?.trim()
+  if (!image || !src) return null
+  const sized =
+    Number.isFinite(image.width) &&
+    Number.isFinite(image.height) &&
+    (image.width as number) > 0 &&
+    (image.height as number) > 0
+  return {
+    src,
+    alt: image.alt ?? "",
+    ...(sized ? { width: image.width, height: image.height } : {}),
+  }
 }

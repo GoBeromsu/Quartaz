@@ -2,6 +2,20 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.21.0
+
+### Added
+
+- Profile timeline entries accept an `image` (`src`, `alt`, optional
+  `caption`, `width`, `height`) shown under the entry.
+
+### Changed
+
+- Ledes, timeline entries, card titles and fact values wrap with
+  `text-wrap: balance`, so a line no longer ends in a single stranded word.
+- On phones the top bar keeps the blog link pinned while the section links
+  scroll sideways, and its links have taller tap areas.
+
 ## 0.20.1
 
 ### Changed

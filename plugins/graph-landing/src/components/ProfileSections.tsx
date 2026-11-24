@@ -1,5 +1,5 @@
 import type { GraphLandingProfileSection } from "../pageType"
-import { isExternalHref, sectionIndexLabel, type ProfileBlock } from "../profile"
+import { isExternalHref, profileImageAttrs, sectionIndexLabel, type ProfileBlock } from "../profile"
 
 function linkProps(href: string) {
   return isExternalHref(href) ? { href, target: "_blank", rel: "noopener noreferrer" } : { href }
@@ -28,16 +28,27 @@ function Section({ section, index }: { section: GraphLandingProfileSection; inde
         ) : null}
         {section.timeline && section.timeline.length > 0 ? (
           <ol class="graph-landing__timeline">
-            {section.timeline.map((item) => (
-              <li class="graph-landing__timeline-item">
-                <p class="graph-landing__timeline-period">{item.period}</p>
-                <div class="graph-landing__timeline-body">
-                  <h3>{item.href ? <a {...linkProps(item.href)}>{item.title}</a> : item.title}</h3>
-                  {item.org ? <p class="graph-landing__timeline-org">{item.org}</p> : null}
-                  {item.body ? <p>{item.body}</p> : null}
-                </div>
-              </li>
-            ))}
+            {section.timeline.map((item) => {
+              const image = profileImageAttrs(item.image)
+              return (
+                <li class="graph-landing__timeline-item">
+                  <p class="graph-landing__timeline-period">{item.period}</p>
+                  <div class="graph-landing__timeline-body">
+                    <h3>
+                      {item.href ? <a {...linkProps(item.href)}>{item.title}</a> : item.title}
+                    </h3>
+                    {item.org ? <p class="graph-landing__timeline-org">{item.org}</p> : null}
+                    {item.body ? <p>{item.body}</p> : null}
+                    {image ? (
+                      <figure class="graph-landing__timeline-figure">
+                        <img {...image} loading="lazy" decoding="async" />
+                        {item.image?.caption ? <figcaption>{item.image.caption}</figcaption> : null}
+                      </figure>
+                    ) : null}
+                  </div>
+                </li>
+              )
+            })}
           </ol>
         ) : null}
         {section.groups?.map((group) => (

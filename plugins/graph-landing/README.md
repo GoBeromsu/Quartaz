@@ -447,6 +447,12 @@ profile:
           org: "A university"
           body: "Optional detail."
           href: "https://example.com"
+          image:
+            src: "/static/home/photo.jpg"
+            alt: "What the photo shows"
+            caption: "Optional caption"
+            width: 960
+            height: 720
     - id: work
       nav: "Work"
       title: "Projects"
@@ -471,7 +477,8 @@ profile:
 
 A section renders its blocks in a fixed order: `stats`, `timeline`, `groups`,
 `facts`, `quote`. Sections are numbered automatically. Links that leave the
-site open in a new tab. `translations` takes the same shape per language and
+site open in a new tab. A timeline entry can carry one `image`; `width` and
+`height` are its pixel size and reserve the space before it loads. `translations` takes the same shape per language and
 swaps together with `hero.translations`; a language without a translation
 reuses the base copy.
 

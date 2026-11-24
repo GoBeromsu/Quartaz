@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
-import { isExternalHref, profileBlocks, sectionIndexLabel } from "./profile"
+import { isExternalHref, profileBlocks, profileImageAttrs, sectionIndexLabel } from "./profile"
 
 const sections = [{ id: "work", title: "일" }]
 
@@ -45,5 +45,29 @@ describe("profile helpers", () => {
     assert.equal(isExternalHref("mailto:a@b.c"), true)
     assert.equal(isExternalHref("/about"), false)
     assert.equal(isExternalHref("#work"), false)
+  })
+})
+
+describe("profileImageAttrs", () => {
+  it("returns null without a source", () => {
+    assert.equal(profileImageAttrs(undefined), null)
+    assert.equal(profileImageAttrs({ src: "  ", alt: "x" }), null)
+  })
+
+  it("keeps the size only as a positive pair", () => {
+    assert.deepEqual(profileImageAttrs({ src: "/a.jpg", alt: "A", width: 800, height: 600 }), {
+      src: "/a.jpg",
+      alt: "A",
+      width: 800,
+      height: 600,
+    })
+    assert.deepEqual(profileImageAttrs({ src: "/a.jpg", alt: "A", width: 800 }), {
+      src: "/a.jpg",
+      alt: "A",
+    })
+    assert.deepEqual(profileImageAttrs({ src: "/a.jpg", alt: "A", width: 0, height: 600 }), {
+      src: "/a.jpg",
+      alt: "A",
+    })
   })
 })
