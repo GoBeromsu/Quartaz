@@ -30,9 +30,9 @@ I want to stop attention theft and the seizure of people's cognitive resources, 
 
 ## Work
 
-- **SeeON** (2026.06 – 2026.10, Senior AI Lab, co-founder in a CTO role): real-time fall detection. With DeepStream and TensorRT, one RTX 5070 Ti handled 13 real cameras at 29.97 fps each, 389.6 fps in total.
+- **SeeON** (2026.06 – 2026.10, Senior AI Lab, business partner and head of technical development in a CTO role): real-time fall detection. With DeepStream and TensorRT, one RTX 5070 Ti handled 13 real cameras at 29.97 fps each, 389.6 fps in total.
 - **[OSS Hub](https://jnu-oss-hub.com/)** (2026.07 – now, Chonnam National University, Developer & PM): a platform that tracks students' open-source records.
-- **SICHIMI AI Ops** (2026.06 – 2026.08, freelance PM & Developer): AI transformation of GitOps-based network operations with Hermes Agent and MCP.
+- **SICHIMI AI Ops** (2026.06 – 2026.08, freelance contract as PM and developer): moved GitOps-centred network operations to a Hermes agent team working through MCP.
 
 ## Open Source
 
@@ -63,11 +63,11 @@ Submitted to *Empirical Software Engineering* (Springer). It received a major re
 
 ## Teaching and Community
 
-- **2026.10 – 2026.11**: assistant instructor, smart-farm education by Upstage, Incheon Metropolitan Office of Education and Korea Polar Research Institute
+- **2026.10 – 2026.11**: on-site teaching assistant, polar-plant smart-farm course by Upstage, Incheon Metropolitan Office of Education and Korea Polar Research Institute
 - **2026.09**: "Generative AI, starting from knowledge management" at Chonnam National University, and a four-day preparatory course for the Upstage LLMOps programme at the JNU AI bootcamp
 - **2026.07**: "The agent's manual: writing your own Skill", a workshop at DGIST AI Build Week
 - **2026**: Upstage AI Ambassador (cohorts 2 and 2.5), selected as an outstanding ambassador; proposed and ran the [JNU × Upstage Skillthon](https://github.com/GoBeromsu/JNU-Upstage-Skillthon)
-- **2025.10**: speaker at Gyeongnam CMDS PKM Conference 2025, on restoring research context and knowledge-management workflows with AI
+- **2025.10**: conference talk at Gyeongnam CMDS PKM Conference 2025, on restoring research context and knowledge-management workflows with AI
 
 ## Awards
 

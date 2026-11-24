@@ -174,24 +174,24 @@ plugins:
           - id: now
             kicker: "What I do"
             title: "에이전트와 함께 제품을 만들고 운영합니다."
-            lede: "AI 엔지니어 고범수입니다. 에이전트 기반 개발로 제품을 만들어 운영하고, Obsidian과 개인 지식 시스템을 위한 오픈소스 도구를 공개하며, 그 과정에서 배운 것을 강의와 워크숍으로 나눕니다."
+            lede: "AI 엔지니어 고범수입니다. 에이전트 주도 개발로 제품을 만들고 직접 운영합니다. Obsidian과 개인 지식 관리에 쓰는 도구를 오픈소스로 공개하고, 그러면서 배운 것은 강의와 워크숍에서 나눕니다."
             stats:
               - value: "7"
                 label: "Obsidian plugins"
                 note: "공식 커뮤니티 플러그인으로 등록해 직접 관리합니다."
               - value: "19,153"
                 label: "Downloads"
-                note: "플러그인 누적 다운로드. GitHub 스타는 합계 99개입니다 (2026-11-24 기준)."
+                note: "플러그인 7개의 누적 다운로드입니다. GitHub 스타는 모두 99개입니다(2026-11-24 기준)."
               - value: "73"
                 label: "Agent skills"
                 note: "craft-skills 48개와 secondbrain-skills 25개를 공개했습니다."
               - value: "11"
                 label: "Upstage collaborations"
-                note: "2026년 한 해 Upstage와 함께한 교육·콘텐츠·행사."
+                note: "2026년에 Upstage와 함께한 교육, 콘텐츠, 행사입니다."
           - id: path
             kicker: "Path"
             title: "지금까지 걸어온 길"
-            lede: "네트워크 연구실에서 출발해 소프트웨어 공학 연구를 거쳤고, 지금은 에이전트로 제품을 만들고 가르칩니다."
+            lede: "네트워크 연구실에서 시작해 소프트웨어 공학을 연구했고 지금은 에이전트로 제품을 만들며 가르칩니다."
             timeline:
               - period: "2018.03 – 2024.08"
                 title: "소프트웨어공학 학사"
@@ -220,47 +220,50 @@ plugins:
                 org: "오픈소스"
                 body: "Metadata Auto Classifier를 시작으로 공식 커뮤니티 플러그인 7개를 관리합니다."
               - period: "2025.10"
-                title: "경남 CMDS PKM Conference 2025 발표"
-                body: "「AI를 통한 연구 맥락 복원과 지식 관리 워크플로우」"
+                title: "경남 CMDS PKM Conference 2025 강연"
+                body: "「AI를 통한 연구 맥락 복원과 지식 관리 워크플로우」를 주제로 연사로 섰습니다."
               - period: "2026"
                 title: "Upstage AI Ambassador 2기\u00A0·\u00A02.5기"
                 org: "Upstage"
-                body: "2026.05 우수 앰버서더 선정. 전남대 × Upstage Skillthon을 제안·운영했습니다."
+                body: "2026년 5월 우수 앰배서더로 선정됐습니다. 전남대 × Upstage Skillthon을 제안해 운영했습니다."
               - period: "2026.06 – 2026.10"
-                title: "SeeON 실시간 낙상 감지 — 공동 창업, CTO 역할"
+                title: "SeeON 실시간 낙상 감지 — 공동사업자, 기술 개발 책임(CTO 역할)"
                 org: "Senior AI Lab"
               - period: "2026.06 – 2026.08"
-                title: "SICHIMI AI Ops — PM & Developer"
-                org: "프리랜스"
+                title: "SICHIMI AI Ops — 프리랜서 PM·개발"
+                org: "프리랜스 외주"
               - period: "2026.07 – 현재"
                 title: "OSS Hub — Developer & PM"
                 org: "전남대학교 SW중심대학사업단"
                 href: "https://jnu-oss-hub.com/"
               - period: "2026.10 – 2026.11"
-                title: "스마트팜 교육 보조강사"
+                title: "극지식물 스마트팜 교육 현장 조교"
                 org: "Upstage · 인천시교육청 · 극지연구소"
           - id: work
-            nav: "제품"
+            nav: "작업"
             kicker: "Work"
-            title: "현장에서 돌아가는 제품"
-            lede: "만드는 데서 끝내지 않고 실제 환경에서 운영합니다."
+            title: "현장에서 돌아가게 만든 것"
+            lede: "제품이든 외주든 만드는 데서 끝내지 않고 실제 환경에서 돌아가는 것까지 확인합니다."
             groups:
-              - cards:
+              - label: "제품"
+                cards:
                   - title: "SeeON"
                     body: "실시간 낙상 감지 시스템. DeepStream·TensorRT로 RTX 5070 Ti 한 장에서 실제 카메라 13대를 각 29.97fps, 합계 389.6fps로 처리했습니다."
                     meta: "Senior AI Lab · 2026.06 – 2026.10"
                   - title: "OSS Hub"
-                    body: "학생 오픈소스 이력을 추적하는 플랫폼. 개발과 PM을 함께 맡고 있습니다."
+                    body: "학생 오픈소스 이력을 추적하는 플랫폼. 기획부터 운영 배포까지 개발과 PM을 함께 맡고 있습니다."
                     href: "https://jnu-oss-hub.com/"
                     meta: "전남대 SW중심대학사업단 · 2026.07 –"
+              - label: "프리랜스"
+                cards:
                   - title: "SICHIMI AI Ops"
-                    body: "GitOps 기반 네트워크 운영의 AI 전환. Hermes Agent와 MCP로 12개 프로필을 운영하고, MCP 테스트 138개와 스킬 테스트 73개로 검증했습니다."
-                    meta: "프리랜스 · 2026.06 – 2026.08"
+                    body: "프리랜서 PM·개발자로 맡은 외주입니다. GitOps 중심이던 네트워크 운영을 Hermes 에이전트 팀 운영으로 옮겼습니다. 에이전트 프로필 12개를 코드로 정의했고 MCP 테스트 138개와 스킬 테스트 73개를 통과했습니다."
+                    meta: "프리랜스 외주 · 2026.06 – 2026.08"
           - id: open-source
             nav: "오픈소스"
             kicker: "Open source"
             title: "공개하고 관리하는 도구"
-            lede: "Obsidian 공식 커뮤니티 플러그인 7개, MCP 서버와 CLI, 에이전트 스킬을 공개하고 직접 유지보수합니다."
+            lede: "Obsidian 공식 커뮤니티 플러그인 7개와 MCP 서버, CLI, 에이전트 스킬을 공개해 직접 관리합니다."
             groups:
               - label: "Obsidian plugins"
                 cards:
@@ -334,8 +337,8 @@ plugins:
             kicker: "Research"
             title: "뒤엉킨 커밋에서 여러 의도를 찾아내기"
             lede:
-              "하나의 커밋에 뒤섞인 여러 변경 의도를 언어 모델로 찾아내는 연구를 제1저자로 진행했습니다. Empirical Software Engineering(Springer)에서 major revision을
-              받아 2026년 9월 수정본을 제출했습니다."
+              "커밋 하나에 뒤섞인 여러 변경 의도를 언어 모델로 찾아내는 제1저자 연구입니다. Empirical Software Engineering(Springer)에 투고해 major revision 의견을 받았고
+              2026년 9월 수정본을 냈습니다. 아직 게재가 확정된 것은 아닙니다."
             facts:
               - term: "Title"
                 detail: "Detecting Multiple Semantic Concerns in Tangled Code Commits"
@@ -354,10 +357,10 @@ plugins:
           - id: teaching
             kicker: "Teaching & community"
             title: "배운 것을 가르치며 나눕니다"
-            lede: "에이전트, 스킬, 지식 관리를 주제로 대학과 기업 교육 현장에서 강의하고, Upstage AI Ambassador로 활동했습니다."
+            lede: "대학 강의와 워크숍, 컨퍼런스에서 에이전트와 스킬, 지식 관리를 가르쳤고 Upstage AI Ambassador로 활동했습니다."
             timeline:
               - period: "2026.10 – 2026.11"
-                title: "스마트팜 교육 보조강사"
+                title: "극지식물 스마트팜 교육 현장 조교"
                 org: "Upstage · 인천시교육청 · 극지연구소"
               - period: "2026.09.18 – 19"
                 title: "지식 관리로 시작하는 생성형 AI"
@@ -371,7 +374,7 @@ plugins:
                 href: "https://www.linkedin.com/feed/update/urn:li:activity:7487500531418943488/"
                 image:
                   src: "/static/home/dgist-workshop-2026.jpg"
-                  alt: "강의실 스크린에 하루 일정 슬라이드를 띄우고 마이크를 든 채 발표하는 고범수"
+                  alt: "강의실 스크린에 하루 일정 슬라이드를 띄우고 마이크를 든 채 강의하는 고범수"
                   caption: "DGIST AI Build Week 워크숍"
                   width: 800
                   height: 450
@@ -390,7 +393,7 @@ plugins:
                   height: 600
               - period: "2025.10.24"
                 title: "AI를 통한 연구 맥락 복원과 지식 관리 워크플로우"
-                org: "경남 CMDS PKM Conference 2025 발표"
+                org: "경남 CMDS PKM Conference 2025 · 컨퍼런스 강연"
               - period: "2024.06.26"
                 title: "Obsidian 세미나"
                 org: "CCC"
@@ -403,7 +406,7 @@ plugins:
                   height: 1000
             facts:
               - term: "2026.05"
-                detail: "Upstage 우수 앰버서더"
+                detail: "Upstage 우수 앰배서더"
                 href: "https://www.linkedin.com/feed/update/urn:li:activity:7468929582113431552/"
               - term: "2025.09"
                 detail: "Net Zero Data Challenge 2025 — Most Impactful Solution"
@@ -511,39 +514,42 @@ plugins:
                     org: "Upstage"
                     body: "Selected as an outstanding ambassador (2026.05). Proposed and ran the JNU × Upstage Skillthon."
                   - period: "2026.06 – 2026.10"
-                    title: "SeeON real-time fall detection — co-founder, CTO role"
+                    title: "SeeON real-time fall detection — business partner, head of technical development (CTO role)"
                     org: "Senior AI Lab"
                   - period: "2026.06 – 2026.08"
-                    title: "SICHIMI AI Ops — PM & Developer"
-                    org: "Freelance"
+                    title: "SICHIMI AI Ops — freelance PM and developer"
+                    org: "Freelance contract"
                   - period: "2026.07 – now"
                     title: "OSS Hub — Developer & PM"
                     org: "Chonnam National University, SW-centred University Project"
                     href: "https://jnu-oss-hub.com/"
                   - period: "2026.10 – 2026.11"
-                    title: "Assistant instructor, smart-farm education"
+                    title: "On-site teaching assistant, polar-plant smart-farm course"
                     org: "Upstage · Incheon Metropolitan Office of Education · Korea Polar Research Institute"
               - id: work
                 nav: "Work"
                 kicker: "Work"
-                title: "Products running in the field"
-                lede: "I don't stop at building; I operate what I ship."
+                title: "Work that runs in the field"
+                lede: "Product or contract, I take the work past the build and see it run in a real environment."
                 groups:
-                  - cards:
+                  - label: "Products"
+                    cards:
                       - title: "SeeON"
                         body:
                           "Real-time fall detection. With DeepStream and TensorRT, one RTX 5070 Ti handled 13 real cameras at 29.97 fps
                           each, 389.6 fps in total."
                         meta: "Senior AI Lab · 2026.06 – 2026.10"
                       - title: "OSS Hub"
-                        body: "A platform that tracks students' open-source records. I work as both developer and PM."
+                        body: "A platform that tracks students' open-source records. I work as both developer and PM, from planning to production deployment."
                         href: "https://jnu-oss-hub.com/"
                         meta: "Chonnam National University · 2026.07 –"
+                  - label: "Freelance"
+                    cards:
                       - title: "SICHIMI AI Ops"
                         body:
-                          "AI transformation of GitOps-based network operations. Ran 12 profiles on Hermes Agent and MCP, verified by 138
-                          MCP tests and 73 skill tests."
-                        meta: "Freelance · 2026.06 – 2026.08"
+                          "A freelance contract as PM and developer. Moved GitOps-centred network operations to a Hermes agent team:
+                          12 agent profiles defined as code, with 138 MCP tests and 73 skill tests passing."
+                        meta: "Freelance contract · 2026.06 – 2026.08"
               - id: open-source
                 nav: "Open source"
                 kicker: "Open source"
@@ -630,7 +636,7 @@ plugins:
                 lede:
                   "First-author research on detecting the multiple concerns mixed into a single commit with language models.
                   Submitted to Empirical Software Engineering (Springer); it received a major revision and the revised
-                  version was submitted in 2026.09."
+                  version was submitted in 2026.09. It is not yet accepted."
                 facts:
                   - term: "Title"
                     detail: "Detecting Multiple Semantic Concerns in Tangled Code Commits"
@@ -650,11 +656,11 @@ plugins:
                 kicker: "Teaching & community"
                 title: "Teaching what I learn"
                 lede:
-                  "I teach agents, skills and knowledge management at universities and in corporate training, and served as an
-                  Upstage AI Ambassador."
+                  "I teach agents, skills and knowledge management in university courses, workshops and a conference talk, and
+                  served as an Upstage AI Ambassador."
                 timeline:
                   - period: "2026.10 – 2026.11"
-                    title: "Assistant instructor, smart-farm education"
+                    title: "On-site teaching assistant, polar-plant smart-farm course"
                     org: "Upstage · Incheon Metropolitan Office of Education · Korea Polar Research Institute"
                   - period: "2026.09.18 – 19"
                     title: "Generative AI, starting from knowledge management"
@@ -668,7 +674,7 @@ plugins:
                     href: "https://www.linkedin.com/feed/update/urn:li:activity:7487500531418943488/"
                     image:
                       src: "/static/home/dgist-workshop-2026.jpg"
-                      alt: "Beomsu Koh speaking with a microphone beside a slide outlining the day's schedule"
+                      alt: "Beomsu Koh teaching with a microphone beside a slide outlining the day's schedule"
                       caption: "DGIST AI Build Week workshop"
                       width: 800
                       height: 450
@@ -687,7 +693,7 @@ plugins:
                       height: 600
                   - period: "2025.10.24"
                     title: "Restoring research context and knowledge-management workflows with AI"
-                    org: "Speaker, Gyeongnam CMDS PKM Conference 2025"
+                    org: "Gyeongnam CMDS PKM Conference 2025 · conference talk"
                   - period: "2024.06.26"
                     title: "Obsidian seminar"
                     org: "CCC"
