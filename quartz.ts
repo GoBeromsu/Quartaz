@@ -7,7 +7,7 @@ const config = await loadQuartzConfig()
 const footerLinks = {
   GitHub: "https://github.com/GoBeromsu",
   YouTube: "https://www.youtube.com/@beomsuKoh",
-  LinkedIn: "https://www.linkedin.com/in/beomsu-koh-b45146266/",
+  LinkedIn: "https://www.linkedin.com/in/beomsu-koh/",
   X: "https://x.com/BeromArtDev",
   Medium: "https://medium.com/@beromkoh",
   Tistory: "https://berom.tistory.com/",
