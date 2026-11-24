@@ -6,6 +6,8 @@ All notable changes to this plugin are documented here.
 
 ### Changed
 
+- Card rows now stretch to fill the section width, so a row of three cards no
+  longer leaves an empty fourth column.
 - A plain wheel or two-finger trackpad scroll over the hero always scrolls the
   page. Engage-to-zoom, its cue and the zoom-limit hand-off are removed; zoom
   stays on pinch, Ctrl/Cmd + wheel and the zoom buttons. The hint says so.
