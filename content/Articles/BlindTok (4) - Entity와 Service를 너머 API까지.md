@@ -285,7 +285,7 @@ reply.cookie("access_token", accessToken, {path: "/", signed: true});
 - [BlindTok (2) - 프로젝트 CI 구성](https://berom.tistory.com/97)
 - [BlindTok (3) - DB 연결 및 테이블 설계](https://berom.tistory.com/122)
 
-부족한 점이나 잘못 된 점을 알려주시면 시정하겠습니다 :>
+### 부족한 점이나 잘못 된 점을 알려주시면 시정하겠습니다 :>
 
 ---
 

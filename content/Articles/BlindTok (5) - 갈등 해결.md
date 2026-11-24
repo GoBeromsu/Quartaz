@@ -5,7 +5,7 @@ date_modified: 2023-05-28
 permalink: blindtok-resolving-team-conflict
 tags:
   - teamwork
-  - softwareengineering
+  - software-engineering
   - essay
 title: "BlindTok (5) - 갈등 해결"
 ---
@@ -153,6 +153,8 @@ let tmp를 선언해 사용하고, 다른 데이터를 tmp에 재 할당해서 �
 1.  내 부족함과 실수를 내 입으로 말할 줄 아는 사람, **더 큰 책임을 짊어진 상황에서도 똑같이 행동**할 줄 알아야하고 말이죠
 2.  이해 되지 않는 상황이 왔을 때 소통을 할 줄 아는 사람
 3.  내 부족함을 남 탓하지 않는 사람
+
+## 부족한 점이나 잘못 된 점을 알려주시면 시정하겠습니다 :>
 
 ---
 

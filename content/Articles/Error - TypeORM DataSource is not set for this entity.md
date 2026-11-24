@@ -11,6 +11,8 @@ tags:
 title: "Error - TypeORM DataSource is not set for this entity"
 ---
 
+# TypeORM DataSource is Not Set for This Entity Feat yarn.lock
+
 팀원들의 코드를 머지하고 났더니, 일부 팀원들에게서 DataSource is not set for this entity 에러가 발생했다.
 
 ## 접근 방식
@@ -57,7 +59,6 @@ API의 다른 부분은 작동하나 싶어 postman으로 현재 유저들을 �
 대신 처음으로 DataSource is Not Set for This Entity를 페이지에 확인했다.
 
 ```ts
-fastify
 fastify.get("/", async (req: FastifyRequest, reply: FastifyReply) => {
 	const users = await getUserList();
 	reply.send(users);
@@ -73,7 +74,6 @@ TypeORM Entity 부분이나 초기 설정이 잘못 되었을거라 생각했다
 즉, 각자 개발을 할 때 충분히 변수가 생길 수 있을거라 생각이 들었다.
 
 ```ts
-import
 import localConfig from "./ormconfig.local.json";
 import devConfig from "./ormconfig.dev.json";
 import prodConfig from "./ormconfig.prod.json";

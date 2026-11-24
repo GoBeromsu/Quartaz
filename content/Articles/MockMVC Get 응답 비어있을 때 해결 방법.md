@@ -262,7 +262,7 @@ public class ProductRestControllerTest extends DummyEntity {
   }
 ```
 
-부족한 점이나 잘못 된 점을 알려주시면 시정하겠습니다 :>
+## 부족한 점이나 잘못 된 점을 알려주시면 시정하겠습니다 :>
 
 ---
 

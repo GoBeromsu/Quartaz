@@ -2,6 +2,29 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.29.0
+
+### Added
+
+- Zoom in, zoom out and reset-view buttons on the hero, localized, reachable
+  by keyboard, 44px on phones, and hidden once the page scrolls.
+- Engage-to-zoom: pressing or dragging the canvas lets a plain wheel zoom the
+  graph. Escape, leaving the hero, scrolling away, or 3 s idle releases it,
+  and a quiet cue shows while it is engaged.
+
+### Changed
+
+- At the zoom limit the wheel scrolls the page instead of being swallowed.
+- The hint now explains engage-to-zoom.
+- The SCROLL cue sits on a soft backdrop halo so graph edges do not cross it.
+
+### Fixed
+
+- A one-finger vertical swipe over the graph on touch screens now scrolls the
+  page. The orbit controls had set `touch-action: none` on the canvas.
+- The English home showed the Korean hint. The hint now follows the hero
+  language.
+
 ## 0.28.0
 
 ### Added

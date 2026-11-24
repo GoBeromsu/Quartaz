@@ -122,6 +122,8 @@ ENTRYPOINT ["java", "-jar", "build/libs/wifi6-0.0.1-SNAPSHOT.jar"]
 - **관리 방법**
   - 불필요한 JAR 파일의 복사를 피하고, `RUN` 명령을 사용하여 이미지 내에서 직접 JAR 파일을 빌드함으로써, 환경에 의존적인 문제를 해결하고 항상 최신 코드로 빌드된 JAR 파일을 사용할 수 있도록 합니다.
 
+\#DockerCaching \#DockerBuild \#Containerization \#BuildOptimization \#MultiStageBuild
+
 ## Thinking
 
 - 2024-01-05 23:25 도커 캐시 레이어의 개념을 알 수 있게 되었구나! 재밌다!

@@ -56,6 +56,11 @@ interface OverlayCopy {
   folderRoot: string
   previewHint: string
   hint: string
+  engagedHint: string
+  zoomIn: string
+  zoomOut: string
+  zoomReset: string
+  zoomControls: string
   previewTagTemplate: string
   inspectOpen: string
   inspectOpenExternal: string
@@ -107,7 +112,12 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
       musicCurrentTrack: "현재 트랙",
       folderRoot: "루트",
       previewHint: "클릭하면 연결이 열립니다",
-      hint: "끌어서 돌리고, 핀치나 Ctrl+스크롤로 확대하고, 점을 누르면 열립니다",
+      hint: "끌어서 돌리고, 그래프를 누른 뒤 스크롤하면 확대되며, 점을 누르면 열립니다",
+      engagedHint: "스크롤하면 그래프가 확대됩니다 · Esc로 해제",
+      zoomIn: "확대",
+      zoomOut: "축소",
+      zoomReset: "전체 보기",
+      zoomControls: "그래프 확대",
       previewTagTemplate: "{n}개 노트",
       inspectOpen: "본문 읽기",
       inspectOpenExternal: "열기",
@@ -151,7 +161,12 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
     musicCurrentTrack: "Current track",
     folderRoot: "Root",
     previewHint: "Click to inspect connections",
-    hint: "Drag to orbit, pinch or Ctrl + scroll to zoom, tap a dot to open",
+    hint: "Drag to orbit, click the graph then scroll to zoom, tap a dot to open",
+    engagedHint: "Scrolling zooms the graph · Esc to release",
+    zoomIn: "Zoom in",
+    zoomOut: "Zoom out",
+    zoomReset: "Reset view",
+    zoomControls: "Graph zoom",
     previewTagTemplate: "{n} notes",
     inspectOpen: "Read note",
     inspectOpenExternal: "Open",
@@ -323,6 +338,16 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
       const siteTitle = cfg.pageTitle ?? "Graph"
       const graphIndexPath = `${pathToRoot(slug)}/static/graphIndex.json`
       const heroBlocks = heroCopyBlocks(options.hero, localeId)
+      // UI strings that sit after the hero copy follow the hero's language:
+      // one span per hero language, swapped by the same language script.
+      const localized = (pick: (copy: OverlayCopy) => string) =>
+        heroBlocks.length > 1
+          ? heroBlocks.map((block) => (
+              <span data-hero-lang={block.lang} lang={block.lang} hidden={block.hidden}>
+                {pick(overlayCopyForLocale(block.lang))}
+              </span>
+            ))
+          : pick(copy)
       // Shown in the nav when the hero has translations: switches to the next one.
       const heroToggleLang = nextHeroLanguage(
         heroBlocks.map((block) => block.lang),
@@ -848,8 +873,52 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
                 <p class="graph-landing__preview-hint">{copy.previewHint}</p>
               </aside>
               <p class="graph-landing__hint" data-graph-hint hidden>
-                {copy.hint}
+                {localized((c) => c.hint)}
               </p>
+              {options.hero ? (
+                <>
+                  <p class="graph-landing__engage-cue" aria-hidden="true">
+                    {localized((c) => c.engagedHint)}
+                  </p>
+                  <div
+                    class="graph-landing__zoom"
+                    role="group"
+                    aria-label={copy.zoomControls}
+                    data-graph-zoom-controls
+                  >
+                    <button
+                      type="button"
+                      class="graph-landing__zoom-button"
+                      data-graph-zoom-step="in"
+                    >
+                      <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                        <path d="M8 3v10M3 8h10" />
+                      </svg>
+                      <span class="graph-landing__sr-only">{localized((c) => c.zoomIn)}</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="graph-landing__zoom-button"
+                      data-graph-zoom-step="out"
+                    >
+                      <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                        <path d="M3 8h10" />
+                      </svg>
+                      <span class="graph-landing__sr-only">{localized((c) => c.zoomOut)}</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="graph-landing__zoom-button"
+                      data-graph-zoom-step="reset"
+                    >
+                      <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                        <path d="M3 6V3h3M10 3h3v3M13 10v3h-3M6 13H3v-3" />
+                      </svg>
+                      <span class="graph-landing__sr-only">{localized((c) => c.zoomReset)}</span>
+                    </button>
+                  </div>
+                </>
+              ) : null}
               <aside
                 class="graph-landing__inspect"
                 data-graph-inspect
@@ -894,7 +963,7 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
             languageLabel={copy.languageToggle}
             scrollLabel={copy.profileScroll}
           />
-          {profile.length > 1 ? (
+          {profile.length > 1 || heroBlocks.length > 1 ? (
             <script
               data-hero-fallback={options.hero?.fallbackLanguage}
               dangerouslySetInnerHTML={{ __html: heroLanguageScript }}

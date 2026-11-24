@@ -2,7 +2,8 @@
 aliases: []
 date_created: 2026-02-01
 date_modified: 2026-02-01
-tags: []
+tags:
+  - upstage
 permalink: upstage-ai-ambassador-project-blog
 ---
 

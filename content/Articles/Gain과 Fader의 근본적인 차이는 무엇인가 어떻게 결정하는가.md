@@ -7,7 +7,7 @@ cmds:
 date_created: 2025-05-05
 date_modified: 2026-10-01
 tags:
-  - soundengineering
+  - sound-engineering
 type:
   - articles
 permalink: gain-vs-fader

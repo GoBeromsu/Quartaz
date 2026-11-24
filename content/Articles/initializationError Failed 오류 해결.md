@@ -6,7 +6,6 @@ permalink: h2-initialization-error-foreign-key-checks
 tags:
   - spring
   - testing
-  - h2
   - troubleshooting
 title: "initializationError Failed 오류 해결"
 ---
@@ -25,6 +24,8 @@ title: "initializationError Failed 오류 해결"
 하지만, `SpringBootTest`는 맥락을 로딩해야 해서 처리 속도가 느려질 것이라 예상했다  
 또한, 문제는 해결했지만, 뭉뚝 그려진 해결 방법을 사용한거 같아 더 깊이 파보기로 했다
 
+![FindPostUsecaseTest 클래스 선언부](/_attachments/tistory-550-02.png)
+
 ## 분석
 
 문제의 핵심은 테스트 자체가 아니라 프로젝트를 실행할 때 발생하는 것이었다.  
@@ -32,6 +33,8 @@ title: "initializationError Failed 오류 해결"
 
 즉 오류 발생 시점이 테스트 코드 이전에 환경 설정이나 초기화 과정이기 때문에 테스트 코드 문제가 아니다!  
 이전에 내 해결책은 잘못된 해결 방법이었던거다
+
+![Redis 방문 기록 테스트 코드](/_attachments/tistory-550-03.png)
 
 ```text
 org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'dataSourceScriptDatabaseInitializer' defined in class path resource [org/springframework/boot/autoconfigure/sql/init/DataSourceInitializationConfiguration.class]: Invocation of init method failed; nested exception is org.springframework.jdbc.datasource.init.ScriptStatementFailedException: Failed to execute SQL script statement #1 of class path resource [db/teardown.sql]: SET foreign_key_checks=0; nested exception is org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "SET [*]foreign_key_checks=0"; expected "@, AUTOCOMMIT, EXCLUSIVE, IGNORECASE, PASSWORD, SALT, MODE, DATABASE, COLLATION, CLUSTER, DATABASE_EVENT_LISTENER, ALLOW_LITERALS, DEFAULT_TABLE_TYPE, SCHEMA, CATALOG, SCHEMA_SEARCH_PATH, JAVA_OBJECT_SERIALIZER, IGNORE_CATALOGS, SESSION, TRANSACTION, TIME, NON_KEYWORDS, DEFAULT_NULL_ORDERING, LOG"; SQL statement: SET foreign_key_checks=0 [42001-214]
@@ -51,13 +54,13 @@ H2 DB는 MariaDB를 분명히 지원하는 걸로 알고 있는데 문법 오류
 
 좀 더 원인 분석을 위해 H2 DB Docs 확인해보니, **우리가 설정한 제약 조건 해제 부분이 명시적으로 적혀있지 않았다.**
 
-![H2 MariaDB 호환 모드 문서 화면](/_attachments/tistory-550-02.png)
+![H2 MariaDB 호환 모드 문서 화면](/_attachments/tistory-550-04.png)
 
 ## 해결 과정
 
 이 문제를 해결하기 위해 테스트 데이터를 H2 문법에 맞게 제약 조건을 설정하는 것으로 변경했다.
 
-![teardown SQL을 H2 문법 SET REFERENTIAL_INTEGRITY로 바꾼 커밋](/_attachments/tistory-550-03.png)
+![teardown SQL을 H2 문법 SET REFERENTIAL_INTEGRITY로 바꾼 커밋](/_attachments/tistory-550-05.png)
 
 ### 해결 과정 상세
 

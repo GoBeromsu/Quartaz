@@ -7,8 +7,8 @@ date_modified: 2026-04-10
 moc: "[[📚 801 Blog]]"
 status: inprogress
 tags:
-  - artificialintelligence
-  - softwareengineering
+  - ai
+  - software-engineering
 quartz_url:
 tistory_url:
 medium_url:

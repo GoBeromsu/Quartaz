@@ -2,7 +2,8 @@
 aliases: []
 date_created: 2026-01-11
 date_modified: 2026-01-28
-tags: []
+tags:
+  - llm
 title: "Think-on-Graph 2.0: Deep and Faithful Large Language Model Reasoning with Knowledge-guided Retrieval Augmented Generation 리뷰"
 permalink: think-on-graph-2-review
 ---

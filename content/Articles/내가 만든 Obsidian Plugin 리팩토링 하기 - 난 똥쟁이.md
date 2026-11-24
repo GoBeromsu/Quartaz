@@ -23,6 +23,8 @@ title: "내가 만든 Obsidian Plugin 리팩토링 하기 - 난 똥쟁이"
 
 결국 **흑백요리사**에 나오는 안성재 셰프의 말처럼, 개발자는 **명확한 의도**를 가져야 합니다. 개발자 또한 의도를 쌓아가는 사람들이니깐요
 
+![도대체 무슨 의도인지 모르겠어요 자막이 나온 장면](/_attachments/tistory-597-03.png)
+
 이번 리팩토링을 통해 배우고 싶은 점은 객체지향적 접근도 좋지만, 궁극적으로 **함수 단위에서 가독성 있게 동작하는 코드**를 작성하는 것입니다. 지금의 코드는 부끄러워서 친구에게 "내가 정말 엉망진창의 코드를 만들어냈다"고 말할 정도이지만, 이를 통해 성장할 수 있으리라 믿습니다.
 
 ## 오늘의 요리 재료 : FrontMatter 핸들러
@@ -41,7 +43,7 @@ Frontmatter handler가 강한 의존성을 가지게 된 주요 원인은 Obsidi
 
 ```typescript
 export default class AutoClassifierPlugin extends Plugin {
-    // 플러그인 코드...
+    // 플러그인 코드…
 }
 ```
 
@@ -59,11 +61,11 @@ export default class FrontMatterHandler {
 
     async insertToFrontMatter(file: TFile, key: string, value: string[]): Promise<void> {
         await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
-            // frontmatter 수정 작업...
+            // frontmatter 수정 작업…
         });
     }
 
-    // 기타 메소드들...
+    // 기타 메소드들…
 }
 ```
 
@@ -91,7 +93,7 @@ mockPlugin.app = new MockApp();
 ```typescript
 export async function insertToFrontMatter(app: App, file: TFile, key: string, value: string[]): Promise<void> {
     await app.fileManager.processFrontMatter(file, (frontmatter) => {
-        // frontmatter 수정 작업...
+        // frontmatter 수정 작업…
     });
 }
 ```

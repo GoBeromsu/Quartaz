@@ -45,6 +45,11 @@ import {
   vinylNoiseSamples,
   VINYL_RPM,
   wheelZoomsGraph,
+  graphZoomLimits,
+  graphZoomRange,
+  graphZoomStep,
+  GRAPH_ENGAGE_IDLE_MS,
+  GRAPH_ZOOM_STEP,
   overviewDistanceScale,
   type GraphData,
   type GraphLink,
@@ -54,6 +59,16 @@ import {
   type YoutubeTrack,
 } from "./graph-landing-pure"
 import { applyHeroLanguage, HERO_LANGUAGE_STORAGE_KEY, nextHeroLanguage } from "../heroLanguage"
+
+/** Camera zoom shared by the zoom buttons and the profile wheel handler. */
+interface GraphZoomApi {
+  /** Camera distance to the orbit target; 0 before the 3D camera exists. */
+  distance: () => number
+  /** Zoom range around the overview, widened to include the camera's distance. */
+  range: () => { min: number; max: number } | undefined
+  zoomBy: (direction: "in" | "out") => void
+  reset: () => void
+}
 
 interface ThemeTokens {
   bg: string
@@ -125,7 +140,13 @@ interface ForceGraphInstance {
   showNavInfo?: (show: boolean) => unknown
   enableNodeDrag: (enable: boolean) => unknown
   enableNavigationControls?: (enable: boolean) => unknown
-  controls?: () => { autoRotate: boolean; autoRotateSpeed: number; target?: Vec3 }
+  controls?: () => {
+    autoRotate: boolean
+    autoRotateSpeed: number
+    target?: Vec3
+    minDistance?: number
+    maxDistance?: number
+  }
   nodeCanvasObjectMode: (fn: (node: GraphNode) => string | undefined) => unknown
   nodeCanvasObject: (
     fn: (node: GraphNode, ctx: CanvasRenderingContext2D, globalScale: number) => void,
@@ -148,7 +169,7 @@ interface ForceGraphInstance {
   warmupTicks: (ticks?: number) => unknown
   cameraPosition?: (pos?: Vec3, lookAt?: Vec3, ms?: number) => unknown
   centerAt?: (x: number, y: number, ms?: number) => unknown
-  zoom?: (k: number, ms?: number) => unknown
+  zoom?: (k?: number, ms?: number) => unknown
   graph2ScreenCoords?: (x: number, y: number, z?: number) => { x: number; y: number }
   zoomToFit?: (ms: number, padding: number) => unknown
   camera?: () => { updateMatrixWorld?: () => void } | undefined
@@ -1452,6 +1473,9 @@ function bindGraph(
   let restTimer = 0
   let cameraTarget = INITIAL_LOOK_AT
   let zoomBaseDistance = INITIAL_CAMERA_DISTANCE
+  // The camera pose the overview fit settled on: the zoom buttons' reset view
+  // and the far end of the zoom range (graphZoomRange).
+  let overviewPose: { position: Vec3; target: Vec3; base: number } | null = null
   let currentMaxDegree = 0
   const degreeWeight = (node: GraphNode): number =>
     normalizedDegreeWeight(node.degree, 0, currentMaxDegree)
@@ -1713,6 +1737,15 @@ function bindGraph(
     if (typeof graph.zoom === "function") {
       graph.zoom(tune.zoom, prefersReducedMotion() ? 0 : ms)
     }
+  }
+
+  // A node click moves the camera outside the overview's zoom range; the
+  // wheel handler sets the limits again on its next turn.
+  const releaseZoomLimits = (): void => {
+    const controls = graph.controls?.()
+    if (!controls) return
+    controls.minDistance = 0
+    controls.maxDistance = Infinity
   }
 
   const applyForces = (): void => {
@@ -2421,6 +2454,18 @@ function bindGraph(
     zoomBaseDistance = currentCameraVector().len * overviewFill(width, height)
     applyZoom(0)
     updateFog()
+    rememberOverview()
+  }
+  const rememberOverview = (): void => {
+    if (!options.use3d) return
+    const { dir, len } = currentCameraVector()
+    if (len <= 1) return
+    const target = { ...cameraTarget }
+    overviewPose = {
+      position: { x: target.x + dir.x, y: target.y + dir.y, z: target.z + dir.z },
+      target,
+      base: zoomBaseDistance,
+    }
   }
   let fitFrame = 0
   graph.onEngineStop(() => {
@@ -2972,6 +3017,7 @@ function bindGraph(
       const ms = prefersReducedMotion() ? 0 : 450
       if (options.use3d && graph.cameraPosition) {
         zoomBaseDistance = INITIAL_CAMERA_DISTANCE
+        releaseZoomLimits()
         graph.cameraPosition(
           {
             x: cameraTarget.x + INITIAL_CAMERA.x / tune.zoom,
@@ -3100,6 +3146,87 @@ function bindGraph(
       mount.removeEventListener("pointercancel", onPointerCancel, true)
     })
   }
+
+  // Zoom buttons and the wheel (initProfileScroll) share this camera API.
+  let fogTimer = 0
+  window.addCleanup(() => window.clearTimeout(fogTimer))
+  const zoomRange = (): { min: number; max: number } | undefined => {
+    if (!overviewPose) return undefined
+    const range = graphZoomRange(overviewPose.base / clamp(tune.zoom, 0.4, 2.5))
+    if (!range) return undefined
+    const distance = currentCameraVector().len
+    return { min: Math.min(range.min, distance), max: Math.max(range.max, distance) }
+  }
+  const moveCamera = (position: Vec3, target: Vec3, ms: number): void => {
+    const duration = prefersReducedMotion() ? 0 : ms
+    graph.cameraPosition?.(position, target, duration)
+    window.clearTimeout(fogTimer)
+    fogTimer = window.setTimeout(updateFog, duration)
+  }
+  const zoomApi: GraphZoomApi = {
+    distance: () => (options.use3d ? currentCameraVector().len : 0),
+    range: zoomRange,
+    zoomBy: (direction) => {
+      if (!options.use3d) {
+        const current = typeof graph.zoom === "function" ? Number(graph.zoom()) : Number.NaN
+        if (!Number.isFinite(current)) return
+        const next = direction === "in" ? current * GRAPH_ZOOM_STEP : current / GRAPH_ZOOM_STEP
+        graph.zoom?.(clamp(next, 0.2, 8), prefersReducedMotion() ? 0 : 400)
+        return
+      }
+      const range = zoomRange()
+      if (!range) return
+      const { dir, len } = currentCameraVector()
+      const k = graphZoomStep(len, direction, range) / len
+      moveCamera(
+        {
+          x: cameraTarget.x + dir.x * k,
+          y: cameraTarget.y + dir.y * k,
+          z: cameraTarget.z + dir.z * k,
+        },
+        cameraTarget,
+        400,
+      )
+    },
+    reset: () => {
+      if (selectedId !== null) clearSelection()
+      if (!options.use3d || !overviewPose) {
+        fitOverview()
+        return
+      }
+      const { dir, len } = currentCameraVector()
+      zoomBaseDistance = overviewPose.base
+      cameraTarget = { ...overviewPose.target }
+      // Keep the visitor's orbit angle; only the distance and target return.
+      const k = overviewPose.base / clamp(tune.zoom, 0.4, 2.5) / len
+      moveCamera(
+        {
+          x: cameraTarget.x + dir.x * k,
+          y: cameraTarget.y + dir.y * k,
+          z: cameraTarget.z + dir.z * k,
+        },
+        cameraTarget,
+        600,
+      )
+    },
+  }
+  if (mount instanceof HTMLElement) {
+    ;(mount as HTMLElement & { __graphZoom?: GraphZoomApi }).__graphZoom = zoomApi
+    window.addCleanup(() => {
+      delete (mount as HTMLElement & { __graphZoom?: GraphZoomApi }).__graphZoom
+    })
+  }
+  const zoomButtons = options.root.querySelectorAll<HTMLButtonElement>("[data-graph-zoom-step]")
+  const onZoomButton = (event: Event): void => {
+    const action = (event.currentTarget as HTMLElement).dataset.graphZoomStep
+    hideHint()
+    if (action === "in" || action === "out") zoomApi.zoomBy(action)
+    else if (action === "reset") zoomApi.reset()
+  }
+  for (const button of zoomButtons) button.addEventListener("click", onZoomButton)
+  window.addCleanup(() => {
+    for (const button of zoomButtons) button.removeEventListener("click", onZoomButton)
+  })
 
   setPressed(options.root, "[data-graph-lens]", state.lens, "data-graph-lens")
   renderLegend()
@@ -4514,38 +4641,105 @@ function initProfileScroll(): void {
   window.addCleanup(() => window.removeEventListener("scroll", onScroll))
 
   const mount = root.querySelector("#graph-landing-mount")
-  if (mount instanceof HTMLElement) {
-    type Point = { x: number; y: number; z: number }
+  const hero = root.querySelector(".graph-landing__hero")
+  if (mount instanceof HTMLElement && hero instanceof HTMLElement) {
     type ZoomControls = {
       noZoom?: boolean
       enableZoom?: boolean
+      minDistance?: number
       maxDistance?: number
-      target?: Point
     }
-    type ZoomGraph = { controls?: () => ZoomControls; cameraPosition?: () => Point }
-    // The farthest the camera has been: the overview. Zooming out ends there.
-    let limit = 0
-    const onWheel = (event: WheelEvent) => {
-      const graph = (mount as HTMLElement & { __graphLanding?: ZoomGraph }).__graphLanding
-      const controls = typeof graph?.controls === "function" ? graph.controls() : undefined
-      const camera = typeof graph?.cameraPosition === "function" ? graph.cameraPosition() : null
-      if (!controls || !camera) {
+    type ZoomHost = HTMLElement & {
+      __graphLanding?: { controls?: () => ZoomControls }
+      __graphZoom?: GraphZoomApi
+    }
+    // A plain wheel scrolls the page until the visitor engages the graph by
+    // pressing or dragging it with a mouse or pen. Leaving the hero, Escape,
+    // scrolling away, or a few idle seconds hand the wheel back to the page.
+    let engaged = false
+    let idleTimer = 0
+    const disengage = () => {
+      window.clearTimeout(idleTimer)
+      if (!engaged) return
+      engaged = false
+      delete root.dataset.graphEngaged
+    }
+    const touch = () => {
+      window.clearTimeout(idleTimer)
+      idleTimer = window.setTimeout(disengage, GRAPH_ENGAGE_IDLE_MS)
+    }
+    const engage = () => {
+      if (scrolledPast()) return
+      engaged = true
+      root.dataset.graphEngaged = "true"
+      touch()
+    }
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.pointerType !== "touch") {
+        engage()
         return
       }
-      const target = controls.target ?? { x: 0, y: 0, z: 0 }
-      const distance = Math.hypot(camera.x - target.x, camera.y - target.y, camera.z - target.z)
-      limit = Math.max(limit, distance)
-      controls.maxDistance = limit
+      // A plain wheel may have left zoom off; a touch pinch must still zoom.
+      const controls = (mount as ZoomHost).__graphLanding?.controls?.()
+      if (controls) {
+        controls.noZoom = false
+        controls.enableZoom = true
+      }
+    }
+    const onPointerMove = (event: PointerEvent) => {
+      if (engaged && event.buttons !== 0) touch()
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") disengage()
+    }
+    const onScrollAway = () => {
+      if (scrolledPast()) disengage()
+    }
+    const onWheel = (event: WheelEvent) => {
+      const host = mount as ZoomHost
+      const controls =
+        typeof host.__graphLanding?.controls === "function"
+          ? host.__graphLanding.controls()
+          : undefined
+      const zoomApi = host.__graphZoom
+      if (!controls || !zoomApi) {
+        return
+      }
+      const range = zoomApi.range()
+      const limits = range
+        ? graphZoomLimits(zoomApi.distance(), range)
+        : { atMin: false, atMax: false }
+      if (range) {
+        controls.minDistance = range.min
+        controls.maxDistance = range.max
+      }
       const zoom = wheelZoomsGraph({
         scrolled: scrolledPast(),
         modifier: event.ctrlKey || event.metaKey,
+        engaged,
+        deltaY: event.deltaY,
+        ...limits,
       })
       controls.noZoom = !zoom
       controls.enableZoom = zoom
+      if (zoom && engaged) touch()
     }
     // Capture phase: runs before the camera controls' own wheel listener.
     mount.addEventListener("wheel", onWheel, { capture: true, passive: true })
-    window.addCleanup(() => mount.removeEventListener("wheel", onWheel, { capture: true }))
+    mount.addEventListener("pointerdown", onPointerDown, true)
+    mount.addEventListener("pointermove", onPointerMove, { passive: true })
+    hero.addEventListener("pointerleave", disengage)
+    document.addEventListener("keydown", onKeyDown)
+    window.addEventListener("scroll", onScrollAway, { passive: true })
+    window.addCleanup(() => {
+      disengage()
+      mount.removeEventListener("wheel", onWheel, { capture: true })
+      mount.removeEventListener("pointerdown", onPointerDown, true)
+      mount.removeEventListener("pointermove", onPointerMove)
+      hero.removeEventListener("pointerleave", disengage)
+      document.removeEventListener("keydown", onKeyDown)
+      window.removeEventListener("scroll", onScrollAway)
+    })
   }
 
   const panels = root.querySelectorAll<HTMLElement>("[data-profile-reveal]")

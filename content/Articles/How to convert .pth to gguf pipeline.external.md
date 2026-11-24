@@ -7,7 +7,8 @@ cmds:
 date_created: 2025-07-02
 date_modified: 2026-01-28
 permalink: pth-to-gguf-pipeline
-tags: []
+tags:
+  - llm
 title: how to convert .pth to gguf pipeline
 type:
   - articles

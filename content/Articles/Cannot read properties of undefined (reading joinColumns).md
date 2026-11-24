@@ -10,6 +10,8 @@ tags:
 title: "Cannot read properties of undefined (reading 'joinColumns')"
 ---
 
+# Cannot Read Properties of Undefined (reading ‘joinColumns’)
+
 프로젝트 개발을 하던 도중 Postman으로 User api 테스트를 하는데 아래 에러가 발생하였습니다.
 
 ```json
@@ -113,7 +115,7 @@ export class User {
 
 여기까지 했다면 문제 해결!
 
-부족한 점이나 잘못 된 점을 알려주시면 시정하겠습니다 :>
+### 부족한 점이나 잘못 된 점을 알려주시면 시정하겠습니다 :>
 
 ---
 

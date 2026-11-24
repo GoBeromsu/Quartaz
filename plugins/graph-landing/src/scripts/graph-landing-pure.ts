@@ -564,12 +564,61 @@ export function vinylNoiseSamples(
 
 /**
  * Whether a wheel turn over the graph zooms it or is left to scroll the page.
- * A plain wheel always scrolls the page, so the graph never holds the visitor
- * at the top. Zooming is deliberate: a trackpad pinch (which browsers report
- * as Ctrl + wheel) or Ctrl/Cmd + wheel, and only while the hero is in view.
+ * Only while the hero is in view. A trackpad pinch (which browsers report as
+ * Ctrl + wheel) or Ctrl/Cmd + wheel always zooms. A plain wheel scrolls the
+ * page until the visitor engages the graph (presses or drags it); then it
+ * zooms, except past a zoom limit, where it falls through to the page so the
+ * wheel never dead-ends. `deltaY > 0` zooms out.
  */
-export function wheelZoomsGraph(input: { scrolled: boolean; modifier: boolean }): boolean {
-  return input.modifier && !input.scrolled
+export function wheelZoomsGraph(input: {
+  scrolled: boolean
+  modifier: boolean
+  engaged?: boolean
+  deltaY?: number
+  atMin?: boolean
+  atMax?: boolean
+}): boolean {
+  if (input.scrolled) return false
+  if (input.modifier) return true
+  if (!input.engaged) return false
+  const deltaY = input.deltaY ?? 0
+  if (deltaY > 0 && input.atMax) return false
+  if (deltaY < 0 && input.atMin) return false
+  return deltaY !== 0
+}
+
+/** Closest the camera may come, as a share of the overview distance. */
+export const GRAPH_ZOOM_MIN_SCALE = 0.2
+/** One press of the zoom-in or zoom-out button moves the camera this much. */
+export const GRAPH_ZOOM_STEP = 1.5
+/** An engaged graph lets the wheel go after this long without graph input. */
+export const GRAPH_ENGAGE_IDLE_MS = 3000
+
+/**
+ * The camera distances the graph may zoom between: from the overview (the
+ * farthest out) to GRAPH_ZOOM_MIN_SCALE of it. Undefined before an overview.
+ */
+export function graphZoomRange(overview: number): { min: number; max: number } | undefined {
+  if (!Number.isFinite(overview) || overview <= 0) return undefined
+  return { min: overview * GRAPH_ZOOM_MIN_SCALE, max: overview }
+}
+
+/** Whether the camera sits at either end of the zoom range (0.5% tolerance). */
+export function graphZoomLimits(
+  distance: number,
+  range: { min: number; max: number },
+): { atMin: boolean; atMax: boolean } {
+  return { atMin: distance <= range.min * 1.005, atMax: distance >= range.max * 0.995 }
+}
+
+/** Camera distance after one zoom-button press, clamped to the range. */
+export function graphZoomStep(
+  distance: number,
+  direction: "in" | "out",
+  range: { min: number; max: number },
+): number {
+  const next = direction === "in" ? distance / GRAPH_ZOOM_STEP : distance * GRAPH_ZOOM_STEP
+  return Math.min(range.max, Math.max(range.min, next))
 }
 
 /** How long the graph stays still after the visitor lets go of it. */
