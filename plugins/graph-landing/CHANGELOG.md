@@ -2,6 +2,13 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.26.0
+
+### Added
+
+- A profile section takes an `image`: a portrait shown beside the title and
+  lede, stacked above them on narrow screens.
+
 ## 0.25.0
 
 ### Changed

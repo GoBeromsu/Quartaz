@@ -252,7 +252,8 @@ export interface GraphLandingProfileImage {
 
 /**
  * One numbered panel. Every block is optional and blocks render in a fixed
- * order: `stats`, `timeline`, `groups`, `facts`, `quote`.
+ * order: `stats`, `timeline`, `groups`, `facts`, `quote`. `image` sits beside
+ * the title and lede.
  */
 export interface GraphLandingProfileSection {
   /** Anchor id; also listed in the top bar when `nav` is set. */
@@ -262,6 +263,8 @@ export interface GraphLandingProfileSection {
   kicker?: string
   title?: string
   lede?: string
+  /** Portrait shown beside the title and lede. */
+  image?: GraphLandingProfileImage
   stats?: Array<{ value: string; label: string; note?: string }>
   timeline?: Array<{
     period: string

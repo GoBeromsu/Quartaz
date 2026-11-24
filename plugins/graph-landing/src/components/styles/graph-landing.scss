@@ -1981,6 +1981,43 @@ button.graph-landing__locale-toggle {
   word-break: keep-all;
 }
 
+.graph-landing__intro {
+  align-items: center;
+  display: grid;
+  gap: clamp(20px, 3.5vw, 44px);
+  grid-template-columns: clamp(9rem, 20vw, 15rem) minmax(0, 1fr);
+}
+
+.graph-landing__portrait {
+  margin: 0;
+}
+
+.graph-landing__portrait img {
+  border: 1px solid var(--graph-border);
+  border-radius: 12px;
+  display: block;
+  height: auto;
+  width: 100%;
+}
+
+.graph-landing__portrait figcaption {
+  color: var(--graph-muted);
+  font-family: var(--codeFont);
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  margin-top: 0.45rem;
+}
+
+@media (max-width: 640px) {
+  .graph-landing__intro {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .graph-landing__portrait {
+    max-width: 11rem;
+  }
+}
+
 .graph-landing__stats {
   display: grid;
   gap: 0 clamp(20px, 3vw, 40px);

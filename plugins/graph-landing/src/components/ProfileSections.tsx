@@ -7,15 +7,31 @@ function linkProps(href: string) {
 }
 
 function Section({ section, index }: { section: GraphLandingProfileSection; index: number }) {
+  const portrait = profileImageAttrs(section.image)
+  const heading = (
+    <>
+      {section.kicker ? <p class="graph-landing__kicker">{section.kicker}</p> : null}
+      {section.title ? <h2 class="graph-landing__section-title">{section.title}</h2> : null}
+      {section.lede ? <p class="graph-landing__section-lede">{section.lede}</p> : null}
+    </>
+  )
   return (
     <section class="graph-landing__section" id={section.id}>
       <div class="graph-landing__panel" data-profile-reveal>
         <span class="graph-landing__section-index" aria-hidden="true">
           {sectionIndexLabel(index)}
         </span>
-        {section.kicker ? <p class="graph-landing__kicker">{section.kicker}</p> : null}
-        {section.title ? <h2 class="graph-landing__section-title">{section.title}</h2> : null}
-        {section.lede ? <p class="graph-landing__section-lede">{section.lede}</p> : null}
+        {portrait ? (
+          <div class="graph-landing__intro">
+            <figure class="graph-landing__portrait">
+              <img {...portrait} decoding="async" />
+              {section.image?.caption ? <figcaption>{section.image.caption}</figcaption> : null}
+            </figure>
+            <div class="graph-landing__intro-text">{heading}</div>
+          </div>
+        ) : (
+          heading
+        )}
         {section.stats && section.stats.length > 0 ? (
           <dl class="graph-landing__stats">
             {section.stats.map((stat) => (

@@ -103,11 +103,21 @@ function linkProps(href) {
   return isExternalHref(href) ? { href, target: "_blank", rel: "noopener noreferrer" } : { href };
 }
 function Section({ section, index }) {
-  return /* @__PURE__ */ u2("section", { class: "graph-landing__section", id: section.id, children: /* @__PURE__ */ u2("div", { class: "graph-landing__panel", "data-profile-reveal": true, children: [
-    /* @__PURE__ */ u2("span", { class: "graph-landing__section-index", "aria-hidden": "true", children: sectionIndexLabel(index) }),
+  const portrait = profileImageAttrs(section.image);
+  const heading = /* @__PURE__ */ u2(S, { children: [
     section.kicker ? /* @__PURE__ */ u2("p", { class: "graph-landing__kicker", children: section.kicker }) : null,
     section.title ? /* @__PURE__ */ u2("h2", { class: "graph-landing__section-title", children: section.title }) : null,
-    section.lede ? /* @__PURE__ */ u2("p", { class: "graph-landing__section-lede", children: section.lede }) : null,
+    section.lede ? /* @__PURE__ */ u2("p", { class: "graph-landing__section-lede", children: section.lede }) : null
+  ] });
+  return /* @__PURE__ */ u2("section", { class: "graph-landing__section", id: section.id, children: /* @__PURE__ */ u2("div", { class: "graph-landing__panel", "data-profile-reveal": true, children: [
+    /* @__PURE__ */ u2("span", { class: "graph-landing__section-index", "aria-hidden": "true", children: sectionIndexLabel(index) }),
+    portrait ? /* @__PURE__ */ u2("div", { class: "graph-landing__intro", children: [
+      /* @__PURE__ */ u2("figure", { class: "graph-landing__portrait", children: [
+        /* @__PURE__ */ u2("img", { ...portrait, decoding: "async" }),
+        section.image?.caption ? /* @__PURE__ */ u2("figcaption", { children: section.image.caption }) : null
+      ] }),
+      /* @__PURE__ */ u2("div", { class: "graph-landing__intro-text", children: heading })
+    ] }) : heading,
     section.stats && section.stats.length > 0 ? /* @__PURE__ */ u2("dl", { class: "graph-landing__stats", children: section.stats.map((stat) => /* @__PURE__ */ u2("div", { class: "graph-landing__stat", children: [
       /* @__PURE__ */ u2("dt", { children: stat.label }),
       /* @__PURE__ */ u2("dd", { children: stat.value }),
@@ -2091,6 +2101,41 @@ button.graph-landing__locale-toggle {
   word-break: keep-all;
 }
 
+.graph-landing__intro {
+  align-items: center;
+  display: grid;
+  gap: clamp(20px, 3.5vw, 44px);
+  grid-template-columns: clamp(9rem, 20vw, 15rem) minmax(0, 1fr);
+}
+
+.graph-landing__portrait {
+  margin: 0;
+}
+
+.graph-landing__portrait img {
+  border: 1px solid var(--graph-border);
+  border-radius: 12px;
+  display: block;
+  height: auto;
+  width: 100%;
+}
+
+.graph-landing__portrait figcaption {
+  color: var(--graph-muted);
+  font-family: var(--codeFont);
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  margin-top: 0.45rem;
+}
+
+@media (max-width: 640px) {
+  .graph-landing__intro {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .graph-landing__portrait {
+    max-width: 11rem;
+  }
+}
 .graph-landing__stats {
   display: grid;
   gap: 0 clamp(20px, 3vw, 40px);
