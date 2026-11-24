@@ -38,11 +38,11 @@ configuration:
         highlight: "rgba(165, 33, 66, 0.08)"
         textHighlight: "#fff23688"
       darkMode:
-        light: "#262626"
-        lightgray: "#353535"
-        gray: "#8c8c8c"
-        darkgray: "#d1d1d1"
-        dark: "#d1d1d1"
+        light: "#000000"
+        lightgray: "#24262a"
+        gray: "#8f9093"
+        darkgray: "#fbfbfb"
+        dark: "#fbfbfb"
         secondary: "#c75b75"
         tertiary: "#a52142"
         highlight: "rgba(165, 33, 66, 0.12)"
@@ -134,7 +134,6 @@ plugins:
         incrementalRepaint: true
       lod:
         labelDistance: 800
-        fog: true
         linkResolution: 3
         shareLinkResources: true
       music:

@@ -19,6 +19,10 @@ Source anchors:
 ## Visual Language
 
 - Color uses Quartz-native theme tokens, anchored by Ataraxia accent `#a52142`.
+- Light and dark follow the vault's Minimal schemes: light is white paper
+  with near-black text; dark is Minimal's true-black style (`#000000`
+  background, `#fbfbfb` text, `#24262a` dividers, `#8f9093` muted text). The
+  graph landing uses the same tokens, so the home page is black too, not navy.
 - Typography uses a system-first sans stack close to Minimal:
   `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Ubuntu,
 sans-serif`.
