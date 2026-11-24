@@ -14,6 +14,7 @@ import {
   linkDegreeWeight,
   lodLevelForDistance,
   nodeRepulsionScale,
+  overviewDistanceScale,
   normalizedDegreeWeight,
   parseNonNegativeNumber,
   platterVelocity,
@@ -787,5 +788,41 @@ describe("labelTextHeight", () => {
   it("does not shrink below the floor up close", () => {
     assert.equal(labelTextHeight(100, 1000, false), 4.5)
     assert.equal(labelTextHeight(100, 1000, false, 3), 3)
+  })
+})
+
+describe("overviewDistanceScale", () => {
+  const spread = (n: number, max: number): number[] =>
+    Array.from({ length: n }, (_, i) => (max * (i + 1)) / n)
+
+  it("fills the viewport with the core and lets outliers run off the edges", () => {
+    // 80% of the nodes sit within 200px of the centre on both axes.
+    const xs = [...spread(8, 200), 600, 900]
+    const ys = [...spread(8, 200), 300, 450]
+    // The limiting axis is height: 500 / 200 = 2.5x zoom, so 0.4x distance.
+    assert.equal(overviewDistanceScale(xs, ys, 1200, 1000), 0.4)
+  })
+
+  it("lets the limiting axis decide on a portrait screen", () => {
+    const xs = spread(10, 300)
+    const ys = spread(10, 100)
+    // width 390: 195 / 240 (80th percentile) bounds the zoom below 1.
+    assert.equal(overviewDistanceScale(xs, ys, 390, 844), 1)
+  })
+
+  it("never zooms in past 0.3 or out past the full fit", () => {
+    assert.equal(overviewDistanceScale(spread(10, 5), spread(10, 5), 1200, 1000), 0.3)
+  })
+
+  it("returns undefined when there is nothing to measure", () => {
+    assert.equal(overviewDistanceScale([], [], 1200, 1000), undefined)
+    assert.equal(overviewDistanceScale([0, 0], [0, 0], 1200, 1000), undefined)
+    assert.equal(overviewDistanceScale(spread(10, 100), spread(10, 100), 0, 1000), undefined)
+  })
+
+  it("does not reorder the caller's arrays", () => {
+    const xs = [300, 100, 200]
+    overviewDistanceScale(xs, [10, 20, 30], 1200, 1000)
+    assert.deepEqual(xs, [300, 100, 200])
   })
 })

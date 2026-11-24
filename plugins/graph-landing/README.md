@@ -21,7 +21,10 @@ hub attraction, and a slow automatic orbit. All configuration options are option
   connections are thin gray hairlines. Both skies share the same geometry;
   only color, size, and fog change with the theme.
   Base node radii span 2.6–7.2 world units before the size control multiplier.
-  The overview camera pulls in past fit-to-view so the constellation fills the hero.
+  Once the layout settles, the overview camera frames the central 80% of the
+  nodes so they fill the hero; outlying stars run off the edges instead of
+  shrinking the core. Three pulsing dots hold the hero until that first frame,
+  then the canvas fades in.
   Night links blend their endpoints' star colors and
   brighten with the log of the weaker endpoint's degree, so hub filaments glow
   while leaf threads stay faint; folder/co-occurrence texture appears in its lens.
@@ -387,8 +390,11 @@ hero:
 ```
 
 Every field is optional. With `hero` set the canvas shifts right on screens
-wider than 860px and fades at its left edge; on phones the lede clamps to three
-lines (four for Latin copy). The copy hides while the rail is open.
+wider than 860px and fades at its left edge, and a soft halo behind the copy
+keeps graph labels from crossing the text. On phones (700px and narrower) the
+graph takes the upper half of the hero and the copy sits below it; the lede
+clamps to three lines (four for Latin copy). The copy hides while the rail is
+open.
 
 To show the copy in the visitor's language, add `translations` keyed by primary
 language subtag. The top-level copy is the default (and is tagged with the
@@ -427,7 +433,7 @@ to avoid a lone word on the last line.
 
 Sections rendered below the hero. Setting it turns the landing into a
 scrolling page: the graph stays fixed behind, panels scroll over it, the hero
-copy and controls fade after 80px, and a top bar links to every section that
+copy and controls fade after 24px, and a top bar links to every section that
 has both `id` and `nav`. Without `profile` the landing keeps its locked
 single-viewport layout.
 
@@ -485,10 +491,10 @@ site open in a new tab. A timeline entry can carry one `image`; `width` and
 swaps together with `hero.translations`; a language without a translation
 reuses the base copy.
 
-With a profile the wheel zooms the graph while the page is at the top. Zooming
-out stops at the overview, and from there the wheel scrolls on to the profile;
-once the page has scrolled the wheel only scrolls. A pinch also zooms, and a
-vertical touch drag scrolls instead of rotating. Clicking a node opens it and
+With a profile a plain wheel always scrolls the page, even at the top; the
+graph never holds the scroll. Ctrl/Cmd with the wheel, or a pinch, zooms the
+graph while the hero is in view (zooming out stops at the overview), and a vertical touch drag scrolls instead of
+rotating. Clicking a node opens it and
 moves the camera to it.
 
 The 3D graph turns slowly on its own. It stops while it is dragged, resumes

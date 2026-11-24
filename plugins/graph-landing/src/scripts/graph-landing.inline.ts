@@ -45,6 +45,7 @@ import {
   vinylNoiseSamples,
   VINYL_RPM,
   wheelZoomsGraph,
+  overviewDistanceScale,
   type GraphData,
   type GraphLink,
   type GraphNode,
@@ -2387,13 +2388,11 @@ function bindGraph(
 
   let initialFit = true
   // zoomToFit frames the bounding sphere, which leaves most of the viewport
-  // empty. Measure where the nodes actually land on screen and zoom in until
-  // the widest axis fills the viewport minus a margin, so landscape and
-  // portrait screens both get a full overview without clipping.
+  // empty. Measure where the nodes actually land on screen and pull the camera
+  // in until the dense core fills the viewport and the outliers run off its
+  // edges (overviewDistanceScale), on landscape and portrait screens alike.
   const overviewFill = (width: number, height: number): number => {
-    if (typeof graph.graph2ScreenCoords !== "function" || width <= 0 || height <= 0) {
-      return OVERVIEW_FILL
-    }
+    if (typeof graph.graph2ScreenCoords !== "function") return OVERVIEW_FILL
     graph.camera?.()?.updateMatrixWorld?.()
     const xs: number[] = []
     const ys: number[] = []
@@ -2403,16 +2402,7 @@ function bindGraph(
       xs.push(Math.abs(screen.x - width / 2))
       ys.push(Math.abs(screen.y - height / 2))
     }
-    // Frame the whole constellation so nothing is cut at the viewport edge.
-    const percentile = (values: number[]): number =>
-      values.sort((a, b) => a - b)[Math.floor((values.length - 1) * 0.98)] ?? 0
-    const halfX = percentile(xs)
-    const halfY = percentile(ys)
-    if (halfX < 1 || halfY < 1) return OVERVIEW_FILL
-    // ponytail: linear zoom model ignores perspective depth; the margin absorbs it.
-    const margin = 0.08
-    const k = Math.min((width * (0.5 - margin)) / halfX, (height * (0.5 - margin)) / halfY)
-    return clamp(1 / k, 0.3, 1)
+    return overviewDistanceScale(xs, ys, width, height) ?? OVERVIEW_FILL
   }
   let fitRetries = 0
   const fitOverview = (): void => {
@@ -2440,6 +2430,8 @@ function bindGraph(
       fitFrame = window.requestAnimationFrame(() => {
         initialFit = false
         fitOverview()
+        // Lifts the loading cue and fades the framed graph in (see the SCSS).
+        options.root.dataset.graphFramed = "true"
         showHint()
       })
     }
@@ -4281,8 +4273,15 @@ async function initGraphLanding(): Promise<void> {
       graph = null
     }
     delete root.dataset.graphReady
+    delete root.dataset.graphFramed
   }
   window.addCleanup(cleanup)
+  // Never leave the loading cue up, or the canvas hidden, if the first
+  // layout never settles.
+  const framedFallback = window.setTimeout(() => {
+    root.dataset.graphFramed = "true"
+  }, 8000)
+  window.addCleanup(() => window.clearTimeout(framedFallback))
 
   // Kick off every network dependency at once: content index, renderer,
   // and the three.js extras all race in parallel instead of a CDN waterfall.

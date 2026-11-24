@@ -8,9 +8,16 @@ body:has(.graph-landing:not([data-profile])) {
 html:has(.graph-landing[data-profile]) {
   scroll-behavior: smooth;
   scroll-padding-top: 72px;
+
+  @media (prefers-reduced-motion: reduce) {
+    scroll-behavior: auto;
+  }
 }
 
 .page:has(.graph-landing) > #quartz-body {
+  /* The host pads the body below desktop width; the landing sets its own
+     gutters, and that padding would clip the panel shadows into a hard edge. */
+  padding-inline: 0;
   row-gap: 0;
 }
 
@@ -1407,6 +1414,67 @@ a.graph-landing__title:focus-visible {
   text-align: center;
 }
 
+/* While the first layout settles: three quiet dots, then the framed graph
+   fades in. The renderer sets data-graph-framed after the first overview fit
+   (or after 8s at the latest). */
+.graph-landing__loading {
+  display: flex;
+  gap: 8px;
+  left: 50%;
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.6s ease;
+  z-index: 1;
+}
+
+.graph-landing__loading span {
+  animation: graph-landing-pulse 1.4s ease-in-out infinite;
+  background: var(--graph-muted);
+  border-radius: 50%;
+  height: 6px;
+  opacity: 0.25;
+  width: 6px;
+}
+
+.graph-landing__loading span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.graph-landing__loading span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes graph-landing-pulse {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.graph-landing[data-graph-framed] .graph-landing__loading,
+.graph-landing__hero:has(.graph-landing__error) .graph-landing__loading {
+  opacity: 0;
+}
+
+.graph-landing__canvas canvas {
+  transition: opacity 0.6s ease;
+}
+
+.graph-landing[data-graph-ready]:not([data-graph-framed]) .graph-landing__canvas canvas {
+  opacity: 0;
+}
+
+@media (min-width: 861px) {
+  .graph-landing[data-hero] .graph-landing__loading {
+    left: calc(50% + clamp(0px, 18vw, 280px) / 2);
+  }
+}
+
 /* Hero copy (options.hero): bottom-left manifesto over the canvas. */
 .graph-landing__copy {
   bottom: calc(16px + 48px + 24px);
@@ -1422,6 +1490,24 @@ a.graph-landing__title:focus-visible {
 
 .graph-landing__copy > * {
   pointer-events: auto;
+}
+
+/* The overview runs off the screen edges, so labels can drift behind the
+   copy; a soft backdrop-coloured halo keeps the text readable. */
+@media (min-width: 701px) {
+  .graph-landing__copy::before {
+    background: radial-gradient(
+      closest-side,
+      var(--graph-backdrop) 55%,
+      color-mix(in srgb, var(--graph-backdrop) 70%, transparent) 75%,
+      transparent
+    );
+    content: "";
+    inset: -64px -120px;
+    pointer-events: none;
+    position: absolute;
+    z-index: -1;
+  }
 }
 
 .graph-landing[data-rail-open="true"] .graph-landing__copy {
@@ -1514,6 +1600,19 @@ a.graph-landing__title:focus-visible {
 }
 
 @media (max-width: 700px) {
+  /* Phones: the graph owns the upper part of the screen and the copy the lower,
+     so labels never run through the headline. */
+  .graph-landing[data-hero] .graph-landing__canvas {
+    bottom: 48%;
+    height: auto;
+    -webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent);
+    mask-image: linear-gradient(to bottom, #000 78%, transparent);
+  }
+
+  .graph-landing[data-hero] .graph-landing__loading {
+    top: 26%;
+  }
+
   .graph-landing__copy {
     bottom: calc(max(16px, env(safe-area-inset-bottom)) + 48px + 16px);
     left: 16px;

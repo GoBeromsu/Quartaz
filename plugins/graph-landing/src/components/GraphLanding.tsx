@@ -397,6 +397,11 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
           <link rel="dns-prefetch" href="https://esm.sh" />
           <section class="graph-landing__hero" aria-label="Knowledge graph">
             <div class="graph-landing__canvas" id="graph-landing-mount"></div>
+            <div class="graph-landing__loading" aria-hidden="true">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
             <div class="graph-landing__overlay">
               <div class="graph-landing__chrome">
                 <div class="graph-landing__title-block graph-landing__title-block--chrome">

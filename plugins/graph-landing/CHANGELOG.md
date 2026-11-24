@@ -2,6 +2,29 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.28.0
+
+### Added
+
+- Three pulsing dots hold the hero while the graph settles; the canvas fades in
+  once the overview is framed (after 8 s at most).
+
+### Changed
+
+- The overview frames the central 80% of the nodes so the constellation fills
+  the hero and outlying stars run off its edges, instead of fitting every node.
+- On phones the graph takes the upper half of the hero and fades out above the
+  copy, instead of sitting behind it.
+- Above 700px a soft halo behind the hero copy keeps graph labels off the text.
+- Smooth scrolling turns off when the visitor prefers reduced motion.
+
+### Fixed
+
+- On narrow screens the host's side padding no longer clips the profile panel
+  shadows into a hard double edge.
+- The README said a plain wheel zooms the graph at the top of the page. It now
+  matches the code: a plain wheel scrolls, and Ctrl/Cmd or a pinch zooms.
+
 ## 0.27.0
 
 ### Added

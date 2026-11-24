@@ -603,3 +603,34 @@ export function labelTextHeight(
 ): number {
   return Math.max(floor, (distance / Math.max(1, viewportHeight)) * (hub ? 14 : 10))
 }
+
+/** Share of nodes the first overview keeps on screen; the rest run off the edges. */
+export const OVERVIEW_CORE = 0.8
+
+/**
+ * Camera distance for the first overview, as a multiple of the distance that
+ * fits the whole graph. `xs` and `ys` are each node's distance in pixels from
+ * the viewport centre at the fitted distance. The densest `core` share of the
+ * nodes fills the viewport and the outliers run off its edges, so the graph
+ * reads as a landscape rather than a small cluster. Returns undefined when
+ * there is nothing to measure.
+ */
+export function overviewDistanceScale(
+  xs: readonly number[],
+  ys: readonly number[],
+  width: number,
+  height: number,
+  core = OVERVIEW_CORE,
+): number | undefined {
+  if (width <= 0 || height <= 0) return undefined
+  const at = (values: readonly number[]): number => {
+    const sorted = [...values].sort((a, b) => a - b)
+    return sorted[Math.floor((sorted.length - 1) * core)] ?? 0
+  }
+  const halfX = at(xs)
+  const halfY = at(ys)
+  if (halfX < 1 || halfY < 1) return undefined
+  // Linear zoom model: it ignores perspective depth, which only adds bleed.
+  const zoom = Math.min(width / 2 / halfX, height / 2 / halfY)
+  return Math.min(1, Math.max(0.3, 1 / zoom))
+}
