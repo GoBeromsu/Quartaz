@@ -99,4 +99,4 @@ MCP servers, CLIs and agent skills:
 Got any questions, thoughts, or feedback you'd like to share?
 Please feel free to contact me via [email](mailto:gobeumsu@gmail.com). I'd be happy to hear from you!
 
-[GitHub](https://github.com/GoBeromsu) · [LinkedIn](https://www.linkedin.com/in/beomsu-koh-b45146266/) · [YouTube](https://www.youtube.com/@beomsuKoh) · [Hugging Face](https://huggingface.co/Berom0227) · [ORCID](https://orcid.org/0009-0004-2742-2200)
+[GitHub](https://github.com/GoBeromsu) · [LinkedIn](https://www.linkedin.com/in/beomsu-koh/) · [YouTube](https://www.youtube.com/@beomsuKoh) · [Hugging Face](https://huggingface.co/Berom0227) · [ORCID](https://orcid.org/0009-0004-2742-2200)
