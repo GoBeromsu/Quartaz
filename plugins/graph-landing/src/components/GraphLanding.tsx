@@ -5,6 +5,8 @@ import type {
 } from "@quartz-community/types"
 import type { GraphLandingHeroCopy, GraphLandingPageOptions } from "../pageType"
 import { pickHeroLanguage } from "../heroLanguage"
+import { profileBlocks } from "../profile"
+import { ProfileSections } from "./ProfileSections"
 // @ts-expect-error - inline script import handled by tsup inline-script-loader
 import graphLandingScript from "../scripts/graph-landing.inline.ts"
 import styles from "./styles/graph-landing.scss"
@@ -54,6 +56,8 @@ interface OverlayCopy {
   inspectConnected: string
   inspectClose: string
   inspectEmpty: string
+  profileNav: string
+  profileScroll: string
   folders: string
   tune: string
   nodeSize: string
@@ -103,6 +107,8 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
       inspectConnected: "연결",
       inspectClose: "닫기",
       inspectEmpty: "직접 연결된 별이 없습니다",
+      profileNav: "소개 섹션",
+      profileScroll: "Scroll",
       folders: "폴더",
       tune: "Tune",
       nodeSize: "Node size",
@@ -144,6 +150,8 @@ function overlayCopyForLocale(localeId: string): OverlayCopy {
     inspectConnected: "Connected",
     inspectClose: "Close",
     inspectEmpty: "No direct connections",
+    profileNav: "Profile sections",
+    profileScroll: "Scroll",
     folders: "Folders",
     tune: "Tune",
     nodeSize: "Node size",
@@ -275,7 +283,7 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
   }
 
   // Runs synchronously where it sits, so the swap lands before first paint.
-  const heroLanguageScript = `(function(){var s=document.currentScript;if(!s)return;var b=s.parentNode.querySelectorAll("[data-hero-lang]");var a=[];for(var i=0;i<b.length;i++)a.push(b[i].getAttribute("data-hero-lang"));var p=navigator.languages||[navigator.language||""];var pick=(${pickHeroLanguage.toString()})(a,p,s.getAttribute("data-hero-fallback"));if(!pick)return;for(var k=0;k<b.length;k++)b[k].hidden=b[k].getAttribute("data-hero-lang")!==pick;})();`
+  const heroLanguageScript = `(function(){var s=document.currentScript;if(!s)return;var b=(s.closest(".graph-landing")||s.parentNode).querySelectorAll("[data-hero-lang]");var a=[];for(var i=0;i<b.length;i++)a.push(b[i].getAttribute("data-hero-lang"));var p=navigator.languages||[navigator.language||""];var pick=(${pickHeroLanguage.toString()})(a,p,s.getAttribute("data-hero-fallback"));if(!pick)return;for(var k=0;k<b.length;k++)b[k].hidden=b[k].getAttribute("data-hero-lang")!==pick;})();`
 
   const GraphLandingConstructor: QuartzComponentConstructor = () => {
     const GraphLanding: QuartzComponent = ({ fileData, cfg, allFiles }: QuartzComponentProps) => {
@@ -307,12 +315,18 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
       const siteTitle = cfg.pageTitle ?? "Graph"
       const graphIndexPath = `${pathToRoot(slug)}/static/graphIndex.json`
       const heroBlocks = heroCopyBlocks(options.hero, localeId)
+      const profile = profileBlocks(
+        options.profile,
+        localeId,
+        heroBlocks.map((block) => block.lang),
+      )
 
       return (
         <div
           class="graph-landing"
           data-rail-open="false"
           data-hero={options.hero ? "true" : undefined}
+          data-profile={profile.length > 0 ? "true" : undefined}
           data-locale={localeId}
           data-source-locale={sourceLocale}
           data-locale-prefixes={localePrefixes}
@@ -842,6 +856,19 @@ export default ((pageOptions?: GraphLandingPageOptions) => {
               </aside>
             </div>
           </section>
+          <ProfileSections
+            blocks={profile}
+            siteTitle={siteTitle}
+            homeHref={homeHref}
+            navLabel={copy.profileNav}
+            scrollLabel={copy.profileScroll}
+          />
+          {profile.length > 1 ? (
+            <script
+              data-hero-fallback={options.hero?.fallbackLanguage}
+              dangerouslySetInnerHTML={{ __html: heroLanguageScript }}
+            />
+          ) : null}
         </div>
       )
     }

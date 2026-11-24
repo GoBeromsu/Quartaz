@@ -39,7 +39,6 @@ const sharedHeader = [
         Component: Component.External("BlogLinksHeader", {
           links: {
             Writing: "/writing",
-            Graph: "/graph",
             About: "/about",
           },
         }),

@@ -212,6 +212,75 @@ interface GraphLandingPageOptions {
          */
         fallbackLanguage?: string;
     };
+    /**
+     * Optional profile sections that scroll over the pinned constellation,
+     * below the hero. With `profile` set the landing stops being a locked
+     * single viewport: the page scrolls, plain wheel and vertical swipes move
+     * the page (pinch or Ctrl/Cmd + wheel still zooms the graph) and a compact
+     * top bar replaces the hero chrome once the visitor scrolls.
+     */
+    profile?: GraphLandingProfileCopy & {
+        /**
+         * Alternative sections keyed by primary language subtag. Shown together
+         * with the matching `hero` translation; a language without an entry here
+         * keeps the default sections.
+         */
+        translations?: Record<string, GraphLandingProfileCopy>;
+    };
+}
+interface GraphLandingProfileCopy {
+    sections?: GraphLandingProfileSection[];
+    footer?: {
+        note?: string;
+        links?: Array<{
+            label: string;
+            href: string;
+        }>;
+    };
+}
+/**
+ * One numbered panel. Every block is optional and blocks render in a fixed
+ * order: `stats`, `timeline`, `groups`, `facts`, `quote`.
+ */
+interface GraphLandingProfileSection {
+    /** Anchor id; also listed in the top bar when `nav` is set. */
+    id?: string;
+    /** Short label for the top bar. Omit to keep the section out of it. */
+    nav?: string;
+    kicker?: string;
+    title?: string;
+    lede?: string;
+    stats?: Array<{
+        value: string;
+        label: string;
+        note?: string;
+    }>;
+    timeline?: Array<{
+        period: string;
+        title: string;
+        org?: string;
+        body?: string;
+        href?: string;
+    }>;
+    groups?: Array<{
+        label?: string;
+        cards: Array<{
+            title: string;
+            href?: string;
+            body?: string;
+            /** Mono footer line, e.g. "↓ 8,398 · 2024.09–". */
+            meta?: string;
+        }>;
+    }>;
+    facts?: Array<{
+        term: string;
+        detail: string;
+        href?: string;
+    }>;
+    quote?: {
+        text: string;
+        cite?: string;
+    };
 }
 interface GraphLandingHeroCopy {
     eyebrow?: string;

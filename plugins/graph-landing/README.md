@@ -418,6 +418,64 @@ Korean copy keeps words whole (`word-break: keep-all`), so lines break only at
 spaces or at a `"\n"` you place in `title`; the lede uses `text-wrap: pretty`
 to avoid a lone word on the last line.
 
+### `profile`
+
+Sections rendered below the hero. Setting it turns the landing into a
+scrolling page: the graph stays fixed behind, panels scroll over it, the hero
+copy and controls fade after 80px, and a top bar links to every section that
+has both `id` and `nav`. Without `profile` the landing keeps its locked
+single-viewport layout.
+
+```yaml
+profile:
+  sections:
+    - id: now
+      nav: "Now"
+      kicker: "What I do"
+      title: "I build tools for notes."
+      lede: "One or two sentences."
+      stats:
+        - { value: "7", label: "Plugins", note: "Maintained by me." }
+    - id: path
+      nav: "Path"
+      title: "The path so far"
+      timeline:
+        - period: "2024 – 2026"
+          title: "MSc Computer Science"
+          org: "A university"
+          body: "Optional detail."
+          href: "https://example.com"
+    - id: work
+      nav: "Work"
+      title: "Projects"
+      groups:
+        - label: "Plugins"
+          cards:
+            - title: "A plugin"
+              body: "What it does."
+              meta: "since 2024"
+              href: "https://example.com"
+      facts:
+        - { term: "Email", detail: "me@example.com", href: "mailto:me@example.com" }
+      quote: { text: "A line worth quoting.", cite: "Its source" }
+  footer:
+    note: "© Me"
+    links:
+      - { label: "About", href: "/about" }
+  translations:
+    en:
+      sections: []
+```
+
+A section renders its blocks in a fixed order: `stats`, `timeline`, `groups`,
+`facts`, `quote`. Sections are numbered automatically. Links that leave the
+site open in a new tab. `translations` takes the same shape per language and
+swaps together with `hero.translations`; a language without a translation
+reuses the base copy.
+
+With a profile the wheel scrolls the page. Zoom the graph with a pinch or
+Ctrl/Cmd + wheel; a vertical touch drag scrolls instead of rotating.
+
 ### Which page becomes the landing
 
 Any of these, no plugin required:

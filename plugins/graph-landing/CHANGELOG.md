@@ -2,6 +2,21 @@
 
 All notable changes to this plugin are documented here.
 
+## 0.20.0
+
+### Added
+
+- `profile`: numbered sections (stats, timeline, card groups, facts, quote)
+  and a footer rendered below the hero. With a profile the landing scrolls:
+  panels pass over the fixed graph, the hero chrome fades after 80px, and a
+  top bar links to each section. `profile.translations` follows the hero
+  language swap.
+
+### Changed
+
+- With a profile, the wheel scrolls the page; zooming the graph takes a pinch
+  or Ctrl/Cmd + wheel, and a vertical touch drag scrolls instead of rotating.
+
 ## 0.19.0
 
 ### Added

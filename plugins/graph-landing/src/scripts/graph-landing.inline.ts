@@ -4398,6 +4398,105 @@ document.addEventListener("click", (event) => {
   }
 })
 
+/**
+ * Profile sections (options.profile): the landing scrolls. Tracks the scrolled
+ * state, reveals panels, marks the current top bar link, and keeps plain wheel
+ * for the page (pinch or Ctrl/Cmd + wheel zooms the graph).
+ */
+function initProfileScroll(): void {
+  const root = document.querySelector(".graph-landing[data-profile]")
+  if (!(root instanceof HTMLElement) || root.dataset.profileReady === "1") {
+    return
+  }
+  root.dataset.profileReady = "1"
+  window.addCleanup(() => {
+    delete root.dataset.profileReady
+  })
+
+  const onScroll = () => {
+    const scrolled = window.scrollY > 80
+    if (scrolled) {
+      root.dataset.scrolled = "true"
+      // An open rail or inspect panel would sit under the sections.
+      root.dataset.railOpen = "false"
+    } else {
+      delete root.dataset.scrolled
+    }
+  }
+  onScroll()
+  window.addEventListener("scroll", onScroll, { passive: true })
+  window.addCleanup(() => window.removeEventListener("scroll", onScroll))
+
+  const mount = root.querySelector("#graph-landing-mount")
+  if (mount instanceof HTMLElement) {
+    type ZoomControls = { noZoom?: boolean; enableZoom?: boolean }
+    const onWheel = (event: WheelEvent) => {
+      const graph = (mount as HTMLElement & { __graphLanding?: { controls?: () => ZoomControls } })
+        .__graphLanding
+      const controls = typeof graph?.controls === "function" ? graph.controls() : undefined
+      if (!controls) {
+        return
+      }
+      const zoom = event.ctrlKey || event.metaKey
+      controls.noZoom = !zoom
+      controls.enableZoom = zoom
+    }
+    // Capture phase: runs before the camera controls' own wheel listener.
+    mount.addEventListener("wheel", onWheel, { capture: true, passive: true })
+    window.addCleanup(() => mount.removeEventListener("wheel", onWheel, { capture: true }))
+  }
+
+  const panels = root.querySelectorAll<HTMLElement>("[data-profile-reveal]")
+  const sections = root.querySelectorAll<HTMLElement>(".graph-landing__section[id]")
+  if (typeof IntersectionObserver !== "function") {
+    return
+  }
+  const reveal = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting && entry.target instanceof HTMLElement) {
+          entry.target.dataset.profileReveal = "shown"
+          reveal.unobserve(entry.target)
+        }
+      }
+    },
+    { rootMargin: "0px 0px -8% 0px", threshold: 0.04 },
+  )
+  for (const panel of panels) {
+    panel.dataset.profileReveal = "pending"
+    reveal.observe(panel)
+  }
+  const current = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) {
+          continue
+        }
+        const links = root.querySelectorAll<HTMLAnchorElement>(".graph-landing__topbar-links a")
+        for (const link of links) {
+          if (link.getAttribute("href") === `#${entry.target.id}`) {
+            link.setAttribute("aria-current", "true")
+          } else {
+            link.removeAttribute("aria-current")
+          }
+        }
+      }
+    },
+    { rootMargin: "-30% 0px -60% 0px" },
+  )
+  for (const section of sections) {
+    current.observe(section)
+  }
+  window.addCleanup(() => {
+    reveal.disconnect()
+    current.disconnect()
+    for (const panel of panels) {
+      panel.dataset.profileReveal = ""
+    }
+  })
+}
+
 document.addEventListener("nav", () => {
+  initProfileScroll()
   void initGraphLanding()
 })
