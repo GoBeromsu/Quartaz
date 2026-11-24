@@ -36,7 +36,7 @@ I want to stop attention theft and the seizure of people's cognitive resources, 
 
 ## Open Source
 
-I maintain seven official Obsidian community plugins, with 19,153 cumulative downloads and 99 GitHub stars as of 2026-11-24. Metadata Auto Classifier was featured in [Obsidian Plugins Review — 83](https://medium.com/technology-hits/obsidian-plugins-review-83-b9a59351199d) on Technology Hits (Nuno Campos, 2024-11-12) and in the [Obsidian Plugin Updates](https://obsidianpluginstats.substack.com/p/obsidian-plugin-updates-2024-10-26) newsletter (Ganessh Kumar R P, 2024-11-02).
+I maintain seven official Obsidian community plugins, with 19,153 cumulative downloads and 99 GitHub stars as of 24 November 2026. Metadata Auto Classifier was featured in [Obsidian Plugins Review — 83](https://medium.com/technology-hits/obsidian-plugins-review-83-b9a59351199d) on Technology Hits (Nuno Campos, 2024-11-12) and in the [Obsidian Plugin Updates](https://obsidianpluginstats.substack.com/p/obsidian-plugin-updates-2024-10-26) newsletter (Ganessh Kumar R P, 2024-11-02).
 
 | Plugin | What it does | Downloads | Stars |
 | --- | --- | --- | --- |
