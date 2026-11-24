@@ -1,0 +1,57 @@
+---
+aliases: []
+date_created: 2021-03-20
+date_modified: 2022-01-11
+permalink: til-working-copy-setting
+tags:
+  - git
+  - ios
+title: "Editorial - Working Copy Setting"
+---
+마크다운 에디터로 editorial를 사용하기로 했다. 기능도 많은편이고 내 맘대로 working flow를 만들 수 있어 선택했다.
+
+icloud랑 동기화를 해서 사용할까 했는데 앱과 앱 사이에 중간 단계가 늘어나는 것 같아  editorial이랑 workingcopy document를 참고해서 workingflow를 만들었다
+
+* [editorial docs](http://www.editorial-workflows.com)
+* [workingcopy docs](https://workingcopyapp.com/url-schemes.html#writing)
+
+x-callback url을 이용하니 간단했다. 자동화를 위해 만들어진 ios용 url이란다. app 사이의 연결성을 확대시켜준다. 개발자 입장에서 url을 통해 간단히 데이터를 주고 받을 수 있단게 큰 장점이라 생각한다
+
+```bash
+targetapp://x-callback-url/updateStatus?
+   x-source=SourceApp&
+   text=[User inputted string]
+```
+
+## workingcopy dir을 editorial로 Copy
+
+포스트 내용을 수정할 때마다 복붙하는게 불편해서 해결 방안을 찾아보았다
+
+[shortcut](https://github.com/somelinguist/EditorialWorkingCopySync)을 이용해 repo 변경 사항을 에디터로 업데이트 하게했다.
+
+shortcut 한 번 누르고 에디터 들어가서 바로 수정하니까 편하다 주의사항은 덮어쓰기 되는거라 잘못하면 적은거 다 날라간다
+
+## editorial에서 Working Copy로!
+
+x-callback url을 이용하면 커밋까지 한 번에 workflow를 할 수도 있고 이래저래 만들었다
+
+* 요구사항
+	* overwrite 기능
+	* til repo에 바로 저장
+	* 파일 이름과 확장자 그대로 저장
+
+위 요구사항을 반영해서[Til Workflow](editorial://add-workflow?workflow-data-b64=eNrVV91u2zYUfhVCwNINkJ2k7ZrNQGCkbrplCJoicZai82DQ0pHNmSI1krJiGAb2NHuwPck-UrKtJLtYbtLmxpHO__edo0NmFYlEq6gX5UL5J9uxOhFcdqbCzcrJmEvXLdQ0iiOeOAF91PttFRW8tPSWMm3oslRKwKCXcWkprlU3cNalu5rpCrqP3PCcHBm7tUpK63Q-FE4SciN6IrmFOrrRZp5JXZ2EbD-RO02F02ZIty7ywXeRVlGmZUqpV10U3jrqHcQt4SUVkieUk3II_M9ff0frdfx0tV-hbPqVG8EnMLxfu8IzXLiUUC24LMlL3bII0nTBVVKjgNrpOalLrqYUXFcHMTtcw-xMFaWL1jDwdr2oD4BfHUJDhX4sxB2kGyOmU0md4dn5E4PD6L0Xkj54FPehCZXIMqX3ftTMNnAjPb11pGwYR2dK-vo6kgGWqmE908EbaIWt4Cm-DzHROQTCajUMiF7GEd0WhqxvyMvHz1-pnC8m9WB3gQ4fT1kg_IsyZrWki9L5zt1nrS7qsdz4T4MJy3YcPVNI0erVnTbF0er1USMI62uHeTCjZM4WzRc2UiPllwRTDRUv-i9Gyru0JU-_lYuN5AEtFtF_vn63jYnnbcAv8wmfqvR-lU9ayEVB6vry_AFTGvIz7PDDOPLq_z1KR4fN5HxD4ebSa63b1ZvX7bGC4PvNnNUXgdXRq__w7tD2SNlNYgUUAN5JdLHsjfZH-7edBEEmPJl3SiNH-5URjkb7_Tktj88_f_o0_PGXdz983vPux_09XwD-FNzNjvvd_l6uUzrWCzLBzecxtCAu3xpdWTInJbjkTvgUy_pgQyV80rp4gaXeeIzf8enV4OTj6XgcyKu4cNfYEPJcc1zMmvY8ly_i93hzat7UfLMB-P52KOR3iJSSTYxoKNgmZQDEnOHKZmSM9_FNtCwzOmftMMxpVl9vceFmXKXMd4_xKReq63fLzYwU85RTyiqQwYQ_eGMmHF6lZIWAuZsR28xYnaOWGOuYFIpC4NDVoND4MUFhEQ4VuBnWlA8Qs2omkhmT5OzdOhNDHO6cKaqCaV0NjsOUMkRKGf5zwIi6Lhu2q_FSYLHwLJX4s8RGTGElMoESPEsGt_N8QoGkCnWRhzYhqdXUIpZmfKFFyjZzueNSqBZzkyXLhXV8DggeIupaCF3aTVWW6azx40gBCr1_g9AD7E74fMt34KPa9BLPrQZgGkHnsu5DyNVOEd5LY_Bes-QDoWwY1J0F221eQ48HM787GLdz3F1ywN8cLt76gImMLXXJ_sCks4ojMKSWL-quKu3Z8r6oD4o6QggL7kC8Q-lN20Ch3yB1nW2EKaHhmAvfjdC1oNbN4BRk0Kg8sH2X9Qfj3I3W_wK_dBzR)를 만들었다.
+
+링크를 눌러 다운로드 받아서 사용하면 된다.
+
+사용할 따 Key랑 repository 이름은 바꿔야한다. 내 꺼로 등록되어 있어서 그대로 실행하면 오류 뜰 것이다
+### 무난한 해결책
+[workingcopy 공홈에서 지원하는 workflow](editorial://add-workflow?workflow-data-b64=eNrtWO1qIzcUfRUx0NKWsRNnPwqGJWQTZ7vsthvy0RTqYuSZO7bqsTSVNB4bY-jT7IPtk_RI449xHEKclsRh-yeZSFdH9557dHWVaSAiJYNmMBTSfZmaUZHgaa0nbD_vdnhq65nsBWHAIyswHzR_nwYZzw29pURpOs-lFDBoJjw1FJZT11iscnvRVwXmzrjmQ7KkzdIqyo1Vw0thU8LeQI9SbjAdXCs9SFJVHPndLix2-JVrwbswdOArpGkg8Y0lPE0xNeJpTm7UTjI_Go-4jCi-pLHFtFUDkudc9sgvne6HrDGD2XuZ5TaYwcDZNYPDYDabhY8X4bGSsXAfG9FFaogBYZS89BHthwGNM03GwPrgvpGuInNBrgAa21PleH46ou4lhQFNtpXCKqIPrd9etK7PXr38sIuhcTOAIobCPjzAxi7GlXHbf_jx_YZwepRuJiIlD_gcTnLjqU9ylbUaTEk6oF0_3A9TysHdMYf301L9ydTUkvFNQh7VkXdkW56XOb_rqUlUGpfUf8q89t01tRo8pyzlEQ1JOha__P05eFTfP2Ukr84_bnitMP5e-oPopu-tpdc_rnUN0M7LxnykvHmmr14sLstKuZ6-XkjMS3glqwLeIsBapLJJs73X3hvXItyyXR4NarlO23uFFpbae4dAf3P47RIT3w4JvxzQm0MHqWlEPH2rVWFIH-Wgh1vh0CZB0-ocpFnerSQJgTc7HfzstC6Oj85anY7no-DCXkkr0o-KI4lzxh-7GGSLkY3UGaD_dHWyxMT3EvDrPKA_cxv1z6mXp1y3lrfCBnGaejTe_q75rv7D9-22vxuGbqN3WuWZ7yXCwBDXUd_daUtd7d6tsazmz_aJcKo0qL-wWvh32HqUpU_Pq5U_FTKe3wy3yLQcf1BTlAB4ezJuu-9LxTu8hbQbuydtW8b1TGWNxuIUzKOOohezZiNIIU-0yrpqvAQWyS_KtsbCwNr3GYvEoXcb8Wrj9n_fv5Mpv9g65ZUUX5fN0jF6pXqXD4JNPTysFj45KfOO5iYZrrPZKqCDOwraGdpDoXLDopJ7phJ2yBA4E5LdZBbL4lzzsu4dhPP_EO5_ne3Vv9Lseln6rxTrVz2dYN2r6kRFuX_VbTwI7wj-BlOz2R9hsH64mdMgTGMykRbzm3e5PUNozGouTULadUPMoRuWaDVkVQRmFSsfrYKnjMuYuScV4z0uZL0t2_K6T5K5xxHFrAAtOAU4CyETFn-mKcsEzG2f2ML9co9yRBvLUiHJA_sXmp9Q-KH9hAEcPLB9YTxAyIq-iPosJWvW_Yw0cSznTFLhTUtvUOJjQvMB7-bntc4uq964UcRisDKX4q-cmIhhJRIBFxxLGm_uYZc8SQX8Ihdal1IlewZYivGREjFTI9IughWXKAcr5roTNoRW-QAhuBCzG1XEuDJSruPY4vZysuTb81EsconvSgKgS9A5KfPg96pu4f_OtXaFy7PkgOA2DMrMgu0qrz7Hx313ctjy0cxG83bKWe8zkbCJytmf0DwrOIAxaviozKpUji23Fv5hokTwsOAOxFu4Pk8bKHTXcelnNcKYkHDowmXDZ81Pq7lwMtJI1NCzvc76hpzrwewfsX4ftA~~) 를  editorial에 추가하면 바로 커밋까지 쉽게할 수 있다
+
+### 삽질
+
+* url escape variable을 체크 안해서 실행 오류가 발생했다
+
+---
+
+*2021-03-20에 [GitHub TIL](https://github.com/GoBeromsu/Wiggle-TIL/blob/master/Etc/WorkingCopySetting.md)에 쓴 글을 옮겼습니다.*

@@ -48,3 +48,5 @@ coding agent와 같이 구현하다 보니, 어렵게 만든 embedding pipeline�
 ---
 
 *2026-04-09에 [LinkedIn](https://www.linkedin.com/feed/update/urn:li:activity:7447675455962529792/)에 쓴 글을 옮겼습니다.*
+
+관련: [[Open Connections]] · [[QMD Search]]

@@ -8,7 +8,7 @@ tags:
 title: "Hexo 블로그 테마 추가"
 ---
 
-# Hexo Blog 테마 설치
+## Hexo Blog 테마 설치
 
 저의 경우 butterfly theme을 사용하고 있어, butterfly theme 기준으로 설명하겠습니다
 

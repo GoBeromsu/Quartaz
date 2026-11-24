@@ -13,7 +13,7 @@ tags:
 title: "1만 3천 노트 볼트의 OOM을 잡은 방법"
 ---
 
-[[Obsidian 플러그인 - Open Connections|Open Connections]]는 노트를 embedding으로 바꿔 의미가 가까운 노트를 찾아 주는 Obsidian 플러그인입니다. 4096차원 모델(Upstage Solar)로 1만 3천 노트를 색인하면 `RangeError: Array buffer allocation failed`가 났습니다. 2026년 3월 23일과 24일, 이틀에 걸쳐 메모리 구조를 세 단계로 고치고 저장소를 sql.js에서 Node 내장 `node:sqlite`로 옮겨 이 문제를 없앴습니다.
+[[Open Connections]]는 노트를 embedding으로 바꿔 의미가 가까운 노트를 찾아 주는 Obsidian 플러그인입니다. 4096차원 모델(Upstage Solar)로 1만 3천 노트를 색인하면 `RangeError: Array buffer allocation failed`가 났습니다. 2026년 3월 23일과 24일, 이틀에 걸쳐 메모리 구조를 세 단계로 고치고 저장소를 sql.js에서 Node 내장 `node:sqlite`로 옮겨 이 문제를 없앴습니다.
 
 ## 원인: 저장할 때마다 DB 전체를 메모리에 복사했다
 

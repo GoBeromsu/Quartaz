@@ -125,7 +125,7 @@ When merged into the `test` branch with the `build:full` label, a full build is 
 
 - **needs:** \[radsecproxy-check, docker-build-check, compose-check\]
 
-```
+```yaml
 uses: appleboy/jenkins-action@master
 with:
   url: ${{ secrets.WEBHOOK_URL }}
@@ -141,7 +141,7 @@ When merged into the `test` branch with the `build:config` label, a config build
 - **needs:** \[radsecproxy-check\]
 - Send to Jenkins — build config:
 
-```
+```yaml
 uses: appleboy/jenkins-action@master
 with:
   url: ${{ secrets.WEBHOOK_URL }}
@@ -157,7 +157,7 @@ When merged into the `main` branch with the `build:full` label, a full build for
 - **needs:** \[radsecproxy-check, docker-build-check, compose-check\]
 - Send to Jenkins — build full:
 
-```
+```yaml
 uses: appleboy/jenkins-action@master
 with:
   url: ${{ secrets.WEBHOOK_URL }}
@@ -175,7 +175,7 @@ When merged into the `main` branch with the `build:config` label, a config build
 
 Send to Jenkins — build config:
 
-```
+```yaml
 uses: appleboy/jenkins-action@master
 with:
   url: ${{ secrets.WEBHOOK_URL }}
@@ -208,7 +208,7 @@ In our company’s CI/CD process, we use Jenkins for Continuous Deployment (CD).
 
 We have configured GitHub Actions to use self-hosted runners, which allow internal network access, sending webhooks to Jenkins after successful CI processes. The configuration for sending a webhook from GitHub Actions to Jenkins is shown below:
 
-```
+```yaml
 send-jenkins-config:
   needs: [radsecproxy-check]
   if: success() && github.event.pull_request.merged == true && github.base_ref == 'main' && contains(github.event.pull_request.labels.*.name, 'build:config')
@@ -227,7 +227,7 @@ Jenkins handles the deployment process by using the SSH Steps plugin, which faci
 
 **Checkout from GitHub:** Clones the main branch from the GitHub repository
 
-```
+```groovy
     stage('[github] get by github') {
           steps {
               git branch: 'main', credentialsId: 'berom-github-PAT', url: 'https://github.com/company/repo.git'
@@ -237,7 +237,7 @@ Jenkins handles the deployment process by using the SSH Steps plugin, which faci
 
 **Deploy to Test Server:** Transfers configuration files and restarts Docker on the test server.
 
-```
+```groovy
     stage('[test] send radsecproxy-config and docker restart') {
         steps {
             script {
@@ -258,7 +258,7 @@ Jenkins handles the deployment process by using the SSH Steps plugin, which faci
 
 **Deploy to Production Server 1:** Transfers configuration files and restarts Docker on the first production server with retry logic.
 
-```
+```groovy
     stage('[prod1] send radsecproxy-config and docker restart') {
         steps {
             script {
@@ -295,7 +295,7 @@ Jenkins handles the deployment process by using the SSH Steps plugin, which faci
 
 **Success Notification:** Sends a success notification upon successful deployment.
 
-```
+```groovy
     stage('success send') {
         steps {
             office365ConnectorSend webhookUrl: 'https://company.webhook.office.com/webhookb2/some-unique-url',

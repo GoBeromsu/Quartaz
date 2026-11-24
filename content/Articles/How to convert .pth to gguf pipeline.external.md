@@ -37,7 +37,7 @@ GGUF file (compatible with llama.cpp / LM Studio)
 pip install torch numpy sentencepiece transformers huggingface_hub gguf
 ```
 
-#### Llama Datafile
+### Llama Datafile
 
 We can download Llama from [Class Leading, Open-Source AI \| Download Llama](https://www.llama.com/llama-downloads/)
 For CodeLlama, you can use this link: [meta-llama/codellama](https://github.com/meta-llama/codellama)
@@ -91,7 +91,7 @@ Your repo is now available at https://huggingface.co/Berom0227/codellama-7b
 ❯ huggingface-cli upload Berom0227/codellama-7b . --include='*'
 ```
 
-#### Hugging Face CLI Commands Explanation
+### Hugging Face CLI Commands Explanation
 
 - `huggingface-cli repo create <repo_id> --repo-type model` - Creates a new model repository on Hugging Face Hub - `--repo-type model` specifies the repository type - `--type` is deprecated and should not be used - Example: `huggingface-cli repo create Berom0227/codellama-7b --repo-type model`
 - `huggingface-cli upload <repo_id> <local_path> --include='*'` - Uploads local files to the Hugging Face repository - `--include='*'` includes all files for upload - Example: `huggingface-cli upload Berom0227/codellama-7b . --include='*'`

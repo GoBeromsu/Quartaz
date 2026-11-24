@@ -26,7 +26,7 @@ Neural network 에서 뉴런 수를 늘릴 때 성능이 증가하는 scaling la
 > [!question] Research Question
 > 어떻게 효과적인 agent scaling 을 할 수 있을까? 과연 agent scaling 은 성능을 향상시킬까?
 
-하지만, 효과적인 agent 의 협업을 위해서는 단순히 agent 의 갯수를 늘려서 다수결 투표 (majority voting) 방식에 의존 할 수 없다. 효과적인 scaling 을 위해서는 ==scalable networking, cooperative interaction, and progressive decision-making== 이 필요하다. 네트워크 확장이 용이하며, 상호 협력과 점진적인 의사결정을 할 수 있어야 한다.
+하지만, 효과적인 agent 의 협업을 위해서는 단순히 agent 의 개수를 늘려서 다수결 투표 (majority voting) 방식에 의존 할 수 없다. 효과적인 scaling 을 위해서는 ==scalable networking, cooperative interaction, and progressive decision-making== 이 필요하다. 네트워크 확장이 용이하며, 상호 협력과 점진적인 의사결정을 할 수 있어야 한다.
 
 > Majority voting(다수결) 은 interaction 과 refinement 가 없고, agent 수가 증가할수록 정보 중복과 비용이 증가할 수밖에 없는 구조라 한계가 있다.
 

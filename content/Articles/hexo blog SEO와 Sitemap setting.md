@@ -9,7 +9,7 @@ tags:
 title: "hexo blog SEO와 Sitemap setting"
 ---
 
-# Hexo SEO와 sitemap.xml
+## Hexo SEO와 sitemap.xml
 
 - 아래 커맨드를 터미널(git bash 등)에 실행해주세요
 

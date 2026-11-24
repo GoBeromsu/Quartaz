@@ -15,19 +15,19 @@ permalink: gain-vs-fader
 
 ## Gain and Fader — Definition & Difference
 
-#### Gain (Preamp) 정의
+### Gain (Preamp) 정의
 
 - **Gain**은 마이크 (Microphone) 나 악기에서 들어오는 아주 작은 **Mic Level** 신호를, 믹서나 오디오 장비가 다룰 수 있는 **Line Level**로 증폭하는 입력단 (Preamp Stage) 의 조절값임.
 - 이 과정에서 신호의 **Signal-to-Noise Ratio (SNR)** 와 **Headroom**이 사실상 결정되므로, Gain 은 단순히 " 볼륨을 키우는 것 " 이 아니라 신호의 건강을 확보하는 기술적 단계임.
 - Gain 을 너무 낮게 두면 Noise Floor 가 신호와 섞여서 퍼지고, 너무 높이면 Clip Point 를 넘어 Clipping Distortion 이 생김. 이렇게 손상된 신호는 이후 Fader 에서 아무리 줄여도 복구되지 않음.
 
-#### Fader 정의
+### Fader 정의
 
 - **Fader**는 Preamp 를 거쳐 적정 Line Level 로 확보된 신호를, 믹스 안에서 **상대적 비중 (Mix Balance)** 을 맞추는 도구임.
 - Fader 는 **Attenuator(감쇠기)** 역할을 하며, 신호의 SNR 이나 Headroom 에는 영향을 주지 않음. 즉, 이미 확보된 품질을 바탕으로 각 소리를 " 얼마나 앞으로 혹은 뒤로 배치할지 " 만 결정함.
 - 보통 채널 Fader 의 "0 dB" 또는 "U(Unité)" 위치가 **Unity Gain** 상태로, 이때는 입력 레벨과 출력 레벨이 같으며, 믹스의 기준점으로 활용됨.
 
-#### Gain Vs Fader — 차이점 핵심
+### Gain Vs Fader — 차이점 핵심
 
 - Gain: **품질 (신호의 건강)** → Pre-Fader Meter 에서 판단 → -18 ~ -12 dBFS 에 맞춰 SNR 확보 + Headroom 보존
 - Fader: **비중 (믹스의 균형)** → 귀로 듣고 상대적 밸런스를 결정 → Master Meter/Monitor Output 확인
@@ -35,12 +35,12 @@ permalink: gain-vs-fader
 
 ## 실제 운용 절차
 
-#### Step 1: Gain 세팅 (품질 확보)
+### Step 1: Gain 세팅 (품질 확보)
 
 - Fader = 0 dB, Master = 0 dB → PFL 확인 → Gain 조정하여 −18 ~ −12 dBFS 맞춤.
 - HPF 적용, EQ Boost 고려, Headroom 확보.
 
-#### Step 2: Fader 세팅 (밸런스 조절)
+### Step 2: Fader 세팅 (밸런스 조절)
 
 - 모든 채널은 품질 확보 상태 → 귀로 전체 믹스 듣고 Fader 움직여 보컬, 악기, 드럼 등 비중 결정.
 - 대부분 Fader 는 −10 ~ 0 dB 범위에서 운용하는 것이 이상적.
@@ -53,14 +53,14 @@ permalink: gain-vs-fader
 
 ## Unity Gain 과 Gain Structure
 
-#### Unity Gain 개념
+### Unity Gain 개념
 
 - Unity Gain: 장치의 입력과 출력 레벨이 동일한 상태를 의미함.
 - 채널 Fader 를 0 dB(Unité) 에 두면, Preamp 에서 맞춘 신호가 그대로 출력됨.
 - 믹싱 초기에는 모든 Fader 를 Unity 에 두고 PFL 로 Gain 을 조정 → 평균 −18 ~ −12 dBFS, 피크 −10 ~ −6 dBFS 범위.
 - 이렇게 해야 Fader 는 순수하게 " 밸런스 조절 " 만 담당하고, 신호의 건강은 이미 Preamp 에서 확보됨.
 
-#### Gain Structure(게인 스트럭처)
+### Gain Structure(게인 스트럭처)
 
 - Gain Structure: 오디오 경로 전체에서 Gain, Fader, Dynamics, EQ, Bus Level, Master Output 이 조화를 이루는 레벨 균형을 뜻함.
 - 올바른 Gain Structure 를 잡으면 어느 단계에서도 Clipping 없이 깨끗한 출력이 가능하며, Headroom 도 안정적으로 유지됨.
@@ -68,13 +68,13 @@ permalink: gain-vs-fader
 
 ## Headroom 과 Dynamic Range
 
-#### Headroom
+### Headroom
 
 - Headroom: Nominal Level(평균 동작 레벨) 과 Clip Point(왜곡 시작 지점) 사이의 여유 공간.
 - 음악 공연은 보통 15~20 dB, 스피치는 10 dB 정도 확보하는 것이 이상적.
 - 충분한 Headroom 은 연주자가 순간적으로 강하게 소리를 내더라도 Distortion 없이 버틸 수 있는 안전 장치임.
 
-#### Dynamic Range
+### Dynamic Range
 
 - Dynamic Range: Noise Floor(시스템 바닥 잡음) 와 Clip Point(최대 신호) 사이의 범위.
 - Gain 의 역할은 이 Dynamic Range 안에서 신호를 가장 효율적으로 배치하는 것임.
@@ -82,31 +82,31 @@ permalink: gain-vs-fader
 
 ## Processing 과의 관계
 
-#### Dynamics (Compressor, Gate 등)
+### Dynamics (Compressor, Gate 등)
 
 - Compressor 와 Gate 는 설정된 Threshold 를 기준으로 동작하는데, 이 기준은 Preamp 에서 결정된 신호 레벨에 의존함.
 - Gain 이 너무 낮으면 Compressor 가 거의 작동하지 않고, 너무 높으면 계속 눌려서 의도와 다른 결과가 발생함.
 
-#### EQ
+### EQ
 
 - EQ Boost 는 신호 전체 레벨을 끌어올려 Headroom 을 줄임.
 - Boost 가 많을 경우 Preamp 를 낮추거나 EQ 이후 Trim 으로 보정해야 함.
 - Cut 중심 EQ 는 Headroom 을 보존하는 안전한 접근임.
 
-#### High-Pass Filter (HPF)
+### High-Pass Filter (HPF)
 
 - HPF 는 저역 Rumble, Handling Noise 같은 불필요한 저주파를 제거해 Headroom 을 확보하고 Gain-Before-Feedback(GBF) 을 개선함.
 - 보컬·스피치에서는 기본적으로 ON 을 권장.
 
 ## Metering 과 판단 기준
 
-#### Pre-Fader Meter (PFL)
+### Pre-Fader Meter (PFL)
 
 - Gain 세팅은 반드시 Pre-Fader Meter 로 확인해야 함.
 - 목표는 평균 −18 ~ −12 dBFS, 피크 −10 dBFS 근처.
 - Fader 위치와 관계없이 Preamp 신호 자체의 건강을 평가할 수 있음.
 
-#### Post-Fader Meter (Main Output, AFL)
+### Post-Fader Meter (Main Output, AFL)
 
 - 믹스 밸런스, 버스, Master 출력 확인용.
 - Gain 세팅에는 적합하지 않음.

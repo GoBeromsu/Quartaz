@@ -27,9 +27,9 @@ title: "AI 를 통한 연구 맥락 복원과 지식 관리 워크플로우"
 
 **자기소개**
 
-1\. 영국 Computer science 대학원 졸업 예정  
-2\. 현재는 2026 Conference 준비 중  
-3\. Obsidian 을 좋아합니다 (2023 ~)
+1. 영국 Computer science 대학원 졸업 예정
+2. 현재는 2026 Conference 준비 중
+3. Obsidian 을 좋아합니다 (2023 ~)
 
 ---
 

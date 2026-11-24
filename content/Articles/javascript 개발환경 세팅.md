@@ -8,13 +8,13 @@ tags:
 title: "javascript 개발환경 세팅"
 ---
 
-# 응? 뜬금 javascript 하는거냐?
+## 응? 뜬금 javascript 하는거냐?
 
 깊게 공부할 생각은 없고 그냥 코드를 읽으면 이렇게 돌아가는구나 자바스크립트는 이런 언어 이구나 알고 싶다. 그런것도 있고 자바 스크립트의 철학이라던가 워게임 할 때도 필요하고 하니 미리 조곰 해두려고 이 때 아니면 언제 해보냐?
 
-# VScode에서 jscode 개발 환경 세팅
+## VScode에서 jscode 개발 환경 세팅
 
-- liver server 설치
+- live server 설치
   - 파일 - 설정 - liveserver default 브라우저 크롬으로 변환
 - html, js 파일 생성
 

@@ -9,11 +9,11 @@ tags:
 title: "CodingTest 감 살리기 with Programmers - 9일차"
 ---
 
-# CodingTest 감 살리기 with Programmers
+## CodingTest 감 살리기 with Programmers
 
 - 코딩 테스트를 준비 하게 되어서, 기본적인 문법도 되짚고, 감을 되찾기 위해 시작합니다
 
-## 숫자 문자열과 영단어
+### 숫자 문자열과 영단어
 
 ```python
 from collections import deque
@@ -90,7 +90,7 @@ def solution(s):
     return int(''.join(number))
 ```
 
-## [카카오 인턴] 키패드 누르기
+### [카카오 인턴] 키패드 누르기
 
 ```python
 def solution(numbers, hand):

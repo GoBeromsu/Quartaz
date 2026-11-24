@@ -12,11 +12,11 @@ title: "Kurento로 N:N Group Call 하는 방법"
 - Client는 Kurento Utils
 - Server는 Kurento Client
 
-# Group Call wtih Kurento- Java
+## Group Call wtih Kurento- Java
 
 Node.js로 어플리케이션을 개발하는 중인데 Webrtc를 사용하는 것이 처음이다보니, Docs에 있는 예제를 읽고 먼저 이해하는 것이 먼저란 생각이 들어서 해당 글을 쓰게 되었다. 개념도 부족하고 이해도 부족하기에 일단 블로그 포스팅하고 점점 채워 나가야겠다
 
-## 선행 개념
+### 선행 개념
 
 - 방이란?
   - 각 방은 다른 방과 격리된 자체 파이프라인을 생성한다
@@ -42,7 +42,7 @@ Node.js로 어플리케이션을 개발하는 중인데 Webrtc를 사용하는 �
   2. Kurento Client와 Kurento Media Server 간의 통신을 위한 Web Socket이 생성된다.
      - 통신은 Kurento 프로토콜을 사용하여 이루어진다.
 
-## Application Server Logic
+### Application Server Logic
 
 서버 로직의 핵심은 GroupCallApp 클래스이다. KurentoClient는 해당 클래스에서 Spring Bean으로 인스턴스화 된다.
 해당  Bean은 애플리케이션에 미디어 기능을 추가하는데 사용되는 Kurento 미디어 파이프라인을 만드는데 사용된다.
@@ -60,7 +60,7 @@ Kurento 클라이언트가 인스턴스화 되면 Kurento 미디어 서버와 �
     - 즉 이전 시퀀스 다이어그램에서 설명한 시그널링 프로토콜의 서버 부분을 구현하다
   - Text로 들어오는 메시지들을 확인해서 switch 절에서 명령을 정리한다.
 
-## Client Logic
+### Client Logic
 
 - 서버에 생성된 WebSocket 서비스를 호출하기 위해 Javascript가 사용되었다
 - Kurento-util.js는 Kurento Javascript 라이브러리를 사용하여 WebRTC와 서버 간의 상호 작용을 단순화한다.
@@ -68,7 +68,7 @@ Kurento 클라이언트가 인스턴스화 되면 Kurento 미디어 서버와 �
 - 클라이언트 측에서는 json 신호 프로토콜을 이용해 메세지를 생성한다.
   - Kurento-utils.js가 이 때에 사용된다.
 
-# Reference
+## Reference
 
 - [Kurento Group Call - Java](https://doc-kurento.readthedocs.io/en/6.16.0/tutorials/java/tutorial-groupcall.html)
 

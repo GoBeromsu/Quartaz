@@ -81,7 +81,7 @@ title: "관계 데이터베이스 언어(SQL)(실기)"
       - DATE
 
 * 스키마 정의
-  - CREATE SCHEMA 스키마\_이름 AUTHORIZATIO 사용자;
+  - CREATE SCHEMA 스키마\_이름 AUTHORIZATION 사용자;
 * 도메인 정의
   - CREATE DOMAIN 도메인\_이름 데이터\_타입 [DEFAULT 기본값][ constraint 제약조건_이름] CHECK(VALUE IN(범위 값))
 * 인덱스 정의
@@ -101,10 +101,10 @@ title: "관계 데이터베이스 언어(SQL)(실기)"
 
 #### DROP
 
-- DROP TABLE 테이블\_이름 [CASCAD|RESTRICT];
-- DROP SCHEMA 스키마\_이름 [CASCAD|REASTRICT];
-- DROP DOMAIN 도메인\_이름 [CASCAD|REASTRICT];
-- DROP VIEW 뷰\_이름 [CASCAD|REASTRICT];
+- DROP TABLE 테이블\_이름 [CASCADE|RESTRICT];
+- DROP SCHEMA 스키마\_이름 [CASCADE|RESTRICT];
+- DROP DOMAIN 도메인\_이름 [CASCADE|RESTRICT];
+- DROP VIEW 뷰\_이름 [CASCADE|RESTRICT];
 - DROP INDEX 인덱스\_이름;
 - DROP CONSTRAINT 제약조건\_이름'
 
@@ -114,7 +114,7 @@ title: "관계 데이터베이스 언어(SQL)(실기)"
 
 #### SELECT(검색문)
 
-- SELET [DISTINCT] 속성\_이름 FROM 테이블\_이름 [WHERE 조건]GROUP BY 속성\_이름 [HAVING 그룹 조건]][ORDER BY 속성\_이름 [ASC | DESC]];
+- SELECT [DISTINCT] 속성\_이름 FROM 테이블\_이름 [WHERE 조건]GROUP BY 속성\_이름 [HAVING 그룹 조건]][ORDER BY 속성\_이름 [ASC | DESC]];
   - WHERE
     - 검색에 필요한 조건 기술
     - 관계 연산자와 논리 연산자 등의 다양한 연산자를 이용할 수 있음

@@ -9,11 +9,11 @@ tags:
 title: "CodingTest 감 살리기 with Programmers - 4일차"
 ---
 
-# CodingTest 감 살리기 with Programmers
+## CodingTest 감 살리기 with Programmers
 
 - 코딩 테스트를 준비 하게 되어서, 기본적인 문법도 되짚고, 감을 되찾기 위해 시작합니다
 
-## 올바른 괄호
+### 올바른 괄호
 
 ```python
 def solution(s):
@@ -32,7 +32,7 @@ def solution(s):
     return answer
 ```
 
-## 프린터
+### 프린터
 
 ```python
 from collections import deque
@@ -60,7 +60,7 @@ def solution(priorities, location):
     return count
 ```
 
-## 모의고사
+### 모의고사
 
 ```python
 def solution(answers):
@@ -82,7 +82,7 @@ def solution(answers):
 
 ```
 
-## 소수 찾기
+### 소수 찾기
 
 ```python
 from itertools import permutations
@@ -116,7 +116,7 @@ def solution(numbers):
     return answer
 ```
 
-### 고민했던 것들
+#### 고민했던 것들
 
 - 순열로 숫자를 조합하니 중복이 많아 자원 낭비가 발생한다
   - set으로 모두 지우려고 했지만, 전처리 단계를 무조건 거치는 것이 효율적이지 않으며, 인덱스가 다르면 걸러지지 않았다
@@ -124,7 +124,7 @@ def solution(numbers):
 - 소수 찾기를 어떻게 해야 효율적일까?
   - numbers의 길이가 7이하이니까 미리 전부 구하는 것은 비효율적이라 생각했다
 
-## 체육복
+### 체육복
 
 ```python
 def solution(n, lost, reserve):
@@ -156,14 +156,14 @@ def solution(n, lost, reserve):
 
 - 그리디 알고리즘을 아는가 물어보는 문제이다
 
-### 기억하자
+#### 기억하자
 
 - 중복을 미리 제거하는 것을 잊지 말자
   - 이 문제에서라면 도난 당한 학생 중 여분의 체육복이 있는 학생을 미리 제거하는 것이 더 효율적이다
 - for 문보다 list comprehension을 사용하자
   - `answer = sum(1 for x in st if x > 0)`
 
-## 조이스틱
+### 조이스틱
 
 ```python
 def solution(name):

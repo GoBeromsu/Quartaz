@@ -171,11 +171,11 @@ return dp[max_alp][max_cop]
 
 1. **최소 시간의 업데이트:**
    - `dp[current_alp + 1][current_cop]`의 값을 업데이트할 때, 우리는 두 가지 경우를 고려합니다:
-     - **이전에 계산된 시간:** `dp[current_alp + 1][current_cop]`가 이미 어떤 경로를 통해 계산되었다면, 그 값은 `current_alp + 1`과 `current_cop`를 달성하기 위해 지금까지 알려진 최소 시간입니다.
-     - **새로운 계산:** `current_alp`에서 `알고력`을 하나 증가시키는 데 추가로 1시간이 필요합니다.
-       - 따라서 `dp[current_alp][current_cop] + 1`은 새로운 경로를 통해 `current_alp + 1`과 `current_cop`를 달성하는 데 필요한 총 시간입니다.
+     - **이전에 계산된 시간:** `dp[current_alp + 1][current_cop]`가 이미 어떤 경로를 통해 계산되었다면, 그 값은 `current_alp + 1`과 `current_cop`를 달성하기 위해 지금까지 알려진 최소 시간입니다.
+     - **새로운 계산:** `current_alp`에서 `알고력`을 하나 증가시키는 데 추가로 1시간이 필요합니다.
+       - 따라서 `dp[current_alp][current_cop] + 1`은 새로운 경로를 통해 `current_alp + 1`과 `current_cop`를 달성하는 데 필요한 총 시간입니다.
 2. **최소 시간을 선택:**
-   - `min` 함수를 사용하여 이 두 가지 경우 중 더 작은 값을 선택합니다. 이는 `current_alp + 1`과 `current_cop`를 달성하기 위한 **최소 시간**을 보장합니다.
+   - `min` 함수를 사용하여 이 두 가지 경우 중 더 작은 값을 선택합니다. 이는 `current_alp + 1`과 `current_cop`를 달성하기 위한 **최소 시간**을 보장합니다.
 
 모든 업데이트가 완료된 후의 최종 동적 프로그래밍(DP) 테이블은 다음과 같습니다.  
 테이블에서 각 셀은 특정 `알고력`과 `코딩력` 조합을 달성하기 위해 필요한 최소 시간을 나타냅니다.
@@ -226,7 +226,7 @@ def solution(alp, cop, problems):
     return dp[target_alp][target_cop]
 ```
 
-시작점(`alp`, `cop`)부터 타겟(`target_alp`, `target_cop`)까지만 고려하여 계산 범위를 줄였습니다
+시작점(`alp`, `cop`)부터 타겟(`target_alp`, `target_cop`)까지만 고려하여 계산 범위를 줄였습니다
 
 ## 복습
 

@@ -9,7 +9,7 @@ tags:
 title: "Tensorflow intro - Hello Tensor Flow"
 ---
 
-# TensorFlow 입문
+## TensorFlow 입문
 
 TensorFlow는 graph로 연산을 나타내는 프로그래밍 시스템이다.
 그래서 당연히 노드 단위로 일을 하고 graph에 있는 노드는 op(작업)(operation)이라고 부른다.
@@ -20,16 +20,15 @@ TensorFlow에서 Graph는 연산을 표현해 놓은 것이라서 연산을 하�
 
 보통 Tensro는 파이썬에서 numpy ndarry 형식으로 출력된다ㅓ.
 
-## 설치 방법
+### 설치 방법
 
 ```bash
 pip install tensorflow-gpu
 ```
 
+### Error && Tip
 
-## Error && Tip
-
-### 코드 실행 시 Warning 뜨지 않게 하는 방법
+#### 코드 실행 시 Warning 뜨지 않게 하는 방법
 
 - 아래 코드를 입력하면된다
 - 코드 내용은 메세지 코드 중 Warning을 뜨지 않게 하겠다란 의미이다
@@ -41,7 +40,7 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 ```
 
-### Could not load dynamic library 'cudart64_110.dll'
+#### Could not load dynamic library 'cudart64_110.dll'
 
 ```bash
 2022-07-27 15:00:14.017560: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'cudart64_110.dll'; dlerror: cudart64_110.dll not found
@@ -56,7 +55,7 @@ AI, 채굴, 딥러닝 분야에서 많은 양의 연산을 동시처리하는 �
 
 - CUDA 64bit 11 Version을 재설치 후 재부팅하면 된다
 
-### AttributeError: module 'tensorflow' has no attribute 'Session'
+#### AttributeError: module 'tensorflow' has no attribute 'Session'
 
 ```python
 import tensorflow as tf
@@ -81,7 +80,7 @@ tf.print(hello)
 
 - 새로운 version은 위와 같이 간단하게 쓰면 된다!
 
-## Reference
+### Reference
 
 - [TensorFlow 문서 번역](https://tensorflowkorea.gitbooks.io/tensorflow-kr/content/g3doc/get_started/basic_usage.html)
 

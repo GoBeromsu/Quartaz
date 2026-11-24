@@ -16,7 +16,7 @@ The reason I became curious about the `np.mean()` function is that I realized I 
 
 Building on this, I wrote some code to calculate **Conditional Entropy**, as shown in the example below:
 
-```
+```python
 def compute_conditional_entropy(Xdata, ydata):
     """Return the conditional entropy H(Y|X) of ydata given the series (i.e. 'column') Xdata.    - Xdata is a series (e.g., a single column) from a pandas DataFrame, e.g. X['long petal']
     - ydata are the associated labels
@@ -33,7 +33,7 @@ In this code, `np.mean()` is used to compute the **conditional probability** in 
 
 A similar approach can be taken :
 
-```
+```python
 def compute_conditional_entropy2(Xdata, ydata):
     entropy = 0
     for v in Xdata.unique():
@@ -46,7 +46,7 @@ Both methods compute conditional entropy, but the first method utilizing `np.mea
 
 ## Explanation of `np.mean()` Function
 
-```
+```python
 def mean(a, axis=None, dtype=None, out=None, keepdims=<no value>):
     arr = asanyarray(a)
     

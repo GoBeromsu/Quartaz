@@ -14,11 +14,11 @@ title: "algorithm_boj2178"
 https://documentation.divio.com/tutorials/
 -->
 
-# 백준 2178 미로 탐색
+## 백준 2178 미로 탐색
 
-## 문제
+### 문제
 
-## 풀이
+### 풀이
 
 * 첫 번째 풀이
 

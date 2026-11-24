@@ -9,11 +9,11 @@ tags:
 title: "CodingTest 감 살리기 with Programmers - 8일차"
 ---
 
-# CodingTest 감 살리기 with Programmers
+## CodingTest 감 살리기 with Programmers
 
 - 코딩 테스트를 준비 하게 되어서, 기본적인 문법도 되짚고, 감을 되찾기 위해 시작합니다
 
-## 다트 게임
+### 다트 게임
 
 ```python
 def solution(dartResult):
@@ -47,7 +47,7 @@ def calc(d,op):
         return d*d*d
 ```
 
-## 비밀지도
+### 비밀지도
 
 ```python
 def solution(n, arr1, arr2):
@@ -85,7 +85,7 @@ def calc(lenth,num):
 - 이진수 바꾸는걸 직접 구현해서 풀었다
   - 파이썬에서 제공하긴 하지만, 그냥 만들어서 쓰는 것도 연습해두는게 좋을거란 생각이 들었기 때문이다!
 
-## 성격 유형 검사하기
+### 성격 유형 검사하기
 
 ```python
 def solution(survey, choices):

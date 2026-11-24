@@ -58,7 +58,7 @@ grid = [list(map(int, input().split())) for _ in range(n)]
 print(bfs(n,k, grid))
 ```
 
-즉 단지의 갯수가 가장 많은 번호의 유형을 추가하면 된다
+즉 단지의 개수가 가장 많은 번호의 유형을 추가하면 된다
 
 BFS 방식으로 문제를 풀었다. 모든 맵을 순회하면서, 새로운 유형의 건물을 만나면 dic에 추가한다
 

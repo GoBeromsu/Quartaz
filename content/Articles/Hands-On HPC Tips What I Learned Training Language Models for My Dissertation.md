@@ -46,7 +46,7 @@ It is convenient to save frequently used commands so they can be pasted directly
 
 Running code in an interactive session is the easiest way to check things in real time before committing to a long batch job. With a single command like
 
-```
+```bash
 srun --partition=gpu --qos=gpu --gres=gpu:1 --pty bash
 
 srun --partition=gpu-h100 \
@@ -68,7 +68,7 @@ Modules make it easier to manage versions — `module avail CUDA` shows what is 
 
 Here’s a subset of my setup script that demonstrates how I handled rebuilds when versions did not line up:
 
-```
+```bash
 # Install CUDA-specific PyTorch separately (avoid generic CPU wheel)
 echo "Installing CUDA-specific PyTorch..."
 python -m pip install torch==2.5.1+cu121 --index-url https://download.pytorch.org/whl/cu121
@@ -96,7 +96,7 @@ The fix is simple: redirect the Hugging Face cache to *Fastdata*. Fastdata provi
 
 You can set this up with a symlink:
 
-```
+```bash
 mkdir -p /mnt/parscratch/users/$USER/.cache/huggingface
 rm -rf ~/.cache/huggingface
 ln -s /mnt/parscratch/users/$USER/.cache/huggingface ~/.cache/huggingface
@@ -104,7 +104,7 @@ ln -s /mnt/parscratch/users/$USER/.cache/huggingface ~/.cache/huggingface
 
 Or by adding an environment variable to your shell config:
 
-```
+```bash
 export HF_HOME=/mnt/parscratch/users/$USER/.cache/huggingface
 ```
 
@@ -114,7 +114,7 @@ Either way, this ensures Hugging Face caching works smoothly without hitting quo
 
 You don’t have to manually start inference after training finishes. SLURM lets you chain jobs so that inference begins automatically once training completes.
 
-```
+```bash
 sbatch --dependency=afterok:<jobid> run_inference.sh
 ```
 
@@ -124,7 +124,7 @@ Use `afterok` if you want inference to run only when training ends successfully,
 
 You can have SLURM notify you when jobs start, end, or fail without constantly checking the queue. Just add these lines to your batch script:
 
-```
+```bash
 #SBATCH --mail-user=<your_uos_email>
 #SBATCH --mail-type=BEGIN,END,FAIL
 ```
@@ -133,7 +133,7 @@ You can have SLURM notify you when jobs start, end, or fail without constantly c
 
 If a job is running slower than expected, you can jump into the node and inspect it directly.
 
-```
+```bash
 srun --jobid=<jobid> --pty bash   # enter the node
 sattach <jobid>                  # attach to job output
 ```

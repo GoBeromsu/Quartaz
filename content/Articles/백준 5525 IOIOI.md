@@ -14,8 +14,6 @@ title: "백준 5525 IOIOI"
 https://documentation.divio.com/tutorials/
 -->
 
-# 백준 5525 IOIOI
-
 ## 문제
 
 N+1개의 I와 N개의 O로 이루어져 있으면, I와 O이 교대로 나오는 문자열을 PN이라고 한다.
@@ -53,7 +51,7 @@ while 1:
 print(ans)
 ```
 
-* 아래 코드는 100점이다. 
+* 아래 코드는 100점이다.
 
 ```python
 import sys

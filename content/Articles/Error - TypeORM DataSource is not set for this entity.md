@@ -11,13 +11,13 @@ tags:
 title: "Error - TypeORM DataSource is not set for this entity"
 ---
 
-# TypeORM DataSource is Not Set for This Entity Feat yarn.lock
+## TypeORM DataSource is Not Set for This Entity Feat yarn.lock
 
 팀원들의 코드를 머지하고 났더니, 일부 팀원들에게서 DataSource is not set for this entity 에러가 발생했다.
 
-## 접근 방식
+### 접근 방식
 
-### 프론트에서 날린 Axios?
+#### 프론트에서 날린 Axios?
 
 ```ts
 const handleLoginSuccess = async (code: string) => {
@@ -33,7 +33,7 @@ const handleLoginSuccess = async (code: string) => {
 
 콘솔에서 찍힌 위치를 보니 login 페이지에서 SSO에서 토큰을 받아오는 부분이었다.
 
-### API가 잘못 된 것인가?
+#### API가 잘못 된 것인가?
 
 URI에 문제가 없으므로, API를 점검했다. 백엔드에서는 fastify-typeORM로 서버를 만들고 있다.  
 API 호출하는 부분에서 다른 모듈을 호출하는 console.log()를 찍어 봤는데, 여전히 500에러가 발생했다.
@@ -65,7 +65,7 @@ fastify.get("/", async (req: FastifyRequest, reply: FastifyReply) => {
 });
 ```
 
-### TypeORM 문제이지 않을까?
+#### TypeORM 문제이지 않을까?
 
 TypeORM Entity 부분이나 초기 설정이 잘못 되었을거라 생각했다. 정확히 Entity를 호출하는 부분에서 발생했음을 확인했고, 데이터베이스 커넥트는 로그를 통해 확인했기 때문이다.  
 하지만, Entity 부분에서 더 파고 들어갈 부분이 없었다. 더 이상은 내가 짠 코드가 아닌 라이브러리에서 호출하는 것들이었기 때문이다.
@@ -84,7 +84,7 @@ const isLocal = process.env.NODE_ENV === "local";
 export default isProd ? prodConfig : isLocal ? localConfig : devConfig;
 ```
 
-### 도대체, 뭐가 문제냐
+#### 도대체, 뭐가 문제냐
 
 하지만, 설정 값을 동일하게 해도 문제가 해결 되지 않았다. 이 때 다른 팀원이 typeORM 버전이 다른게 아니냐는 의문을 던졌다.  
 Package.json으로 의존성 관리를 하고 있는데, 그런 일이 일어날까 싶었다. 근데 마지막 의심 되는 부분은 의존성 밖에 없어 다시 확인했다
@@ -92,7 +92,7 @@ Package.json으로 의존성 관리를 하고 있는데, 그런 일이 일어날
 혹시나 싶어 확인한 package.json은 모두가 동일하게 가지고 있다. 이 때 들어온 것은 yarn.lock이다.  
 최근 혼자 사이드 프로젝트를 하던 중 yarn.lock 때문에 에러가 발생한 적이 있었기 때문에 불현듯 저거 아닌가 싶었다
 
-## 해결 방법 : 범인은, yarn.lock
+### 해결 방법 : 범인은, yarn.lock
 
 ```text
 typeorm@^0.3.6:
@@ -102,7 +102,7 @@ typeorm@^0.3.6:
 yarn.lock을 확인했는데 찾았다!! 문제가 발생한 팀원들은 나와 yarn.lock의 typeorm 버전이 달랐다…  
 **내 yarn.lock 파일을 공유했더니 문제는 해결 되었다**
 
-### 왜 yarn.lock을 쓰는가?
+#### 왜 yarn.lock을 쓰는가?
 
 결론 내가 yarn.lock의 용도를 잘 몰라 발생한 휴먼에러였다
 

@@ -8,7 +8,7 @@ tags:
 title: "git 사용 방법"
 ---
 
-# Git 사용법
+## Git 사용법
 
 - 원격 저장소 갱신
 
@@ -24,13 +24,13 @@ git branch -r
 
 - 원격 저장소 가져오기
   - branch 이름 형식은 origin/dev 이렇게 적어야합니다.
-  - git branch -r로 출력된 이름을 입력하면 되요
+  - git branch -r로 출력된 이름을 입력하면 돼요
 
 ```shell
 git checkout -t [branch 이름]
 ```
 
-## Reference
+### Reference
 
 [git 브랜치: 가져오기, 합치기, 삭제하기](https://yztech.tistory.com/32)
 

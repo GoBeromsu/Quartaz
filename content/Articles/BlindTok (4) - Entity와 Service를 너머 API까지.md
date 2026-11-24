@@ -243,7 +243,7 @@ fastify.register(oauth2, googleAuth);
 sso 로그인 흐름을 보면, 바로 로그인 후 토큰을 주는 것이 아니라, 중간 과정이 있다  
 어떤 데이터(email, storage)를 원하는지 확인하는 과정인데, 이 과정이 끝나고 토큰을 발행 할 때 callback URI가 필요하다
 
-**callback uri 등의 경로 지정에 꼭꼭 유의하자!** 경로 설정이 잘못 되서 삽질하는 경우가 잦다
+**callback uri 등의 경로 지정에 꼭꼭 유의하자!** 경로 설정이 잘못 돼서 삽질하는 경우가 잦다
 
 ```ts
 fastify.get("/callback", async (req: FastifyRequest, reply: FastifyReply) => {

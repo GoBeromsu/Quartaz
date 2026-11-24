@@ -17,7 +17,7 @@ title: "jeykll theme 꾸미기"
 
 - \_config.yml - minimal_mistakes_skin
 
-```
+```yaml
 minimal_mistakes_skin: "default" # "air", "aqua", "contrast", "dark", "dirt", "neon", "mint", "plum" "sunrise"
 ```
 
@@ -29,7 +29,7 @@ Dark도 괜찮은듯? 아이폰 다크모드 느낌나는데 글 쓰는 지금�
 
 - \_config.yml - logo
 
-```
+```yaml
 logo : /assets/images/500x300.png
 ```
 
@@ -45,7 +45,7 @@ logo : /assets/images/500x300.png
 
 - \_data/navigation.yml:
 
-```
+```yaml
 main:
   - title: "Home"
     url: https://goberomsu.github.io/
@@ -57,13 +57,13 @@ main:
 ```
 
 - title : navigation에 표시될 이름
-- url : 링크 (permerlink, hotlink 다 된다. )
+- url : 링크 (permalink, hotlink 다 된다. )
 
 ## Font 크기 변경
 
 - \_sass/minimal-mistakes/\_variables.scss
 
-```
+```scss
 $doc-font-size: 14 !default;
 ```
 
@@ -75,7 +75,7 @@ default가 16인데 조금 큰거 같아 14로 바꿨다.
 
 contrast skin으로 바꿨는데 다 좋은데 뭐랄까 Post가 파란글씨로 뜨는게 맘에 안들어서 직접 들어가서 바꿨다.
 
-```
+```scss
 /* Colors */
 
 $text-color: #000 !default;
@@ -92,7 +92,7 @@ $navicon-link-color-hover: mix(#fff, $text-color, 80%) !default;
 
 ![test](/_attachments/ghio-jekyll-theme-customization-03.jpg)
 
-visual stuido code를 이용할 경우 마우스 커서가 \#에 가까이가면 RGB 설정 GUI가 뜬다.
+visual studio code를 이용할 경우 마우스 커서가 \#에 가까이가면 RGB 설정 GUI가 뜬다.
 그래서 직접 색상 코드를 입력하거나 그냥 고르면 된다.
 
 ## Breadcrumbs 달기

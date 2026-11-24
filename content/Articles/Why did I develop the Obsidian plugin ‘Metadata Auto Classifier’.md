@@ -102,3 +102,5 @@ We want to improve classification accuracy by providing the AI model with clear 
 ---
 
 *2024-10-10에 [Medium](https://beromkoh.medium.com/why-did-i-develop-the-obsidian-plugin-metadata-auto-classifier-405a81f16657)에 쓴 글을 옮겼습니다.*
+
+관련: [[Metadata Auto Classifier]]

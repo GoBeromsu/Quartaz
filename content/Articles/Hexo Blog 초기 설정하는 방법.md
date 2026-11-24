@@ -38,7 +38,7 @@ themes/
 node_modules/
 ```
 
-- \*.json 같은 경우 루트 디렉터리(gitigonore 파일이 위치한 장소)에서 json 포맷을 add 하지 않겠다는 소리
+- \*.json 같은 경우 루트 디렉터리(gitignore 파일이 위치한 장소)에서 json 포맷을 add 하지 않겠다는 소리
 - themes/ 는 디렉터리 themes 하위 어떤 내용도 add 하지 않겠다는 내용이다
 
 수정을 마쳤다면 커밋하고 푸시까지 해주면 끝이다!

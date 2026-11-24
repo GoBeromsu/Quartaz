@@ -8,7 +8,7 @@ tags:
 title: "VLM 부트캠프 - Coding Test Review"
 ---
 
-# 문제
+## 문제
 
 JSON 형식의 파일에서 정해진 조건으로 데이터를 출력하는 문제이다
 
@@ -31,9 +31,9 @@ const users = [
 5. users를 나이(내림차순)로 정렬하시오
 6. users를 생일(년도오름차순)으로 정렬하시오
 
-## 내 코드
+### 내 코드
 
-### 1. Users의 평균나이를 구하시오
+#### 1. Users의 평균나이를 구하시오
 
 ```javascript
 function problem1() {
@@ -60,7 +60,7 @@ function problem1() {
 });
 ```
 
-### 2. 24살이상인 User를 출력하시오
+#### 2. 24살이상인 User를 출력하시오
 
 ```javascript
 function problem2() {
@@ -78,7 +78,7 @@ arr.filter(callback(element[, index[, array]])[, thisArg])
 
 기본적인 형태는 위와 같은데, callback 함수의 참을 반환하는 값들로만 새로운 배열을 만들어준다
 
-### 3. Users의 이름`[나이/성별]`로 출력하시오
+#### 3. Users의 이름`[나이/성별]`로 출력하시오
 
 ```javascript
 function problem3() {
@@ -96,7 +96,7 @@ function problem3() {
 }
 ```
 
-### 4. Users를 이름(오름차순)으로 정렬하시오
+#### 4. Users를 이름(오름차순)으로 정렬하시오
 
 ```javascript
 function problem4() {
@@ -106,7 +106,7 @@ function problem4() {
 }
 ```
 
-### 5. Users를 나이(내림차순)로 정렬하시오
+#### 5. Users를 나이(내림차순)로 정렬하시오
 
 ```javascript
 function problem5() {
@@ -116,7 +116,7 @@ function problem5() {
 }
 ```
 
-### 6. Users를 생일(년도오름차순)으로 정렬하시오
+#### 6. Users를 생일(년도오름차순)으로 정렬하시오
 
 ```javascript
 function problem6() {
@@ -130,7 +130,7 @@ function problem6() {
 }
 ```
 
-### 피드백
+#### 피드백
 
 코드를 줄여야겠다는 생각에, 함수에서 console 창에 찍는 것도 함께 했다.  
 이런 짧은 코드에서도 기능 분리하는 습관을 들일 필요가 있다

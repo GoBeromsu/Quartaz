@@ -1,0 +1,314 @@
+---
+aliases: []
+date_created: 2022-01-14
+date_modified: 2023-07-17
+permalink: til-recursion
+tags:
+  - algorithm
+title: "Recursion(순환)"
+---
+순환이란. 어떠한 것을 정의할 때 자기 자신을 참조하는 것을 의미한다
+재귀 함수는 함수 내에서 자기 자신을 다시 호출함으로써 순환하는데,
+이 과정을 통해 값을 도출한다.
+
+## 무한루프에 빠지지 않으려면?
+
+* base case: 적어도 하나의 순환에 빠지지 않는 경우가 존재해야 한다.
+* recursive case : 순환을 반복하다보면 결국 base case로 수렴해야한다.
+
+## 수학적 재귀법으로 순환 증명
+
+1. 재귀함수의 base 케이스가 순환에 빠지지 않고, 올바른 계산 결과를 확인하는지 확인
+2. recursive case를 늘려가며 계산이 맞음을 증명
+
+### 예제 코드
+```python
+def fac(n : int):
+    if(n==0):
+        return 0
+    else:
+        return n*fac(n-1)
+```
+
+## Recursive Thinking
+
+수학 함수뿐 아니라 다른 많은 문제들을 recursion으로 해결할 수 있다.
+
+반복문을 사용해야하는 일을 모두 재귀 함수로 해결할 수 있다.
+
+* 문자열의 갯수 표현
+
+```java
+public static int length(String str){
+    if(str.equals(""))
+        return 0;
+    else
+        return 1 + length(str.substring(1))
+}
+```
+* 문자열을 뒤집어 표현
+
+```java
+public static void printCharsReverse(String str){
+    if (str.length()==0)
+        return;
+    else{
+        printCharsReverse(str.substring(1))
+        System.out.println(str.charAt(0))
+    }
+}
+```
+
+* 데이터 파일로 부터 n 개의 정수 읽어오기
+
+```java
+public void readFrom(int n, int [] data,Scanner in){
+    if (n==0)
+        return;
+    else{
+        readFrom(n-1,data,in);
+        data[n-1]=in.nextInt();
+    }
+}
+```
+
+## Recursion vs Iteration
+
+* 모든 순환함수는 반복문으로 변경 가능 (그 역도 성립함)
+* 순환함수는 복잡한 알고리즘을 단순하고 알기 쉽게 표현 가능
+* 함수 호출에 따른 오버헤드 존재(매개변수 전달, 액티베이션 프레임 생성 등)
+
+## Designing Recursion
+
+* 암시적 매개변수를 __명시적 매개변수__ 로 바꿔라
+
+```java
+int search(int [] data, int begin, int end, int target){
+    if(begin>end)
+        return -1;
+    else if (target==items[begin])
+        return begin;
+    else
+        return search(data,begin+1,end,target);
+}
+```
+* 위의 search 함수는 검색 구간의 시작점을 명시적으로 지정한다
+  * recursive 함수의 경우 본인을 재호출할 때 시작 인덱스를 지정해줘야하기 때문이다.
+
+### 미로 찾기
+
+```java
+boolean findPath(x,y){
+    if (x,y) is the exit
+        return true;
+    else
+        for each neighbouring cell (a, b) of (x,y) do
+            if(a,b) is on the pathway
+                if findPath(a,b)
+                    return true;
+        return false
+}
+```
+
+위의 코드는 인접한 4면 중 출구로 가는 길이 있는지 확인하는 코드이다.
+여기엔 함정이 숨어있는데 (a,b)가 출구로 가는 길이라면 (a,b) 입장에서는 x,y 또한 출구로 가는 길이므로 순환 함정에 빠진다
+
+```java
+boolean  findPath(x,y)
+    if (x,y) is the exit
+        return true;
+    else
+        mark(x,y) as a visited cell;
+        for each neighbouring cell (a,b) of (x,y) do
+            if(a,b) is on the pathway and not visited
+                if findPath(a,b)
+                    return true;
+        return false
+```
+
+이를 해결하기 위해 아이디어를 하나 추가한다. 방문한 셀에는 표시를 하는 것이다.
+
+## Counting cells in a Blob
+
+* 입력
+  * n*n 크기의 2차원 그리드
+  * 하나의 좌표 (x,y)
+
+현재 픽셀이 속한 blob의 크기를 카운트 하려면
+```python
+if not 현재 픽셀 != image color:
+    return 0
+else:
+    먼저 현재 픽셀 카운트 (count=1)
+    현재 픽셀이 중복 카운트되는 것을 방지하기 위해 다른 색으로 칠함
+    현재 픽셀에 이웃한 모든 픽셀들에 대해서
+        그 픽셀이 속한 blob의 크기를 count하여 counter에 더해준다.
+    return counter
+```
+
+```bash
+if the pixel(x,y) is outside the grid:
+    the result is 0;
+else if pixel(x,y) is not an image pixel or already counted
+    the result is 0;
+else
+    set the color of the pixel (x,y) to red colour;
+    the result is 1 plus the number of cells in each piece of the blob that includes a nearest neighbour;
+```
+
+```java
+private static int BACKGROUND_COLOR =0;
+private static int IMAGE_COLOR =1;
+private static int ALREADY_COUNTED =2;
+
+public int countCells(int x,int y){
+    int result;
+    if(x<0 || x>=N || y<0 || y>= N)
+        return 0;
+    else if (grid[x][y] != IMAGE_COLOR)
+        return 0;
+    else{
+        grid[x][y] = ALREADY_COUNTED;
+        return 1+countCells(x-1,y+1)+countCells(x,y+1)+countCells(x+1,y+1)+countCells(x-1,y)+countCells(x+1,y) + countCells(x-1,y-1)+countCells(x,y-1)+countCells(x+1,y-1)
+    }
+}
+```
+
+## n queens problem
+
+N*N 크기의 체스보드 하나가 주어진다.
+N개의 말을 놓을 것인데, 어떤 두 말도 동일한 열이나 행에 놓으면 안된다.
+
+* 상태공간트리
+  * 해가 존재한다면 그것은 반드시 이 트리의 어떤 한 노드에 해당함
+  * 따라서 이 트리를 체계적으로 탐색하면 해를 구할 수 있다.
+  * 상태공간 트리의 모든 노드를 탐색해야 하는 것은 아님
+
+상태공간트리를 깊이 우선 탐색 방식으로 탐색하여 해를 찾는다. 이러한 방식을 BackTracking이라 한다.
+### Design Recursion
+```java
+int [] cols = new int [N+1]
+return-type queens(arguments)
+{
+    if non-promising
+        report failure and return;
+    else if success
+        report answer and return;
+    else
+        visit children recursively
+}
+```
+매개 변수는 내가 현재 노드에 도착했다고 생각하라
+오퍼레이션 내의 코드는 현재 노드에서 해야할 일이 기술되어있다.
+
+argument는 내가 어느 위치의 노드인지 알려줘야한다.
+
+위의 코드는 cols 배열의 인덱스 0부터 노드들의 위치가 저장되어 있다.
+
+```java
+int [] cols = new int[N+1];
+boolean queens(int level){
+    if (!promising(level))
+        return false;
+    else if (level==N)
+        return true;
+    else
+        for (int i=1;i<=N; i++){
+            cols[level+1] = i;
+            if(queens(level+1))
+                return true;
+        }
+        return false;
+}
+boolean promising(int level){
+    for (int i=1;i<level;i++){
+        if (cols[i]==cols[level])
+            return false;
+        else if (level-i==Math.abs(cols[level]-cols[i]))
+            return false;
+    }
+    return true;
+}
+```
+
+## Powerset(멱집합)
+
+* {a,b,c,d,e,f}모든 부분 집합을 나열하려면
+  * a를 제외한 {a,b,c,d,e,f}의 모든 부분 집합들을 나열하고
+  * {b,c,d,e,f}의 모든 부분집합에 {a}를 추가한 집합들을 나열한다
+  * 이걸 반복하면 순환 논리로 멱집합을 구할 수 있겠다
+
+크기가 1 줄어든 부분 집합의 모든 부분 집합을 구해서 계속 추가해 나가는 것이다.
+
+```sudo
+powerSet(S)
+if S is an empty set
+    print nothing;
+else
+    let t be the first element of S;
+    find all subsets of S-{t} by calling powerSet(S-{t})
+    print the subsets;
+    print the subsets with adding t;
+```
+
+* powerSet이 리턴하기보단 출력하고 끝내버리는게 깔끔하다.
+  * 하지만 이의 경우 t가 더해진 경우의 부분 집합을 구할 때 에러 사항 발생한다
+
+```sudo
+powerSet(P,S)
+if S is an empty SET
+    print p;
+else
+    let t be the first element of s;
+    powerSet(P,S-{t}) // t 포함 x
+    powerSet(P v {t},S-{t}) // t 포함
+```
+
+```java
+private static char data[] = {'a','b','c','d','e','f'}
+private static int n=data.length;
+private static boolean [] include = new boolean [n];
+
+public static void powereSet(int k){
+    if (k==n){
+        for (int i=0; i<n; i++)
+            if (include[i]){
+                System.out.print(data[i]+ " ")
+            }
+        System.out.println();
+        return;
+    }
+    include[k]=false;
+    powerSet(k+1);
+    include[k]=true;
+    powerSet(k+1);
+}
+```
+* 상태 공간 트리를 보면 이해가 훨 쉬움
+
+```python
+data = ['a','b','c','d','e','f']
+n = len(data)
+include = [ False for _ in range(n)]
+
+def powerset(k:int):
+    if k==n:
+        for i in range(n):
+            if include[i]:
+                print(data[i],end=' ')
+    include[k]= True
+    powerset(k+1)
+    include[k] = False
+    powerset(k+1)
+powerset(0)
+```
+
+### 상태 공간 트리
+
+* 해를 찾기 위해 탐색할 필요가 있는 모든 후보들을 포함하는 트리
+* 트리의 모든 노드들을 방문하여 해를 찾을 수 있다.
+* 루트에서 출발하여 체계적으로 모든 노드를 방문하는 절차를 기술한다.
+
+---
+
+*2022-01-14에 [GitHub TIL](https://github.com/GoBeromsu/Wiggle-TIL/blob/master/Algorithm/1.%EC%88%9C%ED%99%98.md)에 쓴 글을 옮겼습니다.*

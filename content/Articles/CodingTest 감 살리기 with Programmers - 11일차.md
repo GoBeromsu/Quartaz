@@ -9,11 +9,11 @@ tags:
 title: "CodingTest 감 살리기 with Programmers - 11일차"
 ---
 
-# CodingTest 감 살리기 with Programmers
+## CodingTest 감 살리기 with Programmers
 
 - 코딩 테스트를 준비 하게 되어서, 기본적인 문법도 되짚고, 감을 되찾기 위해 시작합니다
 
-## 예산
+### 예산
 
 ```python
 def solution(d, budget):
@@ -27,7 +27,7 @@ def solution(d, budget):
     return answer
 ```
 
-## 소수 만들기
+### 소수 만들기
 
 ```python
 import itertools
@@ -46,7 +46,7 @@ def solution(nums):
     return answer
 ```
 
-## 부족한 금액 계산하기
+### 부족한 금액 계산하기
 
 ```python
 def solution(price, money, count):

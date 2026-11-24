@@ -9,11 +9,11 @@ tags:
 title: "CodingTest 감 살리기 with Programmers - 1일차"
 ---
 
-# CodingTest 감 살리기 with Programmers
+## CodingTest 감 살리기 with Programmers
 
 - 코딩 테스트를 준비 하게 되어서, 기본적인 문법도 되짚고, 감을 되찾기 위해 시작합니다
 
-## OX퀴즈
+### OX퀴즈
 
 ```python
 def solution(quiz):
@@ -37,7 +37,7 @@ def calc(var1,var2,c):
   - map 함수의 반환 값은 map 객체여서, 리스트나 튜플 또는 변수랑 값을 매핑해줘야 한다.
   - map(적용 할 함수,반복 할 값) 형태라 생각하자
 
-## 완주하지 못한 선수
+### 완주하지 못한 선수
 
 ```python
 from collections import defaultdict
@@ -58,7 +58,7 @@ def solution(participant, completion):
 - `[k for k,v in dic.items() if v>0]` : value로 key 값 찾는 방법
   - if 조건으로 원하는 값을 판별 할 수 있다.
 
-## 같은 숫자는 싫어
+### 같은 숫자는 싫어
 
 ```python
 def solution(arr):

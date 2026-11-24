@@ -9,9 +9,9 @@ tags:
 title: "Hexo 블로그 오류 해결"
 ---
 
-# Hexo Blog Error 해결
+## Hexo Blog Error 해결
 
-## Category && tags 화면 렌더링 오류
+### Category && tags 화면 렌더링 오류
 
 ```md
 title: tags
@@ -23,7 +23,7 @@ type: "tags"
   - 페이지를 만들 때 scaffold 양식 그대로 만들기 때문이다
 - category도 똑같은 방식대로 해결하면 된다
 
-## Github 배포 안됨
+### Github 배포 안됨
 
 - git 모듈이 설치가 안되어 있어서 그런 것이다. 그냥 설치하면 된다.
 
@@ -31,7 +31,7 @@ type: "tags"
 $ npm install --save hexo-deployer-git
 ```
 
-## 이미지 렌더링 안될 때
+### 이미지 렌더링 안될 때
 
 * 로컬 서버에서는 이미지가 보이는데, 배포하면 이미지가 404 not found가 뜨는 오류가 있었다.
 * 이미지 확장자를 대문자 JPG로 했었는데, jpg로 바꾸니까 오류 해결

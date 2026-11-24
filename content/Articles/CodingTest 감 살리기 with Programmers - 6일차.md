@@ -9,11 +9,11 @@ tags:
 title: "CodingTest 감 살리기 with Programmers - 6일차"
 ---
 
-# CodingTest 감 살리기 with Programmers
+## CodingTest 감 살리기 with Programmers
 
 - 코딩 테스트를 준비 하게 되어서, 기본적인 문법도 되짚고, 감을 되찾기 위해 시작합니다
 
-## 타겟 넘버
+### 타겟 넘버
 
 ```python
 from collections import deque
@@ -40,7 +40,7 @@ def solution(numbers, target):
 ```
 
 - BFS로 풀어야 한다는 느낌이 오는 문제였다.
-  - 해당 문제는 타겟과 같은 갯수가 몇개인가 카운트 하는 것이다
+  - 해당 문제는 타겟과 같은 개수가 몇개인가 카운트 하는 것이다
   - BFS 특성 상 형제 노드 탐색이 끝나고 아래 자식 노드들을 탐색하기에 알맞을거라 생각이 들었다
 
 ---

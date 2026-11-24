@@ -14,7 +14,7 @@ title: "LLM 이해를 위한 흐름 파악"
 
 생성형 AI 관련해서 졸업 논문 주제가 선정이 되어서, 먼저 생성형 AI 전반에 대한 핵심 개념을 탑다운 방식으로 정리하고자 합니다. 구체적으로는 [Deep Learning](https://medium.com/Deep%20Learning)에서 출발해 [Transformer](https://medium.com/Transformer) 기반 구조를 살펴보고, 나아가 [Large Language Model](https://medium.com/Large%20Language%20Model)로 이어지는 주요 기술사와 그 이면의 핵심 아이디어를 체계적으로 검토할 것입니다. 이를 통해 생성형 AI에 대한 이론적 토대를 다지고, 앞으로 진행할 연구 과정에서 보다 구체적인 주제를 효율적으로 선정하고자 합니다.
 
-### Intro
+## Intro
 
 ![](/_attachments/medium-f4e48a096178-02.jpg)
 

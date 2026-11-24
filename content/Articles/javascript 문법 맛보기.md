@@ -56,7 +56,6 @@ console.log(b);
   - let처럼 바뀔 수 있음
 - 첫 사용은 const, 필요할 때만 let!
 
-
 ## 연산자
 
 - = : 대입 연산자
@@ -116,7 +115,6 @@ const daysOfWeek = ["mon", "true", "sun", true, something];
 
 - indexing
   - daysOfWeek[2] --> sun
-
 
 ### 배열 가지고 놀아보기
 

@@ -11,7 +11,7 @@ tags:
 title: "BlindTok (2) - 프로젝트 CI 구성"
 ---
 
-# Intro. CI/CD는 필수 - Stress 탈출하자!
+## Intro. CI/CD는 필수 - Stress 탈출하자!
 
 협업을 하다보면, github 프로젝트가 실행 되지 않는 코드를 합침으로써 터지는 경우가 발생한다.
 
@@ -21,7 +21,7 @@ title: "BlindTok (2) - 프로젝트 CI 구성"
 이 문제를 깃허브 액션을 통해 해결하고자 한다  
 배포까지는 고려하지 않고, 일단 CI 구성해서 사용하다가 확장해 나갈 것이다
 
-## Github Action 구성 - 정말 CI 인가?
+### Github Action 구성 - 정말 CI 인가?
 
 CI/CD는 지속적 통합(Continuous Integration)과 지속적 배포(Continuous Deployment)의 약자로, 개발자들이 지속적으로 코드를 통합하고 배포하는 과정을 의미한다.
 
@@ -32,7 +32,7 @@ CI/CD는 지속적 통합(Continuous Integration)과 지속적 배포(Continuous
 하지만 이 워크플로우는 CD에 해당하지 않는다.  
 CD는 코드가 무사히 통합되면 자동으로 배포하는 과정인데, 제공된 워크플로우에는 배포 과정이 없어서 CD라고 볼 수 없다.
 
-### worklow 내용
+#### worklow 내용
 
 우리 프로젝트는 front/backend로 디렉터리를 나눠 개발을 하고 있다  
 그래서. 프론트/백엔드의 각 프로젝트가 실행 되는지 체크를 한다
@@ -51,7 +51,7 @@ worklow 실행 시 각 프로젝트의 라이브러리를 설치하고
 PR을 생성하면, 아래와 같이 workflow가 생성 되는 것을 알 수 있다  
 ![PR 화면에서 CI/CD Workflow / build (16.x) 체크가 통과한 모습](/_attachments/tistory-97-03.png)
 
-### workflow 코드
+#### workflow 코드
 
 ```yaml
 name: CI/CD Workflow

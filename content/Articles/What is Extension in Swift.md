@@ -17,7 +17,7 @@ In Swift, an `extension` is a powerful feature that allows you to add new functi
 
 This is example of extension.
 
-```
+```swift
 extension TimeModel {
     var timeFormatted: String {
         let minutes = timeRemaining / 60
@@ -45,7 +45,7 @@ Inside the computed property:
 
 ## Purpose
 
-In Swift, an \`extension\` is a feature that allows you to add new functionality to an existing class, structure, enumeration, or protocol type. This includes adding computed properties, methods, initializers, and even conforming to protocols. The primary purpose of extensions is to extend the capabilities of existing types without modifying their original source code.
+In Swift, an `extension` is a feature that allows you to add new functionality to an existing class, structure, enumeration, or protocol type. This includes adding computed properties, methods, initializers, and even conforming to protocols. The primary purpose of extensions is to extend the capabilities of existing types without modifying their original source code.
 
 The purpose of this extension is to add a computed property `timeFormatted` to the `TimeModel` type. This property provides a string representation of the remaining time in a formatted "MM:SS" format.
 
@@ -53,7 +53,7 @@ The purpose of this extension is to add a computed property `timeFormatted` to t
 
 Assuming `timeRemaining` is a property of `TimeModel`, you can use the `timeFormatted` property like this:
 
-```
+```swift
 let timeModel = TimeModel()
 timeModel.timeRemaining = 125 // for example
 print(timeModel.timeFormatted) // Output: "02:05"

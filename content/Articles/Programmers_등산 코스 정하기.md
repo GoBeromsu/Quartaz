@@ -48,7 +48,7 @@ XX산의 지점 수 `n`, 각 등산로의 정보를 담은 2차원 정수 배열
 이때, `intensity`가 최소가 되는 등산코스에 포함된 산봉우리 번호와 `intensity`의 최솟값을 차례대로 정수 배열에 담아 return 하도록 solution 함수를 완성해주세요.  
 `intensity`가 최소가 되는 등산코스가 여러 개라면 그중 산봉우리의 번호가 가장 낮은 등산코스를 선택합니다.
 
-# 제한사항
+## 제한사항
 
 - 2 ≤ `n` ≤ 50,000
 - `n` - 1 ≤ `paths`의 길이 ≤ 200,000
@@ -69,7 +69,7 @@ XX산의 지점 수 `n`, 각 등산로의 정보를 담은 2차원 정수 배열
 - 임의의 두 지점 사이에 이동 가능한 경로가 항상 존재합니다.
 - return 하는 배열은 `[산봉우리의 번호, intensity의 최솟값]` 순서여야 합니다.
 
-# 풀이
+## 풀이
 
 ```python
 from collections import defaultdict
@@ -122,7 +122,7 @@ def solution(n, paths, gates, summits):
     return get_min_intensity()
 ```
 
-## 1. 필요한 라이브러리 임포트
+### 1. 필요한 라이브러리 임포트
 
 ```python
 from collections import defaultdict
@@ -132,7 +132,7 @@ from heapq import heappop, heappush
 - `defaultdict`: 사전 기본값을 사용하여 존재하지 않는 키에 대한 조회시 기본값을 제공하는 딕셔너리입니다. 이를 통해 그래프를 구현합니다.
 - `heappop`, `heappush`: 우선순위 큐 구현을 위해 사용됩니다. `heappop`은 가장 작은 요소를, `heappush`는 요소를 큐에 삽입합니다.
 
-## 2. Solution 함수 정의
+### 2. Solution 함수 정의
 
 ```python
 def solution(n, paths, gates, summits):
@@ -144,7 +144,7 @@ def solution(n, paths, gates, summits):
 - `gates`: 출입구의 번호를 담은 리스트입니다.
 - `summits`: 산봉우리의 번호를 담은 리스트입니다.
 
-## 3. get_min_intensity 함수 정의
+### 3. get_min_intensity 함수 정의
 
 ```python
     def get_min_intensity():
@@ -164,7 +164,7 @@ def solution(n, paths, gates, summits):
 - `pq`: 현재 위치와 그 위치까지의 `intensity`를 저장하는 우선순위 큐입니다.
 - `visited`: 각 노드까지의 최소 `intensity`를 저장하는 배열입니다.
 
-## 4. 다익스트라 알고리즘 실행
+### 4. 다익스트라 알고리즘 실행
 
 ```python
         while pq:
@@ -182,7 +182,7 @@ def solution(n, paths, gates, summits):
 - [다익스트라 알고리즘(Dijkstra’s Algorithm)](https://berom.tistory.com/185)을 사용하여 각 노드까지의 최소 `intensity`를 계산합니다.
 - 산봉우리에 도달하거나, 현재 `intensity`가 기록된 `intensity`보다 크면 더 이상 탐색하지 않습니다.
 
-## 5. 최소 Intensity 산봉우리 선택
+### 5. 최소 Intensity 산봉우리 선택
 
 ```python
         # 구한 intensity 중 가장 작은 값 반환
@@ -198,7 +198,7 @@ def solution(n, paths, gates, summits):
 - 구한 `intensity` 중 가장 작은 값을 가진 산봉우리를 선택합니다.
 - `intensity`가 같은 경우, 번호가 더 낮은 산봉우리를 선택합니다.
 
-## 6. 그래프 및 초기 설정
+### 6. 그래프 및 초기 설정
 
 ```python
     summits.sort()
@@ -218,7 +218,7 @@ def solution(n, paths, gates, summits):
 
 이와 같은 절차를 따라 코드는 각 출입구에서 출발하여 산봉우리까지의 최소 `intensity` 경로를 찾고, 그 중에서도 최소 `intensity`를 가진 산봉우리를 효율적으로 찾아냅니다.
 
-## 고도화
+### 고도화
 
 ```python
 from collections import defaultdict
@@ -257,7 +257,7 @@ def solution(n, paths, gates, summits):
     return answer
 ```
 
-# 복습
+## 복습
 
 ---
 

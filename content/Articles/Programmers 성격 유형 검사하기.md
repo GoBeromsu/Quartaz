@@ -9,7 +9,7 @@ tags:
 title: "Programmers 성격 유형 검사하기"
 ---
 
-# 문제
+## 문제
 
 나만의 카카오 성격 유형 검사지를 만들려고 합니다.  
 성격 유형 검사는 다음과 같은 4개 지표로 성격 유형을 구분합니다. 성격은 각 지표에서 두 유형 중 하나로 결정됩니다.
@@ -61,7 +61,7 @@ title: "Programmers 성격 유형 검사하기"
 
 질문마다 판단하는 지표를 담은 1차원 문자열 배열 `survey`와 검사자가 각 질문마다 선택한 선택지를 담은 1차원 정수 배열 `choices`가 매개변수로 주어집니다. 이때, 검사자의 성격 유형 검사 결과를 지표 번호 순서대로 return 하도록 solution 함수를 완성해주세요.
 
-# 제한사항
+## 제한사항
 
 - 1 ≤ `survey`의 길이 ( = `n`) ≤ 1,000
 
@@ -83,14 +83,14 @@ title: "Programmers 성격 유형 검사하기"
 | 6 | 동의 |
 | 7 | 매우 동의 |
 
-## 입출력 예
+### 입출력 예
 
 | survey | choices | result |
 | --- | --- | --- |
 | `["AN", "CF", "MJ", "RT", "NA"]` | [5, 3, 2, 7, 5] | `"TCMA"` |
 | `["TR", "RT", "TR"]` | [7, 1, 3] | `"RCJA"` |
 
-## 풀이
+### 풀이
 
 ```python
 def solution(survey, choices):
@@ -116,7 +116,7 @@ def solution(survey, choices):
     return answer
 ```
 
-### 최적화 된 코드
+#### 최적화 된 코드
 
 ```python
 def solution(survey, choices):

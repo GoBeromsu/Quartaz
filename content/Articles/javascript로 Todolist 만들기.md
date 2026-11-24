@@ -10,9 +10,9 @@ title: "javascript로 Todolist 만들기"
 
 ![cover](/_attachments/ghio-javascript-todolist-01.jpg)
 
-# 코드 리뷰
+## 코드 리뷰
 
-## index html && css
+### index html && css
 
 ```html
 <!DOCTYPE html>
@@ -48,7 +48,7 @@ title: "javascript로 Todolist 만들기"
 }
 ```
 
-### 새로 알게 된 것들
+#### 새로 알게 된 것들
 
 - html에서 class 선언 할 때 nickname을 쓸 수 있다
   ```html
@@ -72,12 +72,12 @@ title: "javascript로 Todolist 만들기"
   <link rel="stylesheet" href="index.css" />
   ```
 
-## javascript
+### javascript
 
 - 기능 별로 js파일을 나눈 후 파일 안에서도 function 분할을 하여 코드를 간결히 하라
   - 객체의 중요성이라 생각한다
 
-### clock.js
+#### clock.js
 
 ```javascript
 const clockContainer = document.querySelector(".js-clock"),
@@ -96,7 +96,7 @@ function init() {
 init();
 ```
 
-#### 새로 알게 된 것들
+##### 새로 알게 된 것들
 
 - javascript에서 html에 접근하는 것도 crawler와 다르지 않다
   - document가 index.html의 정보를 객체로 긁어오면 그 정보를 토대로 이벤트를 발생시키는 것이 기본 개념
@@ -105,7 +105,7 @@ init();
   - 실행시킬 함수와 함수를 다시 실행시킬 간격을 인수로 받는다
 - ,를 잘사용하자 코드의 가독성이 올라간다
 
-### greeting.js
+#### greeting.js
 
 ```javascript
 const form = document.querySelector(".js-form"),
@@ -137,7 +137,7 @@ function init() {
 init();
 ```
 
-#### 새로 알게 된 것들
+##### 새로 알게 된 것들
 
 - html, javascript, css의 연결 방식
   1. javascript에서 document로 html 소스를 읽고 객체로 만든다

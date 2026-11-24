@@ -9,11 +9,11 @@ tags:
 title: "CodingTest 감 살리기 with Programmers - 2일차"
 ---
 
-# CodingTest 감 살리기 with Programmers
+## CodingTest 감 살리기 with Programmers
 
 - 코딩 테스트를 벼락치기 하게 되어서, 기본적인 문법도 되짚고, 감을 되찾기 위해 시작합니다
 
-## K번째수
+### K번째수
 
 ```python
 def solution(array, commands):
@@ -26,9 +26,9 @@ def solution(array, commands):
     return answer
 ```
 
-## 기능 개발
+### 기능 개발
 
-### 머리 박아식 풀이
+#### 머리 박아식 풀이
 
 ```python
 def solution(progresses, speeds):
@@ -56,7 +56,7 @@ def calc(x):
 
 - 일단 마지막 하나를 통과하지 못했고, 선형 탐색을 하지만, 큐나 스택을 전혀 사용하지 않은 주먹구구식 풀이임
 
-### 진짜 풀이
+#### 진짜 풀이
 
 - 접근
   - 선형 탐색을 해서 하나씩 어차피 증가시켜야 함
@@ -98,7 +98,7 @@ def calc(x):
 
 - `from colletions import deque` : deque를 불러오기 위해 사용함
 
-## 최소 직사각형
+### 최소 직사각형
 
 ```python
 def solution(sizes):
@@ -123,7 +123,7 @@ def solution(sizes):
 
 - 명함을 돌릴 수 있으므로. 긴 면과 짧은 면을 분리하면서 최대 값을 조회한다.
 
-## 전화부 목록
+### 전화부 목록
 
 ```python
 def solution(phone_book):
@@ -141,7 +141,7 @@ def solution(phone_book):
 
 - 하나씩 슬라이싱해서 비교하는 아이디어는 유효했지만, hash를 생각하지 않고 푸니 시간 초과 발생
 
-### 레퍼런스
+#### 레퍼런스
 
 - [Programmers 해시 전화번호 목록](https://coding-grandpa.tistory.com/86)
 

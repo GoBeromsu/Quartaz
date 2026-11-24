@@ -9,11 +9,11 @@ tags:
 title: "CodingTest 감 살리기 with Programmers - 5일차"
 ---
 
-# CodingTest 감 살리기 with Programmers
+## CodingTest 감 살리기 with Programmers
 
 - 코딩 테스트를 준비 하게 되어서, 기본적인 문법도 되짚고, 감을 되찾기 위해 시작합니다
 
-## 가장 큰수
+### 가장 큰수
 
 ```python
 def solution(numbers):
@@ -26,7 +26,7 @@ def solution(numbers):
   - 이 때 문자열로 변환한 문자열을 3번 곱해서 정렬하면 34,3,30으로 정렬이 된다
   - 이 방법은 경험적으로 발견된 방법이라고 한다.
 
-## 다리를 지나는 트럭
+### 다리를 지나는 트럭
 
 ```python
 from collections import deque

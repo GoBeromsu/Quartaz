@@ -37,7 +37,7 @@ range()는 파이썬 기본 내장(built_in) 함수이다.
 
 ## enumerate()
 
-enumerate는 "열거하다"란 뜻이다. 
+enumerate는 "열거하다"란 뜻이다.
 enumerate()는 아래와 같이 (sequence,count) 형태로 열거 객체를 튜플로 반환한다.
 
 ```python

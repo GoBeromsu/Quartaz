@@ -58,8 +58,8 @@ express를 사용하는 사람도 똑같이 express에 미들웨어를 붙이듯
 
 ## withCredentials : True
 
-해답은 withCredentials 설정에 있었다 `withCredentials` 옵션은 일종의 인증서이다.  
-**서로 다른 도메인**(크로스 도메인)에 요청을 보낼 때 요청에 `credential` 정보를 담아서 보낼 지를 결정한다
+해답은 withCredentials 설정에 있었다 `withCredentials` 옵션은 일종의 인증서이다.  
+**서로 다른 도메인**(크로스 도메인)에 요청을 보낼 때 요청에 `credential` 정보를 담아서 보낼 지를 결정한다
 
 서로 다른 서버에서 데이터가 오가는 CORS에서는 양측 서버에 credentials 설정을 true로 바꿔줘야 한다.
 

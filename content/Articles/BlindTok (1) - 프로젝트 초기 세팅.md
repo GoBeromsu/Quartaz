@@ -11,15 +11,15 @@ tags:
 title: "BlindTok (1) - 프로젝트 초기 세팅"
 ---
 
-# BlindTok (1) - 프로젝트 init
+## BlindTok (1) - 프로젝트 init
 
 원활한 협업을 하기 위해서는 프로젝트 초반에 코드 린트나 커밋 규칙 등을 잘 정의하고 가는 것이 중요합니다
 
 졸업 프로젝트인 BlindTok를 만들기에 앞서 프로젝트 초기 설정을 어떻게 하였는지 공유하기 위해 기록합니다
 
-## 1. Code Format 및 Git ignore 파일 설정
+### 1. Code Format 및 Git ignore 파일 설정
 
-### Prettier : 코드 포맷터
+#### Prettier : 코드 포맷터
 
 Prettier는 코드 포맷터로, 프로젝트에서 사용하는 코딩 스타일을 일관되게 유지하는 데 도움을 줍니다.  
 `.prettierrc` 파일을 사용하여 프로젝트별 Prettier 설정을 지정할 수 있습니다.  
@@ -38,7 +38,7 @@ Prettier는 코드 포맷터로, 프로젝트에서 사용하는 코딩 스타�
 }
 ```
 
-### .gitignore : Git ignore 파일 설정
+#### .gitignore : Git ignore 파일 설정
 
 `.gitignore`: Git에서 무시할 파일과 디렉토리 목록을 포함하는 파일입니다.  
 프로젝트를 개발하면서, 버전 관리에 포함시키지 않아야 하는 파일이나 디렉토리가 있습니다.
@@ -47,7 +47,7 @@ Prettier는 코드 포맷터로, 프로젝트에서 사용하는 코딩 스타�
 `.gitignore` 파일에 이러한 파일과 디렉토리를 목록으로 작성하면, Git은 그것들을 추적하지 않고 무시합니다.  
 이를 통해 프로젝트의 불필요한 변경 사항을 제외할 수 있습니다.
 
-## 2. 의존성 관리 툴 및 Typescript 패키지 설치
+### 2. 의존성 관리 툴 및 Typescript 패키지 설치
 
 ```bash
 yarn init
@@ -60,7 +60,7 @@ yarn add nodemon -g // nodemon은 global로 설치합니다
 위의 패키지를 설치하고 tsconfig.path.json과 tsconfig.json을 생성합니다.  
 tsconfig.path는 추후 프로젝트 경로 제어의 용이성을 위해 사용합니다
 
-## 3. nodemon 설정 및 서버 인스턴스 생성
+### 3. nodemon 설정 및 서버 인스턴스 생성
 
 웹 개발 할 때 필수! 핫로딩을 하기 위한 nodemon을 설치하고, nodemon.json을 생성합니다
 
@@ -109,7 +109,7 @@ async function start() {
 start();
 ```
 
-## 4. Cross-env 설치
+### 4. Cross-env 설치
 
 ```bash
 yarn add cross-env
@@ -143,7 +143,7 @@ export {SERVER_URI, adam};
 
 이 외에도 DB 세팅 등 환경 변수 등을 설정 할 때 유용하게 사용 할 수 있습니다
 
-## 마치며
+### 마치며
 
 이제 프로젝트 기본 설정이 완료 되었습니다
 

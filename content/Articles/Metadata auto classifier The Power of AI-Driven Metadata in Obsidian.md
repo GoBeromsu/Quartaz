@@ -89,3 +89,5 @@ Are you ready to revolutionize your approach to knowledge organization? Give the
 ---
 
 *2024-10-12에 [Medium](https://beromkoh.medium.com/metadata-auto-classifier-the-power-of-ai-driven-metadata-in-obsidian-efae0ffc7f4e)에 쓴 글을 옮겼습니다.*
+
+관련: [[Metadata Auto Classifier]]

@@ -19,10 +19,14 @@ Swift Entry point description
 
 I started studying Swift because I want to make my own macOS app during my master’s course. Today is the first day. I will show you how the basic Swift template is structured:
 
-```
+```swift
 // pomoApp.swift
-// pomoimport SwiftUI
-import SwiftData@main
+// pomo
+
+import SwiftUI
+import SwiftData
+
+@main
 struct pomoApp: App {
   var body: some Scene {
           WindowGroup {
@@ -71,7 +75,7 @@ The `App` protocol is provided by SwiftUI and represents the structure and behav
 
 Here’s an example with more than one view:
 
-```
+```swift
 import SwiftUI
 import SwiftData
 

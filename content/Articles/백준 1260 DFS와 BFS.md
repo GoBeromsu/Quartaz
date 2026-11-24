@@ -14,8 +14,6 @@ title: "백준 1260 DFS와 BFS"
 https://documentation.divio.com/tutorials/
 -->
 
-# 백준 1260 DFS와 BFS
-
 ## 문제
 
 ## 풀이

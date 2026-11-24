@@ -19,9 +19,9 @@ title: "Jekyll set up"
 * github에 포스트를 커밋하고 블로그를 직접확인하는 것도 좋지만 너무 느려서 local에서 실행해서 확인하는게 훠얼씬 편하다
 
 1. git bash를 로컬 repo에서 실행
-2. jeykll 관련 install
+2. jekyll 관련 install
 
-   ```
+   ```bash
 
    $ gem install jekyll
    $ gem install minima
@@ -45,7 +45,7 @@ title: "Jekyll set up"
 
 jekyll post의 경우에는 yml 형식에 따라 포스트 세부 설정을 할 수 있다.
 
-```
+```yaml
 ---
 title:  "Blog post YML 양식"
 excerpt: ""

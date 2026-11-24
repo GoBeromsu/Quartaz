@@ -14,7 +14,7 @@ title: "AI 시대에 무엇을 해야 할까요"
 
 이 시대에 무엇을 배워야 할지, 무엇을 남겨야 할지에 대한 고민을 시작으로 작성하게 된 글입니다. 시작은 결국 모든 것은 loop 라는 것입니다. Harness engineering 과 prompt engineering, context engineering 으로 이어지는 흐름은 에이전트가 자율적으로 문제를 해결해 가는 것에 있습니다. 이를 위한 필연적인 Loop 가 필요해집니다.
 
-### 시대 진단: 실행이 싸진 세상
+## 시대 진단: 실행이 싸진 세상
 
 비팩토리의 [Chester Jungseok Roh](https://www.linkedin.com/in/chesterroh/) 대표님은 거의 모든 문제를 compute 기반 search problem 으로 전환할 수 있다고 말씀하십니다. 목표를 정하고 evaluation 을 통과할 때까지 Loop 를 돌리는 것입니다. OpenAI 의 harness-engineering 글이 이를 실증했습니다. 소수의 엔지니어가 agent 에게 실행을 맡기고, 인간은 환경 설계와 피드백 루프에 집중하여 다섯 달 만에 백만 줄의 코드를 만들어 낸 것입니다.
 
@@ -30,7 +30,7 @@ Ralph Loop 의 창시자이자 "automated software factory" 를 주창하는 엔
 
 빅테크 회사의 코드베이스는 모두 비슷한 구조와 아키텍처를 가져갈까요? 그렇지 않습니다. 문제에 따라 구조가 달라지죠. 여기에 갭이 있습니다. 세상은 여전히 복잡하고 풀어야 할 문제는 많고 우리는 연산 능력을 어디에 투여해서 이 문제를 풀 것인가에 집중해야 한다 생각합니다
 
-### 내공과 무술 : 스킬과 시스템의 구분
+## 내공과 무술 : 스킬과 시스템의 구분
 
 무협지에서 수련자는 외부의 무공 비급을 관찰하고, 그 원리를 체화하여 자신의 내공으로 만듭니다. 내공이 깊은 사람은 어떤 무기를 쥐어도 위력이 다르게 나타납니다. 최근에 스킬이라 불리는 것이 무공과 크게 다를 바가 없다는 생각이 듭니다. 이미 웹툰에서도 비슷한 plot 이 쓰이기도 합니다. 스킬로 딸깍 등록해서 누구나 스킬을 사용할 수 있지만, 고생고생해서 무공을 수련하는 사람들이 있죠.
 
@@ -50,15 +50,15 @@ OpenClaw, Claude Code, Codex 에 쥐어지는 스킬은 게임에서의 스킬, 
 
 모든 스킬을 직접 맨땅에 혼자 만드는 것이 아닙니다. 앞선 거인들, 날아가는 신성들의 궤적을 보고, 사용해보고, 내재화해 가는 것입니다.
 
-### 5 대 원칙
+## 5 대 원칙
 
-1\. 모든 문제를 검색의 문제로, 모든 검색을 루프로 만들어라
+### 1. 모든 문제를 검색의 문제로, 모든 검색을 루프로 만들어라
 
 문제가 있으면 그것을 탐색 가능한 구조로 바꾸고, 그 탐색을 반복 가능한 루프로 만듭니다. Harness Engineering 이 말하는 것도 같습니다 — goal-setting, evaluation loop, routing, fallback 같은 deterministic workflow primitives 로 non-deterministic model behavior 를 감싸는 것입니다.
 
 실천에서 이것은: spec 을 쓰고, agent 에게 루프를 돌리게 하고, evaluation 이 통과할 때까지 반복하는 것입니다. "어떻게든 잘 해봐" 가 아니라 "무엇을 목표로 두고 어떻게 통과시킬 것인가" 의 문제로 재정의하는 것입니다.
 
-2\. 나만의 스킬을 쌓아라 — 스킬이 곧 내공이다
+### 2. 나만의 스킬을 쌓아라 — 스킬이 곧 내공이다
 
 이 시대에 필요한 것은 여러 도구를 쓰면서 나만의 도구를 쌓아가는 것이라고 생각합니다. 저 사람은 저것을 썼네, 하면서 나만의 것을 레벨업해가는 것. 무협지에서 자신의 스킬을 쌓아 올리는 것처럼 말입니다.
 
@@ -66,19 +66,19 @@ OpenClaw, Claude Code, Codex 에 쥐어지는 스킬은 게임에서의 스킬, 
 
 Obsidian CLI 하나를 써도 저는 디버깅할 때 쓰지만, 또 다른 사람은 다른 철학으로 쓸 수 있는 것이죠. 하나의 CLI 에서 여러 스킬이 파생할 수도 있습니다.
 
-3\. Spec 이 루프의 질을 결정한다
+### 3. Spec 이 루프의 질을 결정한다
 
 루프를 돌리는 데는 자세한 spec 이 중요함을 배웁니다. Ralph Loop 이든 autopilot 이든, 들어가는 spec 의 질이 나오는 결과의 질을 결정합니다. Harness Engineering 이 강조하는 것도 이것입니다 — 목표가 안정화되면 loop 가 혼돈을 제거하고 결과를 정제하게 됩니다.
 
 좋은 spec 을 만들기 위해서 Google 에서 [DESIGN.md](http://DESIGN.md) 를 만들고, OpenAI 에서 docs/ 아래에 대규칙들을 모아둔 것이라 이해합니다. 자신의 철학을 기록하고 반복 참조시키는 것이죠. Spec 은 일회성 문서가 아니라 축적된 판단의 결정체입니다.
 
-4\. 대원칙을 체화하되, 위반의 이유를 설명할 수 있어야 한다
+### 4. 대원칙을 체화하되, 위반의 이유를 설명할 수 있어야 한다
 
 대원칙이 있습니다. 하지만 세상은 복잡합니다. 대원칙을 위반하는 상황이 올 때, **왜 위반할 수 있는지도 설명할 수 있어야 합니다.** 이것이 원칙을 "아는 것" 과 "체화한 것" 의 차이입니다.
 
 OpenAI 는 "enforce boundaries centrally, allow autonomy locally" 라고 표현했습니다. 경계를 중앙에서 강제하되, 그 안에서는 자유를 허용합니다. 원칙은 감옥이 아니라 지도입니다. 지도를 읽을 줄 아는 사람만이 지도에 없는 길도 갈 수 있습니다.
 
-5\. Dogfooding 이 유일한 Antifragile 경로다
+### 5. Dogfooding 이 유일한 Antifragile 경로다
 
 ![Article content](/_attachments/linkedin-7449116233691607040-02.png)
 
@@ -86,7 +86,7 @@ OpenAI 는 "enforce boundaries centrally, allow autonomy locally" 라고 표현�
 
 Huntley 가 말한 것처럼: "watch the loop — that is where your personal development and learning will come from." 루프를 지켜보는 것, failure domain 을 발견하고 다시는 발생하지 않도록 해결하는 것. 이 반복이 스킬을 fragile 에서 antifragile 하게 만듭니다.
 
-### 수련의 과정
+## 수련의 과정
 
 수련은 세 단계로 이루어집니다:
 
@@ -96,7 +96,7 @@ Huntley 가 말한 것처럼: "watch the loop — that is where your personal de
 
 이 과정에서 중요한 것은 속도가 아니라 방향입니다. 실행은 이미 싸졌습니다. 비싼 것은 **어떤 문제에 compute 와 시간을 넣어야 하는지 가려내는 평가 기준** — 즉, 수련자의 안목입니다.
 
-### References
+## References
 
 - [Everything is a Ralph Loop — Geoffrey Huntley](https://ghuntley.com/loop/)
 - [Harness engineering: leveraging Codex in an agent-first world — OpenAI](https://openai.com/index/harness-engineering/)

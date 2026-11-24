@@ -9,11 +9,11 @@ tags:
 title: "CodingTest 감 살리기 with Programmers - 10일차"
 ---
 
-# CodingTest 감 살리기 with Programmers
+## CodingTest 감 살리기 with Programmers
 
 - 코딩 테스트를 준비 하게 되어서, 기본적인 문법도 되짚고, 감을 되찾기 위해 시작합니다
 
-## 크레인 인형 뽑기
+### 크레인 인형 뽑기
 
 ```python
 from collections import deque
@@ -42,7 +42,7 @@ def solution(board, moves):
 - 로직은 처음 순회하면서 제시된 문제의 세로 축 하나를 큐라 생각하고 넣는다. 그러고 바구니에 값을 하나씩 넣어서 터치는 문제이다
 - 위의 코드에서 실행 시간을 더 줄이려면, 처음 탐색을 하면서 동시에 바구니를 확인해서 일치하면 터뜨리는 식으로 할 수 있다
 
-## 실패율
+### 실패율
 
 ```python
 from collections import defaultdict
