@@ -261,7 +261,7 @@ plugins:
               - label: "Obsidian plugins"
                 cards:
                   - title: "Metadata Auto Classifier"
-                    body: "LLM으로 노트의 메타데이터를 자동 분류합니다. 하나의 프로바이더 계층으로 10개 LLM 프리셋을 지원합니다. Technology Hits의 2024-11 플러그인 리뷰 기사에 소개됐습니다."
+                    body: "LLM으로 노트의 메타데이터를 자동 분류합니다. 하나의 프로바이더 계층으로 10개 LLM 프리셋을 지원합니다."
                     href: "https://github.com/GoBeromsu/obsidian-metadata-auto-classifier"
                     meta: "★ 59 · ↓ 8,912 · 2024.09 –"
                   - title: "Open Connections"
@@ -337,6 +337,16 @@ plugins:
                   - title: "obsidian-tistory-plugin"
                     href: "https://github.com/anpigon/obsidian-tistory-plugin/pull/4"
                     meta: "merged · #4"
+              - label: "Featured in"
+                cards:
+                  - title: "Obsidian Plugins Review — 83"
+                    body: "Nuno Campos의 플러그인 리뷰 연재가 새 플러그인으로 Metadata Auto Classifier를 다뤘습니다."
+                    href: "https://medium.com/technology-hits/obsidian-plugins-review-83-b9a59351199d"
+                    meta: "Technology Hits (Medium) · 2024.11.12"
+                  - title: "Obsidian Plugin Updates"
+                    body: "Ganessh Kumar R P의 주간 뉴스레터가 신규 플러그인으로 Metadata Auto Classifier를 소개했습니다."
+                    href: "https://obsidianpluginstats.substack.com/p/obsidian-plugin-updates-2024-10-26"
+                    meta: "Obsidian Plugin Stats · 2024.11.02"
           - id: research
             nav: "연구"
             kicker: "Research"
@@ -542,7 +552,7 @@ plugins:
                   - label: "Obsidian plugins"
                     cards:
                       - title: "Metadata Auto Classifier"
-                        body: "Classifies note metadata with LLMs. One provider layer covers ten LLM presets. Featured in a Technology Hits plugin roundup (2024-11)."
+                        body: "Classifies note metadata with LLMs. One provider layer covers ten LLM presets."
                         href: "https://github.com/GoBeromsu/obsidian-metadata-auto-classifier"
                         meta: "★ 59 · ↓ 8,912 · 2024.09 –"
                       - title: "Open Connections"
@@ -624,6 +634,16 @@ plugins:
                       - title: "obsidian-tistory-plugin"
                         href: "https://github.com/anpigon/obsidian-tistory-plugin/pull/4"
                         meta: "merged · #4"
+                  - label: "Featured in"
+                    cards:
+                      - title: "Obsidian Plugins Review — 83"
+                        body: "Nuno Campos's plugin review series lists Metadata Auto Classifier among the new plugins it covers."
+                        href: "https://medium.com/technology-hits/obsidian-plugins-review-83-b9a59351199d"
+                        meta: "Technology Hits (Medium) · 2024.11.12"
+                      - title: "Obsidian Plugin Updates"
+                        body: "Ganessh Kumar R P's weekly newsletter introduces Metadata Auto Classifier as a new plugin."
+                        href: "https://obsidianpluginstats.substack.com/p/obsidian-plugin-updates-2024-10-26"
+                        meta: "Obsidian Plugin Stats · 2024.11.02"
               - id: research
                 nav: "Research"
                 kicker: "Research"
