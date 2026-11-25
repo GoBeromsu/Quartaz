@@ -328,9 +328,6 @@ plugins:
                     meta: "↓ 34 · 2026.03 –"
               - label: "Obsidian · Quartz tooling"
                 cards:
-                  - title: "agent-skill-deploy"
-                    body: "볼트의 에이전트 스킬을 provider 저장소로 배포하는 Obsidian 플러그인입니다."
-                    href: "https://github.com/GoBeromsu/agent-skill-deploy"
                   - title: "quartz-graph-landing"
                     body: "전체 화면 2D/3D 지식 그래프 랜딩 페이지를 만드는 Quartz v5 플러그인입니다."
                     href: "https://github.com/GoBeromsu/quartz-graph-landing"
@@ -661,9 +658,6 @@ plugins:
                         meta: "↓ 34 · 2026.03 –"
                   - label: "Obsidian · Quartz tooling"
                     cards:
-                      - title: "agent-skill-deploy"
-                        body: "Obsidian plugin that deploys agent skills from a vault to provider repos."
-                        href: "https://github.com/GoBeromsu/agent-skill-deploy"
                       - title: "quartz-graph-landing"
                         body: "Quartz v5 plugin for a full-viewport 2D/3D knowledge-graph landing page."
                         href: "https://github.com/GoBeromsu/quartz-graph-landing"
