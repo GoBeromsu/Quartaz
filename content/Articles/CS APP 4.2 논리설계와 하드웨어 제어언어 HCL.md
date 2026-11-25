@@ -47,11 +47,11 @@ title: "CS:APP 4.2 논리설계와 하드웨어 제어언어 HCL"
 * Mux(HCL 식 표현)
 	* case를 사용해 표현
 
-```c
-[
-select1 : exp:
-]
-```
+	```c
+	[
+	select1 : exp:
+	]
+	```
 
 	* 순차적으로 실행된다
 		* default case를 명시하는 방법

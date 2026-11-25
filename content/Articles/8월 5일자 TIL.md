@@ -17,6 +17,7 @@ def is_offered(courses, course, hexamester):
 출력 값 : true or false
 
 course : Ex. feb2012, apr2012
+
 hexmaster : Ex. cs101, cs212
 
 Dictionary 안에 Dictionary 를 넣음으로써 세부 형태로 데이터 구조를 짤 수 있다. 계속 보다 보니 컴퓨터 과학적 사고 시간에 배운 루트가 떠오른다. 결국 언어가 거기서 거기라는 말이 이런 점에서 기인하는 게 아닌가 싶다.

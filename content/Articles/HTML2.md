@@ -44,16 +44,15 @@ title: "HTML2"
                 * td>       /td>
 
         table row가 순차적으로 table head에 속한다. (층별로)
-    ```html
     * form tag
       type 종류 별로 설명하는 게 빠를 거 같음
-    ```
+      ```html
         <body>
             <form>
                 <input type  = "" name = "" value = "">
             </form>
         </body>
-    ```html
+      ```
         * input type
             * email : @형식 입력
             * password
@@ -61,11 +60,10 @@ title: "HTML2"
             * color : 색깔
             * text  : text
 
-        * <input>
+        * `<input>`
             * type : 형식 입력
             * name : 이름 입력하는데 약간 개발자 헷갈리지 말라 만들ㅇ러 논듯
             * value : type 빈 칸에 미리 들어가 있을 내용? 예시
-```
 
 ---
 

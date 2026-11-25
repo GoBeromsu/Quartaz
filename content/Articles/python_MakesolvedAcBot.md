@@ -25,8 +25,8 @@ https://documentation.divio.com/tutorials/
   * 이름
 
 문제 정보를 받아와서 dictionary에 저장
-    * key : 문제 번호
-    * value : 문제 이름
+* key : 문제 번호
+* value : 문제 이름
 
 ### 데이터
 

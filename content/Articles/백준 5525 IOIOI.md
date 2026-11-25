@@ -28,7 +28,7 @@ I와 O로만 이루어진 문자열 S와 정수 N이 주어졌을 때, S안에 P
 
 * 아래 코드는 50점 짜리 코드이다. 아마 시간 복잡도 때문인듯하다
 
-```PYTHON
+```python
 import sys
 from collections import deque
 

@@ -18,7 +18,7 @@ https://documentation.divio.com/tutorials/
 
 ## 풀이
 
-```PYTHON
+```python
 import sys
 from collections import deque
 

@@ -78,8 +78,8 @@ title: "HTML"
     ```
 
     * Span & div tag
-        * <div> 레이아웃 나눌 때 쓰지만 주로 css 랑 같이 사용함    </div>
-        * <span> 그냥 div랑 p 사이에 쓰는데 주로 스타일 적용할 때 사용 </span>
+        * `<div>` 레이아웃 나눌 때 쓰지만 주로 css 랑 같이 사용함    `</div>`
+        * `<span>` 그냥 div랑 p 사이에 쓰는데 주로 스타일 적용할 때 사용 `</span>`
 
     * attribuates
         *  img src="" alt="" (<>이거 필수인데 적용하니까 코드가 안 보여서 이렇게 했다)

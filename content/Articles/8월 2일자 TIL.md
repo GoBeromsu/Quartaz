@@ -54,7 +54,9 @@ def has_duplicate_element(p):
 ```
 
 for문을 두 번 겹쳐 써서 내장 함수 range를 실행시킨다.
+```python
 range(start,stop,step)
+```
 range(0,len(p))는 리스트를 0부터 p의 길이만큼 늘려 준다.
 
 Mystery
