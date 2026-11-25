@@ -439,11 +439,11 @@ plugins:
                 org: "University of Sheffield"
                 href: "#research"
                 image:
-                  src: "/static/home/net-zero-data-challenge-2025.jpg"
-                  alt: "Beomsu Koh 이름이 적힌 Net Zero Data Challenge Most Impactful Solution 인증서"
-                  caption: "Net Zero Data Challenge 2025 — Most Impactful Solution 인증서"
-                  width: 1200
-                  height: 709
+                  src: "/static/home/net-zero-data-challenge-winners-2025.jpg"
+                  alt: "셰필드 대학교 강의실에서 Most Impactful Solution 인증서를 들고 나란히 선 고범수와 팀원들"
+                  caption: "Net Zero Data Challenge 2025 — Most Impactful Solution 수상"
+                  width: 960
+                  height: 559
               - period: "2018.03 – 2024.08"
                 title: "소프트웨어공학과 학사"
                 org: "전남대학교"
@@ -771,11 +771,11 @@ plugins:
                     org: "University of Sheffield"
                     href: "#research"
                     image:
-                      src: "/static/home/net-zero-data-challenge-2025.jpg"
-                      alt: "Net Zero Data Challenge Most Impactful Solution certificate presented to Beomsu Koh"
-                      caption: "Net Zero Data Challenge 2025 — Most Impactful Solution certificate"
-                      width: 1200
-                      height: 709
+                      src: "/static/home/net-zero-data-challenge-winners-2025.jpg"
+                      alt: "Beomsu Koh and teammates holding their Most Impactful Solution certificates in a University of Sheffield classroom"
+                      caption: "Net Zero Data Challenge 2025 — Most Impactful Solution award"
+                      width: 960
+                      height: 559
                   - period: "2018.03 – 2024.08"
                     title: "BSc in Software Engineering"
                     org: "Chonnam National University"
